@@ -4,21 +4,21 @@
 #include <cstdint>
 
 struct TxInput {
-    std::string prevTxHash; // Hash of previous transaction
-    int outputIndex;        // Which output of the prevTx
-    std::string signature;  // Signed by sender
+    std::string prevTxHash;
+    int outputIndex;
+    std::string signature;
 };
 
 struct TxOutput {
-    uint64_t value;         // Amount in MEDOR
-    std::string address;    // Recipient
+    uint64_t value;
+    std::string address;
 };
 
 class Transaction {
 public:
-    std::string txHash;
     std::vector<TxInput> inputs;
     std::vector<TxOutput> outputs;
+    std::string txHash;
 
-    void calculateHash(); // SHA256 hash of inputs + outputs
+    void calculateHash();
 };
