@@ -1,38 +1,18 @@
-#include <iostream>
 #include "blockchain.h"
-#include "wallet.h"
 #include "miner.h"
-#include "mempool.h"
-#include "network.h"
-#include "config.h"
+#include <iostream>
 
 int main() {
-    std::cout << "Starting " << COIN_NAME << " (" << COIN_SYMBOL << ")" << std::endl;
+    std::string owner = "OWNER_ADDR_ABC";
+    Blockchain medorChain(owner);
 
-    // Initialize blockchain
-    Blockchain medorChain;
+    Miner miner;
 
-    // Create wallets
-    Wallet alice;
-    Wallet bob;
+    miner.mineMedor(medorChain, "MINER_1");
+    miner.mineMedor(medorChain, "MINER_2");
+    miner.mineMedor(medorChain, "MINER_1");
 
-    std::cout << "Alice address: " << alice.address << std::endl;
-    std::cout << "Bob address: " << bob.address << std::endl;
-
-    // Alice sends some Medor to Bob
-    Transaction tx1 = alice.createTransaction(bob.address, 50);
-    Mempool::getInstance().addTransaction(tx1);
-
-    // Mining pending transactions
-    Miner miner(medorChain);
-    miner.minePendingTransactions();
-
-    // Validate blockchain
-    if (Consensus::validateChain(medorChain)) {
-        std::cout << "Blockchain is valid!" << std::endl;
-    } else {
-        std::cout << "Blockchain is invalid!" << std::endl;
-    }
+    medorChain.printChain();
 
     return 0;
 }
