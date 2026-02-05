@@ -1,26 +1,29 @@
-#include "db/blockdb.h"
-...
+#pragma once  // Prevents multiple inclusion automatically
 
-Blockchain::Blockchain(const std::string& ownerAddr)
-    : blockDB()
-{
-    ownerAddress = ownerAddr;
-    medor = 0x1e00ffff;
-    totalSupply = 0;
-    maxSupply = 50000000;
+// or alternatively, if you prefer classic include guards
+/*
+#ifndef BLOCKDB_H
+#define BLOCKDB_H
+*/
 
-    // open LevelDB
-    if (!blockDB.open("data/medorcoin_blocks")) {
-        std::cerr << "Error opening blockchain DB\n";
-    }
+#include <string>
+#include <vector>
+// include other headers you actually need here
+//#include "otherheader.h"   // only include other dependencies, NOT itself
 
-    // load existing blocks from DB if any
-    leveldb::Iterator* it = blockDB.db->NewIterator(leveldb::ReadOptions());
-    for (it->SeekToFirst(); it->Valid(); it->Next()) {
-        Block b;
-        if (blockDB.readBlock(it->key().ToString(), b)) {
-            chain.push_back(b);
-        }
-    }
-    delete it;
-}
+// your class or struct definitions
+class BlockDB {
+public:
+    BlockDB();
+    ~BlockDB();
+
+    void addBlock(const std::string& data);
+    std::string getBlock(int index);
+
+private:
+    std::vector<std::string> blocks;
+};
+
+/*
+#endif // BLOCKDB_H
+*/
