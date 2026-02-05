@@ -1,7 +1,8 @@
 #pragma once
 #include <string>
+#include "blockchain.h"
 
 class Miner {
 public:
-    void mineMedor(class Blockchain &chain, const std::string &minerAddress);
+    void mineMedor(Blockchain &chain, const std::string &minerAddress);
 };
