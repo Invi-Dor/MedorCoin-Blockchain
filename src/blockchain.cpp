@@ -1,36 +1,28 @@
-#include "block.h"
-#include <sstream>
+#pragma once
+
+#include <string>
+#include <vector>
 #include <ctime>
 
-Block::Block()
-    : previousHash(""),
-      data(""),
-      difficulty(0),
-      minerAddress(""),
-      timestamp(time(nullptr)),
-      nonce(0),
-      reward(0),
-      hash("") {}
+struct Transaction; // forward declaration if needed
 
-Block::Block(const std::string& prevHash,
-             const std::string& blockData,
-             unsigned int diff,
-             const std::string& minerAddr)
-    : previousHash(prevHash),
-      data(blockData),
-      difficulty(diff),
-      minerAddress(minerAddr),
-      timestamp(time(nullptr)),
-      nonce(0),
-      reward(0),
-      hash("") {}
+class Block {
+public:
+    std::string previousHash;
+    std::string data;
+    unsigned int difficulty;
+    std::string minerAddress;
+    time_t timestamp;       // correct C++ type from <ctime>
+    unsigned long nonce;
+    unsigned long reward;
+    std::string hash;
+    std::vector<Transaction> transactions;
 
-std::string Block::headerToString() const {
-    std::stringstream ss;
-    ss << previousHash
-       << timestamp
-       << nonce
-       << difficulty
-       << minerAddress;
-    return ss.str();
-}
+    Block();
+    Block(const std::string& prevHash,
+          const std::string& blockData,
+          unsigned int diff,
+          const std::string& minerAddr);
+
+    std::string headerToString() const;
+};
