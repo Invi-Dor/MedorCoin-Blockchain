@@ -1,37 +1,28 @@
 #pragma once
+
 #include <string>
 #include <vector>
 #include <ctime>
-#include "transaction.h"
+
+struct Transaction; // forward declaration if needed
 
 class Block {
 public:
     std::string previousHash;
-    std::string hash;
     std::string data;
-    uint32_t medor;        // difficulty
-    uint64_t nonce;
-    uint64_t reward;
-    time_t timestamp;
+    unsigned int difficulty;
     std::string minerAddress;
+    time_t timestamp;       // correct C++ type from <ctime>
+    unsigned long nonce;
+    unsigned long reward;
+    std::string hash;
     std::vector<Transaction> transactions;
 
-    Block(const std::string& prevHash = "",
-          const std::string& d = "",
-          uint32_t diff = 0,
-          const std::string& miner = "",
-          uint64_t rw = 0)
-        : previousHash(prevHash),
-          data(d),
-          medor(diff),
-          nonce(0),
-          reward(rw),
-          timestamp(time(nullptr)),
-          minerAddress(miner) {}
+    Block();
+    Block(const std::string& prevHash,
+          const std::string& blockData,
+          unsigned int diff,
+          const std::string& minerAddr);
 
-    std::string headerToString() const {
-        // Simple string representation for hashing
-        return previousHash + data + std::to_string(medor) +
-               std::to_string(nonce) + minerAddress;
-    }
+    std::string headerToString() const;
 };
