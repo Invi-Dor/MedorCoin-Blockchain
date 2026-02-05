@@ -1,34 +1,20 @@
-#include <iostream>
+// In block.h
+#pragma once
+#include <string>
 #include <vector>
-#include "block.h"
+#include "transaction.h"
 
-using namespace std;
-
-class Blockchain {
+class Block {
 public:
-    vector<Block> chain;
+    std::string previousHash;
+    std::string data;
     uint32_t medor;
+    uint64_t nonce;
+    uint64_t reward;
+    time_t timestamp;
+    std::string minerAddress;
+    std::vector<Transaction> transactions;
 
-    Blockchain() {
-        medor = 0x1e00ffff; // Bitcoin-equivalent difficulty
-        chain.push_back(createGenesisBlock());
-    }
-
-    Block createGenesisBlock() {
-        return Block("0", "Genesis Block", medor);
-    }
-
-    void addBlock(string data) {
-        chain.push_back(Block(chain.back().hash, data, medor));
-    }
+    Block(const std::string& prevHash, const std::string& d, uint32_t diff, const std::string& miner, uint64_t rw = 0)
+        : previousHash(prevHash), data(d), medor(diff), nonce(0), reward(rw), timestamp(time(nullptr)), minerAddress(miner) {}
 };
-
-/* ---------- MAIN ---------- */
-int main() {
-    Blockchain medorCoin;
-
-    medorCoin.addBlock("First MedorCoin block");
-    medorCoin.addBlock("Second MedorCoin block");
-
-    return 0;
-}
