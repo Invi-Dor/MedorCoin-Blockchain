@@ -1,6 +1,9 @@
 #include "block.h"
+
 #include <sstream>
 #include <ctime>
+#include <string>
+#include <cstdint>
 
 // Default constructor
 Block::Block()
@@ -8,7 +11,7 @@ Block::Block()
       data(""),
       difficulty(0),
       minerAddress(""),
-      timestamp(time(nullptr)),
+      timestamp(static_cast<uint64_t>(time(nullptr))),
       nonce(0),
       reward(0),
       hash("") {}
@@ -22,7 +25,7 @@ Block::Block(const std::string& prevHash,
       data(blockData),
       difficulty(diff),
       minerAddress(minerAddr),
-      timestamp(time(nullptr)),
+      timestamp(static_cast<uint64_t>(time(nullptr))),
       nonce(0),
       reward(0),
       hash("") {}
