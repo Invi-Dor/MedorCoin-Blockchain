@@ -1,12 +1,11 @@
 #include "consensus.h"
-#include <cstdint> // Include this header for fixed-width integer types
 
 bool Consensus::validateBlock(const Block& block, const Block& previousBlock) {
-    // Your validation logic here
-    return true; // Placeholder return
+    // Add real validation logic later
+    return true;
 }
 
 bool Consensus::validateChain(const Blockchain& chain) {
-    // Your chain validation logic here
-    return true; // Placeholder return
+    // Add real chain validation logic later
+    return true;
 }
