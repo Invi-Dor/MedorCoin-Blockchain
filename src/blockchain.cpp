@@ -8,7 +8,7 @@
 #include <vector>
 #include <string>
 
-// Constructor definition
+// Constructor
 Blockchain::Blockchain(const std::string& ownerAddr) {
     ownerAddress = ownerAddr;
     medor = 0x1e00ffff;
@@ -43,6 +43,7 @@ void Blockchain::addBlock(const std::string& minerAddress,
         reward = maxSupply - totalSupply;
     }
 
+    // Create coinbase transaction
     Transaction coinbaseTx;
     TxOutput minerOut, ownerOut;
 
@@ -59,19 +60,26 @@ void Blockchain::addBlock(const std::string& minerAddress,
     coinbaseTx.outputs.push_back(ownerOut);
     coinbaseTx.calculateHash();
 
+    // Insert coinbase transaction at start
     transactions.insert(transactions.begin(), coinbaseTx);
 
-    Block newBlock(chain.empty() ? Block("", "", medor, minerAddress)
-                                 : Block(chain.back().hash, "MedorCoin Block", medor, minerAddress);
+    // Create new block properly (no ?: operator)
+    Block newBlock("", "", medor, minerAddress);
+    if (!chain.empty()) {
+        newBlock = Block(chain.back().hash, "MedorCoin Block", medor, minerAddress);
+    }
 
     newBlock.timestamp = time(nullptr);
     newBlock.reward = reward;
     newBlock.transactions = transactions;
 
+    // Mine the block
     mineBlock(newBlock);
 
+    // Add block to chain
     chain.push_back(newBlock);
 
+    // Update UTXO set
     for (auto& tx : newBlock.transactions) {
         for (auto& in : tx.inputs) {
             utxoSet.spendUTXO(in.prevTxHash, in.outputIndex);
@@ -81,5 +89,6 @@ void Blockchain::addBlock(const std::string& minerAddress,
         }
     }
 
+    // Update total supply
     totalSupply += reward;
 }
