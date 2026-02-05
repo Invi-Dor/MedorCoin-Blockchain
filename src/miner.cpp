@@ -1,21 +1,12 @@
-#include <iostream>
-#include <vector>
-
-#include "blockchain.h"
-#include "transaction.h"
 #include "miner.h"
+#include "blockchain.h"
+#include <string>
 
-int main() {
-    // Create a MedorCoin blockchain with an owner address
-    Blockchain medorChain("OWNER_ADDRESS");
-
-    // Example transactions list
+// Mine a MedorCoin block
+void Miner::mineMedor(Blockchain &chain, const std::string &minerAddress) {
+    // The transactions vector could be empty for mining reward only
     std::vector<Transaction> txs;
 
-    // Example: mine a block
-    Miner miner;
-    miner.mineMedor(medorChain, "MINER_ADDRESS");
-
-    std::cout << "Block mined successfully!" << std::endl;
-    return 0;
+    // Add block to the chain
+    chain.addBlock(minerAddress, txs);
 }
