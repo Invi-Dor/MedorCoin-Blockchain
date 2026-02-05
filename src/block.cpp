@@ -1,21 +1,39 @@
-// In block.h
-#pragma once
-#include <string>
-#include <vector>
-#include <ctime> // Include the ctime header for the time function
-#include "transaction.h"
+#include "block.h"
+#include <sstream>
+#include <ctime>
 
-class Block {
-public:
-    std::string previousHash;
-    std::string data;
-    uint32_t medor;
-    uint64_t nonce;
-    uint64_t reward;
-    time_t timestamp;
-    std::string minerAddress;
-    std::vector<Transaction> transactions;
+// Default constructor
+Block::Block()
+    : previousHash(""),
+      data(""),
+      difficulty(0),
+      minerAddress(""),
+      timestamp(time(nullptr)),
+      nonce(0),
+      reward(0),
+      hash("") {}
 
-    Block(const std::string& prevHash, const std::string& d, uint32_t diff, const std::string& miner, uint64_t rw = 0)
-        : previousHash(prevHash), data(d), medor(diff), nonce(0), reward(rw), timestamp(time(nullptr)), minerAddress(miner) {}
-};
+// Parameterized constructor
+Block::Block(const std::string& prevHash,
+             const std::string& blockData,
+             uint32_t diff,
+             const std::string& minerAddr)
+    : previousHash(prevHash),
+      data(blockData),
+      difficulty(diff),
+      minerAddress(minerAddr),
+      timestamp(time(nullptr)),
+      nonce(0),
+      reward(0),
+      hash("") {}
+
+// Convert block header to string for hashing
+std::string Block::headerToString() const {
+    std::stringstream ss;
+    ss << previousHash
+       << timestamp
+       << nonce
+       << difficulty
+       << minerAddress;
+    return ss.str();
+}
