@@ -2,17 +2,19 @@ cmake_minimum_required(VERSION 3.10)
 
 project(MedorCoin VERSION 1.0 LANGUAGES CXX)
 
-# Set C++ standard
+# Use C++17 standard
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Include your headers
-target_include_directories(${PROJECT_NAME} BEFORE PRIVATE "${PROJECT_SOURCE_DIR}/include")
+# Tell the compiler where to find your headers
+include_directories(
+    ${PROJECT_SOURCE_DIR}/include
+)
 
-# Find LevelDB library
+# Locate LevelDB library installed from apt
 find_library(LEVELDB_LIB leveldb)
 
-# List all source files
+# List all your .cpp source files
 set(SOURCE_FILES
     src/main.cpp
     src/consensus.cpp
@@ -26,7 +28,7 @@ set(SOURCE_FILES
 )
 
 # Define the executable
-add_executable(MedorCoin ${SOURCE_FILES})
+add_executable(medorcoin ${SOURCE_FILES})
 
-# Link LevelDB to your executable
-target_link_libraries(MedorCoin PRIVATE ${LEVELDB_LIB})
+# Link the LevelDB library
+target_link_libraries(medorcoin PRIVATE ${LEVELDB_LIB})
