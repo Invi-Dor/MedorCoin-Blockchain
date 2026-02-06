@@ -1,0 +1,63 @@
+# MedorCoin Blockchain Development Checklist
+
+## Environment Setup
+Install system dependencies
+Install LevelDB development package (libleveldb-dev)
+Install build tools (cmake, build-essential, pkg-config, libssl-dev)
+
+## Project Structure
+Ensure project root contains:
+  include/
+  src/
+  CMakeLists.txt
+  README.md
+Organize headers in include/
+Organize source files in src/
+
+## Build System
+Create CMakeLists.txt in root
+Verify CMakeLists defines all source files
+Run build steps:
+  rm -rf build
+  mkdir build
+  cd build
+  cmake ..
+  make -j$(nproc)
+Verify build produces executable without errors
+
+## Code Modules
+Blockchain core logic
+Transaction definitions
+Mempool handling
+Consensus rules
+Network peer management
+Database persistence (BlockDB)
+
+## Testing Basic Functionality
+Compile the project successfully
+Run the built executable
+Test adding transactions to mempool
+Test block mining / proof of work
+Test block and transaction broadcast logic
+Test reading/writing blocks to LevelDB
+
+## Networking Tests
+Start at least two nodes locally
+Test peer connection and messaging
+Verify broadcast of blocks and transactions
+
+## Documentation
+Update README with build instructions
+Document API and module usage
+Add comments to code for clarity
+
+## Version Control
+Commit changes with clear messages
+Push to GitHub repository
+
+## Optional Launch Prep (Testnet/Mainnet)
+Define network parameters (ports, bootstrap nodes)
+Create config files for testnet
+Perform stress tests
+Prepare network monitoring/logging
+Plan security audits
