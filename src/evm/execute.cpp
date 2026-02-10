@@ -1,18 +1,29 @@
 #include "execute.h"
 #include "host.h"
+#include "storage.h"
+
 #include <evmone/evmone.h>
 #include <iostream>
 
-evmc_result EVMExecutor::executeContract(const std::vector<uint8_t>& bytecode,
-                                         const std::vector<uint8_t>& inputData,
-                                         uint64_t gasLimit,
-                                         evmc_address to,
-                                         evmc_address from)
-{
-    static auto instance = evmc::VM{evmc_create_evmone()};
+// --------------------------------------------------
+// Execute EVM contract (call or deploy logic outside)
+// --------------------------------------------------
 
-    MedorEVMHost host;
+evmc_result EVMExecutor::executeContract(
+    EVMStorage& storage,
+    const std::vector<uint8_t>& bytecode,
+    const std::vector<uint8_t>& inputData,
+    uint64_t gasLimit,
+    evmc_address to,
+    evmc_address from
+) {
+    // Create EVM instance once
+    static evmc::VM vm{ evmc_create_evmone() };
 
+    // Host backed by persistent storage
+    MedorEVMHost host(storage);
+
+    // Prepare EVM message
     evmc_message msg{};
     msg.kind = EVMC_CALL;
     msg.depth = 0;
@@ -21,18 +32,23 @@ evmc_result EVMExecutor::executeContract(const std::vector<uint8_t>& bytecode,
     msg.sender = from;
     msg.input_data = inputData.data();
     msg.input_size = inputData.size();
-    msg.value = 0;
+    msg.value = 0;      // native value transfer (future)
+    msg.flags = 0;
 
-    evmc_result result = instance.execute(
-        /* host */ host,
-        /* revision */ EVMC_CANCUN,
-        /* code */ bytecode.data(),
-        /* code_size */ bytecode.size(),
-        /* msg */ &msg
+    // Execute bytecode
+    evmc_result result = vm.execute(
+        host,
+        EVMC_CANCUN,
+        bytecode.data(),
+        bytecode.size(),
+        &msg
     );
 
+    // Basic error reporting
     if (result.status_code != EVMC_SUCCESS) {
-        std::cout << "EVM execution failed, status: " << result.status_code << std::endl;
+        std::cerr << "[EVM] Execution failed. Status: "
+                  << result.status_code << std::endl;
     }
+
     return result;
 }
