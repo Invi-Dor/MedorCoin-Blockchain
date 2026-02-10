@@ -4,7 +4,7 @@
 bool Mempool::addTransaction(const Transaction &tx) {
     std::lock_guard<std::mutex> lock(mtx);
 
-    const std::string &hash = tx.getHash();
+    const std::string &hash = tx.txHash;
     if (txMap.find(hash) != txMap.end()) {
         return false;
     }
@@ -35,4 +35,12 @@ std::vector<Transaction> Mempool::getTransactions() {
 bool Mempool::hasTransaction(const std::string &txHash) {
     std::lock_guard<std::mutex> lock(mtx);
     return txMap.find(txHash) != txMap.end();
+}
+
+// Remove transactions that were included in a block
+void Mempool::removeConfirmed(const std::vector<Transaction> &txs) {
+    std::lock_guard<std::mutex> lock(mtx);
+    for (const auto &tx : txs) {
+        txMap.erase(tx.txHash);
+    }
 }
