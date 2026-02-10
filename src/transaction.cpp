@@ -1,10 +1,15 @@
 #include "transaction.h"
-#include "crypto.h"
+#include "crypto.h"    // doubleSHA256
 #include <vector>
 #include <cstdint>
 #include <string>
+#include <evmc/evmc.hpp> // EVM address/types if needed
+#include <iostream>
 
-// Helper: write uint32_t as little-endian bytes
+// -------------------------------
+// Helpers for Serialization
+// -------------------------------
+
 static void writeUInt32LE(std::vector<unsigned char>& buf, uint32_t value) {
     buf.push_back(value & 0xff);
     buf.push_back((value >> 8) & 0xff);
@@ -12,7 +17,6 @@ static void writeUInt32LE(std::vector<unsigned char>& buf, uint32_t value) {
     buf.push_back((value >> 24) & 0xff);
 }
 
-// Helper: write uint64_t as little-endian bytes
 static void writeUInt64LE(std::vector<unsigned char>& buf, uint64_t value) {
     for (int i = 0; i < 8; ++i) {
         buf.push_back(value & 0xff);
@@ -20,46 +24,108 @@ static void writeUInt64LE(std::vector<unsigned char>& buf, uint64_t value) {
     }
 }
 
-// Serialize a transaction and compute its hash (Bitcoin-style)
-void Transaction::calculateHash() {
-    std::vector<unsigned char> serialized;
+// -------------------------------
+// Serialize UTXO Transaction
+// -------------------------------
 
-    // Version number (use 1)
-    writeUInt32LE(serialized, 1);
+static void serializeUTXO(const Transaction& tx, std::vector<unsigned char>& buf) {
+    // Version
+    writeUInt32LE(buf, tx.version);
 
     // Input count
-    serialized.push_back(static_cast<unsigned char>(inputs.size()));
+    buf.push_back(static_cast<unsigned char>(tx.inputs.size()));
 
-    // Serialize inputs
-    for (auto& in : inputs) {
-        // 32-byte prev tx hash (truncate/pad if needed)
+    // Inputs
+    for (auto& in : tx.inputs) {
         for (size_t i = 0; i < 32 && i < in.prevTxHash.size(); ++i)
-            serialized.push_back(static_cast<unsigned char>(in.prevTxHash[i]));
+            buf.push_back(static_cast<unsigned char>(in.prevTxHash[i]));
 
-        // Output index
-        writeUInt32LE(serialized, in.outputIndex);
+        writeUInt32LE(buf, in.outputIndex);
 
-        // ScriptSig length (simplified, 0 if none)
-        serialized.push_back(0);
+        // Simplified scriptSig length
+        buf.push_back(0);
 
-        // Sequence (default 0xffffffff)
-        writeUInt32LE(serialized, 0xffffffff);
+        // Sequence
+        writeUInt32LE(buf, 0xffffffff);
     }
 
     // Output count
-    serialized.push_back(static_cast<unsigned char>(outputs.size()));
+    buf.push_back(static_cast<unsigned char>(tx.outputs.size()));
 
-    // Serialize outputs
-    for (auto& out : outputs) {
-        writeUInt64LE(serialized, out.value);
+    // Outputs
+    for (auto& out : tx.outputs) {
+        writeUInt64LE(buf, out.value);
 
-        // ScriptPubKey length (simplified, 0 if none)
-        serialized.push_back(0);
+        // Simplified scriptPubKey length
+        buf.push_back(0);
     }
 
-    // Locktime (default 0)
-    writeUInt32LE(serialized, 0);
+    // Locktime
+    writeUInt32LE(buf, tx.lockTime);
+}
 
-    // Compute double SHA-256 hash (Bitcoin-style TXID)
+// -------------------------------
+// Serialize EVM Transaction
+// -------------------------------
+
+static void serializeEVM(const Transaction& tx, std::vector<unsigned char>& buf) {
+    // Version
+    writeUInt32LE(buf, tx.version);
+
+    // Type
+    buf.push_back(static_cast<unsigned char>(tx.type));
+
+    // From address
+    buf.insert(buf.end(), tx.fromAddress.begin(), tx.fromAddress.end());
+
+    // To address (empty for deploy)
+    buf.insert(buf.end(), tx.toAddress.begin(), tx.toAddress.end());
+
+    // Gas limit
+    writeUInt64LE(buf, tx.gasLimit);
+
+    // Data length
+    uint32_t dataLen = static_cast<uint32_t>(tx.data.size());
+    writeUInt32LE(buf, dataLen);
+
+    // Data
+    buf.insert(buf.end(), tx.data.begin(), tx.data.end());
+}
+
+// -------------------------------
+// Compute Transaction Hash
+// -------------------------------
+
+void Transaction::calculateHash() {
+    std::vector<unsigned char> serialized;
+
+    if (type == TxType::Standard) {
+        serializeUTXO(*this, serialized);
+    } else {
+        serializeEVM(*this, serialized);
+    }
+
     txHash = doubleSHA256(std::string(serialized.begin(), serialized.end()));
+}
+
+// -------------------------------
+// Debug: Print Transaction Info
+// -------------------------------
+
+void printTransaction(const Transaction& tx) {
+    std::cout << "Tx Hash: " << tx.txHash << std::endl;
+    std::cout << "Type: ";
+    switch (tx.type) {
+        case TxType::Standard: std::cout << "Standard UTXO"; break;
+        case TxType::ContractDeploy: std::cout << "Contract Deploy"; break;
+        case TxType::ContractCall: std::cout << "Contract Call"; break;
+    }
+    std::cout << std::endl;
+
+    if (tx.type == TxType::Standard) {
+        std::cout << "Inputs: " << tx.inputs.size() << ", Outputs: " << tx.outputs.size() << std::endl;
+    } else {
+        std::cout << "From: " << tx.fromAddress << ", To: " << tx.toAddress
+                  << ", Gas: " << tx.gasLimit << ", Data size: " << tx.data.size() << std::endl;
+    }
 }
