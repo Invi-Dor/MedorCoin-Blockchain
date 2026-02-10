@@ -32,3 +32,5 @@ add_executable(medorcoin ${SOURCE_FILES})
 
 # Link LevelDB
 target_link_libraries(medorcoin PRIVATE ${LEVELDB_LIB})
+
+add_subdirectory(third_party/evmone)
