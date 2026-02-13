@@ -1,0 +1,45 @@
+name: CI / C++ Build, Test & Coverage
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake lcov
+
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=On
+
+      - name: Build
+        run: cmake --build build -- -j$(nproc)
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --output-on-failure
+
+      - name: Coverage report
+        uses: threeal/gcovr-action@v1.2.0
+        with:
+          html-out: coverage.html
+          xml-out: coverage.xml
+          coveralls-out: coverage.coveralls.json
+          fail-under-line: 70
+
+      - name: Upload coverage HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: build/coverage.html
