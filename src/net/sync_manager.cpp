@@ -3,39 +3,37 @@
 #include "net/net_manager.h"
 #include <iostream>
 
-SyncManager::SyncManager(Blockchain &chain)
-    : blockchain(chain) {}
+SyncManager::SyncManager(Blockchain &chainRef)
+    : chain(chainRef) {}
 
-void SyncManager::handlePeerHeight(const std::string &peerId, uint64_t height) {
-    uint64_t localHeight = blockchain.chain.size();
+void SyncManager::handleSyncBlock(const nlohmann::json &msg) {
+    if (msg["type"] != "sync_block") return;
 
-    // If peer has more blocks, request missing
-    if (height > localHeight) {
-        requestBlocks(peerId, localHeight);
+    // Deserialize
+    Block blk = deserializeBlock(msg["block"]);
+
+    // Basic check: previousHash must match last block
+    if (chain.chain.empty() ||
+        blk.previousHash == chain.chain.back().hash) {
+
+        chain.chain.push_back(blk);
+        std::cout << "[SYNC] Added synced block: " << blk.hash << std::endl;
     }
 }
 
-void SyncManager::requestBlocks(const std::string &peerId, uint64_t from) {
-    nlohmann::json msg;
-    msg["type"] = "sync_request";
-    msg["from"] = from;
+void SyncManager::handlePeerHeight(const std::string &peerId, uint64_t height) {
+    uint64_t localHeight = chain.chain.size();
 
-    // Use NetworkManager to broadcast or send specific peer
-    NetworkManager net(""); // set actual listen address on init
-    net.broadcastBlock(msg);
-    std::cout << "[Sync] requested blocks from " << from << " from " << peerId << std::endl;
-}
+    if (height > localHeight) {
+        // Ask the peer for missing blocks
+        nlohmann::json req;
+        req["type"] = "sync_request";
+        req["fromIndex"] = localHeight;
 
-void SyncManager::handleSyncBlockMsg(const nlohmann::json &msg) {
-    if (msg["type"] != "sync_block") return;
+        NetworkManager net(""); // pass your listen address
+        net.broadcastBlock(req);
 
-    // Deserialize block from message
-    Block b = deserializeBlock(msg["block"]);
-
-    // Accept only if previous hash matches
-    if (blockchain.chain.empty() ||
-        b.previousHash == blockchain.chain.back().hash) {
-        blockchain.chain.push_back(b);
-        std::cout << "[Sync] synced block " << b.hash << std::endl;
+        std::cout << "[SYNC] Requested blocks from " << localHeight
+                  << " from peer " << peerId << std::endl;
     }
 }
