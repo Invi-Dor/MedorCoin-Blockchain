@@ -3,19 +3,21 @@
 #include <string>
 #include <vector>
 #include <array>
-#include <cstdint>
+#include <unordered_map>
 
 class ValidatorRegistry {
 public:
-    // Load validator list (from config or on‑chain)
+    // Load the validator list (hard-coded or config)
     static void loadValidators();
 
-    // Check if an address is an authorized validator
+    // Check if an address (20‑byte) is a validator
     static bool isValidator(const std::array<uint8_t,20> &addr);
 
-    // Return all current validator addresses
+    // Lookup validator private key (hex) from known map
+    static std::string getPrivateKey(const std::string &addrHex);
+
     static const std::vector<std::array<uint8_t,20>>& getValidators();
 
 private:
-    static std::vector<std::array<uint8_t,20>> validators;
+    static std::vector<std::array<uintuint8_t,20>> validators;
 };
