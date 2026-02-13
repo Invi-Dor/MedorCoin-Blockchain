@@ -5,14 +5,9 @@
 #include <sstream>
 #include <iomanip>
 
-// Helpers: convert byte arrays and integers to hex
-static std::string toHex(const std::vector<uint8_t> &bytes) {
-    std::ostringstream ss;
-    ss << "0x";
-    for (auto b : bytes)
-        ss << std::hex << std::setw(2) << std::setfill('0') << (int)b;
-    return ss.str();
-}
+// =========================
+// Helpers: hex formatting
+// =========================
 
 static std::string hexUInt(uint64_t v) {
     std::ostringstream ss;
@@ -20,83 +15,148 @@ static std::string hexUInt(uint64_t v) {
     return ss.str();
 }
 
-std::string rpc_getTransactionReceipt(const nlohmann::json &params, int id) {
-    nlohmann::json response;
-    response["jsonrpc"] = "2.0";
-    response["id"] = id;
+// =========================
+// web3 methods
+// =========================
 
-    // Must have exactly 1 parameter: txHash
-    if (!params.is_array() || params.size() != 1) {
-        response["error"] = {{"code", -32602}, {"message", "Invalid params"}};
-        return response.dump();
+std::string rpc_web3_clientVersion(const nlohmann::json &params, int id) {
+    nlohmann::json resp;
+    resp["jsonrpc"] = "2.0";
+    resp["id"]      = id;
+    resp["result"]  = "MedorCoin/v1.0";
+    return resp.dump();
+}
+
+// =========================
+// net methods
+// =========================
+
+std::string rpc_net_version(const nlohmann::json &params, int id) {
+    nlohmann::json resp;
+    resp["jsonrpc"] = "2.0";
+    resp["id"]      = id;
+    // Example: MedorCoin chain ID as decimal
+    resp["result"]  = std::to_string(MEDOR_CHAIN_ID);
+    return resp.dump();
+}
+
+// =========================
+// eth methods — core
+// =========================
+
+std::string rpc_eth_blockNumber(const nlohmann::json &params, int id) {
+    extern Blockchain globalChain;
+    nlohmann::json resp;
+    resp["jsonrpc"] = "2.0";
+    resp["id"]      = id;
+    resp["result"]  = hexUInt(globalChain.chain.size() - 1);
+    return resp.dump();
+}
+
+std::string rpc_eth_getBalance(const nlohmann::json &params, int id) {
+    if (!params.is_array() || params.size() < 1) {
+        nlohmann::json r; r["jsonrpc"] = "2.0"; r["id"] = id;
+        r["error"] = {{"code",-32602},{"message","Invalid params"}};
+        return r.dump();
+    }
+    extern Blockchain globalChain;
+    std::string addr = params[0].get<std::string>();
+    if (addr.rfind("0x",0) == 0) addr = addr.substr(2);
+    uint64_t bal = globalChain.getBalance(addr);
+    nlohmann::json resp;
+    resp["jsonrpc"] = "2.0";
+    resp["id"]      = id;
+    resp["result"]  = hexUInt(bal);
+    return resp.dump();
+}
+
+std::string rpc_eth_getTransactionCount(const nlohmann::json &params, int id) {
+    if (!params.is_array() || params.size() < 1) {
+        nlohmann::json r; r["jsonrpc"]="2.0"; r["id"]=id;
+        r["error"]={{"code",-32602},{"message","Invalid params"}};
+        return r.dump();
+    }
+    extern Blockchain globalChain;
+    std::string addr = params[0].get<std::string>();
+    if (addr.rfind("0x",0) == 0) addr = addr.substr(2);
+    uint64_t nonce = globalChain.getNonce(addr);
+    nlohmann::json resp;
+    resp["jsonrpc"]="2.0";
+    resp["id"]=id;
+    resp["result"]=hexUInt(nonce);
+    return resp.dump();
+}
+
+// Assumes decodeRawTransaction and mempool exist
+std::string rpc_eth_sendRawTransaction(const nlohmann::json &params, int id) {
+    nlohmann::json resp;
+    resp["jsonrpc"]="2.0";
+    resp["id"]=id;
+
+    if (!params.is_array() || params.size()<1) {
+        resp["error"]={{"code",-32602},{"message","Invalid params"}};
+        return resp.dump();
     }
 
-    std::string txHash = params[0].get<std::string>();
-
-    auto optReceipt = ReceiptStore::getReceiptByHash(txHash);
-    if (!optReceipt) {
-        // Receipt not found => null
-        response["result"] = nullptr;
-        return response.dump();
-    }
-
-    const TransactionReceipt &r = *optReceipt;
-
-    nlohmann::json receiptJson;
-    receiptJson["transactionHash"]  = txHash;
-    receiptJson["transactionIndex"] = hexUInt(r.transactionIndex);
-    receiptJson["blockHash"]        = "0x" + r.blockHash;
-    receiptJson["blockNumber"]      = hexUInt(r.blockNumber);
-
-    receiptJson["from"] = toHex(
-        std::vector<uint8_t>(r.from.begin(), r.from.end()));
-
-    // `to` may be empty if this was a contract creation
-    if (r.to != std::array<uint8_t,20>{}) {
-        receiptJson["to"] = toHex(
-            std::vector<uint8_t>(r.to.begin(), r.to.end()));
+    std::string rawHex=params[0].get<std::string>();
+    Transaction tx = decodeRawTransaction(rawHex);
+    std::string reason;
+    bool ok = globalMempool.addTransaction(tx);
+    if (!ok) {
+        resp["error"]={{"code",-32000},{"message",reason}};
     } else {
-        receiptJson["to"] = nullptr;
+        resp["result"] = "0x" + tx.txHash;
     }
+    return resp.dump();
+}
 
-    // contractAddress: null if not contract creation
-    if (r.contractAddress.has_value()) {
-        receiptJson["contractAddress"] = toHex(
-            std::vector<uint8_t>(r.contractAddress->begin(),
-                                 r.contractAddress->end()));
+std::string rpc_eth_getTransactionByHash(const nlohmann::json &params, int id) {
+    nlohmann::json resp;
+    resp["jsonrpc"]="2.0";
+    resp["id"]=id;
+    if (!params.is_array() || params.size()<1) {
+        resp["error"]={{"code",-32602},{"message","Invalid params"}};
+        return resp.dump();
+    }
+    std::string hash=params[0].get<std::string>();
+    Transaction tx;
+    bool found = globalChain.findTransaction(hash, tx);
+    if (!found) {
+        resp["result"] = nullptr;
     } else {
-        receiptJson["contractAddress"] = nullptr;
+        resp["result"] = serializeTransactionJson(tx);
     }
+    return resp.dump();
+}
 
-    receiptJson["cumulativeGasUsed"] = hexUInt(r.cumulativeGasUsed);
-    receiptJson["gasUsed"]           = hexUInt(r.gasUsed);
-    receiptJson["effectiveGasPrice"] = hexUInt(r.effectiveGasPrice);
+std::string rpc_eth_getTransactionReceipt(const nlohmann::json &params, int id) {
+    return rpc_getTransactionReceipt(params,id);
+}
 
-    // Bloom as hex
-    receiptJson["logsBloom"] = toHex(
-        std::vector<uint8_t>(r.logsBloom.begin(), r.logsBloom.end()));
+// =========================
+// eth methods — optional stubs
+// =========================
 
-    // Logs array
-    receiptJson["logs"] = nlohmann::json::array();
-    for (auto &log : r.logs) {
-        nlohmann::json logJson;
-        logJson["address"] = toHex(
-            std::vector<uint8_t>(log.address.begin(), log.address.end()));
+std::string rpc_eth_getCode(const nlohmann::json &params, int id) {
+    nlohmann::json resp;
+    resp["jsonrpc"]="2.0";
+    resp["id"]=id;
+    resp["result"]="0x";
+    return resp.dump();
+}
 
-        logJson["topics"] = nlohmann::json::array();
-        for (auto &topic : log.topics) {
-            logJson["topics"].push_back(
-                toHex(std::vector<uint8_t>(topic.begin(), topic.end())));
-        }
-        logJson["data"] = toHex(log.data);
+std::string rpc_eth_call(const nlohmann::json &params, int id) {
+    nlohmann::json resp;
+    resp["jsonrpc"]="2.0";
+    resp["id"]=id;
+    resp["result"]="0x";
+    return resp.dump();
+}
 
-        receiptJson["logs"].push_back(logJson);
-    }
-
-    // status and type
-    receiptJson["status"] = r.status ? "0x1" : "0x0";
-    receiptJson["type"]   = hexUInt(r.txType);
-
-    response["result"] = receiptJson;
-    return response.dump();
+std::string rpc_eth_estimateGas(const nlohmann::json &params, int id) {
+    nlohmann::json resp;
+    resp["jsonrpc"]="2.0";
+    resp["id"]=id;
+    resp["result"]=hexUInt(21000);
+    return resp.dump();
 }
