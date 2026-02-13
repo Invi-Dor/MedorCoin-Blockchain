@@ -1,13 +1,7 @@
 #include "blockchain.h"
-#include "block.h"
-#include "transaction.h"
-#include "utxo.h"
-#include "consensus.h"
-#include <ctime>
-#include <cstdint>
-#include <vector>
-#include <string>
-#include <iostream>
+#include "crypto/verify_signature.h"
+#include <sstream>
+#include <iomanip>
 
 // -------------------------------
 // Constructor
@@ -21,11 +15,9 @@ Blockchain::Blockchain(const std::string &ownerAddr)
     totalSupply = 0;
     maxSupply = 50000000;
 
-    // Open LevelDB for block data
     if (!blockDB.open("data/medorcoin_blocks"))
         std::cerr << "[BlockDB] Failed to open blocks DB" << std::endl;
 
-    // Load blocks from DB
     leveldb::Iterator *it = blockDB.db->NewIterator(leveldb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
         Block b;
@@ -36,7 +28,6 @@ Blockchain::Blockchain(const std::string &ownerAddr)
     }
     delete it;
 
-    // If empty, create genesis block
     if (chain.empty()) {
         std::vector<Transaction> noTxs;
         addBlock(ownerAddress, noTxs);
@@ -68,8 +59,27 @@ void Blockchain::addBalance(const std::string &addr, uint64_t amount) {
     setBalance(addr, current + amount);
 }
 
+uint64_t Blockchain::getBalance(const std::array<uint8_t,20> &addr) const {
+    std::ostringstream ss;
+    ss << std::hex << std::setfill('0');
+    for (auto b : addr) ss << std::setw(2) << (int)b;
+    return getBalance(ss.str());
+}
+
+void Blockchain::setBalance(const std::array<uint8_t,20> &addr, uint64_t amount) {
+    std::ostringstream ss;
+    ss << std::hex << std::setfill('0');
+    for (auto b : addr) ss << std::setw(2) << (int)b;
+    setBalance(ss.str(), amount);
+}
+
+void Blockchain::addBalance(const std::array<uint8_t,20> &addr, uint64_t amount) {
+    uint64_t current = getBalance(addr);
+    setBalance(addr, current + amount);
+}
+
 // -------------------------------
-// Base Fee Support
+// Base Fee
 // -------------------------------
 
 uint64_t Blockchain::getCurrentBaseFee() const {
@@ -81,19 +91,69 @@ void Blockchain::setCurrentBaseFee(uint64_t fee) {
 }
 
 void Blockchain::burnBaseFees(uint64_t amount) {
-    // Credit the fee to a treasury address instead of destroying
     const std::string treasuryAddr = "medor_treasury";
     addBalance(treasuryAddr, amount);
-    std::cout << "[Fee] Treasury credited " << amount << std::endl;
 }
 
 void Blockchain::adjustBaseFee(uint64_t gasUsed, uint64_t gasLimit) {
     if (gasLimit == 0) return;
     if (gasUsed * 2 > gasLimit) {
-        baseFeePerGas += baseFeePerGas / 8;  // increase
+        baseFeePerGas += baseFeePerGas / 8;
     } else {
         baseFeePerGas = (baseFeePerGas > 1 ? baseFeePerGas - baseFeePerGas / 8 : 1);
     }
+}
+
+// -------------------------------
+// Verify Signature
+// -------------------------------
+
+bool Blockchain::verifyTransactionSignature(const Transaction &tx) const {
+    std::array<uint8_t,32> hashBytes;
+    for (size_t i = 0; i < 32; i++) {
+        std::string byteHex = tx.txHash.substr(i * 2, 2);
+        hashBytes[i] = static_cast<uint8_t>(std::stoul(byteHex, nullptr, 16));
+    }
+    return verifyEvmSignature(
+        hashBytes,
+        tx.r, tx.s, tx.v,
+        tx.fromAddress
+    );
+}
+
+// -------------------------------
+// Execute Transaction
+// -------------------------------
+
+bool Blockchain::executeTransaction(const Transaction &tx,
+                                    const std::string &minerAddress)
+{
+    uint64_t senderBal = getBalance(tx.fromAddress);
+    if (senderBal < tx.value) return false;
+    setBalance(tx.fromAddress, senderBal - tx.value);
+    addBalance(tx.toAddress, tx.value);
+    return true;
+}
+
+// -------------------------------
+// Fetch Transactions by Hashes
+// -------------------------------
+
+std::vector<Transaction>
+Blockchain::getTransactions(const std::vector<std::string> &hashes) const
+{
+    std::vector<Transaction> out;
+    for (auto &h : hashes) {
+        for (auto &blk : chain) {
+            for (auto &tx : blk.transactions) {
+                if (tx.txHash == h) {
+                    out.push_back(tx);
+                    break;
+                }
+            }
+        }
+    }
+    return out;
 }
 
 // -------------------------------
@@ -113,13 +173,12 @@ void Blockchain::mineBlock(Block &block) {
 }
 
 // -------------------------------
-// Add Block (PoW + fees + UTXO)
+// Add Block
 // -------------------------------
 
 void Blockchain::addBlock(const std::string &minerAddr,
                           std::vector<Transaction> &transactions)
 {
-    // Create reward coinbase
     uint64_t reward = calculateReward();
     if (totalSupply + reward > maxSupply)
         reward = maxSupply - totalSupply;
@@ -135,35 +194,24 @@ void Blockchain::addBlock(const std::string &minerAddr,
     coinbaseTx.calculateHash();
     transactions.insert(transactions.begin(), coinbaseTx);
 
-    // Build block
-    Block newBlock;
-    if (!chain.empty())
-        newBlock = Block(chain.back().hash, "MedorCoin Block", medor, minerAddr);
-    else
-        newBlock = Block("", "Genesis Block", medor, minerAddr);
+    Block newBlock = chain.empty()
+        ? Block("", "Genesis Block", medor, minerAddr)
+        : Block(chain.back().hash, "MedorCoin Block", medor, minerAddr);
 
     newBlock.timestamp = time(nullptr);
     newBlock.reward = reward;
     newBlock.transactions = transactions;
     newBlock.baseFee = baseFeePerGas;
 
-    // Mine the block
     mineBlock(newBlock);
 
-    // Validate PoW
     if (!ProofOfWork(medor).validateBlock(newBlock)) {
-        std::cerr << "[Blockchain] Invalid PoW" << std::endl;
         return;
     }
 
-    // Push to in‑memory chain
     chain.push_back(newBlock);
+    blockDB.writeBlock(newBlock);
 
-    // Persist to LevelDB
-    if (!blockDB.writeBlock(newBlock))
-        std::cerr << "[Blockchain] Failed to write block" << std::endl;
-
-    // Update UTXO
     for (auto &tx : newBlock.transactions) {
         for (auto &in : tx.inputs)
             utxoSet.spendUTXO(in.prevTxHash, in.outputIndex);
@@ -171,22 +219,17 @@ void Blockchain::addBlock(const std::string &minerAddr,
             utxoSet.addUTXO(tx.outputs[i], tx.txHash, static_cast<int>(i));
     }
 
-    // Update supply
     totalSupply += reward;
-
-    // Adjust base fee
-    adjustBaseFee(newBlock.gasUsed, /* assume a gas target */ 1000000);
-
-    std::cout << "[Blockchain] Block added: " << newBlock.hash
-              << " | BaseFee: " << newBlock.baseFee
-              << " | Reward: " << reward << std::endl;
+    adjustBaseFee(newBlock.gasUsed, 1000000);
 }
 
 // -------------------------------
-// Chain Validation
+// Chain Validation / Debug
 // -------------------------------
 
-bool Blockchain::validateBlock(const Block &block, const Block &prevBlock) {
+bool Blockchain::validateBlock(const Block &block,
+                              const Block &prevBlock)
+{
     if (block.previousHash != prevBlock.hash) return false;
     if (block.timestamp <= prevBlock.timestamp) return false;
     if (block.baseFee < 1) return false;
@@ -200,19 +243,12 @@ bool Blockchain::validateChain() {
     return true;
 }
 
-// -------------------------------
-// Debug print
-// -------------------------------
-
 void Blockchain::printChain() const {
-    std::cout << "------ MedorCoin Blockchain ------\n";
     for (size_t i = 0; i < chain.size(); ++i) {
         const Block &b = chain[i];
         std::cout << "Block " << i
                   << " | Hash: " << b.hash
-                  << " | Prev: " << b.previousHash
                   << " | BaseFee: " << b.baseFee
-                  << " | GasUsed: " << b.gasUsed
                   << " | TXCount: " << b.transactions.size()
                   << std::endl;
     }
