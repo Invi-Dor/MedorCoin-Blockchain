@@ -1,7 +1,7 @@
 // From tiny‑keccak (MIT licensed)
 // This is the core Keccak‑256 implementation for Ethereum
 
-#include "keccak.h"
+#include "keccak/keccak.h"
 
 #define ROL64(a, offset) (((a) << (offset)) | ((a) >> (64 - (offset))))
 
