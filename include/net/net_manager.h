@@ -1,4 +1,5 @@
 #pragma once
+
 #ifndef NET_MANAGER_H
 #define NET_MANAGER_H
 
@@ -7,38 +8,45 @@
 #include <functional>
 #include <nlohmann/json.hpp>
 
+class PeerManager;
+
 namespace libp2p {
-    namespace host { class Host; }
-    namespace network { class Stream; class PeerId; }
+    namespace host {
+        class Host;
+    }
 }
 
-// Manages libp2p peer connections and message handlers
+/**
+ * NetworkManager — abstracts P2P communication.
+ * Allows node to broadcast blocks/txs and register
+ * a message handler callback for incoming JSON messages.
+ */
 class NetworkManager {
 public:
     explicit NetworkManager(const std::string &listenAddr);
     ~NetworkManager();
 
-    // Start listening on libp2p swarm
+    // Start listening/peer subsystem
     bool start();
 
-    // Connect to bootstrap multiaddresses
+    // Connect to bootstrap peers
     bool connectBootstrap(const std::vector<std::string> &bootstrap);
 
-    // Send a JSON block message to peers
+    // Broadcast a block or chain message
     void broadcastBlock(const nlohmann::json &blockMsg);
 
-    // Send a JSON tx message to peers
+    // Broadcast transactions
     void broadcastTx(const nlohmann::json &txMsg);
 
-    // Register a callback to handle incoming messages
+    /**
+     * Register a callback for incoming JSON messages
+     * from the network layer.
+     */
     void onMessage(const std::function<void(const nlohmann::json &)> &handler);
 
 private:
-    std::shared_ptr<libp2p::host::Host> host;
-    std::function<void(const nlohmann::json &)> messageHandler;
-
-    void initProtocols();
-    void handleStream(std::shared_ptr<libp2p::network::Stream> stream);
+    PeerManager *peerMgr;
+    std::shared_ptr<libp2p::host::Host> hostPtr;
 };
 
 #endif // NET_MANAGER_H
