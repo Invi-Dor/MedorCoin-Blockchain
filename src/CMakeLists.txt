@@ -1,6 +1,10 @@
-# Build executable for MedorCoin node
+cmake_minimum_required(VERSION 3.16)
 
-# All source files
+project(MedorCoin VERSION 0.1.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(SOURCES
     main.cpp
     blockchain.cpp
@@ -16,26 +20,36 @@ set(SOURCES
     blockchain_fork.cpp
 )
 
-# Add the executable
 add_executable(MedorCoinNode ${SOURCES})
 
-# Public include directories for this target
 target_include_directories(MedorCoinNode
     PUBLIC
-        ${PROJECT_SOURCE_DIR}/../include
         ${PROJECT_SOURCE_DIR}
         ${PROJECT_SOURCE_DIR}/net
         ${PROJECT_SOURCE_DIR}/crypto
+        ${PROJECT_SOURCE_DIR}/../include
 )
 
-# Link libraries if needed (example: leveldb, secp256k1, evmc)
-find_package(LevelDB REQUIRED)
-find_library(SECP256K1 secp256k1)
-find_library(EVMC evmc)  # adjust as needed
+# ---- LevelDB integration via pkg-config ----
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LEVELDB REQUIRED leveldb)
 
 target_link_libraries(MedorCoinNode
     PRIVATE
-        LevelDB::LevelDB
-        ${SECP256K1}
-        ${EVMC}
+        ${LEVELDB_LIBRARIES}
 )
+
+target_include_directories(MedorCoinNode
+    PRIVATE
+        ${LEVELDB_INCLUDE_DIRS}
+)
+
+# ---- Optional crypto libs ----
+find_package(OpenSSL REQUIRED)
+target_link_libraries(MedorCoinNode PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SECP256K1 REQUIRED libsecp256k1)
+
+target_link_libraries(MedorCoinNode PRIVATE ${SECP256K1_LIBRARIES})
+target_include_directories(MedorCoinNode PRIVATE ${SECP256K1_INCLUDE_DIRS})
