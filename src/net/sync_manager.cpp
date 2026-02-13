@@ -16,7 +16,7 @@ void SyncManager::handleSyncBlock(const nlohmann::json &msg) {
     candidate.push_back(blk);
 
     if (!chain.resolveFork(candidate)) {
-        std::cout << "[SYNC] Received block ignored (not extending longest chain)" << std::endl;
+        std::cout << "[SYNC] Pool received block ignored — chain not longer." << std::endl;
     }
 }
 
@@ -27,10 +27,10 @@ void SyncManager::handlePeerHeight(const std::string &peerId, uint64_t height) {
         req["type"] = "sync_request";
         req["fromIndex"] = localHeight;
 
-        NetworkManager mgr(""); // supply real listen address setup
-        mgr.broadcastBlock(req);
+        NetworkManager net("");  
+        net.broadcastBlock(req);
 
-        std::cout << "[SYNC] Requested blocks from height "
-                  << localHeight << " from peer " << peerId << std::endl;
+        std::cout << "[SYNC] Sync request sent from height " << localHeight
+                  << " to peer " << peerId << std::endl;
     }
 }
