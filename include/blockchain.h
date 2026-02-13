@@ -44,6 +44,7 @@ public:
 
     // ---------------------------
     // Fork resolution
+    // Adopt the longest valid chain
     // ---------------------------
     bool resolveFork(const std::vector<Block> &candidate);
 
