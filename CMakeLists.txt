@@ -1,34 +1,21 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16)
 
-# Project metadata
-project(MedorCoin
-    VERSION 0.1
-    DESCRIPTION "MedorCoin Blockchain"
-    LANGUAGES CXX
-)
+project(MedorCoin VERSION 0.1.0 LANGUAGES CXX)
 
-# Use C++17 standard
-set(CMAKE_CXX_STANDARD 17)
+# C++ standard
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Enable coverage flags when requested
-option(ENABLE_COVERAGE "Enable code coverage" OFF)
-if(ENABLE_COVERAGE)
-    add_compile_options(--coverage)
-    add_link_options(--coverage)
-endif()
+# Enable verbose output (optional)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
-# Include directories (for headers)
+# Include header search paths
+# Allows #include "blockchain.h" and others from include/
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/net
 )
 
-# Add subdirectories
+# Add subdirectory where source files live
 add_subdirectory(src)
-
-# Optional: add tests if present
-if(EXISTS "${PROJECT_SOURCE_DIR}/tests")
-    enable_testing()
-    add_subdirectory(tests)
-endif()
