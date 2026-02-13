@@ -11,13 +11,14 @@
 
 struct TxInput {
     std::string prevTxHash;   // Hash of transaction being spent
-    uint32_t outputIndex;     // Which output is spent
-    std::string signature;    // Unlocking signature
+    uint32_t outputIndex;      // Which output is spent
+    // In a real UTXO chain this would include unlocking script/signature
+    std::string signature;    
 };
 
 struct TxOutput {
-    uint64_t value;           // Amount of MedorCoin
-    std::string address;      // Destination address
+    uint64_t value;            // Amount of MedorCoin in smallest unit
+    std::string address;       // Destination address
 };
 
 // -------------------------------
@@ -36,38 +37,55 @@ enum class TxType {
 
 class Transaction {
 public:
-    uint32_t version = 1;               // Default version
-    TxType type = TxType::Standard;      // Standard by default
+    uint32_t version = 1;      // Protocol version
+    TxType type = TxType::Standard;
 
     // UTXO fields
     std::vector<TxInput> inputs;
     std::vector<TxOutput> outputs;
 
-    // EVM fields
-    std::string fromAddress;             // Sender address
-    std::string toAddress;               // Contract address (empty for deploy)
-    std::vector<uint8_t> data;           // Bytecode for deploy, calldata for calls
+    // EVM transaction fields
+    // Nonce prevents replay attacks and orders transactions per address
+    uint64_t nonce = 0;                 
 
-    uint64_t gasLimit = 0;               // Gas limit
-    uint64_t maxFeePerGas = 0;           // Max fee user will pay
-    uint64_t maxPriorityFeePerGas = 0;   // Priority tip for miner
+    // Sender & recipient Ethereum‑style addresses (20 bytes)
+    std::array<uint8_t,20> fromAddress;
+    std::array<uint8_t,20> toAddress;
 
-    uint32_t lockTime = 0;               // Lock time
-    std::string txHash;                  // TX identifier
+    // Value to transfer (in base unit, e.g., WEI‑like)
+    uint64_t value = 0;
 
-    // Compute transaction ID
+    // EVM execution input code or calldata
+    std::vector<uint8_t> data;
+
+    // Gas & fee parameters (EIP‑1559 dynamic fee model)
+    uint64_t gasLimit = 0;              // Max gas for execution
+    uint64_t maxFeePerGas = 0;          // Fee cap per gas
+    uint64_t maxPriorityFeePerGas = 0;  // Miner tip per gas
+
+    // Signature fields for EVM tx
+    // After signing, these will be filled
+    std::array<uint8_t,32> r = {};
+    std::array<uint8_t,32> s = {};
+    uint8_t v = 0;
+
+    // General fields
+    uint32_t lockTime = 0;
+    std::string txHash;                // Calculated transaction identifier
+
+    // Compute transaction ID or hash
     void calculateHash();
 };
 
 // -------------------------------
-// Transaction Processor
+// Transaction Processing
 // -------------------------------
 
-// Returns true if processed successfully
-// minerAddress is passed so fee logic can credit miner
+// Processes a transaction on the chain.
+// minerAddress is passed so fees can be credited appropriately.
 bool processTransaction(const Transaction& tx,
                         class Blockchain& chain,
                         const std::string& minerAddress);
 
-// Debug output
+// Print human‑readable transaction info
 void printTransaction(const Transaction& tx);
