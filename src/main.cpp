@@ -1,41 +1,105 @@
-#include "net/net_manager.h"
+#include "main.h"
 #include "blockchain.h"
 #include "transaction.h"
-#include <nlohmann/json.hpp>
+#include "net/net_manager.h"
+#include "net/sync_manager.h"
+#include "crypto/keystore.h"
+#include "utxo.h"
 #include <iostream>
+#include <vector>
+#include <string>
+#include <csignal>
 
-int main() {
-    Blockchain medorChain("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    NetworkManager net("127.0.0.1:4001");
+// Global pointers
+std::unique_ptr<NetworkManager> netMgr;
+std::unique_ptr<SyncManager> syncMgr;
+std::unique_ptr<Blockchain> chainPtr;
 
-    if (!net.start()) {
-        std::cerr << "[Network] Failed\n";
+// Graceful shutdown
+static bool running = true;
+void handleSignal(int) {
+    running = false;
+}
+
+int main(int argc, char* argv[]) {
+    // Handle shutdown signals
+    std::signal(SIGINT, handleSignal);
+    std::signal(SIGTERM, handleSignal);
+
+    // 1) Load config
+    std::string listenAddr = "0.0.0.0:4001";
+    if (argc > 1) listenAddr = argv[1];
+
+    std::cout << "[NODE] Starting MedorCoin Node at " << listenAddr << std::endl;
+
+    // 2) Initialize blockchain
+    chainPtr = std::make_unique<Blockchain>(/*ownerAddress=*/"medor_owner");
+    Blockchain &medorChain = *chainPtr;
+
+    // 3) Initialize networking
+    netMgr = std::make_unique<NetworkManager>(listenAddr);
+    NetworkManager &network = *netMgr;
+
+    if (!network.start()) {
+        std::cerr << "[NETWORK] Failed to start network manager" << std::endl;
         return -1;
     }
 
-    // Handle incoming messages
-    net.onMessage([&](const nlohmann::json &msg) {
-        if (msg["type"] == "poa_block") {
-            std::cout << "[Network] Received PoA block message\n";
-            nlohmann::json b = msg["block"];
-            Block block = deserializeBlock(b);
+    // 4) Sync manager to handle chain sync
+    syncMgr = std::make_unique<SyncManager>(medorChain);
+    SyncManager &syncManager = *syncMgr;
 
-            // Validate PoA signature before accepting
-            if (verifyBlockPoA(block)) {
-                std::cout << "[Network] Valid PoA block signature\n";
-                medorChain.addBlockFromPeer(block);
-            } else {
-                std::cerr << "[Network] Invalid PoA block signature\n";
+    // 5) Register message handler
+    network.onMessage([&](const nlohmann::json &msg) {
+        std::string type = msg.value("type", "");
+
+        if (type == "sync_request") {
+            uint64_t fromIndex = msg["fromIndex"].get<uint64_t>();
+            for (size_t i = fromIndex; i < medorChain.chain.size(); ++i) {
+                nlohmann::json blkMsg;
+                blkMsg["type"] = "sync_block";
+                blkMsg["block"] = serializeBlock(medorChain.chain[i]);
+                network.broadcastBlock(blkMsg);
             }
-        } else if (msg["type"] == "tx") {
-            // Deserialize and add to mempool
-            Transaction tx = deserializeTx(msg["tx"]);
-            globalMempool.addTransaction(tx);
+        }
+        else if (type == "sync_block") {
+            syncManager.handleSyncBlock(msg);
+        }
+        else if (type == "announce_height") {
+            std::string peer = msg.value("peerId", "");
+            uint64_t height = msg.value("height", uint64_t(0));
+            syncManager.handlePeerHeight(peer, height);
+        }
+        else if (type == "tx_broadcast") {
+            Transaction received = deserializeTx(msg["tx"]);
+            medorChain.mempool.addTransaction(received);
+        }
+        else if (type == "block_broadcast") {
+            Block received = deserializeBlock(msg["block"]);
+            // Optional: full validation before adding
+            medorChain.chain.push_back(received);
         }
     });
 
-    std::cout << "[Network] Listening…\n";
-    while (true) {
-        // Poll loop for network events
+    // 6) Announce own height to peers
+    auto announceHeight = [&]() {
+        nlohmann::json heightMsg;
+        heightMsg["type"] = "announce_height";
+        heightMsg["peerId"] = listenAddr;
+        heightMsg["height"] = medorChain.chain.size();
+        network.broadcastBlock(heightMsg);
+    };
+
+    announceHeight();
+
+    std::cout << "[NODE] Initialization complete — entering main loop" << std::endl;
+
+    // 7) Main loop
+    while (running) {
+        announceHeight();
+        std::this_thread::sleep_for(std::chrono::seconds(10));
     }
+
+    std::cout << "[NODE] Shutting down" << std::endl;
+    return 0;
 }
