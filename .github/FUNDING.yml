@@ -1,8 +1,9 @@
-# These are supported funding model platforms
+# Supported funding model platforms
+github: true
 
+# Custom cryptocurrency donation addresses
 custom:
   - "ethereum:0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0"
   - "bitcoin:bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv"
   - "solana:Hy2sTujvdnSE6r1K1tigfjVLbf666RkHQQMRcLc24HBE"
-  - "ethereum:0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0?chain=base"
-
+  - "ethereum:0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0?chain=
