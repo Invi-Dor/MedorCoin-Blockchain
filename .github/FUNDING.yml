@@ -1,8 +1,8 @@
+---
 # GitHub-supported funding platforms
 github: true
 ```yaml
 # Supported GitHub Funding options
----
 github: medorcoin
 custom:
   - name: Ethereum
