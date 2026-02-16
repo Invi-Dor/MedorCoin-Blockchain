@@ -1,4 +1,3 @@
-cat > CMakeLists.txt << 'EOF'
 cmake_minimum_required(VERSION 3.16)
 
 project(MedorCoin LANGUAGES CXX)
@@ -12,4 +11,3 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Add src subdirectory where the main build happens
 add_subdirectory(src)
-EOF
