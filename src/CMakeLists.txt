@@ -38,6 +38,8 @@ file(GLOB_RECURSE SOURCE_FILES
     "${CMAKE_SOURCE_DIR}/*.cpp"
 )
 # secp256k1 via pkg-config
+find_package(RocksDB REQUIRED)
+
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(SECP256K1 REQUIRED libsecp256k1)
 
