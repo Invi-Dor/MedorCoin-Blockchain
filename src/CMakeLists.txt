@@ -1,4 +1,3 @@
-cat > src/CMakeLists.txt << 'EOF'
 cmake_minimum_required(VERSION 3.16)
 
 project(MedorCoinNode LANGUAGES CXX)
@@ -58,4 +57,3 @@ target_link_libraries(medorcoin
     PRIVATE
         Threads::Threads
 )
-EOF
