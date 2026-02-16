@@ -1,3 +1,4 @@
+cat > src/CMakeLists.txt << 'EOF'
 cmake_minimum_required(VERSION 3.16)
 
 project(MedorCoinNode LANGUAGES CXX)
@@ -6,15 +7,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# All source files — finds all .cpp in the src tree
 file(GLOB_RECURSE SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
 )
 
-# Create the executable from all source files
 add_executable(medorcoin ${SOURCE_FILES})
 
-# Include directories for the compiler
 target_include_directories(medorcoin
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
@@ -23,18 +21,11 @@ target_include_directories(medorcoin
         ${PROJECT_SOURCE_DIR}/../include
 )
 
-# ---------------------------------------
-# RocksDB - storage backend instead of LevelDB
-# ---------------------------------------
+# RocksDB
 find_package(RocksDB REQUIRED)
-target_link_libraries(medorcoin
-    PRIVATE
-        RocksDB::rocksdb
-)
+target_link_libraries(medorcoin PRIVATE RocksDB::rocksdb)
 
-# ---------------------------------------
-# OpenSSL for crypto
-# ---------------------------------------
+# OpenSSL
 find_package(OpenSSL REQUIRED)
 target_link_libraries(medorcoin
     PRIVATE
@@ -42,9 +33,7 @@ target_link_libraries(medorcoin
         OpenSSL::Crypto
 )
 
-# ---------------------------------------
 # secp256k1 via pkg-config
-# ---------------------------------------
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(SECP256K1 REQUIRED libsecp256k1)
 
@@ -58,11 +47,9 @@ target_link_libraries(medorcoin
         ${SECP256K1_LIBRARIES}
 )
 
-# ---------------------------------------
-# Threads support (required for networking)
-# ---------------------------------------
 find_package(Threads REQUIRED)
 target_link_libraries(medorcoin
     PRIVATE
         Threads::Threads
 )
+EOF
