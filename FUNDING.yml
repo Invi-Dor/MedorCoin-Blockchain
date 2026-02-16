@@ -1,9 +1,0 @@
----
-github: medorcoin
-custom:
-  - name: Ethereum
-    url: "ethereum:0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0"
-  - name: Bitcoin
-    url: "bitcoin:bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv"
-  - name: Solana
-    url: "solana:Hy2sTujvdnSE6r1K1tigfjVLbf666RkHQQMRcLc24HBE"
