@@ -1,8 +1,12 @@
-cat > src/CMakeLists.txt << 'CMAKE'
-Collect sources (explicitly exclude build/generated dirs if any)
+Sources
 file(GLOB_RECURSE SOURCE_FILES
-  "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/.cpp"
 )
+
+if(NOT SOURCE_FILES)
+  message(FATAL_ERROR "No source files found in ${CMAKE_CURRENT_SOURCE_DIR}")
+endif()
 
 Target
 add_executable(medorcoin ${SOURCE_FILES})
@@ -20,6 +24,7 @@ target_include_directories(medorcoin
 
 C++ standard and warnings
 target_compile_features(medorcoin PRIVATE cxx_std_20)
+option(ENABLE_WARNINGS "Enable extra compiler warnings" ON)
 if(ENABLE_WARNINGS)
   if(MSVC)
     target_compile_options(medorcoin PRIVATE /W4 /permissive-)
@@ -27,6 +32,9 @@ if(ENABLE_WARNINGS)
     target_compile_options(medorcoin PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Wundef)
   endif()
 endif()
+
+Position independent code (useful for static libs linked into shared, sanitizers, etc.)
+set_property(TARGET medorcoin PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 Threads
 find_package(Threads REQUIRED)
@@ -51,7 +59,7 @@ if(NOT _rocksdb_found)
     if(ROCKSDB_FOUND)
       target_include_directories(medorcoin PRIVATE ${ROCKSDB_INCLUDE_DIRS})
       target_link_libraries(medorcoin PRIVATE ${ROCKSDB_LIBRARIES})
-      add_definitions(${ROCKSDB_CFLAGS_OTHER})
+      target_compile_options(medorcoin PRIVATE ${ROCKSDB_CFLAGS_OTHER})
       set(_rocksdb_found TRUE)
     endif()
   endif()
@@ -74,12 +82,12 @@ if(NOT _rocksdb_found)
   )
 endif()
 
-secp256k1 via pkg-config (common and reliable)
+secp256k1 via pkg-config
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(SECP256K1 REQUIRED libsecp256k1)
 target_include_directories(medorcoin PRIVATE ${SECP256K1_INCLUDE_DIRS})
 target_link_libraries(medorcoin PRIVATE ${SECP256K1_LIBRARIES})
-add_definitions(${SECP256K1_CFLAGS_OTHER})
+target_compile_options(medorcoin PRIVATE ${SECP256K1_CFLAGS_OTHER})
 
 Optional compression backends (link only if present)
 include(CheckLibraryExists)
@@ -87,7 +95,6 @@ set(_maybe_libs z bz2 lz4 zstd snappy)
 foreach(lib IN LISTS _maybe_libs)
   string(TOUPPER "${lib}" LIB_UP)
   set(HAVE_VAR "HAVE_LIB_${LIB_UP}")
-Try a harmless symbol for presence; fallback to simple link check
   if(lib STREQUAL "z")
     check_library_exists(${lib} inflate "" ${HAVE_VAR})
   elseif(lib STREQUAL "bz2")
@@ -103,17 +110,40 @@ Try a harmless symbol for presence; fallback to simple link check
   endif()
   if(${HAVE_VAR})
     target_link_libraries(medorcoin PRIVATE ${lib})
+    target_compile_definitions(medorcoin PRIVATE "HAVE_LIB_${LIB_UP}=1")
   endif()
 endforeach()
 
-Define feature macros for conditional compilation if desired
-if(ROCKSDB_FOUND OR HAVE_LIB_ROCKSDB)
+Feature macros
+if(RocksDB_FOUND OR HAVE_LIB_ROCKSDB)
   target_compile_definitions(medorcoin PRIVATE HAVE_ROCKSDB=1)
 endif()
 if(SECP256K1_FOUND)
   target_compile_definitions(medorcoin PRIVATE HAVE_SECP256K1=1)
 endif()
 
+Sanitizers (optional)
+option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+option(ENABLE_UBSAN "Enable UBSanitizer" OFF)
+if(NOT MSVC)
+  if(ENABLE_ASAN)
+    target_compile_options(medorcoin PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+    target_link_options(medorcoin PRIVATE -fsanitize=address)
+  endif()
+  if(ENABLE_UBSAN)
+    target_compile_options(medorcoin PRIVATE -fsanitize=undefined -fno-omit-frame-pointer)
+    target_link_options(medorcoin PRIVATE -fsanitize=undefined)
+  endif()
+endif()
+
+Coverage (GCC/Clang)
+option(ENABLE_COVERAGE "Enable coverage flags" OFF)
+if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(medorcoin PRIVATE -O0 --coverage -fprofile-arcs -ftest-coverage)
+  target_link_options(medorcoin PRIVATE --coverage -fprofile-arcs -ftest-coverage)
+endif()
+
 Install
-install(TARGETS medorcoin RUNTIME DESTINATION bin)
+include(GNUInstallDirs)
+install(TARGETS medorcoin RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 CMAKE
