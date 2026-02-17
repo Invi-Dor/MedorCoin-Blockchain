@@ -1,45 +1,67 @@
-name: CI / C++ Build, Test & Coverage
-
 on:
   push:
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        use_system_deps: [OFF, ON]
+        enable_evm: [ON, OFF]
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Set up C/C++ toolchain
+        uses: aminya/setup-cpp@v1
+        with:
+          compiler: latest
+          cmake: true
+          ninja: true
+          gcovr: true
+
+      - name: Install additional packages (Ubuntu)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake lcov
+          sudo apt-get install -y lcov
 
       - name: Configure CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=On
+        run: |
+          cmake -S . -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DENABLE_COVERAGE=ON \
+            -DMEDOR_USE_SYSTEM_DEPS=${{ matrix.use_system_deps }} \
+            -DMEDOR_ENABLE_EVM=${{ matrix.enable_evm }}
 
       - name: Build
-        run: cmake --build build -- -j$(nproc)
+        run: cmake --build build --parallel
 
       - name: Run tests
-        run: |
-          cd build
-          ctest --output-on-failure
+        run: ctest --test-dir build --output-on-failure
 
       - name: Coverage report
         uses: threeal/gcovr-action@v1.2.0
         with:
-          html-out: coverage.html
-          xml-out: coverage.xml
-          coveralls-out: coverage.coveralls.json
+          root: build
+          html-out: build/coverage.html
+          xml-out: build/coverage.xml
+          coveralls-out: build/coverage.coveralls.json
           fail-under-line: 70
 
       - name: Upload coverage HTML
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-html
+          name: coverage-html-${{ matrix.use_system_deps }}-${{ matrix.enable_evm }}
           path: build/coverage.html
