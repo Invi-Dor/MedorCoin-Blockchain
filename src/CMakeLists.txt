@@ -1,12 +1,9 @@
-Collect sources
 file(GLOB_RECURSE SOURCE_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
 )
 
-Executable
 add_executable(medorcoin ${SOURCE_FILES})
 
-Includes
 target_include_directories(medorcoin
   PRIVATE
     ${CMAKE_SOURCE_DIR}/include
@@ -15,10 +12,8 @@ target_include_directories(medorcoin
     ${CMAKE_SOURCE_DIR}/src/crypto
 )
 
-C++ features
 target_compile_features(medorcoin PRIVATE cxx_std_20)
 
-Warnings
 if(ENABLE_WARNINGS)
   if(MSVC)
     target_compile_options(medorcoin PRIVATE /W4 /permissive-)
@@ -27,15 +22,12 @@ if(ENABLE_WARNINGS)
   endif()
 endif()
 
-Threads
 find_package(Threads REQUIRED)
 target_link_libraries(medorcoin PRIVATE Threads::Threads)
 
-OpenSSL
 find_package(OpenSSL REQUIRED)
 target_link_libraries(medorcoin PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
-RocksDB: CMake package -> pkg-config -> direct link
 set(_rocksdb_found FALSE)
 find_package(RocksDB QUIET)
 if(RocksDB_FOUND)
@@ -73,13 +65,11 @@ if(NOT _rocksdb_found)
   )
 endif()
 
-secp256k1 via pkg-config
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(SECP256K1 REQUIRED libsecp256k1)
 target_include_directories(medorcoin PRIVATE ${SECP256K1_INCLUDE_DIRS})
 target_link_libraries(medorcoin PRIVATE ${SECP256K1_LIBRARIES})
 
-Optional compressors for RocksDB (best-effort)
 include(CheckLibraryExists)
 set(_maybe_libs z bz2 lz4 zstd snappy)
 foreach(lib IN LISTS _maybe_libs)
@@ -90,3 +80,5 @@ foreach(lib IN LISTS _maybe_libs)
     target_link_libraries(medorcoin PRIVATE ${lib})
   endif()
 endforeach()
+
+install(TARGETS medorcoin RUNTIME DESTINATION bin)
