@@ -1,0 +1,14 @@
+services:
+  node:
+    image: ghcr.io/OWNER/medircoin:latest
+    container_name: medircoin
+    restart: unless-stopped
+    ports:
+      - "8333:8333"  # p2p
+      - "8332:8332"  # rpc
+    volumes:
+      - medir-data:/data
+    command: ["--datadir=/data", "--printtoconsole=1"]
+
+volumes:
+  medir-data: {}
