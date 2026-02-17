@@ -1,9 +1,11 @@
-// Hardened Keccak (Ethereum variant) - C/C++ compatible API
-// MIT license - derived from tiny-keccak with safety fixes.
-
-#include "keccak/keccak.h"
+// kevcak.cpp
+// Hardened Keccak (Ethereum Keccak-256 compatible core) with C API.
+// Drop-in replacement for your prior Keccak.cpp, but safer and portable.
+// Exposes: void keccakf(uint64_t st[25]); and int keccak(const uint8_t* in, size_t inlen, uint8_t* out, size_t outlen);
+// If you previously used different names, adjust the function names below accordingly.
 
 #include <stdint.h>
+#include <stddef.h>
 #include <string.h>
 
 #if defined(_MSC_VER)
@@ -44,8 +46,6 @@ static inline void secure_bzero(void* p, size_t n) {
 #endif
 }
 
-#define ROL64(a, offset) rotl64((a), (offset))
-
 static const uint64_t keccakf_rndc[24] = {
     0x0000000000000001ULL, 0x0000000000008082ULL,
     0x800000000000808aULL, 0x8000000080008000ULL,
@@ -76,50 +76,56 @@ static const int keccakf_piln[24] = {
 void keccakf(uint64_t st[25]) {
     uint64_t bc[5];
     for (int round = 0; round < 24; ++round) {
+        // Theta
         for (int i = 0; i < 5; ++i)
             bc[i] = st[i] ^ st[i + 5] ^ st[i + 10] ^ st[i + 15] ^ st[i + 20];
-
         for (int i = 0; i < 5; ++i) {
-            uint64_t t = bc[(i + 4) % 5] ^ ROL64(bc[(i + 1) % 5], 1);
+            uint64_t t = bc[(i + 4) % 5] ^ rotl64(bc[(i + 1) % 5], 1);
             for (int j = 0; j < 25; j += 5)
                 st[j + i] ^= t;
         }
 
+        // Rho + Pi
         uint64_t t = st[1];
         for (int i = 0; i < 24; ++i) {
             int j = keccakf_piln[i];
             uint64_t tmp = st[j];
-            st[j] = ROL64(t, keccakf_rotc[i]);
+            st[j] = rotl64(t, keccakf_rotc[i]);
             t = tmp;
         }
 
+        // Chi
         for (int j = 0; j < 25; j += 5) {
             for (int i = 0; i < 5; ++i) bc[i] = st[j + i];
             for (int i = 0; i < 5; ++i)
                 st[j + i] ^= (~bc[(i + 1) % 5]) & bc[(i + 2) % 5];
         }
 
+        // Iota
         st[0] ^= keccakf_rndc[round];
     }
     secure_bzero(bc, sizeof(bc));
 }
 
-int keccak_hash(const uint8_t* in, size_t inlen, uint8_t* out, size_t outlen) {
+// Returns 1 on success, 0 on invalid args.
+// outlen in bytes. Use 32 for Ethereum Keccak-256.
+int keccak(const uint8_t* in, size_t inlen, uint8_t* out, size_t outlen) {
     if (!out || outlen == 0) return 0;
     if (!in && inlen != 0) return 0;
-    if (outlen > 64) return 0;
+    if (outlen > 64) return 0; // conservative cap
 
-    const size_t rate = 200U - 2U * outlen;
+    const size_t rate = 200U - 2U * outlen; // capacity = 2*outlen
     if (rate == 0 || (rate % 8U) != 0U) return 0;
     const size_t rate_words = rate / 8U;
 
     uint64_t st[25] = {0};
-    uint8_t block[200]; // zero as needed
+    uint8_t block[200];
     memset(block, 0, sizeof(block));
 
     const uint8_t* p = in;
     size_t rem = inlen;
 
+    // Absorb full blocks
     while (rem >= rate) {
         for (size_t i = 0; i < rate_words; ++i)
             st[i] ^= load_le64(p + 8U * i);
@@ -128,6 +134,7 @@ int keccak_hash(const uint8_t* in, size_t inlen, uint8_t* out, size_t outlen) {
         rem -= rate;
     }
 
+    // Final block + Keccak padding (0x01 ... 0x80)
     if (rem) memcpy(block, p, rem);
     block[rem] = 0x01;
     block[rate - 1] |= 0x80;
@@ -136,6 +143,7 @@ int keccak_hash(const uint8_t* in, size_t inlen, uint8_t* out, size_t outlen) {
         st[i] ^= load_le64(block + 8U * i);
     keccakf(st);
 
+    // Squeeze
     size_t produced = 0;
     while (produced < outlen) {
         size_t take = (outlen - produced < rate) ? (outlen - produced) : rate;
@@ -152,40 +160,12 @@ int keccak_hash(const uint8_t* in, size_t inlen, uint8_t* out, size_t outlen) {
         }
 
         produced += take;
-        if (produced < outlen) keccakf(st);
+        if (produced < outlen) {
+            keccakf(st);
+        }
     }
 
     secure_bzero(st, sizeof(st));
     secure_bzero(block, rate);
     return 1;
-}
-
-File: tests/keccak_test.cpp
-
-#include "keccak/keccak.h"
-#include <cstdio>
-#include <cstring>
-
-static void hex(const uint8_t* b, size_t n) {
-    static const char* h = "0123456789abcdef";
-    for (size_t i = 0; i < n; ++i) {
-        std::putchar(h[b[i] >> 4]);
-        std::putchar(h[b[i] & 0xF]);
-    }
-    std::putchar('\n');
-}
-
-int main() {
-    uint8_t out[32];
-
-    // "" (empty)
-    keccak_hash(nullptr, 0, out, 32);
-    hex(out, 32);
-
-    // "abc"
-    const uint8_t abc[] = {'a','b','c'};
-    keccak_hash(abc, 3, out, 32);
-    hex(out, 32);
-
-    return 0;
 }
