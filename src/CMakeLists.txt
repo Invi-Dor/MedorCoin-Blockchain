@@ -1,21 +1,12 @@
-cmake_minimum_required(VERSION 3.16)
-
-project(MedorCoinNode LANGUAGES CXX)
-
-# Enforce C++ standard locally as well
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Collect sources within src/
+Collect sources
 file(GLOB_RECURSE SOURCE_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
 )
 
-# Define the executable
+Executable
 add_executable(medorcoin ${SOURCE_FILES})
 
-# Include directories
+Includes
 target_include_directories(medorcoin
   PRIVATE
     ${CMAKE_SOURCE_DIR}/include
@@ -24,15 +15,27 @@ target_include_directories(medorcoin
     ${CMAKE_SOURCE_DIR}/src/crypto
 )
 
-# Threads
+C++ features
+target_compile_features(medorcoin PRIVATE cxx_std_20)
+
+Warnings
+if(ENABLE_WARNINGS)
+  if(MSVC)
+    target_compile_options(medorcoin PRIVATE /W4 /permissive-)
+  else()
+    target_compile_options(medorcoin PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
+  endif()
+endif()
+
+Threads
 find_package(Threads REQUIRED)
 target_link_libraries(medorcoin PRIVATE Threads::Threads)
 
-# OpenSSL
+OpenSSL
 find_package(OpenSSL REQUIRED)
 target_link_libraries(medorcoin PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
-# RocksDB discovery (CMake package -> pkg-config -> -lrocksdb)
+RocksDB: CMake package -> pkg-config -> direct link
 set(_rocksdb_found FALSE)
 find_package(RocksDB QUIET)
 if(RocksDB_FOUND)
@@ -64,31 +67,26 @@ endif()
 if(NOT _rocksdb_found)
   message(FATAL_ERROR
     "RocksDB not found.\n"
-    "Tried: CMake package (RocksDBConfig.cmake), pkg-config (rocksdb), and -lrocksdb.\n"
-    "Hints:\n"
-    "  - Install librocksdb-dev (Ubuntu/Debian) or rocksdb-devel (Fedora) or brew install rocksdb\n"
-    "  - Or set CMAKE_PREFIX_PATH or ROCKSDB_ROOT to your RocksDB install\n"
-    "  - Or ensure PKG_CONFIG_PATH points to rocksdb.pc"
+    "Tried: CMake package, pkg-config, and -lrocksdb.\n"
+    "Install librocksdb-dev (Debian/Ubuntu), rocksdb-devel (Fedora), or brew install rocksdb.\n"
+    "Or set CMAKE_PREFIX_PATH/ROCKSDB_ROOT or PKG_CONFIG_PATH."
   )
 endif()
 
-# secp256k1 via pkg-config
-if(NOT PKG_CONFIG_FOUND)
-  find_package(PkgConfig REQUIRED)
-endif()
+secp256k1 via pkg-config
+find_package(PkgConfig REQUIRED)
 pkg_check_modules(SECP256K1 REQUIRED libsecp256k1)
 target_include_directories(medorcoin PRIVATE ${SECP256K1_INCLUDE_DIRS})
 target_link_libraries(medorcoin PRIVATE ${SECP256K1_LIBRARIES})
 
-# Optional compressors commonly needed with RocksDB (safe when dynamic)
+Optional compressors for RocksDB (best-effort)
 include(CheckLibraryExists)
 set(_maybe_libs z bz2 lz4 zstd snappy)
-foreach(lib ${_maybe_libs})
-  string(TOUPPER ${lib} LIB_UP)
+foreach(lib IN LISTS _maybe_libs)
+  string(TOUPPER "${lib}" LIB_UP)
   set(HAVE_VAR "HAVE_LIB_${LIB_UP}")
   check_library_exists(${lib} ${lib}_version "" ${HAVE_VAR})
   if(${HAVE_VAR})
     target_link_libraries(medorcoin PRIVATE ${lib})
   endif()
-  endif()
-  endforreach()
+endforeach()
