@@ -1,0 +1,8 @@
+{
+  "minerRewardBps": 9000,
+  "protocolRewardBps": 1000,
+  "baseFeePolicy": "split",
+  "splitBpsToTreasury": 7000,
+  "splitBpsToMiners": 3000,
+  "protocolTreasuryAddress": "0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0"
+}
