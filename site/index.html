@@ -1,577 +1,402 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MedorCoin — Learners</title>
-  <meta name="description" content="Guides, tutorials, FAQs, and structured courses on crypto trading: Spot, Futures, and Options.">
-  <meta name="theme-color" content="#c7a652">
-
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/medori-coin-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/assets/medori-coin-16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/medori-coin-192.png">
-  <link rel="manifest" href="/site.webmanifest">
-  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MedorCoin — Index</title>
+  <meta name="theme-color" content="#c7a652" />
   <style>
     :root{
-      --gold-1:#fff3c1; --gold-2:#e9cc7a; --gold-3:#c7a652; --gold-4:#9a7b3a; --gold-5:#6c5530;
-      --soft-white:#fbf8f1; --panel:#fffdf8; --panel-2:#f5efe2; --border:#e2d3ae;
-      --text:#1e2126; --muted:#4a4f57;
-      --ok:#1f7a46; --warn:#8a5a10; --bad:#8b2b2b;
+      --gold:#c7a652; --gold-2:#e4c272; --bg:#faf6ea; --ink:#1e2126;
+      --panel:#fffdf8; --border:#e2d3ae; --muted:#545b66; --ok:#1f7a46; --danger:#8a1d1d;
+      --pill:#eef2ff; --pill-b:#c7cff7; --pill-ink:#2d3c8f;
     }
-    html,body{margin:0;padding:0;font-family:Inter,ui-sans-serif,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);
-      background:
-        radial-gradient(1400px 700px at -10% -10%, rgba(255,255,255,.12), transparent 45%),
-        radial-gradient(1000px 800px at 110% 0%, rgba(255,255,255,.10), transparent 60%),
-        linear-gradient(135deg, var(--gold-1), var(--gold-2) 30%, var(--gold-3) 58%, var(--gold-4) 82%, var(--gold-5) 100%);
-      background-attachment:fixed}
-    body::before{
-      content:""; position:fixed; inset:0; pointer-events:none; opacity:.18; mix-blend-mode:screen;
-      background:
-        radial-gradient(circle at 25% 30%, rgba(255,255,255,.5) 0, transparent 2px) 0 0/180px 180px,
-        radial-gradient(circle at 70% 60%, rgba(255,255,255,.5) 0, transparent 2px) 0 0/220px 220px;
-    }
-    a{color:inherit;text-decoration:none}
-    .container{max-width:1180px;margin:0 auto;padding:16px}
-    header{
-      position:sticky;top:0;z-index:40;
-      background: linear-gradient(180deg, rgba(255,253,248,.92), rgba(255,253,248,.78));
-      backdrop-filter: blur(8px);
-      border-bottom:1px solid var(--border);
-    }
-    .topbar{display:flex;align-items:center;gap:14px;padding:12px 0}
-    .logo{width:40px;height:40px;border-radius:12px;object-fit:cover;border:1px solid rgba(154,122,58,.45)}
-    .brand{font-weight:800;letter-spacing:.3px}
-    nav.navtabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 6px}
-    .tab{padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:var(--panel-2);color:var(--muted)}
-    .tab.active{background:linear-gradient(135deg, rgba(246,241,229,.9), rgba(233,204,122,.25));color:var(--text);border-color:#d9c693}
-    .panel{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow: 0 1px 0 rgba(255,255,255,.6);padding:14px}
+    *{box-sizing:border-box}
+    body{font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0}
+    a{color:#2d3c8f;text-decoration:none}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;margin:10px 0}
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .grid{display:grid;gap:14px}
-    @media(min-width:1000px){.grid-cols-3{grid-template-columns:1.1fr 1fr 1fr}}
-    @media(max-width:999px){.grid-cols-3{grid-template-columns:1fr}}
-    .kv{color:var(--muted);font-size:13px}
-    .btn{padding:10px 14px;border-radius:12px;border:1px solid #c3a156;background:linear-gradient(135deg,#fff1c1,#e4c272);color:#2b2716;cursor:pointer}
-    .btn.secondary{background:linear-gradient(135deg,#f7f7f7,#ececec);border-color:#d6d6d6}
-    .btn.ghost{background:transparent;border-color:#d6d6d6}
-    .price{font-weight:800}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;border:1px solid #c7cff7;color:#2d3c8f;font-size:12px}
-    input,select,textarea{border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--soft-white)}
-    details summary{cursor:pointer;list-style:none}
-    details summary::-webkit-details-marker{display:none}
-    .course-card{display:flex;flex-direction:column;gap:10px}
-    .level{border:1px dashed #d5bd88;border-radius:12px;padding:10px;background:linear-gradient(180deg,#fffdf8,#fbf6e7)}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#5a4a1f}
-    .cert{border:3px double #c7a652;padding:16px;border-radius:14px;background:#fffef7}
+    .grid{display:grid;gap:12px}
+    @media(min-width:1000px){.grid-2{grid-template-columns:1fr 1fr}}
+    .btn{padding:8px 12px;border-radius:10px;border:1px solid #c3a156;background:linear-gradient(135deg,#fff1c1,var(--gold-2));cursor:pointer}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--pill);border:1px solid var(--pill-b);color:var(--pill-ink);font-size:12px}
+    .kv{color:#4a4f57;font-size:13px}
+    .addr{font-family:ui-monospace, Menlo, Consolas, monospace; font-size:12px; background:#fff7e0; padding:6px 8px; border-radius:8px; border:1px dashed #d8c089}
+    .banner{position:sticky;top:0;z-index:50;background:#fff4d6;border-bottom:2px solid #e7cc82;color:#5b4100;padding:10px 12px;font-weight:600;display:none}
+    .banner .tag{background:#ffe6a3;border:1px solid #d3b66e;color:#704f00;padding:2px 8px;border-radius:999px;margin-right:8px}
+    .warn{color:var(--danger);font-weight:600}
+    .success{color:var(--ok)}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border-bottom:1px solid #efe5c6;text-align:left}
+    th{background:#fff5cc}
+    .small{font-size:12px;color:#6b7280}
+    .copy-btn{margin-left:8px;padding:2px 6px;border-radius:6px;border:1px solid #c3a156;background:#fff8d8;cursor:pointer;font-size:12px}
+    .section-title{display:flex;align-items:center;justify-content:space-between}
+    .note{background:#fff9e6;border:1px solid #f0dfab;padding:8px;border-radius:8px}
+    .hero{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
   </style>
 </head>
 <body>
-  <header>
-    <div class="container">
-      <div class="topbar">
-        <a href="/" aria-label="Home"><img class="logo" src="/assets/medori-coin-64.png" alt="MedorCoin logo" width="40" height="40"></a>
-        <div class="brand">MedorCoin</div>
+  <div id="demoBanner" class="banner">
+    <span class="tag">DEMO</span>
+    Running in Mock Mode. Payments are simulated; unlocks and certificates are for testing only.
+  </div>
+
+  <div class="wrap">
+    <div class="hero">
+      <h1>MedorCoin — Index</h1>
+      <div class="row">
+        <a class="btn" href="/index.html">Home</a>
+        <a class="btn" href="/learners.html">Learners</a>
+        <a class="btn" href="/my-classroom.html">My Classroom</a>
       </div>
-      <nav class="navtabs" aria-label="Primary">
-        <a class="tab" href="/">Homepage</a>
-        <a class="tab" href="/explorer.html">New Listings</a>
-        <a class="tab" href="/docs.html">Developers</a>
-        <a class="tab" href="/investors.html">Investors</a>
-        <a class="tab" href="/trading.html">Trading</a>
-        <a class="tab active" href="/learners.html">Learners</a>
-      </nav>
     </div>
-  </header>
 
-  <main class="container">
-    <!-- Hero -->
-    <section class="panel">
-      <div class="row" style="justify-content:space-between;align-items:flex-start">
-        <div>
-          <h1 style="margin:0 0 6px;font-size:22px">Learn Crypto Trading — Structured, Practical, Secure</h1>
-          <div class="kv">Guides, tutorials, FAQs, and certification courses for Spot, Futures, and Options trading. Pay per level or bundle to save.</div>
-        </div>
-        <div class="row">
-          <input id="learnerName" placeholder="Your Full Name (for certificate)">
-          <button class="btn secondary" id="saveName">Save Name</button>
-        </div>
+    <div class="panel">
+      <div class="row">
+        <input id="email" placeholder="you@example.com" style="min-width:260px" />
+        <button class="btn" onclick="saveEmail()">Use this email</button>
+        <span id="userOut" class="kv"></span>
       </div>
-    </section>
+    </div>
 
-    <!-- Courses grid -->
-    <section class="grid grid-cols-3" style="margin-top:14px">
-      <!-- Spot Trading -->
-      <div class="panel course-card">
-        <div class="row" style="justify-content:space-between">
-          <h2 style="margin:0;font-size:18px">Spot Trading Course</h2>
-          <span class="pill">Beginner friendly</span>
+    <div class="grid grid-2">
+      <div class="panel">
+        <div class="section-title">
+          <h3>Purchase Access</h3>
+          <span class="pill">MOCK_MODE aware</span>
         </div>
-        <div class="kv">Master buying/selling crypto assets outright, managing risk, and executing on reputable markets.</div>
-        <div class="row" style="justify-content:space-between">
-          <div>
-            <div class="kv">Price per level: <span class="price">$5</span></div>
-            <div class="kv">Bundle (5 levels): <span class="price">$17</span> <span class="pill">Save $8</span></div>
+        <div class="note small">In DEMO, any tx hash with length ≥ 10 verifies.</div>
+
+        <div style="margin-top:10px">
+          <label>Track</label><br />
+          <select id="track">
+            <option value="spot">Spot</option>
+            <option value="futures">Futures</option>
+            <option value="options">Options</option>
+          </select>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <label><input type="radio" name="itemType" value="level" checked /> Single Level</label>
+          <label><input type="radio" name="itemType" value="bundle" /> Bundle (L1–L5)</label>
+        </div>
+        <div id="levelRow" style="margin-top:10px">
+          <label>Level</label><br />
+          <select id="level">
+            <option value="1">Level 1</option>
+            <option value="2">Level 2</option>
+            <option value="3">Level 3</option>
+            <option value="4">Level 4</option>
+            <option value="5">Level 5</option>
+          </select>
+        </div>
+
+        <div class="panel" style="margin-top:12px">
+          <div class="section-title">
+            <h4>Send Payment To</h4>
+            <span class="small">Use the address for your network</span>
           </div>
+
           <div class="row">
-            <button class="btn" onclick="buyBundle('spot')">Buy Bundle</button>
-            <button class="btn secondary" onclick="previewSyllabus('spot')">Preview</button>
-          </div>
-        </div>
-
-        <!-- Levels -->
-        <div id="spotLevels"></div>
-      </div>
-
-      <!-- Futures Trading -->
-      <div class="panel course-card">
-        <div class="row" style="justify-content:space-between">
-          <h2 style="margin:0;font-size:18px">Futures Trading Course</h2>
-          <span class="pill">Intermediate</span>
-        </div>
-        <div class="kv">Trade perpetuals and fixed-expiry futures, understand funding, leverage, liquidation, and risk controls.</div>
-        <div class="row" style="justify-content:space-between">
-          <div>
-            <div class="kv">Price per level: <span class="price">$10</span></div>
-            <div class="kv">Bundle (5 levels): <span class="price">$35</span> <span class="pill">Save $15</span></div>
-          </div>
-          <div class="row">
-            <button class="btn" onclick="buyBundle('futures')">Buy Bundle</button>
-            <button class="btn secondary" onclick="previewSyllabus('futures')">Preview</button>
-          </div>
-        </div>
-
-        <!-- Levels -->
-        <div id="futuresLevels"></div>
-      </div>
-
-      <!-- Options Trading -->
-      <div class="panel course-card">
-        <div class="row" style="justify-content:space-between">
-          <h2 style="margin:0;font-size:18px">Options Trading Course</h2>
-          <span class="pill">Advanced</span>
-        </div>
-        <div class="kv">Learn calls, puts, Greeks, implied volatility, and build strategies like spreads, straddles, and covered calls on crypto.</div>
-        <div class="row" style="justify-content:space-between">
-          <div>
-            <div class="kv">Price per level: <span class="price">$10</span></div>
-            <div class="kv">Bundle (5 levels): <span class="price">$35</span> <span class="pill">Save $15</span></div>
-          </div>
-          <div class="row">
-            <button class="btn" onclick="buyBundle('options')">Buy Bundle</button>
-            <button class="btn secondary" onclick="previewSyllabus('options')">Preview</button>
-          </div>
-        </div>
-
-        <!-- Levels -->
-        <div id="optionsLevels"></div>
-      </div>
-    </section>
-
-    <!-- Tutorials, Guides, FAQ, Glossary -->
-    <section class="panel" style="margin-top:14px">
-      <div class="grid" style="grid-template-columns:1.1fr 1fr; gap:14px">
-        <!-- Tutorials & Guides -->
-        <div class="panel">
-          <h2 style="margin:0 0 8px;font-size:18px">Tutorials & Guides</h2>
-          <ul class="kv" style="padding-left:18px;margin:8px 0">
-            <li>Getting Started with MedorCoin: wallets, security, and setting up 2FA</li>
-            <li>Reading token profiles: audits, KYC, liquidity locks, ownership concentration</li>
-            <li>Spot execution basics: order types, slippage, price impact, fees</li>
-            <li>Intro to perpetual futures: funding rates, leverage sizing, liquidation math</li>
-            <li>Options fundamentals: intrinsic vs time value, Greeks primer</li>
-            <li>Risk management toolkit: position sizing, stop placement, max drawdown</li>
-            <li>On-chain analytics for traders: flows, whale tracking, unlock calendars</li>
-          </ul>
-        </div>
-
-        <!-- FAQ -->
-        <div class="panel">
-          <h2 style="margin:0 0 8px;font-size:18px">FAQ</h2>
-          <details open><summary><b>How do I access paid lessons?</b></summary>
-            <div class="kv">Purchase a level or bundle. Access unlocks automatically for your account/email.</div>
-          </details>
-          <details><summary><b>Do you offer refunds?</b></summary>
-            <div class="kv">7-day refund if less than 20% of the content is completed. Contact support with your receipt.</div>
-          </details>
-          <details><summary><b>Are certificates verifiable?</b></summary>
-            <div class="kv">Yes. Each certificate includes a unique ID you can verify on our site.</div>
-          </details>
-          <details><summary><b>What if my country has restrictions?</b></summary>
-            <div class="kv">Learning content is generally open-access; trading features may vary by jurisdiction.</div>
-          </details>
-        </div>
-      </div>
-
-      <!-- Glossary -->
-      <div class="panel" style="margin-top:14px">
-        <h2 style="margin:0 0 8px;font-size:18px">Glossary</h2>
-        <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
-          <div><b>Spot</b><div class="kv">Immediate purchase/sale of an asset for full amount.</div></div>
-          <div><b>Perpetual</b><div class="kv">A futures contract without expiry, anchored by funding payments.</div></div>
-          <div><b>Leverage</b><div class="kv">Borrowed exposure; magnifies gains and losses.</div></div>
-          <div><b>Greeks</b><div class="kv">Sensitivity measures for options: Delta, Gamma, Theta, Vega, Rho.</div></div>
-          <div><b>IV (Implied Volatility)</b><div class="kv">Market’s forecast of a security’s volatility, priced into options.</div></div>
-          <div><b>Slippage</b><div class="kv">Difference between expected and executed price.</div></div>
-          <div><b>Price Impact</b><div class="kv">Effect of trade size on market price due to liquidity.</div></div>
-          <div><b>Funding Rate</b><div class="kv">Periodic payment to balance perp price vs spot.</div></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Certificate Preview / Generator -->
-    <section class="panel" style="margin-top:14px">
-      <h2 style="margin:0 0 8px;font-size:18px">Certificate</h2>
-      <div class="kv">Earn an auto-generated certificate after completing Level 5 of any track.</div>
-      <div id="certPreview" class="cert" style="margin-top:8px">
-        <div style="text-align:center;font-size:20px;font-weight:800;color:#6c5530">Certificate of Completion</div>
-        <div style="text-align:center;margin-top:6px">This certifies that</div>
-        <div id="certName" style="text-align:center;font-size:18px;font-weight:700;margin:6px 0">Your Name</div>
-        <div id="certCourse" style="text-align:center">has successfully completed the <b>Spot Trading</b> course (Levels 1–5).</div>
-        <div class="row" style="justify-content:space-between;margin-top:14px">
-          <div class="kv">Date: <span id="certDate"></span></div>
-          <div class="kv">Certificate ID: <span id="certId" class="mono"></span></div>
-        </div>
-        <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;align-items:center">
-          <img src="/assets/medori-coin-64.png" alt="Seal" width="36" height="36" style="opacity:.9;border-radius:10px;border:1px solid #d5bd88">
-          <div style="text-align:right">
-            <div style="font-weight:700">MedorCoin Blockchain Co.</div>
-            <div class="kv">Authorized Signature</div>
-          </div>
-        </div>
-      </div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn" onclick="downloadCert()">Download PDF</button>
-        <button class="btn secondary" onclick="verifyCert()">Verify</button>
-      </div>
-      <div id="certOut" class="kv" style="margin-top:6px"></div>
-    </section>
-
-    <!-- Compliance -->
-    <section class="panel" style="margin-top:14px">
-      <h2 style="margin:0 0 8px;font-size:18px">Learning Policy</h2>
-      <ul class="kv" style="padding-left:18px;margin:6px 0">
-        <li>Educational content only; not financial advice. Consider consulting a licensed professional.</li>
-        <li>Access unlocks per level or via bundles. Certificates issued upon completion verification.</li>
-        <li>We enforce strict anti-fraud standards; suspicious accounts and content are blocked.</li>
-      </ul>
-    </section>
-  </main>
-
-  <footer class="container">© <span id="year"></span> MedorCoin. All rights reserved.</footer>
-
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Catalog
-    const PRICES = {
-      spot: { level: 5, pricePer: 5, bundle: 17 },
-      futures: { level: 5, pricePer: 10, bundle: 35 },
-      options: { level: 5, pricePer: 10, bundle: 35 },
-    };
-
-    const SYLLABUS = {
-      spot: [
-        { title:'Level 1 — Foundations',
-          lessons:[
-            'What is spot trading? Custody, wallets, security basics',
-            'Exchanges vs DEXs, order types (market/limit/stop)',
-            'Reading order books and depth; slippage & price impact',
-            'KYC/Audit/Scanner checks; liquidity locks; red flags',
-            'Practice: place a small demo trade and record P/L'
-          ]},
-        { title:'Level 2 — Market Analysis',
-          lessons:[
-            'Trend, support/resistance, moving averages',
-            'Volume and momentum indicators (RSI/MACD basics)',
-            'On-chain data: holders, whale flows, unlocks',
-            'News/Events: catalysts and risk calendars',
-            'Practice: build a trade thesis with entry/exit'
-          ]},
-        { title:'Level 3 — Execution & Risk',
-          lessons:[
-            'Sizing, risk/reward, expectancy',
-            'Stops, take-profit, trailing methods',
-            'Fees and spreads; routing on AMMs',
-            'Position journaling and review',
-            'Practice: simulate 3 trades with rules'
-          ]},
-        { title:'Level 4 — Portfolio & Discipline',
-          lessons:[
-            'Diversification vs concentration',
-            'Managing winners/losers; avoiding FOMO',
-            'Tax-aware recordkeeping basics (jurisdiction varies)',
-            'Automation: alerts, watchlists, routines',
-            'Practice: create a weekly trading plan'
-          ]},
-        { title:'Level 5 — Capstone',
-          lessons:[
-            'End-to-end case study: research → plan → execute',
-            'Common failure modes and how to avoid them',
-            'Capstone project: submit a 2-week paper account',
-            'Assessment quiz and reflection',
-            'Completion review for certificate'
-          ]},
-      ],
-      futures: [
-        { title:'Level 1 — Futures Basics',
-          lessons:[
-            'What are futures and perps? Contract specs',
-            'Funding rates and basis; premium/discount',
-            'Margin types (isolated/cross) and liquidation',
-            'Risk warnings: leverage amplifies losses',
-            'Practice: open a micro position in sandbox'
-          ]},
-        { title:'Level 2 — Execution Mechanics',
-          lessons:[
-            'Order types for derivatives; reduce-only, TP/SL',
-            'Leverage sizing and effective notional',
-            'Funding impact on P/L and carry',
-            'Risk limits and maintenance margin',
-            'Practice: simulate entries/exits with logs'
-          ]},
-        { title:'Level 3 — Strategies',
-          lessons:[
-            'Trend following and breakout systems',
-            'Mean reversion on perps; time-of-day effects',
-            'Hedging spot with futures; basis trades',
-            'Volatility regimes and position adjustments',
-            'Practice: backtest a simple strategy'
-          ]},
-        { title:'Level 4 — Advanced Risk',
-          lessons:[
-            'Cascading liquidations and exchange risk',
-            'Correlation, tail risk, and stress tests',
-            'Event risk (news, unlocks) and halts',
-            'Trade review frameworks and KPIs',
-            'Practice: build a risk checklist'
-          ]},
-        { title:'Level 5 — Capstone',
-          lessons:[
-            'Design a complete futures trading plan',
-            'Run a 2-week simulated diary with rules',
-            'Post-mortem analysis and improvements',
-            'Final quiz and oral-style self assessment',
-            'Certificate eligibility review'
-          ]},
-      ],
-      options: [
-        { title:'Level 1 — Options Foundations',
-          lessons:[
-            'Calls, puts, moneyness, payoff diagrams',
-            'Time value vs intrinsic; assignment basics',
-            'Implied vs historical volatility',
-            'Basic strategies: covered call, protective put',
-            'Practice: analyze option chain'
-          ]},
-        { title:'Level 2 — Greeks & Pricing',
-          lessons:[
-            'Delta, Gamma, Theta, Vega, Rho',
-            'Skew/smile and term structure',
-            'Black-Scholes intuition; discrete fees',
-            'Sensitivity and risk mapping',
-            'Practice: Greek exposure worksheet'
-          ]},
-        { title:'Level 3 — Strategies I',
-          lessons:[
-            'Vertical spreads (debit/credit)',
-            'Straddles/strangles and when to use them',
-            'Calendar and diagonal spreads',
-            'Trade selection and checklist',
-            'Practice: strategy comparison case'
-          ]},
-        { title:'Level 4 — Strategies II & Risk',
-          lessons:[
-            'Iron condors, butterflies',
-            'Managing theta decay and assignment risk',
-            'IV crush and event plays – cautions',
-            'Portfolio Greeks and hedging',
-            'Practice: manage an options book (sim)'
-          ]},
-        { title:'Level 5 — Capstone',
-          lessons:[
-            'Design, execute, and evaluate a 2-week sim strategy',
-            'Stress testing under volatility shocks',
-            'Final quiz and reflection',
-            'Ethics and risk disclosures',
-            'Certificate eligibility review'
-          ]},
-      ],
-    };
-
-    // Render levels with pricing and purchase buttons
-    function renderLevels(track){
-      const target = document.getElementById(track+'Levels');
-      const cfg = PRICES[track];
-      const syllabus = SYLLABUS[track];
-      target.innerHTML = '';
-      syllabus.forEach((lvl, idx)=>{
-        const n = idx+1;
-        const div = document.createElement('div');
-        div.className = 'level';
-        div.innerHTML = `
-          <div class="row" style="justify-content:space-between">
-            <div><b>${lvl.title}</b> · <span class="kv">${lvl.lessons.length} lessons</span></div>
-            <div class="row">
-              <span class="price">$${cfg.pricePer}</span>
-              <button class="btn" onclick="buyLevel('${track}', ${n})">Buy Level ${n}</button>
-              <button class="btn secondary" onclick="openLessons('${track}', ${n})">View Lessons</button>
+            <div>
+              <div><b>ETH</b> <span class="addr" id="addr-eth"></span><button class="copy-btn" onclick="copyAddr('eth')">Copy</button></div>
+              <div class="small">Network: Ethereum</div>
+            </div>
+            <div>
+              <div><b>BNB</b> <span class="addr" id="addr-bnb"></span><button class="copy-btn" onclick="copyAddr('bnb')">Copy</button></div>
+              <div class="small">Network: BNB Smart Chain</div>
+            </div>
+            <div>
+              <div><b>BTC</b> <span class="addr" id="addr-btc"></span><button class="copy-btn" onclick="copyAddr('btc')">Copy</button></div>
+              <div class="small">Network: Bitcoin</div>
             </div>
           </div>
-          <ul class="kv" id="${track}-l${n}-list" style="padding-left:18px;margin:8px 0;display:none"></ul>
-          <div class="kv" id="${track}-l${n}-status"></div>
-        `;
-        target.appendChild(div);
-      });
-    }
-    ['spot','futures','options'].forEach(renderLevels);
 
-    function openLessons(track, n){
-      const ul = document.getElementById(`${track}-l${n}-list`);
-      const lessons = SYLLABUS[track][n-1].lessons;
-      ul.innerHTML = lessons.map(x=>`<li>${x}</li>`).join('');
-      ul.style.display = ul.style.display==='none' ? 'block' : 'none';
-    }
+          <div class="row" style="margin-top:10px">
+            <input id="txHash" placeholder="Paste your transaction hash" style="min-width:320px" />
+            <select id="network">
+              <option value="eth">ETH</option>
+              <option value="bnb">BNB</option>
+              <option value="btc">BTC</option>
+            </select>
+            <button class="btn" onclick="verifyPayment()">Verify & Unlock</button>
+          </div>
+          <div id="payOut" class="kv" style="margin-top:6px"></div>
+        </div>
+      </div>
 
-    // Name handling for certificate
-    const nameKey = 'learnerName';
-    document.getElementById('saveName').onclick = ()=>{
-      const nm = document.getElementById('learnerName').value.trim();
-      if(!nm) return alert('Enter your full name.');
-      localStorage.setItem(nameKey, nm);
-      document.getElementById('certName').textContent = nm;
+      <div class="panel">
+        <h3>Your Access</h3>
+        <div class="kv">Unlocked levels for your email.</div>
+        <div class="grid" style="grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:8px">
+          <div>
+            <h4>Spot</h4>
+            <div id="spotLevels"></div>
+          </div>
+          <div>
+            <h4>Futures</h4>
+            <div id="futuresLevels"></div>
+          </div>
+          <div>
+            <h4>Options</h4>
+            <div id="optionsLevels"></div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" onclick="refreshAccess()">Refresh</button>
+          <a class="btn" href="/my-classroom.html">Open My Classroom</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Certificates</h3>
+      <div class="kv">Issue a test certificate, then verify it.</div>
+      <div class="row" style="margin-top:8px">
+        <input id="fullName" placeholder="Your Full Name" />
+        <select id="certTrack">
+          <option value="spot">Spot</option>
+          <option value="futures">Futures</option>
+          <option value="options">Options</option>
+        </select>
+        <button class="btn" onclick="issueCert()">Issue Certificate</button>
+      </div>
+      <div id="certOut" class="kv" style="margin-top:6px"></div>
+
+      <div class="row" style="margin-top:10px">
+        <input id="verifyId" placeholder="Enter Certificate ID (e.g., MC-XX-ABC123-123456)" style="min-width:320px" />
+        <button class="btn" onclick="verifyCert()">Verify</button>
+      </div>
+      <div id="verifyOut" class="kv" style="margin-top:6px"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Payments History</h3>
+      <div class="kv">Recent purchases for your email.</div>
+      <table style="margin-top:8px">
+        <thead><tr><th>When</th><th>Item</th><th>Network</th><th>Tx</th><th>Amount (USD)</th></tr></thead>
+        <tbody id="payTable"><tr><td colspan="5" class="small">No data</td></tr></tbody>
+      </table>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" onclick="loadPayments()">Reload</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Inline config (MOCK_MODE switch)
+    window.__ENV = window.__ENV || {
+      MOCK_MODE: true,
+      API_BASE: ''
     };
-    const savedName = localStorage.getItem(nameKey);
-    if(savedName){ document.getElementById('learnerName').value = savedName; document.getElementById('certName').textContent = savedName; }
+    const ENV = window.__ENV;
+    const API = ENV.API_BASE || '';
+    const MOCK = String(ENV.MOCK_MODE).toLowerCase() === 'true';
 
-    // Purchase stubs
-    async function buyLevel(track, level){
-      const email = await ensureEmail();
-      if(!email) return;
-      const price = PRICES[track].pricePer;
-      checkout({email, item:`${track}-level-${level}`, amount: price, currency:'USD', meta:{track,level}});
-    }
-    async function buyBundle(track){
-      const email = await ensureEmail();
-      if(!email) return;
-      const price = PRICES[track].bundle;
-      checkout({email, item:`${track}-bundle`, amount: price, currency:'USD', meta:{track,levels:5,bundle:true}});
+    // Payment addresses
+    const ADDR = {
+      eth: '0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0',
+      bnb: '0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0',
+      btc: 'bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv'
+    };
+
+    const state = { email:null };
+
+    function init(){
+      // Fill addresses
+      document.getElementById('addr-eth').textContent = ADDR.eth;
+      document.getElementById('addr-bnb').textContent = ADDR.bnb;
+      document.getElementById('addr-btc').textContent = ADDR.btc;
+
+      // Restore email
+      const e = localStorage.getItem('learnerEmail');
+      if(e){ state.email = e; document.getElementById('email').value = e; }
+      updateUserOut();
+
+      // UI toggles
+      toggleDemoBanner();
+      handleItemTypeChange();
+      document.querySelectorAll('input[name="itemType"]').forEach(r=>{
+        r.addEventListener('change', handleItemTypeChange);
+      });
+
+      // Data
+      refreshAccess();
+      loadPayments();
     }
 
-    async function ensureEmail(){
-      let email = localStorage.getItem('learnerEmail');
-      if(email) return email;
-      email = prompt('Enter your email for course access and receipts:');
-      if(!email) return null;
-      // Basic anti-abuse: block obvious malicious words
-      const bad = ['hack','hacker','fraud','scam','phish','exploit'];
-      const low = email.toLowerCase();
-      if(bad.some(k=>low.includes(k))){ alert('This email appears to violate our anti-fraud policy.'); return null; }
-      localStorage.setItem('learnerEmail', email);
-      return email;
+    function toggleDemoBanner(){
+      document.getElementById('demoBanner').style.display = MOCK ? 'block' : 'none';
     }
 
-    async function checkout(payload){
-      // Replace with your payment processor call
-      // POST /api/checkout {email,item,amount,currency,meta}
+    function handleItemTypeChange(){
+      const val = document.querySelector('input[name="itemType"]:checked')?.value || 'level';
+      document.getElementById('levelRow').style.display = val === 'level' ? 'block' : 'none';
+    }
+
+    function saveEmail(){
+      const e = document.getElementById('email').value.trim();
+      if(!e) return alert('Enter email');
+      state.email = e;
+      localStorage.setItem('learnerEmail', e);
+      updateUserOut();
+      refreshAccess();
+      loadPayments();
+    }
+
+    function updateUserOut(){
+      const e = state.email || document.getElementById('email').value.trim();
+      state.email = e || null;
+      document.getElementById('userOut').textContent = e ? `Using ${e}` : 'No email set.';
+    }
+
+    function itemString(){
+      const track = document.getElementById('track').value;
+      const itemType = document.querySelector('input[name="itemType"]:checked')?.value || 'level';
+      if(itemType === 'bundle') return `${track}-bundle`;
+      const lvl = document.getElementById('level').value;
+      return `${track}-level-${lvl}`;
+    }
+
+    async function verifyPayment(){
+      if(!state.email) return alert('Set your email first.');
+      const txHash = document.getElementById('txHash').value.trim();
+      const network = document.getElementById('network').value;
+      const item = itemString();
+      if(!txHash) return alert('Paste your transaction hash first.');
+
+      const out = document.getElementById('payOut');
+      out.textContent = 'Verifying...';
+
       try{
-        console.log('Checkout', payload);
-        alert(`Proceeding to payment: ${payload.item} — $${payload.amount}`);
-        // Simulate success
-        setTimeout(async ()=>{
-          await grantAccess(payload);
-          alert('Payment successful. Access granted.');
-        }, 600);
+        let r;
+        if(network === 'btc'){
+          r = await fetch(`${API}/api/payments/btc/verify`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({email: state.email, item, txHash})
+          });
+        } else {
+          r = await fetch(`${API}/api/payments/evm/verify`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({email: state.email, item, network, txHash})
+          });
+        }
+        const j = await r.json();
+        if(j.paid){
+          out.innerHTML = `<span class="success">Payment verified.</span> Unlocked: ${j.bundle? 'Bundle (L1–L5)': `Level ${j.level}`} for ${j.track}. Amount: $${j.amountUsd}`;
+          await refreshAccess();
+          await loadPayments();
+        } else {
+          out.innerHTML = `<span class="warn">Not verified.</span> Confirmations: ${j.confirmations||0}`;
+        }
+      }catch(err){
+        out.innerHTML = `<span class="warn">Verification failed.</span>`;
+      }
+    }
+
+    async function refreshAccess(){
+      const email = state.email || document.getElementById('email').value.trim();
+      if(!email){
+        ['spot','futures','options'].forEach(t=>renderLevels(t,{}));
+        return;
+      }
+      try{
+        const r = await fetch(`${API}/api/courses/access?email=${encodeURIComponent(email)}`);
+        const acc = await r.json();
+        renderLevels('spot', acc.spot||{});
+        renderLevels('futures', acc.futures||{});
+        renderLevels('options', acc.options||{});
       }catch(e){
-        alert('Payment failed. Try again.');
+        ['spot','futures','options'].forEach(t=>renderLevels(t,{}));
       }
     }
 
-    async function grantAccess({email, meta, item}){
-      // Replace with your backend: POST /api/courses/access {email,track,level or bundle}
-      const key = accessKey(meta?.track);
-      let acc = JSON.parse(localStorage.getItem(key) || '{}');
-      if(meta?.bundle){
-        acc = { l1:true,l2:true,l3:true,l4:true,l5:true, completed:false };
-      }else if(meta?.level){
-        acc['l'+meta.level] = true;
-      }
-      localStorage.setItem(key, JSON.stringify(acc));
-      renderAccessBadges(meta?.track);
-    }
-
-    function accessKey(track){ return `access-${track}`; }
-    function hasAccess(track, level){
-      const acc = JSON.parse(localStorage.getItem(accessKey(track)) || '{}');
-      return !!acc['l'+level];
-    }
-    function renderAccessBadges(track){
-      const acc = JSON.parse(localStorage.getItem(accessKey(track)) || '{}');
+    function renderLevels(track, obj){
+      const el = document.getElementById(track+'Levels');
+      let html = '';
       for(let i=1;i<=5;i++){
-        const el = document.getElementById(`${track}-l${i}-status`);
-        if(!el) continue;
-        el.innerHTML = acc['l'+i] ? '<span class="pill" style="background:#e9f7ef;border-color:#bcd5c1;color:#1f7a46">Access granted</span>' :
-                                     '<span class="pill">Locked</span>';
+        const u = !!obj['l'+i];
+        html += `<div class="row" style="justify-content:space-between;margin:4px 0">
+          <div>Level ${i} ${u?'<span class="pill" style="background:#e9f7ef;border-color:#bcd5c1;color:#1f7a46">Unlocked</span>':'<span class="pill">Locked</span>'}</div>
+          <div>${u?`<a class="btn" href="/my-classroom.html">Open</a>`:`<span class="small">Complete prior level or purchase</span>`}</div>
+        </div>`;
       }
-    }
-    ['spot','futures','options'].forEach(renderAccessBadges);
-
-    // Simple progress + quiz stubs
-    function markCompleted(track, level){
-      const key = `progress-${track}-l${level}`;
-      localStorage.setItem(key, 'done');
-      alert(`Level ${level} marked completed.`);
+      el.innerHTML = html;
     }
 
-    // Certificate generator
-    function newCertId(){ return 'MC-' + Math.random().toString(36).slice(2,8).toUpperCase() + '-' + Date.now().toString().slice(-6); }
-    function updateCertPreview(courseName){
-      const nm = localStorage.getItem(nameKey) || 'Your Name';
-      document.getElementById('certName').textContent = nm;
-      document.getElementById('certCourse').innerHTML = `has successfully completed the <b>${courseName}</b> course (Levels 1–5).`;
-      document.getElementById('certDate').textContent = new Date().toLocaleDateString();
-      const id = newCertId();
-      document.getElementById('certId').textContent = id;
-      localStorage.setItem('lastCertId', id);
-    }
-    // Call this when backend verifies completion; for demo, allow manual preview per track
-    function previewSyllabus(track){
-      const map = {spot:'Spot Trading', futures:'Futures Trading', options:'Options Trading'};
-      updateCertPreview(map[track]);
-    }
-
-    async function downloadCert(){
-      // Replace with real PDF generation on server
-      const nm = localStorage.getItem(nameKey) || 'Your Name';
-      const course = document.getElementById('certCourse').innerText;
-      const id = document.getElementById('certId').innerText || newCertId();
-      const blob = new Blob([`Certificate of Completion\n\nName: ${nm}\n${course}\nDate: ${new Date().toLocaleDateString()}\nID: ${id}\n\nSigned: MedorCoin Blockchain Co.`], {type:'text/plain'});
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MedorCoin-Certificate-${id}.txt`; a.click();
-      document.getElementById('certOut').textContent = 'Downloaded. For a PDF with seal, connect /api/cert/pdf.';
+    async function issueCert(){
+      if(!state.email) return alert('Set your email first.');
+      const name = document.getElementById('fullName').value.trim();
+      const track = document.getElementById('certTrack').value;
+      if(!name) return alert('Enter your full name.');
+      const out = document.getElementById('certOut');
+      out.textContent = 'Issuing...';
+      try{
+        const r = await fetch(`${API}/api/cert/issue`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({email: state.email, name, track})
+        });
+        const j = await r.json();
+        if(j.certId){
+          out.innerHTML = `Issued <b>${j.certId}</b>. <a href="${j.pdfUrl}" target="_blank">Download PDF</a>`;
+        }else{
+          out.textContent = 'Issue failed.';
+        }
+      }catch(e){
+        out.textContent = 'Issue failed.';
+      }
     }
 
     async function verifyCert(){
-      const id = document.getElementById('certId').innerText || localStorage.getItem('lastCertId');
-      if(!id){ return alert('No certificate ID yet.'); }
-      // Replace with GET /api/cert/verify?id=...
-      alert(`Verification stub for ${id}. Connect /api/cert/verify to enable public lookup.`);
+      const id = document.getElementById('verifyId').value.trim();
+      if(!id) return alert('Enter certificate ID.');
+      const out = document.getElementById('verifyOut');
+      out.textContent = 'Checking...';
+      try{
+        const r = await fetch(`${API}/api/cert/verify?id=${encodeURIComponent(id)}`);
+        const j = await r.json();
+        if(j.valid){
+          out.innerHTML = `Valid ✅ — ${j.name} • ${j.track} • ${new Date(j.date).toLocaleString()}`;
+        }else{
+          out.innerHTML = `Invalid or revoked ❌`;
+        }
+      }catch(e){
+        out.textContent = 'Verification failed.';
+      }
     }
 
-    // Populate lesson lists initially (collapsed)
-    Object.keys(SYLLABUS).forEach(track=>{
-      SYLLABUS[track].forEach((lvl, i)=>{
-        const ul = document.getElementById(`${track}-l${i+1}-list`);
-        if(ul) ul.innerHTML = lvl.lessons.map(x=>`<li>${x}</li>`).join('');
-        if(ul) ul.style.display = 'none';
+    async function loadPayments(){
+      const email = state.email || document.getElementById('email').value.trim();
+      const tb = document.getElementById('payTable');
+      if(!email){ tb.innerHTML = `<tr><td colspan="5" class="small">Set your email to view history.</td></tr>`; return; }
+      try{
+        const r = await fetch(`${API}/api/payments/history?email=${encodeURIComponent(email)}`);
+        const j = await r.json();
+        const rows = (j.items||[]).map(it=>`
+          <tr>
+            <td>${new Date(it.at).toLocaleString()}</td>
+            <td>${it.bundle?`${it.track} bundle`:`${it.track} level ${it.level}`}</td>
+            <td>${it.network.toUpperCase()}</td>
+            <td class="small">${it.txHash}</td>
+            <td>$${it.amountUsd}</td>
+          </tr>
+        `).join('');
+        tb.innerHTML = rows || `<tr><td colspan="5" class="small">No payments yet.</td></tr>`;
+      }catch(e){
+        tb.innerHTML = `<tr><td colspan="5" class="small">Failed to load.</td></tr>`;
+      }
+    }
+
+    function copyAddr(net){
+      const val = ADDR[net];
+      navigator.clipboard.writeText(val).then(()=>{
+        alert(`${net.toUpperCase()} address copied`);
       });
-    });
+    }
 
-    // Mark unlocked states on load
-    ['spot','futures','options'].forEach(renderAccessBadges);
-
-    // Certificate preview init
-    document.getElementById('certDate').textContent = new Date().toLocaleDateString();
-    document.getElementById('certId').textContent = newCertId();
+    // Start
+    init();
   </script>
 </body>
 </html>
