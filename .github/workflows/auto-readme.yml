@@ -1,104 +1,23 @@
-${NAME} — A Minimal, Security-First, EVM-Inspired Blockchain with Simple Mining
+name: Auto Update README
+on:
+  push:
+    paths:
+      - 'protocol.json'
+      - 'scripts/auto_update/templates/README.tpl.md'
+  workflow_dispatch: {}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-Overview
-${NAME} (ticker: ${TICKER}) is a compact, EVM-inspired blockchain focused on clarity, security, and auditability. It features Ethereum-style transactions and fee mechanics (EIP-1559–like), a thread-safe mempool with fee-based selection, simple PoW-style mining, and a clean key–value storage model for smart contracts. Miner rewards are automatically split between the miner and the ${NAME} Protocol Treasury. Protocol fees also apply to staking/liquidity-locking operations. All value flows are on-chain and easy to audit.
+      - name: Setup jq and gettext
+        run: sudo apt-get update && sudo apt-get install -y jq gettext-base
 
-Key features
-- Ethereum-style transactions
-  - RLP-encoded, Keccak-256–hashed transactions with EIP-1559 fields: nonce, maxFeePerGas, maxPriorityFeePerGas, gasLimit, to, value, data, v, r, s.
-- Mempool with fee-aware selection
-  - Thread-safe pending pool keyed by txHash; sorts by effective gas price = min(maxFeePerGas, baseFee + priorityFee).
-- Simple mining
-  - Mine coinbase-only blocks or include validated mempool transactions. Rewards and tips are split automatically between the miner and the Protocol Treasury.
-- Clean state model
-  - Contract bytecode and key–value storage (e.g., code:<address>, storage:<address>:<key>) designed for EVM-like execution semantics.
-- Modular crypto utilities
-  - Double SHA-256 hashing and prototype key/signature functions for development (to be replaced with secp256k1 ECDSA).
-
-Economic model (defaults)
-- Reward split (basis points)
-  - MINER_REWARD_BPS = ${MINER_BPS} (${MINER_BPS}/10000)
-  - PROTOCOL_REWARD_BPS = ${PROT_BPS} (${PROT_BPS}/10000)
-  - PROTOCOL_TREASURY_ADDRESS = ${TREASURY}
-- Fees
-  - Base fee (EIP-1559–like): ${BASE_FEE_POLICY} or route to treasury (configurable).
-  - Staking/liquidity-lock fees:
-    - STAKE_LOCK_FEE_BPS = ${STAKE_BPS} (${STAKE_BPS}/10000)
-    - LIQ_LOCK_FEE_BPS = ${LIQ_BPS} (${LIQ_BPS}/10000)
-
-Security principles
-- Simplicity first to reduce attack surface; readable code for straightforward audits.
-- Deterministic, auditable accounting using basis-point math with overflow checks.
-- Strict validation path: signatures, nonce, balance, gas limits, and block rules.
-- Data integrity: namespaced keys with optional RocksDB persistence.
-- Roadmap hardening: replace prototype crypto with secp256k1 ECDSA; chain ID and replay protection; consensus/header integrity checks; extensive tests.
-
-Core modules
-- Crypto
-  - doubleSHA256 (hex), generatePrivateKey (128-bit hex prototype), getPublicKey = SHA256(privateKey) [prototype], sign/verify [prototype; replace with secp256k1].
-- Transactions
-  - txHash = keccak256(RLP(nonce, maxFeePerGas, maxPriorityFeePerGas, gasLimit, to, value, data, v, r, s)).
-- Mempool
-  - Thread-safe; add/remove/has/get; getSortedByFee(baseFee) using effective gas price; optional RocksDB persistence.
-- Miner
-  - mine${NAME//[^A-Za-z0-9]/}: coinbase-only block.
-  - mineWithMempool: selects txs, validates via processTransaction, attributes rewards/tips, prunes confirmed txs.
-- State/Storage
-  - Key–value layout: code:<address>, storage:<address>:<key>, balances:<address>, nonces:<address>.
-
-Configuration
-- protocol.json
-  - name: ${NAME}
-  - ticker: ${TICKER}
-  - protocolTreasuryAddress: ${TREASURY}
-  - minerRewardBps: ${MINER_BPS}
-  - protocolRewardBps: ${PROT_BPS}
-  - stakeLockFeeBps: ${STAKE_BPS}
-  - liqLockFeeBps: ${LIQ_BPS}
-  - baseFeePolicy: ${BASE_FEE_POLICY}
-  - chainId
-  - blockRewardSchedule
-
-Reward and fee accounting (pseudocode)
-- On block assembly:
-  - totalPriorityFees = sum(tx.effectiveTipPaid)
-  - blockReward = currentBlockReward(...)
-  - minerPortion = (MINER_REWARD_BPS  (blockReward + totalPriorityFees)) / 10000
-  - protocolPortion = (PROTOCOL_REWARD_BPS  (blockReward + totalPriorityFees)) / 10000
-  - credit(minerAddress, minerPortion)
-  - credit(PROTOCOL_TREASURY_ADDRESS, protocolPortion)
-  - handle baseFee per policy (burn/route)
-- On staking/liquidity lock:
-  - fee = (BPS * amount) / 10000
-  - credit(PROTOCOL_TREASURY_ADDRESS, fee)
-  - lock(amount - fee)
-
-Developer quickstart
-- Build
-  - Dependencies: keccak, RLP utilities, RocksDB (optional).
-  - Build with your C++ toolchain.
-- Configure
-  - Set treasury address and BPS parameters in protocol.json.
-- Run
-  - Start node; mine via mine${NAME//[^A-Za-z0-9]/} or mineWithMempool.
-- Submit a transaction
-  - Construct EVM-style tx, RLP-encode, keccak256, attach v/r/s (prototype), broadcast.
-
-Testing checklist
-- Mempool: duplicate rejection, fee ordering, thread safety.
-- Transactions: stable RLP and Keccak; signature path (upgrade to secp256k1).
-- Mining: valid tx inclusion; nonce/order; exact reward/tip splits.
-- Fees: priority/base fee correctness; rounding behavior.
-- Staking/lock flows: fee calculation, treasury credit, lock balances.
-- Security: fuzz serialization, arithmetic limits, consensus header checks.
-
-Automation note
-- This README is auto-generated. Edit protocol.json to change names, tickers, fees, or policies. The workflow updates README.md automatically.
-EOF
-          fi
-          envsubst < scripts/auto_update/templates/README.tpl.md > README.md
-      - name: Commit README
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: auto-regenerate README from protocol.json"
-          file_pattern: README.md
+      - name: Ensure template exists and render README
+        run: |
+          set -e
+          mkdir -p scripts/auto_update/templates
+          if [ ! -f scripts/auto_update/templates/README.tpl.md ]; then
+            cat > scripts/auto_update/templates/README.tpl.md <<'EOF'
