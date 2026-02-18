@@ -4,50 +4,62 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MedorCoin Docs</title>
-  <meta name="description" content="MedorCoin Blockchain documentation" />
+  <meta name="description" content="Developer documentation for MedorCoin blockchain." />
+  <meta name="theme-color" content="#0f766e" />
   <style>
     :root{
-      --bg:#fafafa;           / soft white /
-      --text:#333333;         / dark grey pencil /
-      --muted:#666666;
-      --card:#ffffff;
-      --line:#e9e9e9;
-      --accent:#3c6e71;
-      --accent-contrast:#ffffff;
-      --radius:12px;
-      --shadow:0 6px 20px rgba(0,0,0,0.06);
+      --bg:#0b0f14;
+      --bg-soft:#0f141b;
+      --panel:#111923;
+      --card:#0f1621;
+      --line:#1f2a37;
+      --text:#e6f0f2;
+      --muted:#9fb3c8;
+      --accent:#22c55e;
+      --accent-2:#06b6d4;
+      --accent-3:#a78bfa;
+      --accent-on:#061014;
+      --radius:14px;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --glow: 0 10px 40px rgba(34,197,94,0.18), 0 2px 10px rgba(6,182,212,0.14);
     }
-    * { box-sizing: border-box; }
-    html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; line-height:1.6; }
-    a { color:var(--accent); text-decoration:none; }
+    { box-sizing:border-box }
+    html, body { margin:0; padding:0; background:linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%); color:var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; line-height:1.6; }
+    a { color: var(--accent-2); text-decoration:none; }
     a:hover { text-decoration:underline; }
 
-    .wrap { max-width: 1000px; margin: 0 auto; padding: 24px; }
-    header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 0 8px; border-bottom:1px solid var(--line); }
-    .brand { display:flex; align-items:center; gap:14px; font-weight:700; letter-spacing:0.2px; }
-    .logo { width:38px; height:38px; border-radius:10px; background: linear-gradient(135deg, #efefef, #ffffff); border:1px solid var(--line); box-shadow: var(--shadow); }
-    nav { display:flex; gap:14px; flex-wrap:wrap; }
-    nav a { padding:8px 12px; border-radius:8px; }
-    nav a.active, nav a:focus-visible { background:var(--card); border:1px solid var(--line); text-decoration:none; }
+    .wrap { max-width: 1200px; margin:0 auto; padding:22px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 0 6px; position:sticky; top:0; background: linear-gradient(180deg, rgba(11,15,20,0.9), rgba(11,15,20,0.6)); backdrop-filter: blur(10px); border-bottom:1px solid var(--line); z-index:10; }
+    .brand { display:flex; align-items:center; gap:14px; font-weight:800; letter-spacing:0.2px; }
+    .logo { width:42px; height:42px; border-radius:12px; background:
+        conic-gradient(from 180deg at 50% 50%, var(--accent) 0deg, var(--accent-2) 120deg, var(--accent-3) 240deg, var(--accent) 360deg);
+      border:1px solid #133; box-shadow: var(--glow); }
+    nav { display:flex; gap:10px; flex-wrap:wrap; }
+    nav a { padding:8px 12px; border-radius:10px; border:1px solid transparent; }
+    nav a:hover, nav a.active, nav a:focus-visible { background:var(--panel); border-color:var(--line); text-decoration:none; }
 
-    main { display:grid; grid-template-columns: 280px 1fr; gap:22px; padding-top:22px; }
-    aside { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px; position:sticky; top:14px; height:max-content; }
-    .toc h2 { margin:6px 0 10px; font-size:16px; color:var(--muted); }
-    .toc a { display:block; padding:6px 8px; border-radius:8px; color:var(--text); }
-    .toc a:hover { background:#f4f4f4; text-decoration:none; }
+    main { display:grid; grid-template-columns: 280px 1fr; gap:20px; padding-top:20px; }
+    aside { position:sticky; top:78px; height:max-content; }
+    .toc { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; box-shadow: var(--shadow); }
+    .toc a { display:block; padding:8px 10px; border-radius:8px; color:var(--muted); }
+    .toc a:hover, .toc a.active { background:var(--panel); color:var(--text); text-decoration:none; }
 
-    article { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px; }
-    h1 { margin:0 0 8px; font-size:clamp(26px, 4vw, 38px); line-height:1.2; }
-    h2 { margin:20px 0 8px; font-size:22px; }
-    h3 { margin:16px 0 6px; font-size:18px; }
+    article { background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow: var(--shadow); padding:20px; }
+    h1 { margin:0 0 6px; font-size: clamp(26px, 4vw, 38px); line-height:1.2; }
+    h2 { margin:18px 0 6px; font-size:20px; }
     p { margin:8px 0; color:var(--text); }
-    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-    pre { background:#f7f7f7; border:1px solid var(--line); border-radius:10px; padding:12px; overflow:auto; }
-    .note { background:#fffff3; border:1px solid #f0e6a6; padding:10px 12px; border-radius:10px; color:#5a5600; }
+    .muted { color:var(--muted); }
+    .mono { font-family: var(--mono); }
 
-    footer { margin-top:28px; padding:16px 0; border-top:1px solid var(--line); color:var(--muted); font-size:14px; }
+    .callout { border:1px solid #1e2d39; background:linear-gradient(180deg, rgba(34,197,94,0.08), rgba(6,182,212,0.06)); padding:12px; border-radius:12px; }
 
-    @media (max-width: 900px){
+    pre { background:#0b121a; border:1px solid #1c2a36; border-radius:12px; padding:12px; overflow:auto; }
+    code { font-family: var(--mono); color:#a7f3d0; }
+
+    footer { margin:26px 0 12px; color:var(--muted); display:flex; justify-content:space-between; align-items:center; gap:10px; border-top:1px solid var(--line); padding-top:12px; }
+
+    @media (max-width: 1000px){
       main { grid-template-columns: 1fr; }
       aside { position:static; }
     }
@@ -70,77 +82,144 @@
 
     <main>
       <aside>
-        <div class="toc" aria-label="Table of contents">
-          <h2>On this page</h2>
-          <a href="#intro">Introduction</a>
-          <a href="#quickstart">Quick Start</a>
-          <a href="#config">Configuration</a>
-          <a href="#deployment">Deployment</a>
-          <a href="#faq">FAQ</a>
-        </div>
+        <nav class="toc" aria-label="Table of contents">
+          <a href="#intro" class="active">Introduction</a>
+          <a href="#network">Network Specs</a>
+          <a href="#rpc">RPC Endpoints</a>
+          <a href="#wallets">Wallet Config</a>
+          <a href="#nodes">Nodes & Peers</a>
+          <a href="#contracts">Smart Contracts</a>
+          <a href="#explorer">Explorer</a>
+        </nav>
       </aside>
 
       <article>
-        <h1 id="intro">MedorCoin Documentation</h1>
-        <p class="note">Tip: Keep private values out of your repo. Use a gitignored file or environment variables.</p>
+        <section id="intro">
+          <h1>MedorCoin Documentation</h1>
+          <p class="muted">Lightweight, modern-tech, and energetic. Everything you need to integrate with MedorCoin.</p>
+          <div class="callout">
+            <strong>Heads up:</strong> This is a static UI shell. Replace placeholders with your production values before launch.
+          </div>
+        </section>
 
-        <h2 id="quickstart">Quick Start</h2>
-        <ol>
-          <li>Clone the repo: git clone https://github.com/invi-dor/MedorCoin-Blockchain</li>
-          <li>Open index.html locally to view the landing page.</li>
-          <li>Edit docs.html as your documentation grows.</li>
-        </ol>
+        <section id="network">
+          <h2>Network Specs</h2>
+          <ul>
+            <li>Chain name: MedorCoin</li>
+            <li>Chain ID: 12345 (placeholder)</li>
+            <li>Currency: MEDUR (18 decimals)</li>
+            <li>Consensus: Proof-of-Stake (placeholder)</li>
+            <li>Genesis hash: 0xGENESIS... (placeholder)</li>
+            <li>SLIP-44 coin type: 9999 (placeholder)</li>
+          </ul>
+        </section>
 
-        <h2 id="config">Configuration</h2>
-        <p>Recommended public and private configuration files:</p>
-        <pre><code>{
-  "name": "MedorCoin",
-  "ticker": "MEDUR",
-  "stakeLockFeeBps": 50,
-  "liqLockFeeBps": 50,
-  "miningRewards": "enabled"
+        <section id="rpc">
+          <h2>RPC Endpoints</h2>
+          <p>Public endpoints (replace with your infra):</p>
+          <ul>
+            <li>HTTPS RPC: https://rpc.medorcoin.org</li>
+            <li>WebSocket: wss://ws.medorcoin.org</li>
+          </ul>
+
+          <h3>Common JSON-RPC Calls</h3>
+          <pre><code>// Get chain ID
+curl -s -X POST https://rpc.medorcoin.org \
+  -H 'content-type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}'
+
+// Get latest block
+curl -s -X POST https://rpc.medorcoin.org \
+  -H 'content-type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"eth_getBlockByNumber","params":["latest", false]}'</code></pre>
+        </section>
+
+        <section id="wallets">
+          <h2>Wallet Configuration</h2>
+          <p>Add to EVM wallets (MetaMask/Rabby):</p>
+          <pre><code>{
+  "chainId": "0x3039",        // 12345
+  "chainName": "MedorCoin",
+  "nativeCurrency": { "name":"MedorCoin", "symbol":"MEDUR", "decimals":18 },
+  "rpcUrls": ["https://rpc.medorcoin.org"],
+  "blockExplorerUrls": ["https://explorer.medorcoin.org"],
+  "iconUrls": ["https://medorcoin.org/assets/logo.png"]
 }</code></pre>
-        <pre><code>{
-  "minerRewardBps": 9000,
-  "protocolRewardBps": 1000,
-  "baseFeePolicy": "split",
-  "splitBpsToTreasury": 7000,
-  "splitBpsToMiners": 3000,
-  "protocolTreasuryAddress": "0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0"
-}</code></pre>
+        </section>
 
-        <h3>Environment variables (optional)</h3>
-        <pre><code># .env (example)
-MINER_REWARD_BPS=9000
-PROTOCOL_REWARD_BPS=1000
-BASE_FEE_POLICY=split
-SPLIT_BPS_TREASURY=7000
-SPLIT_BPS_MINERS=3000
-PROTOCOL_TREASURY_ADDRESS=0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0</code></pre>
+        <section id="nodes">
+          <h2>Nodes & Peers</h2>
+          <ul>
+            <li>Bootnodes: enode://PUBKEY@ip:30303 (placeholder)</li>
+            <li>Static peers: enode://PUBKEY@ip:30303 (placeholder)</li>
+            <li>Pruning: recommended --prune=archive for indexers, default otherwise</li>
+          </ul>
 
-        <h2 id="deployment">Deployment</h2>
-        <ol>
-          <li>Commit index.html and docs.html to your gh-pages branch or main with Pages enabled.</li>
-          <li>Set Pages to deploy from / root. URL will be your GitHub Pages link.</li>
-          <li>Verify navigation links work between Home, Docs, and Explorer.</li>
-        </ol>
+          <h3>Run a Node (example)</h3>
+          <pre><code># Example (geth-like)
+medor --networkid 12345 \
+  --syncmode snap \
+  --http --http.addr 0.0.0.0 --http.corsdomain "" \
+  --ws --ws.addr 0.0.0.0 \
+  --bootnodes "enode://PUBKEY@ip:30303"</code></pre>
+        </section>
 
-        <h2 id="faq">FAQ</h2>
-        <p><strong>Q:</strong> Can I change the accent color?<br>
-        <strong>A:</strong> Yes, update --accent in the :root CSS.</p>
+        <section id="contracts">
+          <h2>Smart Contracts</h2>
+          <ul>
+            <li>Compiler: Solidity ^0.8.21</li>
+            <li>Chainlist: Submit PR to ethereum-lists/chains</li>
+            <li>Explorers: Blockscout or Etherscan as a Service</li>
+          </ul>
 
-        <p><strong>Q:</strong> Where do I add new sections?<br>
-        <strong>A:</strong> Duplicate the article blocks or add new headings and link them in the TOC.</p>
+          <h3>Quick Start (Hardhat)</h3>
+          <pre><code>npm i -D hardhat @nomicfoundation/hardhat-toolbox
+npx hardhat init
+
+// hardhat.config.js
+module.exports = {
+  solidity: "0.8.21",
+  networks: {
+    medor: {
+      url: "https://rpc.medorcoin.org",
+      chainId: 12345,
+      accounts: ["0xYOUR_PRIVATE_KEY"]
+    }
+  }
+};</code></pre>
+        </section>
+
+        <section id="explorer">
+          <h2>Explorer</h2>
+          <p>Reference UI: <a href="./explorer.html">Explorer</a>. Point it to your backend API once available.</p>
+        </section>
       </article>
     </main>
 
     <footer>
-      © <span id="y"></span> MedorCoin. All rights reserved.
+      <div>© <span id="y"></span> MedorCoin. All rights reserved.</div>
+      <div class="mono muted">v0.1 UI Shell</div>
     </footer>
   </div>
 
   <script>
+    // Year
     document.getElementById('y').textContent = new Date().getFullYear();
+
+    // TOC active link on scroll
+    const links = Array.from(document.querySelectorAll('.toc a'));
+    const sections = links.map(a => document.querySelector(a.getAttribute('href')));
+    const obs = new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          links.forEach(l=>l.classList.remove('active'));
+          const id = '#' + e.target.id;
+          const active = links.find(l=>l.getAttribute('href')===id);
+          if(active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
+    sections.forEach(s=> obs.observe(s));
   </script>
 </body>
 </html>
