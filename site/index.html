@@ -1,378 +1,285 @@
-index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>MedorCoin — Learn & Verify</title>
+  <title>MedorCoin — Blockchain Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="MedorCoin Blockchain Portal — Learn, verify crypto payments, access courses, and earn certificates."/>
   <style>
-    body { font-family: system-ui, Arial, sans-serif; margin: 0; padding: 0; background: #0e0f12; color: #eaecef; }
-    header, footer { padding: 16px; background: #12141a; border-bottom: 1px solid #252833; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+    :root {
+      --bg: #0e0f12;
+      --panel: #12141a;
+      --border: #252833;
+      --text: #eaecef;
+      --muted: #98a2b3;
+      --primary: #2b5cff;
+      --primary-2: #7aa2ff;
+      --green: #4ade80;
+      --orange: #f59e0b;
+      --red: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, Arial, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+    header, footer { background: var(--panel); border-bottom: 1px solid var(--border); }
+    header .container, main .container, footer .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
     h1, h2, h3 { margin: 12px 0; }
+    p { line-height: 1.5; }
     .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-    .col { flex: 1; min-width: 260px; }
-    input, select { width: 100%; padding: 10px; background: #161a22; color: #eaecef; border: 1px solid #2a2f3a; border-radius: 6px; }
-    .btn { padding: 10px 14px; background: #2b5cff; color: white; border: none; border-radius: 6px; cursor: pointer; }
-    .btn.secondary { background: #2a2f3a; }
-    .card { background: #12141a; border: 1px solid #252833; border-radius: 10px; padding: 16px; }
-    .muted { color: #98a2b3; }
-    .success { color: #4ade80; }
-    .warn { color: #f59e0b; }
-    .error { color: #ef4444; }
-    code { background: #0b0d12; padding: 2px 6px; border-radius: 4px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 12px; }
-    .badge { padding: 4px 8px; background: #1b1f2a; border: 1px solid #2a2f3a; border-radius: 999px; font-size: 12px; }
-    .level { padding: 8px; border-radius: 8px; border: 1px dashed #2a2f3a; text-align: center; }
-    a { color: #7aa2ff; text-decoration: none; }
+    .spaced { justify-content: space-between; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+    .hero { padding: 32px 0; }
+    .btn { display: inline-block; padding: 10px 14px; background: var(--primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; }
+    .btn.secondary { background: #2a2f3a; color: var(--text); }
+    .btn.ghost { background: transparent; border: 1px solid var(--border); }
+    .muted { color: var(--muted); }
+    .badge { padding: 4px 10px; background: #1b1f2a; border: 1px solid var(--border); border-radius: 999px; font-size: 12px; }
+    .status-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; background:#5a657a; }
+    .ok { background: #22c55e; }
+    .warn { background: #f59e0b; }
+    .err { background: #ef4444; }
+    a { color: var(--primary-2); text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .divider { height: 1px; background: #252833; margin: 16px 0; }
-    small { display: block; }
+    code { background:#0f1320; padding:2px 4px; border-radius:4px; }
+    .iconbox { padding: 14px; border-radius: 10px; border: 1px solid var(--border); background: #101319; }
+    .iconbox h3 { margin: 6px 0 8px; }
   </style>
 </head>
 <body>
-  <header>
-    <div class="container row" style="justify-content: space-between;">
-      <div>
-        <h1>MedorCoin Classroom</h1>
-        <small class="muted">Real payments, real access. Demo preview available without login.</small>
-      </div>
-      <div class="row">
-        <span id="userEmail" class="badge">Not logged in</span>
-        <button class="btn" onclick="loginRequest()">Log in</button>
-        <button class="btn secondary" onclick="logout()">Log out</button>
-      </div>
+<header>
+  <div class="container row spaced">
+    <div class="row" style="gap:8px;">
+      <img alt="MedorCoin logo" src="https://invi-dor.github.io/MedorCoin-Blockchain/assets/logo.png" onerror="this.style.display='none';" style="height:28px;border-radius:6px;">
+      <h1 style="margin:0;">MedorCoin — Blockchain Portal</h1>
     </div>
-  </header>
+    <div class="row">
+      <span id="userEmail" class="badge">Not logged in</span>
+      <button class="btn" onclick="loginRequest()">Log in</button>
+      <button class="btn secondary" onclick="logout()">Log out</button>
+    </div>
+  </div>
+</header>
 
-  <main class="container">
-    <section class="card">
-      <h2>Quick Demo (no login)</h2>
-      <p class="muted">Preview content from Level 1. To take quizzes, get certificates, or unlock higher levels, please log in and purchase.</p>
-      <div class="grid">
-        <div class="level">Spot Trading — Level 1 preview: Market vs. Limit orders</div>
-        <div class="level">Futures — Level 1 preview: Leverage basics and risks</div>
-        <div class="level">Options — Level 1 preview: Calls vs. Puts overview</div>
-      </div>
-    </section>
-
-    <div class="divider"></div>
-
-    <section class="card">
-      <h2>Purchase and Verify Payment</h2>
-      <div class="row">
-        <div class="col">
-          <label>Network</label>
-          <select id="network">
-            <option value="eth">ETH (Ethereum)</option>
-            <option value="bnb">BNB (BSC)</option>
-            <option value="btc">BTC (Bitcoin)</option>
-          </select>
-        </div>
-        <div class="col">
-          <label>Choose track</label>
-          <select id="track">
-            <option value="spot">Spot</option>
-            <option value="futures">Futures</option>
-            <option value="options">Options</option>
-          </select>
-        </div>
-        <div class="col">
-          <label>Purchase type</label>
-          <div>
-            <label><input type="radio" name="itemType" value="level" checked /> Single Level</label>
-            <label style="margin-left:12px;"><input type="radio" name="itemType" value="bundle" /> Bundle (L1–L5)</label>
-          </div>
-        </div>
-        <div class="col" id="levelCol">
-          <label>Level</label>
-          <select id="level">
-            <option value="1">Level 1</option>
-            <option value="2">Level 2</option>
-            <option value="3">Level 3</option>
-            <option value="4">Level 4</option>
-            <option value="5">Level 5</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="row" style="margin-top:12px;">
-        <div class="col">
-          <label>Transaction Hash</label>
-          <input id="txHash" placeholder="Paste your on-chain tx hash here" />
-          <small class="muted">
-            Send payment to:
-            <span id="addrEth">ETH/BNB: 0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0</span> —
-            <span id="addrBtc">BTC: bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv</span>
-          </small>
-        </div>
-        <div class="col" style="align-self: end;">
-          <button class="btn" onclick="verifyPayment()">Verify Payment</button>
-        </div>
-      </div>
-      <p id="payOut" class="muted"></p>
-    </section>
-
-    <div class="divider"></div>
-
-    <section class="card">
-      <h2>My Access</h2>
-      <p class="muted">Shows unlocked levels after successful verification.</p>
-      <div id="accessGrid" class="grid"></div>
-      <div class="row" style="margin-top:8px;">
-        <button class="btn" onclick="refreshAccess()">Refresh Access</button>
-      </div>
-    </section>
-
-    <div class="divider"></div>
-
-    <section class="card">
-      <h2>Payments History</h2>
-      <div id="history"></div>
-      <div class="row" style="margin-top:8px;">
-        <button class="btn" onclick="loadPayments()">Load History</button>
-      </div>
-    </section>
-
-    <div class="divider"></div>
-
-    <section class="card">
-      <h2>Certificate (requires Level 5)</h2>
-      <div class="row">
-        <div class="col">
-          <label>Name on certificate</label>
-          <input id="certName" placeholder="Your full name" />
-        </div>
-        <div class="col">
-          <label>Track</label>
-          <select id="certTrack">
-            <option value="spot">Spot</option>
-            <option value="futures">Futures</option>
-            <option value="options">Options</option>
-          </select>
-        </div>
-        <div class="col" style="align-self:end;">
-          <button class="btn" onclick="issueCert()">Issue Certificate</button>
-        </div>
-      </div>
-      <p id="certOut" class="muted"></p>
-    </section>
-  </main>
-
-  <footer>
+<main>
+  <section class="hero">
     <div class="container">
-      <small class="muted">Version check enabled. The page refreshes when a new deploy is detected.</small>
+      <h2>Learn. Verify. Earn Certificates.</h2>
+      <p class="muted">Crypto-native learning with real on-chain payment verification across ETH/BNB (EVM) and BTC. Unlock levels and certify your progress.</p>
+      <div class="row" style="margin-top:12px;">
+        <a class="btn" href="https://invi-dor.github.io/MedorCoin-Blockchain/site/learners.html">Enter Learners Portal</a>
+        <a class="btn secondary" href="https://invi-dor.github.io/MedorCoin-Blockchain/site/my-classroom.html">Go to My Classroom</a>
+      </div>
     </div>
-  </footer>
+  </section>
 
-  <script>
-    // Configure your backend URL
-    window.__ENV = window.__ENV || {};
-    window.__ENV.API_BASE = window.__ENV.API_BASE || 'http://localhost:8080';
+  <section class="container card">
+    <h2>Quick Start</h2>
+    <div class="grid">
+      <div class="iconbox">
+        <h3>1) Log in</h3>
+        <p class="muted">Use magic-link email. No passwords.</p>
+        <button class="btn ghost" onclick="loginRequest()">Send login link</button>
+      </div>
+      <div class="iconbox">
+        <h3>2) Pay on-chain</h3>
+        <p class="muted">Send to our addresses and paste your tx hash to unlock access.</p>
+        <small class="muted">EVM: <code>0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0</code><br/>BTC: <code>bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv</code></small>
+      </div>
+      <div class="iconbox">
+        <h3>3) Learn & Certify</h3>
+        <p class="muted">Complete lessons, pass quizzes, and download your certificate.</p>
+        <a class="btn ghost" href="https://invi-dor.github.io/MedorCoin-Blockchain/site/my-classroom.html">Open Classroom</a>
+      </div>
+    </div>
+  </section>
 
-    let AUTH_TOKEN = localStorage.getItem('mc_token') || null;
+  <section class="container card" style="margin-top:16px;">
+    <h2>Live Status</h2>
+    <div class="grid">
+      <div>
+        <h3><span id="apiDot" class="status-dot"></span>API</h3>
+        <p id="apiStatus" class="muted">Checking...</p>
+      </div>
+      <div>
+        <h3><span id="authDot" class="status-dot"></span>Auth</h3>
+        <p id="authStatus" class="muted">Checking...</p>
+      </div>
+      <div>
+        <h3><span id="payDot" class="status-dot"></span>Payments</h3>
+        <p id="payStatus" class="muted">Checking...</p>
+      </div>
+    </div>
+  </section>
 
-    function authHeaders() {
-      return AUTH_TOKEN ? { Authorization: 'Bearer ' + AUTH_TOKEN } : {};
-    }
+  <section class="container card" style="margin-top:16px;">
+    <h2>Learners & Classroom</h2>
+    <div class="grid">
+      <div class="iconbox">
+        <h3>Learners Portal</h3>
+        <p class="muted">Verify payment, view access, and issue certificates.</p>
+        <a class="btn" href="https://invi-dor.github.io/MedorCoin-Blockchain/site/learners.html">Open Learners</a>
+      </div>
+      <div class="iconbox">
+        <h3>My Classroom</h3>
+        <p class="muted">Complete lessons and take quizzes to unlock levels.</p>
+        <a class="btn secondary" href="https://invi-dor.github.io/MedorCoin-Blockchain/site/my-classroom.html">Open Classroom</a>
+      </div>
+    </div>
+  </section>
+</main>
 
-    function logout() {
-      localStorage.removeItem('mc_token');
-      AUTH_TOKEN = null;
-      document.getElementById('userEmail').textContent = 'Not logged in';
-      alert('Logged out');
-    }
+<footer>
+  <div class="container row spaced">
+    <small class="muted">MedorCoin ©</small>
+    <small class="muted">Site: https://invi-dor.github.io/MedorCoin-Blockchain</small>
+  </div>
+</footer>
 
-    async function loginRequest() {
-      const email = prompt('Enter your email to receive a login link:');
-      if (!email) return;
-      await fetch(`${window.__ENV.API_BASE}/api/auth/request`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+<script>
+  // Frontend site root (GitHub Pages)
+  const SITE_ROOT = 'https://invi-dor.github.io/MedorCoin-Blockchain';
+
+  // Backend API base URL — replace with your live API (must allow CORS for https://invi-dor.github.io)
+  window.__ENV = window.__ENV || {};
+  window.__ENV.API_BASE = window.__ENV.API_BASE || 'https://YOUR-LIVE-API-BASE';
+
+  let AUTH_TOKEN = localStorage.getItem('mc_token') || null;
+
+  function setDot(id, status){
+    const dot = document.getElementById(id);
+    dot.classList.remove('ok','warn','err');
+    if(status === 'ok') dot.classList.add('ok');
+    else if(status === 'warn') dot.classList.add('warn');
+    else if(status === 'err') dot.classList.add('err');
+  }
+
+  function authHeaders(){ return AUTH_TOKEN ? { Authorization: 'Bearer ' + AUTH_TOKEN } : {}; }
+
+  function logout(){
+    localStorage.removeItem('mc_token');
+    AUTH_TOKEN = null;
+    document.getElementById('userEmail').textContent = 'Not logged in';
+    alert('Logged out');
+  }
+
+  async function loginRequest(){
+    const email = prompt('Enter your email to receive a login link:');
+    if(!email) return;
+    const redirectUrl = SITE_ROOT + '/site/learners.html/auth-complete';
+    try{
+      const r = await fetch(`${window.__ENV.API_BASE}/api/auth/request`, {
+        method:'POST', headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ email, redirectUrl })
       });
-      alert('Check your email for the login link. If SMTP is not configured, see server logs for the link.');
-    }
-
-    // Handle redirect after magic-link sign-in if this page is /auth-complete
-    (function checkAuthComplete() {
-      if (location.pathname.endsWith('/auth-complete')) {
-        const token = location.hash.replace('#token=', '');
-        if (token) {
-          localStorage.setItem('mc_token', token);
-          AUTH_TOKEN = token;
-          alert('Logged in successfully.');
-          window.location.href = '/';
-        }
+      if(r.ok){
+        alert('Check your email for the login link. If email is not configured, see backend logs for the link.');
+      } else {
+        alert('Login request failed. Check API and CORS.');
       }
-    })();
-
-    async function me() {
-      if (!AUTH_TOKEN) return;
-      try {
-        const r = await fetch(`${window.__ENV.API_BASE}/api/me`, { headers: { ...authHeaders() } });
-        if (r.ok) {
-          const j = await r.json();
-          document.getElementById('userEmail').textContent = j.user.email;
-        }
-      } catch {}
+    }catch{
+      alert('Network/CORS error requesting login link.');
     }
+  }
 
-    // Toggle level selector with purchase type
-    document.addEventListener('change', (e) => {
-      if (e.target && e.target.name === 'itemType') {
-        const isBundle = e.target.value === 'bundle';
-        document.getElementById('levelCol').style.display = isBundle ? 'none' : 'block';
+  // Magic-link completion support (if homepage is used as callback)
+  (function checkAuthComplete(){
+    if (location.pathname.endsWith('/auth-complete')) {
+      const token = location.hash.replace('#token=', '');
+      if (token) {
+        localStorage.setItem('mc_token', token);
+        AUTH_TOKEN = token;
+        alert('Logged in.');
+        window.location.href = SITE_ROOT + '/';
       }
-    });
+    }
+  })();
 
-    async function verifyPayment() {
-      if (!AUTH_TOKEN) { alert('Please log in first.'); return; }
-      const txHash = document.getElementById('txHash').value.trim();
-      const network = document.getElementById('network').value; // eth | bnb | btc
-      const track = document.getElementById('track').value;
-      const itemType = document.querySelector('input[name="itemType"]:checked')?.value || 'level';
-      const level = itemType === 'level' ? Number(document.getElementById('level').value) : null;
-      const bundle = itemType === 'bundle';
-
-      const out = document.getElementById('payOut');
-      out.className = 'muted';
-      out.textContent = 'Verifying on-chain payment...';
-
-      try {
-        const url = network === 'btc'
-          ? `${window.__ENV.API_BASE}/api/payments/btc/verify`
-          : `${window.__ENV.API_BASE}/api/payments/evm/verify`;
-        const body = network === 'btc'
-          ? { txHash, track, level, bundle }
-          : { network, txHash, track, level, bundle };
-
-        const r = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...authHeaders() },
-          body: JSON.stringify(body)
-        });
+  async function me(auto=false){
+    if(!AUTH_TOKEN){ return; }
+    try{
+      const r = await fetch(`${window.__ENV.API_BASE}/api/me`, { headers: { ...authHeaders() } });
+      if (r.ok){
         const j = await r.json();
-
-        if (r.ok && j.paid) {
-          out.className = 'success';
-          out.innerHTML = `Payment verified. Unlocked: ${j.bundle ? 'Bundle (L1–L5)' : `Level ${j.level}`} for <b>${j.track}</b>. Amount: $${Number(j.amountUsd).toFixed(2)}.`;
-          await refreshAccess();
-          await loadPayments();
-        } else if (r.ok && j.paid === false) {
-          out.className = 'warn';
-          out.innerHTML = `Waiting for confirmations: ${j.confirmations || 0}. Try again in a moment.`;
-        } else {
-          out.className = 'error';
-          out.innerHTML = `Verification failed: ${j.error || 'Unknown error'}`;
+        if(j?.user?.email){
+          const el = document.getElementById('userEmail');
+          if (el.textContent !== j.user.email) el.textContent = j.user.email;
         }
-      } catch (e) {
-        out.className = 'error';
-        out.textContent = 'Verification failed (network error).';
+        setDot('authDot','ok');
+        document.getElementById('authStatus').textContent = 'Authenticated';
+      } else if (r.status === 401) {
+        logout();
+        setDot('authDot','warn');
+        document.getElementById('authStatus').textContent = 'Not authenticated';
+      } else {
+        setDot('authDot','warn');
+        document.getElementById('authStatus').textContent = 'Auth check failed';
+      }
+    }catch{
+      if(!auto){
+        setDot('authDot','err');
+        document.getElementById('authStatus').textContent = 'Auth unreachable';
       }
     }
+  }
 
-    async function refreshAccess() {
-      const grid = document.getElementById('accessGrid');
-      grid.innerHTML = '';
-      if (!AUTH_TOKEN) {
-        grid.innerHTML = '<div class="muted">Log in to view your unlocked levels.</div>';
-        return;
+  async function checkApi(auto=false){
+    try{
+      const r = await fetch(`${window.__ENV.API_BASE}/health`, { method:'GET' });
+      if(r.ok){
+        setDot('apiDot','ok');
+        document.getElementById('apiStatus').textContent = 'Healthy';
+      }else{
+        setDot('apiDot','warn');
+        document.getElementById('apiStatus').textContent = 'API responding with errors';
       }
-      try {
-        const r = await fetch(`${window.__ENV.API_BASE}/api/courses/access`, { headers: { ...authHeaders() } });
-        const data = await r.json();
-        const tracks = ['spot', 'futures', 'options'];
-        tracks.forEach(tr => {
-          for (let i = 1; i <= 5; i++) {
-            const unlocked = data?.[tr]?.['l' + i];
-            const d = document.createElement('div');
-            d.className = 'level';
-            d.innerHTML = `${tr.toUpperCase()} — Level ${i} ${unlocked ? '<span class="badge success">Unlocked</span>' : '<span class="badge">Locked</span>'}`;
-            grid.appendChild(d);
-          }
-        });
-      } catch {
-        grid.innerHTML = '<div class="error">Failed to load access.</div>';
+    }catch{
+      if(!auto){
+        setDot('apiDot','err');
+        document.getElementById('apiStatus').textContent = 'API unreachable';
       }
     }
+  }
 
-    async function loadPayments() {
-      const box = document.getElementById('history');
-      box.innerHTML = '';
-      if (!AUTH_TOKEN) {
-        box.innerHTML = '<div class="muted">Log in to view your payment history.</div>';
-        return;
-      }
-      try {
-        const r = await fetch(`${window.__ENV.API_BASE}/api/payments/history`, { headers: { ...authHeaders() } });
+  async function checkPayments(auto=false){
+    try{
+      const r = await fetch(`${window.__ENV.API_BASE}/api/payments/status`);
+      if(r.ok){
         const j = await r.json();
-        if (!j.items || !j.items.length) {
-          box.innerHTML = '<div class="muted">No payments yet.</div>';
-          return;
-        }
-        const ul = document.createElement('ul');
-        j.items.forEach(p => {
-          const li = document.createElement('li');
-          li.innerHTML = `<code>${p.network.toUpperCase()}</code> — ${p.track}${p.level ? ' L' + p.level : ' Bundle'} — $${p.amountUsd.toFixed(2)} — ${p.confirmed ? 'Confirmed' : 'Pending'} — <small class="muted">${p.txHash}</small>`;
-          ul.appendChild(li);
-        });
-        box.appendChild(ul);
-      } catch {
-        box.innerHTML = '<div class="error">Failed to load history.</div>';
+        const ok = j?.evm?.ok || j?.btc?.ok;
+        setDot('payDot', ok ? 'ok' : 'warn');
+        document.getElementById('payStatus').textContent = ok ? 'Verifiers online' : 'Partial/outage';
+      }else{
+        setDot('payDot','warn');
+        document.getElementById('payStatus').textContent = 'Status endpoint error';
+      }
+    }catch{
+      if(!auto){
+        setDot('payDot','err');
+        document.getElementById('payStatus').textContent = 'Payment status unreachable';
       }
     }
+  }
 
-    async function issueCert() {
-      if (!AUTH_TOKEN) { alert('Log in first.'); return; }
-      const name = document.getElementById('certName').value.trim();
-      const track = document.getElementById('certTrack').value;
-      const out = document.getElementById('certOut');
-      if (!name) { out.className = 'error'; out.textContent = 'Enter your name.'; return; }
-      out.className = 'muted';
-      out.textContent = 'Issuing certificate...';
-      try {
-        const r = await fetch(`${window.__ENV.API_BASE}/api/cert/issue`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...authHeaders() },
-          body: JSON.stringify({ name, track })
-        });
-        const j = await r.json();
-        if (r.ok && j.pdfUrl) {
-          out.className = 'success';
-          const abs = j.pdfUrl.startsWith('http') ? j.pdfUrl : `${window.__ENV.API_BASE}${j.pdfUrl}`;
-          out.innerHTML = `Certificate generated. <a href="${abs}" target="_blank">Download PDF</a> — Verify: <a target="_blank" href="${window.__ENV.API_BASE}/api/cert/verify?id=${encodeURIComponent(j.certId)}">${j.certId}</a>`;
-        } else {
-          out.className = 'error';
-          out.textContent = j.error || 'Failed to issue certificate (need Level 5 access).';
-        }
-      } catch {
-        out.className = 'error';
-        out.textContent = 'Failed to issue certificate.';
-      }
-    }
+  function startAutoUpdates(){
+    checkApi(true); checkPayments(true); me(true);
+    window.__idxIntervals = window.__idxIntervals || [];
+    window.__idxIntervals.forEach(id=>clearInterval(id));
+    window.__idxIntervals = [
+      setInterval(()=>checkApi(true), 20000),
+      setInterval(()=>checkPayments(true), 20000),
+      setInterval(()=>me(true), 20000),
+    ];
+  }
 
-    // Simple service-worker-like version check (poll every 60s for /api/health)
-    let lastOk = null;
-    async function versionCheck() {
-      try {
-        const r = await fetch(`${window.__ENV.API_BASE}/api/health`, { cache: 'no-store' });
-        const j = await r.json();
-        const sig = JSON.stringify(j);
-        if (lastOk && lastOk !== sig) {
-          // backend changed; refresh page to get latest frontend config
-          location.reload();
-        }
-        lastOk = sig;
-      } catch {}
-      setTimeout(versionCheck, 60000);
-    }
-
-    // Initial load
+  // Initialize
+  (function init(){
+    // Initial status checks
+    checkApi();
+    checkPayments();
     me();
-    refreshAccess();
-    loadPayments();
-    versionCheck();
-  </script>
+    if (AUTH_TOKEN) startAutoUpdates();
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden){ startAutoUpdates(); }});
+  })();
+</script>
 </body>
 </html>
