@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>MedorCoin — Learners Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="MedorCoin Learners: verify crypto payments (ETH/BNB/BTC), unlock courses, and issue certificates."/>
+  <meta name="description" content="Learn Spot, Futures, and Options. Verify crypto payments (ETH/BNB/BTC), unlock levels, and issue certificates."/>
   <style>
     body { font-family: system-ui, Arial, sans-serif; margin: 0; padding: 0; background: #0e0f12; color: #eaecef; }
     header, footer { padding: 16px; background: #12141a; border-bottom: 1px solid #252833; }
@@ -37,7 +37,6 @@
     </div>
     <div class="row">
       <a class="btn secondary" href="https://invi-dor.github.io/MedorCoin-Blockchain/">Home</a>
-      <a class="btn secondary" href="https://invi-dor.github.io/MedorCoin-Blockchain/site/my-classroom.html">My Classroom</a>
       <span id="userEmail" class="badge">Not logged in</span>
       <button class="btn" onclick="loginRequest()">Log in</button>
       <button class="btn secondary" onclick="logout()">Log out</button>
@@ -147,12 +146,14 @@
 </footer>
 
 <script>
+  // Configure your live backend API base URL.
+  // IMPORTANT: Replace the placeholder below with YOUR real API base, e.g. 'https://api.yourdomain.com'
+  // Do NOT point to GitHub Pages for the API — it must be your live backend.
+  window.__ENV = window.__ENV || {};
+  window.__ENV.API_BASE = window.__ENV.API_BASE || 'https://YOUR-BACKEND-API-BASE';
+
   // Frontend site root (GitHub Pages)
   const SITE_ROOT = 'https://invi-dor.github.io/MedorCoin-Blockchain';
-
-  // Backend API base URL — set your live API once here (supports CORS for https://invi-dor.github.io)
-  window.__ENV = window.__ENV || {};
-  window.__ENV.API_BASE = window.__ENV.API_BASE || 'https://YOUR-LIVE-API-BASE';
 
   let AUTH_TOKEN = localStorage.getItem('mc_token') || null;
 
@@ -168,6 +169,8 @@
   async function loginRequest(){
     const email = prompt('Enter your email to receive a login link:');
     if(!email) return;
+    // Tell the backend to send a magic link that redirects back to this page’s /auth-complete
+    // If your backend supports 'redirectUrl', include it; otherwise it should be preconfigured server-side.
     const redirectUrl = SITE_ROOT + '/site/learners.html/auth-complete';
     try{
       await fetch(`${window.__ENV.API_BASE}/api/auth/request`, {
@@ -175,14 +178,15 @@
         headers: { 'Content-Type':'application/json' },
         body: JSON.stringify({ email, redirectUrl })
       });
-      alert('Check your email for the login link.');
+      alert('Check your email for the login link. If SMTP is not configured, check backend logs for the link.');
     }catch(e){
-      alert('Failed to request login link. Check API base and CORS.');
+      alert('Failed to request login link. Check API_BASE and CORS.');
     }
   }
 
   // Handle magic-link redirect on this page if path ends with /auth-complete
   (function checkAuthComplete(){
+    // Works for: https://invi-dor.github.io/MedorCoin-Blockchain/site/learners.html/auth-complete#token=...
     if (location.pathname.endsWith('/site/learners.html/auth-complete') ||
         location.pathname.endsWith('/learners.html/auth-complete')) {
       const token = location.hash.replace('#token=', '');
@@ -190,26 +194,28 @@
         localStorage.setItem('mc_token', token);
         AUTH_TOKEN = token;
         alert('Logged in successfully.');
+        // Redirect to canonical learners page on your site root
         window.location.href = SITE_ROOT + '/site/learners.html';
       }
     }
   })();
 
-  async function me(auto=false){
+  async function me(){
     if(!AUTH_TOKEN) return;
     try{
       const r = await fetch(`${window.__ENV.API_BASE}/api/me`, { headers: { ...authHeaders() } });
       if(r.ok){
         const j = await r.json();
-        const el = document.getElementById('userEmail');
-        if (j?.user?.email && el.textContent !== j.user.email) el.textContent = j.user.email;
+        document.getElementById('userEmail').textContent = j.user.email;
       } else if (r.status === 401) {
         logout();
       }
-    }catch{}
+    }catch{
+      // Ignore UI noise; user can still attempt re-login
+    }
   }
 
-  // Toggle level selector for bundle vs single level
+  // Toggle level selector visibility for bundle vs single level
   document.addEventListener('change', (e) => {
     if (e.target && e.target.name === 'itemType') {
       const isBundle = e.target.value === 'bundle';
@@ -241,13 +247,16 @@
         : { network, txHash, track, level, bundle };
 
       const r = await fetch(url, {
-        method:'POST', headers:{ 'Content-Type':'application/json', ...authHeaders() }, body: JSON.stringify(body)
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', ...authHeaders() },
+        body: JSON.stringify(body)
       });
       const j = await r.json();
+
       if (r.ok && j.paid) {
         out.className='success';
         out.innerHTML = `Unlocked ${j.bundle?'Bundle (L1–L5)':'Level '+(j.level||level)} for <b>${j.track||track}</b>. Amount: $${Number(j.amountUsd).toFixed(2)}.`;
-        await refreshAccess(true);
+        await refreshAccess();
       } else if (r.ok && j.paid === false) {
         out.className='warn'; out.textContent = `Waiting for confirmations: ${j.confirmations||0}`;
       } else {
@@ -258,7 +267,7 @@
     }
   }
 
-  async function refreshAccess(auto=false){
+  async function refreshAccess(){
     const grid = document.getElementById('accessGrid');
     grid.innerHTML = '';
     if(!AUTH_TOKEN){
@@ -267,22 +276,20 @@
     }
     try{
       const r = await fetch(`${window.__ENV.API_BASE}/api/courses/access`, { headers: { ...authHeaders() } });
-      if(!r.ok) throw new Error('bad');
+      if(!r.ok){ throw new Error('Bad response'); }
       const data = await r.json();
       const tracks = ['spot','futures','options'];
-      const frag = document.createDocumentFragment();
       tracks.forEach(tr=>{
         for(let i=1;i<=5;i++){
           const unlocked = data?.[tr]?.['l'+i];
           const d = document.createElement('div');
           d.className='level';
           d.innerHTML = `${tr.toUpperCase()} — Level ${i} ${unlocked ? '<span class="badge" style="border-color:#2e7d32;background:#143016;color:#4ade80;">Unlocked</span>' : '<span class="badge">Locked</span>'}`;
-          frag.appendChild(d);
+          grid.appendChild(d);
         }
       });
-      grid.appendChild(frag);
     }catch{
-      if(!auto) grid.innerHTML = '<div class="error">Failed to load access. Check API base and CORS.</div>';
+      grid.innerHTML = '<div class="error">Failed to load access. Check API_BASE and CORS.</div>';
     }
   }
 
@@ -307,27 +314,13 @@
         out.className='error'; out.textContent=j.error || 'Need Level 5 access.';
       }
     }catch{
-      out.className='error'; out.textContent='Failed to issue certificate. Check API base and CORS.';
+      out.className='error'; out.textContent='Failed to issue certificate. Check API_BASE and CORS.';
     }
   }
 
-  // Auto-update intervals (no manual clicks)
-  function startAutoUpdates(){
-    me(true); refreshAccess(true);
-    window.__lrnIntervals = window.__lrnIntervals || [];
-    window.__lrnIntervals.forEach(id=>clearInterval(id));
-    window.__lrnIntervals = [
-      setInterval(()=>me(true), 20000),
-      setInterval(()=>refreshAccess(true), 20000),
-    ];
-  }
-
   // Init
-  (function init(){
-    me(); refreshAccess();
-    if (AUTH_TOKEN) startAutoUpdates();
-    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && AUTH_TOKEN){ startAutoUpdates(); }});
-  })();
+  me();
+  refreshAccess();
 </script>
 </body>
 </html>
