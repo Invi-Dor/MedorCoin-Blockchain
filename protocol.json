@@ -1,0 +1,7 @@
+{
+  "name": "MedorCoin",
+  "ticker": "MEDUR",
+  "stakeLockFeeBps": 50,
+  "liqLockFeeBps": 50,
+  "miningRewards": "enabled"
+}
