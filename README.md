@@ -1,129 +1,101 @@
-MedorCoin Blockchain
+MedorCoin — A Minimal, Security-First, EVM-Inspired Blockchain with Simple Mining
 
-MedorCoin is a secure, high‑performance, multifunctional blockchain focused on strong cryptography, advanced token features, liquidity controls, and enterprise‑grade release verification. Security is the project’s top priority.
+Overview
+MedorCoin (ticker: MEDUR) is a compact, EVM-inspired blockchain focused on clarity, security, and auditability. It features Ethereum-style transactions and fee mechanics (EIP-1559–like), a thread-safe mempool with fee-based selection, simple PoW-style mining, and a clean key–value storage model for smart contracts. Miner rewards are automatically split between the miner and the MedorCoin Protocol Treasury. Protocol fees also apply to staking/liquidity-locking operations. All value flows are on-chain and easy to audit.
 
-Features
+Key features
+- Ethereum-style transactions
+  - RLP-encoded, Keccak-256–hashed transactions with EIP-1559 fields: nonce, maxFeePerGas, maxPriorityFeePerGas, gasLimit, to, value, data, v, r, s.
+- Mempool with fee-aware selection
+  - Thread-safe pending pool keyed by txHash; sorts by effective gas price = min(maxFeePerGas, baseFee + priorityFee).
+- Simple mining
+  - Mine coinbase-only blocks or include validated mempool transactions. Rewards and tips are split automatically between the miner and the Protocol Treasury.
+- Clean state model
+  - Contract bytecode and key–value storage (e.g., code:<address>, storage:<address>:<key>) designed for EVM-like execution semantics.
+- Modular crypto utilities
+  - Double SHA-256 hashing and prototype key/signature functions for development (to be replaced with secp256k1 ECDSA).
 
-- Advanced token mechanics and liquidity controls
-- Secure networking and crypto primitives (OpenSSL, secp256k1)
-- Durable storage via RocksDB
-- GPG‑signed releases with reproducible verification steps
-- CMake‑based build for Linux/macOS/Windows
+Economic model (defaults)
+- Reward split (basis points)
+  - MINER_REWARD_BPS = 9000 (90%)
+  - PROTOCOL_REWARD_BPS = 1000 (10%)
+  - PROTOCOL_TREASURY_ADDRESS = 0x... (MedorCoin treasury)
+- Fees
+  - Base fee (EIP-1559–like): burn or route to treasury (configurable).
+  - Staking/liquidity-lock fees:
+    - STAKE_LOCK_FEE_BPS = 50 (0.50%)
+    - LIQ_LOCK_FEE_BPS = 50 (0.50%)
 
-Verified Releases
+Security principles
+- Simplicity first to reduce attack surface; readable code for straightforward audits.
+- Deterministic, auditable accounting using basis-point math with overflow checks.
+- Strict validation path: signatures, nonce, balance, gas limits, and block rules.
+- Data integrity: namespaced keys with optional RocksDB persistence.
+- Roadmap hardening: replace prototype crypto with secp256k1 ECDSA; chain ID and replay protection; consensus/header integrity checks; extensive tests.
 
-![Verified Release](https://github.com/<your-username>/<your-repo>/releases)
+Core modules
+- Crypto
+  - doubleSHA256 (hex), generatePrivateKey (128-bit hex prototype), getPublicKey = SHA256(privateKey) [prototype], sign/verify [prototype; replace with secp256k1].
+- Transactions
+  - txHash = keccak256(RLP(nonce, maxFeePerGas, maxPriorityFeePerGas, gasLimit, to, value, data, v, r, s)).
+- Mempool
+  - Thread-safe; add/remove/has/get; getSortedByFee(baseFee) using effective gas price; optional RocksDB persistence (e.g., data/medorcoin_mempool).
+- Miner
+  - mineMedorCoin: coinbase-only block.
+  - mineWithMempool: selects txs, validates via processTransaction, attributes rewards/tips, prunes confirmed txs.
+- State/Storage
+  - Key–value layout: code:<address>, storage:<address>:<key>, balances:<address>, nonces:<address>.
 
-All official MedorCoin releases are cryptographically signed. Always verify signatures before installing or running binaries.
+Configuration
+- protocol.json
+  - protocolTreasuryAddress
+  - minerRewardBps: 9000
+  - protocolRewardBps: 1000
+  - stakeLockFeeBps: 50
+  - liqLockFeeBps: 50
+  - baseFeePolicy: burn | route_to_treasury
+  - chainId
+  - blockRewardSchedule
 
-Quick Verify (CLI)
+Reward and fee accounting (pseudocode)
+- On block assembly:
+  - totalPriorityFees = sum(tx.effectiveTipPaid)
+  - blockReward = currentBlockReward(...)
+  - minerPortion = (MINER_REWARD_BPS  (blockReward + totalPriorityFees)) / 10000
+  - protocolPortion = (PROTOCOL_REWARD_BPS  (blockReward + totalPriorityFees)) / 10000
+  - credit(minerAddress, minerPortion)
+  - credit(PROTOCOL_TREASURY_ADDRESS, protocolPortion)
+  - handle baseFee per policy (burn/route)
+- On staking/liquidity lock:
+  - fee = (BPS * amount) / 10000
+  - credit(PROTOCOL_TREASURY_ADDRESS, fee)
+  - lock(amount - fee)
 
-Replace <your-username>/<your-repo> with your repository path.
+Developer quickstart
+- Build
+  - Dependencies: keccak, RLP utilities, RocksDB (optional).
+  - Build with your C++ toolchain.
+- Configure
+  - Set treasury address and BPS parameters in protocol.json.
+- Run
+  - Start node; mine via mineMedorCoin or mineWithMempool.
+- Submit a transaction
+  - Construct EVM-style tx, RLP-encode, keccak256, attach v/r/s (prototype), broadcast.
 
-#!/usr/bin/env sh
-set -e
+Testing checklist
+- Mempool: duplicate rejection, fee ordering, thread safety.
+- Transactions: stable RLP and Keccak; signature path (upgrade to secp256k1).
+- Mining: valid tx inclusion; nonce/order; exact reward/tip splits.
+- Fees: priority/base fee correctness; rounding behavior.
+- Staking/lock flows: fee calculation, treasury credit, lock balances.
+- Security: fuzz serialization, arithmetic limits, consensus header checks.
 
-# 1) Import the MedorCoin public GPG key
-curl -sSL https://raw.githubusercontent.com/<your-username>/<your-repo>/main/keys/medorcoin-public.asc \
-  | gpg --import
+Automation note
+- Auto-update hooks can regenerate this README and other docs when configs (protocol.json) or code constants change. See scripts/auto_update for templates and CI integration.
 
-# 2) Download assets (example)
-VERSION="v0.1.0"
-curl -sSLO https://github.com/<your-username>/<your-repo>/releases/download/${VERSION}/medorcoin-${VERSION}-linux-x86_64.tar.gz
-curl -sSLO https://github.com/<your-username>/<your-repo>/releases/download/${VERSION}/medorcoin-${VERSION}-linux-x86_64.tar.gz.sig
-
-# 3) Verify signature
-gpg --verify medorcoin-${VERSION}-linux-x86_64.tar.gz.sig medorcoin-${VERSION}-linux-x86_64.tar.gz
-
-echo "Signature OK. You can safely extract and run this release."
-
-Build from Source
-
-Prerequisites:
-- CMake ≥ 3.16
-- A C++20 compiler (GCC 10+/Clang 12+/MSVC 2019+)
-- OpenSSL (libssl, libcrypto)
-- RocksDB
-- libsecp256k1 (pkg-config: libsecp256k1)
-- Threads/pthreads
-- Optional: zlib, bzip2, lz4, zstd, snappy
-
-Linux/macOS:
-
-# Install deps (examples; adjust for your distro)
-# Ubuntu/Debian:
-sudo apt-get update
-sudo apt-get install -y build-essential cmake pkg-config \
-  libssl-dev librocksdb-dev libsecp256k1-dev \
-  zlib1g-dev libbz2-dev liblz4-dev libzstd-dev libsnappy-dev
-
-# Clone and build
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>
-cmake -S . -B build -DENABLE_WARNINGS=ON -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
-
-# Binary:
-./build/bin/medorcoin
-
-Homebrew (macOS):
-
-brew install cmake openssl@3 rocksdb libsecp256k1 lz4 zstd snappy bzip2
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)"
-cmake --build build -j
-
-Windows (MSVC + vcpkg example):
-
-# Powershell
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>
-
-# Install deps via vcpkg (example triplet x64-windows)
-vcpkg install openssl rocksdb secp256k1 zlib bzip2 lz4 zstd snappy --triplet x64-windows
-
-# Configure CMake with vcpkg toolchain
-cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="C:/path/to/vcpkg/scripts/buildsystems/vcpkg.cmake" -A x64 -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
-
-# Binary:
-.\build\bin\medorcoin.exe
-
-Usage
-
-- Run the node:
-  - Linux/macOS: ./build/bin/medorcoin
-  - Windows: .\build\bin\medorcoin.exe
-- See --help for supported flags once implemented.
-
-Security Notes
-
-- Verify GPG signatures for every release.
-- Prefer building from source in high‑security environments.
-- Keep keys and wallets offline whenever possible, and verify addresses before sending.
-
-Support & Sponsorship
-
-If you appreciate the work on MedorCoin‑Blockchain and want to support ongoing development:
-
-Platforms you can send to:
-1. Ethereum: 0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0
-2. Bitcoin: bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv
-3. Solana: Hy2sTujvdnSE6r1K1tigfjVLbf666RkHQQMRcLc24HBE
-4. BNB Chain: 0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0
-
-Your sponsorship helps cover development time, infrastructure, security audits, and better tooling/documentation.
-
-Why Sponsor?
-
-- Improve performance and security
-- Add consensus and networking features
-- Enhance privacy and robustness
-- Better docs, tooling, and community support
-
-Thank You
-
-Every contribution—big or small—is appreciated. Thanks for supporting open‑source innovation and the vision behind MedorCoin.
-
-Disclaimer
-
-MedorCoin‑Blockchain is provided as‑is under an open‑source license. Sponsorship is not an investment and offers no guarantees of financial return, ownership, or rights. Always do your own research and use blockchain software responsibly and securely. Verify all releases and addresses before transacting.
+Roadmap
+- RewardDistributor helper centralizing fee/reward logic with 128-bit intermediates.
+- JSON config loader with validation.
+- secp256k1 ECDSA sign/verify; public key derivation aligned with Ethereum.
+- Unit/property tests for fee splits, staking/lock fees, and mempool policies.
+- Lightweight explorer showing blocks, miner vs protocol earnings, treasury balance.
