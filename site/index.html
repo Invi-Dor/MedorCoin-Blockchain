@@ -3,97 +3,77 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MedorCoin Blockchain</title>
-  <meta name="description" content="Official MedorCoin Blockchain portal" />
+  <title>MedorCoin — Fast. Open. Energetic.</title>
+  <meta name="description" content="MedorCoin Blockchain — lightweight, modern, and energetic web UI." />
+  <meta name="theme-color" content="#0f766e" />
   <style>
     :root{
-      --bg:#fafafa;           / soft white /
-      --text:#333333;         / dark grey pencil /
-      --muted:#666666;
-      --card:#ffffff;
-      --line:#e9e9e9;
-      --accent:#3c6e71;       / subtle accent for links/buttons /
-      --accent-contrast:#ffffff;
-      --radius:12px;
-      --shadow:0 6px 20px rgba(0,0,0,0.06);
+      --bg:#0b0f14;
+      --bg-soft:#0f141b;
+      --panel:#111923;
+      --card:#101720;
+      --line:#1f2a37;
+      --text:#e6f0f2;
+      --muted:#9fb3c8;
+      --accent:#22c55e;
+      --accent-2:#06b6d4;
+      --accent-3:#a78bfa;
+      --accent-on:#061014;
+      --glow: 0 10px 40px rgba(34,197,94,0.18), 0 2px 10px rgba(6,182,212,0.14);
+      --radius:14px;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
-     { box-sizing: border-box; }
-    html, body {
-      margin:0; padding:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      line-height:1.6;
-    }
-    a { color:var(--accent); text-decoration:none; }
+    { box-sizing:border-box }
+    html, body { margin:0; padding:0; background:linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%); color:var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; line-height:1.6; }
+    a { color: var(--accent-2); text-decoration:none; }
     a:hover { text-decoration:underline; }
-    .wrap {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-    header {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-      padding:18px 0 8px;
-      border-bottom:1px solid var(--line);
-    }
-    .brand {
-      display:flex; align-items:center; gap:14px;
-      font-weight:700; letter-spacing:0.2px;
-    }
-    .logo {
-      width:38px; height:38px; border-radius:10px;
-      background: linear-gradient(135deg, #efefef, #ffffff);
-      border:1px solid var(--line);
-      box-shadow: var(--shadow);
-    }
-    nav { display:flex; gap:14px; flex-wrap:wrap; }
-    nav a {
-      padding:8px 12px; border-radius:8px;
-    }
-    nav a.active, nav a:focus-visible {
-      background:var(--card); border:1px solid var(--line);
-      text-decoration:none;
-    }
-    .hero {
-      display:grid; grid-template-columns: 1.2fr 0.8fr; gap:26px;
-      padding:28px 0;
-    }
-    .hero-card {
-      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-      padding:22px; box-shadow: var(--shadow);
-    }
-    h1 { margin:0 0 8px 0; font-size:clamp(28px, 4.2vw, 42px); line-height:1.2; }
-    .lead { color:var(--muted); margin:6px 0 14px; }
-    .ctaRow { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
-    .btn {
-      display:inline-block; padding:10px 14px; border-radius:10px; border:1px solid var(--line);
-      background:var(--card); color:var(--text); font-weight:600;
-    }
-    .btn.primary {
-      background:var(--accent); color:var(--accent-contrast); border-color: transparent;
-    }
-    .grid {
-      display:grid; gap:18px; grid-template-columns: repeat(3, 1fr);
-      margin: 20px 0 10px;
-    }
-    .card {
-      background:var(--card); border:1px solid var(--line);
-      border-radius:var(--radius); padding:18px; box-shadow: var(--shadow);
-    }
-    h2 { margin:0 0 10px 0; font-size:20px; }
-    ul { margin:8px 0 0 18px; padding:0; }
-    footer {
-      margin-top:28px; padding:16px 0; border-top:1px solid var(--line);
-      color:var(--muted); font-size:14px;
-    }
-    / Responsive */
-    @media (max-width: 860px){
+
+    .wrap { max-width: 1200px; margin:0 auto; padding:22px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 0 6px; position:sticky; top:0; background: linear-gradient(180deg, rgba(11,15,20,0.9), rgba(11,15,20,0.6)); backdrop-filter: blur(10px); border-bottom:1px solid var(--line); z-index:10; }
+    .brand { display:flex; align-items:center; gap:14px; font-weight:800; letter-spacing:0.2px; }
+    .logo { width:42px; height:42px; border-radius:12px; background:
+        conic-gradient(from 180deg at 50% 50%, var(--accent) 0deg, var(--accent-2) 120deg, var(--accent-3) 240deg, var(--accent) 360deg);
+      border:1px solid #133; box-shadow: var(--glow); }
+    nav { display:flex; gap:10px; flex-wrap:wrap; }
+    nav a { padding:8px 12px; border-radius:10px; border:1px solid transparent; }
+    nav a:hover, nav a.active, nav a:focus-visible { background:var(--panel); border-color:var(--line); text-decoration:none; }
+
+    .hero { display:grid; grid-template-columns: 1.1fr 0.9fr; gap:30px; padding:34px 0 16px; align-items:center; }
+    .title { font-size: clamp(34px, 5vw, 56px); line-height:1.1; margin:0 0 10px; letter-spacing:-0.02em; }
+    .subtitle { color:var(--muted); margin:0 0 18px; font-size: clamp(14px, 2.2vw, 18px); }
+    .cta { display:flex; gap:10px; flex-wrap:wrap; }
+    .btn { height:42px; padding:0 16px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--text); cursor:pointer; }
+    .btn.acc { background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:var(--accent-on); border:none; box-shadow: var(--glow); }
+    .btn.acc:hover { filter: brightness(1.05); }
+    .btn.sec:hover { background:#0d1621; }
+
+    .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow: var(--shadow); }
+    .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:18px; }
+    .kpi { padding:18px; }
+    .kpi .h { font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+    .kpi .v { font-family: var(--mono); font-size:22px; margin-top:6px; }
+    .spark { height:60px; border-radius:10px; background: radial-gradient(120px 30px at left, rgba(34,197,94,0.15), transparent), radial-gradient(120px 30px at right, rgba(6,182,212,0.15), transparent); border:1px dashed #1c2a36; }
+
+    .panel { padding:18px; }
+
+    .features { display:grid; grid-template-columns: repeat(3, 1fr); gap:18px; margin-top:18px; }
+    .feature { padding:18px; }
+    .feature .i { width:42px; height:42px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg, rgba(34,197,94,0.15), rgba(6,182,212,0.15)); border:1px solid #1a2a33; box-shadow: inset 0 0 20px rgba(34,197,94,0.08); }
+    .feature h3 { margin:12px 0 6px; font-size:18px; }
+    .muted { color:var(--muted); }
+
+    .section { margin:26px 0; }
+    .list { display:grid; gap:10px; }
+    .item { border:1px solid var(--line); border-radius:10px; padding:12px; background:rgba(16,23,32,0.6); }
+    .mono { font-family: var(--mono); }
+
+    footer { margin:26px 0 12px; color:var(--muted); display:flex; justify-content:space-between; align-items:center; gap:10px; border-top:1px solid var(--line); padding-top:12px; }
+
+    @media (max-width: 1000px){
       .hero { grid-template-columns: 1fr; }
       .grid { grid-template-columns: 1fr; }
+      .features { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -112,50 +92,101 @@
       </nav>
     </header>
 
-    <main>
-      <section class="hero">
-        <div class="hero-card">
-          <h1>Build on MedorCoin</h1>
-          <p class="lead">Simple, predictable economics. Soft-white UI, pencil-grey text. Clean developer experience.</p>
-          <div class="ctaRow">
-            <a class="btn primary" href="./docs.html">Get Started</a>
-            <a class="btn" href="./explorer.html">Open Explorer</a>
+    <section class="hero">
+      <div>
+        <h1 class="title">Fast blocks. Low fees. Built for real users.</h1>
+        <p class="subtitle">MedorCoin is a modern, energy-forward blockchain. Open tools, instant finality feel, and a developer-first stack—wrapped in a crisp, stylish UI.</p>
+        <div class="cta">
+          <a class="btn acc" href="./explorer.html">Open Explorer</a>
+          <a class="btn sec" href="./docs.html">Read Docs</a>
+        </div>
+      </div>
+      <div class="card panel">
+        <div class="grid">
+          <div class="kpi">
+            <div class="h">TPS (demo)</div>
+            <div id="kpi-tps" class="v">—</div>
+            <div class="spark" aria-hidden="true"></div>
+          </div>
+          <div class="kpi">
+            <div class="h">Avg Block Time</div>
+            <div id="kpi-time" class="v">—</div>
+            <div class="spark" aria-hidden="true"></div>
+          </div>
+          <div class="kpi">
+            <div class="h">Active Validators</div>
+            <div id="kpi-val" class="v">—</div>
+            <div class="spark" aria-hidden="true"></div>
           </div>
         </div>
-        <div class="hero-card" aria-labelledby="network-stats">
-          <h2 id="network-stats">Network</h2>
-          <ul>
-            <li>Status: <strong>Live</strong></li>
-            <li>Ticker: <strong>MEDUR</strong></li>
-            <li>Fees: <strong>Low</strong></li>
-          </ul>
+        <div class="section">
+          <div class="h muted" style="text-transform:uppercase; letter-spacing:0.08em; font-size:12px;">Recent Blocks (mock)</div>
+          <div id="blocks" class="list" style="margin-top:8px;"></div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="grid" aria-label="Highlights">
-        <article class="card">
-          <h2>Predictable Fees</h2>
-          <p>Transparent fee and reward policy designed for users and builders.</p>
-        </article>
-        <article class="card">
-          <h2>Fast Finality</h2>
-          <p>Blocks settle quickly with a focus on reliability and uptime.</p>
-        </article>
-        <article class="card">
-          <h2>Open Tooling</h2>
-          <p>Developer-friendly JSON configs and simple deployment paths.</p>
-        </article>
-      </section>
-    </main>
+    <section class="section">
+      <div class="grid">
+        <div class="card feature">
+          <div class="i">⚡</div>
+          <h3>Speed</h3>
+          <p class="muted">Low-latency confirmation feel and efficient consensus for a snappy user experience.</p>
+        </div>
+        <div class="card feature">
+          <div class="i">🛡️</div>
+          <h3>Security</h3>
+          <p class="muted">Battle-tested primitives and clear tooling to audit, monitor, and operate.</p>
+        </div>
+        <div class="card feature">
+          <div class="i">🧩</div>
+          <h3>Composability</h3>
+          <p class="muted">Clean APIs and SDKs that fit real-world products—no ceremony, just shipping.</p>
+        </div>
+      </div>
+    </section>
 
     <footer>
-      © <span id="y"></span> MedorCoin. All rights reserved.
+      <div>© <span id="y"></span> MedorCoin. All rights reserved.</div>
+      <div class="mono muted">v0.1 UI Shell</div>
     </footer>
   </div>
 
   <script>
-    // Minimal JS: set year and support hash routing if needed
+    // Year
     document.getElementById('y').textContent = new Date().getFullYear();
+
+    // Mock KPIs with lively motion
+    const tps = document.getElementById('kpi-tps');
+    const time = document.getElementById('kpi-time');
+    const val = document.getElementById('kpi-val');
+    function rnd(min,max){ return Math.random()(max-min)+min; }
+    function fmt(n){ return Number(n).toFixed(1); }
+    setInterval(()=>{
+      tps.textContent = fmt(rnd(180, 420));
+      time.textContent = (rnd(1.9, 3.5)).toFixed(2) + ' s';
+      val.textContent = Math.floor(rnd(21, 41));
+    }, 1200);
+
+    // Mock recent blocks
+    const blocksEl = document.getElementById('blocks');
+    function blockEl(num){
+      const el = document.createElement('div');
+      el.className = 'item';
+      const h = 1500 - num;
+      const hash = '0x' + Math.random().toString(16).slice(2, 10) + num.toString(16);
+      el.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <div>
+            <span class="mono">#${h}</span>
+            <span class="mono" style="color:#6ee7b7; margin-left:8px;">${hash}</span>
+          </div>
+          <a href="./explorer.html" class="btn" style="height:30px; padding:0 10px;">View</a>
+        </div>
+      `;
+      return el;
+    }
+    for(let i=0;i<5;i++) blocksEl.appendChild(blockEl(i));
   </script>
 </body>
 </html>
