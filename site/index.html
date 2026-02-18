@@ -1,192 +1,577 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MedorCoin — Fast. Open. Energetic.</title>
-  <meta name="description" content="MedorCoin Blockchain — lightweight, modern, and energetic web UI." />
-  <meta name="theme-color" content="#0f766e" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MedorCoin — Learners</title>
+  <meta name="description" content="Guides, tutorials, FAQs, and structured courses on crypto trading: Spot, Futures, and Options.">
+  <meta name="theme-color" content="#c7a652">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/medori-coin-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/medori-coin-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/medori-coin-192.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+
   <style>
     :root{
-      --bg:#0b0f14;
-      --bg-soft:#0f141b;
-      --panel:#111923;
-      --card:#101720;
-      --line:#1f2a37;
-      --text:#e6f0f2;
-      --muted:#9fb3c8;
-      --accent:#22c55e;
-      --accent-2:#06b6d4;
-      --accent-3:#a78bfa;
-      --accent-on:#061014;
-      --glow: 0 10px 40px rgba(34,197,94,0.18), 0 2px 10px rgba(6,182,212,0.14);
-      --radius:14px;
-      --shadow: 0 10px 30px rgba(0,0,0,0.35);
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --gold-1:#fff3c1; --gold-2:#e9cc7a; --gold-3:#c7a652; --gold-4:#9a7b3a; --gold-5:#6c5530;
+      --soft-white:#fbf8f1; --panel:#fffdf8; --panel-2:#f5efe2; --border:#e2d3ae;
+      --text:#1e2126; --muted:#4a4f57;
+      --ok:#1f7a46; --warn:#8a5a10; --bad:#8b2b2b;
     }
-    { box-sizing:border-box }
-    html, body { margin:0; padding:0; background:linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%); color:var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; line-height:1.6; }
-    a { color: var(--accent-2); text-decoration:none; }
-    a:hover { text-decoration:underline; }
-
-    .wrap { max-width: 1200px; margin:0 auto; padding:22px; }
-    header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 0 6px; position:sticky; top:0; background: linear-gradient(180deg, rgba(11,15,20,0.9), rgba(11,15,20,0.6)); backdrop-filter: blur(10px); border-bottom:1px solid var(--line); z-index:10; }
-    .brand { display:flex; align-items:center; gap:14px; font-weight:800; letter-spacing:0.2px; }
-    .logo { width:42px; height:42px; border-radius:12px; background:
-        conic-gradient(from 180deg at 50% 50%, var(--accent) 0deg, var(--accent-2) 120deg, var(--accent-3) 240deg, var(--accent) 360deg);
-      border:1px solid #133; box-shadow: var(--glow); }
-    nav { display:flex; gap:10px; flex-wrap:wrap; }
-    nav a { padding:8px 12px; border-radius:10px; border:1px solid transparent; }
-    nav a:hover, nav a.active, nav a:focus-visible { background:var(--panel); border-color:var(--line); text-decoration:none; }
-
-    .hero { display:grid; grid-template-columns: 1.1fr 0.9fr; gap:30px; padding:34px 0 16px; align-items:center; }
-    .title { font-size: clamp(34px, 5vw, 56px); line-height:1.1; margin:0 0 10px; letter-spacing:-0.02em; }
-    .subtitle { color:var(--muted); margin:0 0 18px; font-size: clamp(14px, 2.2vw, 18px); }
-    .cta { display:flex; gap:10px; flex-wrap:wrap; }
-    .btn { height:42px; padding:0 16px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--text); cursor:pointer; }
-    .btn.acc { background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:var(--accent-on); border:none; box-shadow: var(--glow); }
-    .btn.acc:hover { filter: brightness(1.05); }
-    .btn.sec:hover { background:#0d1621; }
-
-    .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow: var(--shadow); }
-    .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:18px; }
-    .kpi { padding:18px; }
-    .kpi .h { font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
-    .kpi .v { font-family: var(--mono); font-size:22px; margin-top:6px; }
-    .spark { height:60px; border-radius:10px; background: radial-gradient(120px 30px at left, rgba(34,197,94,0.15), transparent), radial-gradient(120px 30px at right, rgba(6,182,212,0.15), transparent); border:1px dashed #1c2a36; }
-
-    .panel { padding:18px; }
-
-    .features { display:grid; grid-template-columns: repeat(3, 1fr); gap:18px; margin-top:18px; }
-    .feature { padding:18px; }
-    .feature .i { width:42px; height:42px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg, rgba(34,197,94,0.15), rgba(6,182,212,0.15)); border:1px solid #1a2a33; box-shadow: inset 0 0 20px rgba(34,197,94,0.08); }
-    .feature h3 { margin:12px 0 6px; font-size:18px; }
-    .muted { color:var(--muted); }
-
-    .section { margin:26px 0; }
-    .list { display:grid; gap:10px; }
-    .item { border:1px solid var(--line); border-radius:10px; padding:12px; background:rgba(16,23,32,0.6); }
-    .mono { font-family: var(--mono); }
-
-    footer { margin:26px 0 12px; color:var(--muted); display:flex; justify-content:space-between; align-items:center; gap:10px; border-top:1px solid var(--line); padding-top:12px; }
-
-    @media (max-width: 1000px){
-      .hero { grid-template-columns: 1fr; }
-      .grid { grid-template-columns: 1fr; }
-      .features { grid-template-columns: 1fr; }
+    html,body{margin:0;padding:0;font-family:Inter,ui-sans-serif,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);
+      background:
+        radial-gradient(1400px 700px at -10% -10%, rgba(255,255,255,.12), transparent 45%),
+        radial-gradient(1000px 800px at 110% 0%, rgba(255,255,255,.10), transparent 60%),
+        linear-gradient(135deg, var(--gold-1), var(--gold-2) 30%, var(--gold-3) 58%, var(--gold-4) 82%, var(--gold-5) 100%);
+      background-attachment:fixed}
+    body::before{
+      content:""; position:fixed; inset:0; pointer-events:none; opacity:.18; mix-blend-mode:screen;
+      background:
+        radial-gradient(circle at 25% 30%, rgba(255,255,255,.5) 0, transparent 2px) 0 0/180px 180px,
+        radial-gradient(circle at 70% 60%, rgba(255,255,255,.5) 0, transparent 2px) 0 0/220px 220px;
     }
+    a{color:inherit;text-decoration:none}
+    .container{max-width:1180px;margin:0 auto;padding:16px}
+    header{
+      position:sticky;top:0;z-index:40;
+      background: linear-gradient(180deg, rgba(255,253,248,.92), rgba(255,253,248,.78));
+      backdrop-filter: blur(8px);
+      border-bottom:1px solid var(--border);
+    }
+    .topbar{display:flex;align-items:center;gap:14px;padding:12px 0}
+    .logo{width:40px;height:40px;border-radius:12px;object-fit:cover;border:1px solid rgba(154,122,58,.45)}
+    .brand{font-weight:800;letter-spacing:.3px}
+    nav.navtabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 6px}
+    .tab{padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:var(--panel-2);color:var(--muted)}
+    .tab.active{background:linear-gradient(135deg, rgba(246,241,229,.9), rgba(233,204,122,.25));color:var(--text);border-color:#d9c693}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow: 0 1px 0 rgba(255,255,255,.6);padding:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .grid{display:grid;gap:14px}
+    @media(min-width:1000px){.grid-cols-3{grid-template-columns:1.1fr 1fr 1fr}}
+    @media(max-width:999px){.grid-cols-3{grid-template-columns:1fr}}
+    .kv{color:var(--muted);font-size:13px}
+    .btn{padding:10px 14px;border-radius:12px;border:1px solid #c3a156;background:linear-gradient(135deg,#fff1c1,#e4c272);color:#2b2716;cursor:pointer}
+    .btn.secondary{background:linear-gradient(135deg,#f7f7f7,#ececec);border-color:#d6d6d6}
+    .btn.ghost{background:transparent;border-color:#d6d6d6}
+    .price{font-weight:800}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;border:1px solid #c7cff7;color:#2d3c8f;font-size:12px}
+    input,select,textarea{border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--soft-white)}
+    details summary{cursor:pointer;list-style:none}
+    details summary::-webkit-details-marker{display:none}
+    .course-card{display:flex;flex-direction:column;gap:10px}
+    .level{border:1px dashed #d5bd88;border-radius:12px;padding:10px;background:linear-gradient(180deg,#fffdf8,#fbf6e7)}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#5a4a1f}
+    .cert{border:3px double #c7a652;padding:16px;border-radius:14px;background:#fffef7}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>MedorCoin Blockchain</div>
+  <header>
+    <div class="container">
+      <div class="topbar">
+        <a href="/" aria-label="Home"><img class="logo" src="/assets/medori-coin-64.png" alt="MedorCoin logo" width="40" height="40"></a>
+        <div class="brand">MedorCoin</div>
       </div>
-      <nav aria-label="Primary">
-        <a class="active" href="./">Home</a>
-        <a href="./docs.html">Docs</a>
-        <a href="./explorer.html">Explorer</a>
-        <a href="https://github.com/invi-dor/MedorCoin-Blockchain" target="_blank" rel="noopener">GitHub</a>
+      <nav class="navtabs" aria-label="Primary">
+        <a class="tab" href="/">Homepage</a>
+        <a class="tab" href="/explorer.html">New Listings</a>
+        <a class="tab" href="/docs.html">Developers</a>
+        <a class="tab" href="/investors.html">Investors</a>
+        <a class="tab" href="/trading.html">Trading</a>
+        <a class="tab active" href="/learners.html">Learners</a>
       </nav>
-    </header>
+    </div>
+  </header>
 
-    <section class="hero">
-      <div>
-        <h1 class="title">Fast blocks. Low fees. Built for real users.</h1>
-        <p class="subtitle">MedorCoin is a modern, energy-forward blockchain. Open tools, instant finality feel, and a developer-first stack—wrapped in a crisp, stylish UI.</p>
-        <div class="cta">
-          <a class="btn acc" href="./explorer.html">Open Explorer</a>
-          <a class="btn sec" href="./docs.html">Read Docs</a>
+  <main class="container">
+    <!-- Hero -->
+    <section class="panel">
+      <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <div>
+          <h1 style="margin:0 0 6px;font-size:22px">Learn Crypto Trading — Structured, Practical, Secure</h1>
+          <div class="kv">Guides, tutorials, FAQs, and certification courses for Spot, Futures, and Options trading. Pay per level or bundle to save.</div>
         </div>
-      </div>
-      <div class="card panel">
-        <div class="grid">
-          <div class="kpi">
-            <div class="h">TPS (demo)</div>
-            <div id="kpi-tps" class="v">—</div>
-            <div class="spark" aria-hidden="true"></div>
-          </div>
-          <div class="kpi">
-            <div class="h">Avg Block Time</div>
-            <div id="kpi-time" class="v">—</div>
-            <div class="spark" aria-hidden="true"></div>
-          </div>
-          <div class="kpi">
-            <div class="h">Active Validators</div>
-            <div id="kpi-val" class="v">—</div>
-            <div class="spark" aria-hidden="true"></div>
-          </div>
-        </div>
-        <div class="section">
-          <div class="h muted" style="text-transform:uppercase; letter-spacing:0.08em; font-size:12px;">Recent Blocks (mock)</div>
-          <div id="blocks" class="list" style="margin-top:8px;"></div>
+        <div class="row">
+          <input id="learnerName" placeholder="Your Full Name (for certificate)">
+          <button class="btn secondary" id="saveName">Save Name</button>
         </div>
       </div>
     </section>
 
-    <section class="section">
-      <div class="grid">
-        <div class="card feature">
-          <div class="i">⚡</div>
-          <h3>Speed</h3>
-          <p class="muted">Low-latency confirmation feel and efficient consensus for a snappy user experience.</p>
+    <!-- Courses grid -->
+    <section class="grid grid-cols-3" style="margin-top:14px">
+      <!-- Spot Trading -->
+      <div class="panel course-card">
+        <div class="row" style="justify-content:space-between">
+          <h2 style="margin:0;font-size:18px">Spot Trading Course</h2>
+          <span class="pill">Beginner friendly</span>
         </div>
-        <div class="card feature">
-          <div class="i">🛡️</div>
-          <h3>Security</h3>
-          <p class="muted">Battle-tested primitives and clear tooling to audit, monitor, and operate.</p>
+        <div class="kv">Master buying/selling crypto assets outright, managing risk, and executing on reputable markets.</div>
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div class="kv">Price per level: <span class="price">$5</span></div>
+            <div class="kv">Bundle (5 levels): <span class="price">$17</span> <span class="pill">Save $8</span></div>
+          </div>
+          <div class="row">
+            <button class="btn" onclick="buyBundle('spot')">Buy Bundle</button>
+            <button class="btn secondary" onclick="previewSyllabus('spot')">Preview</button>
+          </div>
         </div>
-        <div class="card feature">
-          <div class="i">🧩</div>
-          <h3>Composability</h3>
-          <p class="muted">Clean APIs and SDKs that fit real-world products—no ceremony, just shipping.</p>
+
+        <!-- Levels -->
+        <div id="spotLevels"></div>
+      </div>
+
+      <!-- Futures Trading -->
+      <div class="panel course-card">
+        <div class="row" style="justify-content:space-between">
+          <h2 style="margin:0;font-size:18px">Futures Trading Course</h2>
+          <span class="pill">Intermediate</span>
+        </div>
+        <div class="kv">Trade perpetuals and fixed-expiry futures, understand funding, leverage, liquidation, and risk controls.</div>
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div class="kv">Price per level: <span class="price">$10</span></div>
+            <div class="kv">Bundle (5 levels): <span class="price">$35</span> <span class="pill">Save $15</span></div>
+          </div>
+          <div class="row">
+            <button class="btn" onclick="buyBundle('futures')">Buy Bundle</button>
+            <button class="btn secondary" onclick="previewSyllabus('futures')">Preview</button>
+          </div>
+        </div>
+
+        <!-- Levels -->
+        <div id="futuresLevels"></div>
+      </div>
+
+      <!-- Options Trading -->
+      <div class="panel course-card">
+        <div class="row" style="justify-content:space-between">
+          <h2 style="margin:0;font-size:18px">Options Trading Course</h2>
+          <span class="pill">Advanced</span>
+        </div>
+        <div class="kv">Learn calls, puts, Greeks, implied volatility, and build strategies like spreads, straddles, and covered calls on crypto.</div>
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div class="kv">Price per level: <span class="price">$10</span></div>
+            <div class="kv">Bundle (5 levels): <span class="price">$35</span> <span class="pill">Save $15</span></div>
+          </div>
+          <div class="row">
+            <button class="btn" onclick="buyBundle('options')">Buy Bundle</button>
+            <button class="btn secondary" onclick="previewSyllabus('options')">Preview</button>
+          </div>
+        </div>
+
+        <!-- Levels -->
+        <div id="optionsLevels"></div>
+      </div>
+    </section>
+
+    <!-- Tutorials, Guides, FAQ, Glossary -->
+    <section class="panel" style="margin-top:14px">
+      <div class="grid" style="grid-template-columns:1.1fr 1fr; gap:14px">
+        <!-- Tutorials & Guides -->
+        <div class="panel">
+          <h2 style="margin:0 0 8px;font-size:18px">Tutorials & Guides</h2>
+          <ul class="kv" style="padding-left:18px;margin:8px 0">
+            <li>Getting Started with MedorCoin: wallets, security, and setting up 2FA</li>
+            <li>Reading token profiles: audits, KYC, liquidity locks, ownership concentration</li>
+            <li>Spot execution basics: order types, slippage, price impact, fees</li>
+            <li>Intro to perpetual futures: funding rates, leverage sizing, liquidation math</li>
+            <li>Options fundamentals: intrinsic vs time value, Greeks primer</li>
+            <li>Risk management toolkit: position sizing, stop placement, max drawdown</li>
+            <li>On-chain analytics for traders: flows, whale tracking, unlock calendars</li>
+          </ul>
+        </div>
+
+        <!-- FAQ -->
+        <div class="panel">
+          <h2 style="margin:0 0 8px;font-size:18px">FAQ</h2>
+          <details open><summary><b>How do I access paid lessons?</b></summary>
+            <div class="kv">Purchase a level or bundle. Access unlocks automatically for your account/email.</div>
+          </details>
+          <details><summary><b>Do you offer refunds?</b></summary>
+            <div class="kv">7-day refund if less than 20% of the content is completed. Contact support with your receipt.</div>
+          </details>
+          <details><summary><b>Are certificates verifiable?</b></summary>
+            <div class="kv">Yes. Each certificate includes a unique ID you can verify on our site.</div>
+          </details>
+          <details><summary><b>What if my country has restrictions?</b></summary>
+            <div class="kv">Learning content is generally open-access; trading features may vary by jurisdiction.</div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Glossary -->
+      <div class="panel" style="margin-top:14px">
+        <h2 style="margin:0 0 8px;font-size:18px">Glossary</h2>
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
+          <div><b>Spot</b><div class="kv">Immediate purchase/sale of an asset for full amount.</div></div>
+          <div><b>Perpetual</b><div class="kv">A futures contract without expiry, anchored by funding payments.</div></div>
+          <div><b>Leverage</b><div class="kv">Borrowed exposure; magnifies gains and losses.</div></div>
+          <div><b>Greeks</b><div class="kv">Sensitivity measures for options: Delta, Gamma, Theta, Vega, Rho.</div></div>
+          <div><b>IV (Implied Volatility)</b><div class="kv">Market’s forecast of a security’s volatility, priced into options.</div></div>
+          <div><b>Slippage</b><div class="kv">Difference between expected and executed price.</div></div>
+          <div><b>Price Impact</b><div class="kv">Effect of trade size on market price due to liquidity.</div></div>
+          <div><b>Funding Rate</b><div class="kv">Periodic payment to balance perp price vs spot.</div></div>
         </div>
       </div>
     </section>
 
-    <footer>
-      <div>© <span id="y"></span> MedorCoin. All rights reserved.</div>
-      <div class="mono muted">v0.1 UI Shell</div>
-    </footer>
-  </div>
+    <!-- Certificate Preview / Generator -->
+    <section class="panel" style="margin-top:14px">
+      <h2 style="margin:0 0 8px;font-size:18px">Certificate</h2>
+      <div class="kv">Earn an auto-generated certificate after completing Level 5 of any track.</div>
+      <div id="certPreview" class="cert" style="margin-top:8px">
+        <div style="text-align:center;font-size:20px;font-weight:800;color:#6c5530">Certificate of Completion</div>
+        <div style="text-align:center;margin-top:6px">This certifies that</div>
+        <div id="certName" style="text-align:center;font-size:18px;font-weight:700;margin:6px 0">Your Name</div>
+        <div id="certCourse" style="text-align:center">has successfully completed the <b>Spot Trading</b> course (Levels 1–5).</div>
+        <div class="row" style="justify-content:space-between;margin-top:14px">
+          <div class="kv">Date: <span id="certDate"></span></div>
+          <div class="kv">Certificate ID: <span id="certId" class="mono"></span></div>
+        </div>
+        <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;align-items:center">
+          <img src="/assets/medori-coin-64.png" alt="Seal" width="36" height="36" style="opacity:.9;border-radius:10px;border:1px solid #d5bd88">
+          <div style="text-align:right">
+            <div style="font-weight:700">MedorCoin Blockchain Co.</div>
+            <div class="kv">Authorized Signature</div>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" onclick="downloadCert()">Download PDF</button>
+        <button class="btn secondary" onclick="verifyCert()">Verify</button>
+      </div>
+      <div id="certOut" class="kv" style="margin-top:6px"></div>
+    </section>
+
+    <!-- Compliance -->
+    <section class="panel" style="margin-top:14px">
+      <h2 style="margin:0 0 8px;font-size:18px">Learning Policy</h2>
+      <ul class="kv" style="padding-left:18px;margin:6px 0">
+        <li>Educational content only; not financial advice. Consider consulting a licensed professional.</li>
+        <li>Access unlocks per level or via bundles. Certificates issued upon completion verification.</li>
+        <li>We enforce strict anti-fraud standards; suspicious accounts and content are blocked.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="container">© <span id="year"></span> MedorCoin. All rights reserved.</footer>
 
   <script>
-    // Year
-    document.getElementById('y').textContent = new Date().getFullYear();
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Mock KPIs with lively motion
-    const tps = document.getElementById('kpi-tps');
-    const time = document.getElementById('kpi-time');
-    const val = document.getElementById('kpi-val');
-    function rnd(min,max){ return Math.random()(max-min)+min; }
-    function fmt(n){ return Number(n).toFixed(1); }
-    setInterval(()=>{
-      tps.textContent = fmt(rnd(180, 420));
-      time.textContent = (rnd(1.9, 3.5)).toFixed(2) + ' s';
-      val.textContent = Math.floor(rnd(21, 41));
-    }, 1200);
+    // Catalog
+    const PRICES = {
+      spot: { level: 5, pricePer: 5, bundle: 17 },
+      futures: { level: 5, pricePer: 10, bundle: 35 },
+      options: { level: 5, pricePer: 10, bundle: 35 },
+    };
 
-    // Mock recent blocks
-    const blocksEl = document.getElementById('blocks');
-    function blockEl(num){
-      const el = document.createElement('div');
-      el.className = 'item';
-      const h = 1500 - num;
-      const hash = '0x' + Math.random().toString(16).slice(2, 10) + num.toString(16);
-      el.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <div>
-            <span class="mono">#${h}</span>
-            <span class="mono" style="color:#6ee7b7; margin-left:8px;">${hash}</span>
+    const SYLLABUS = {
+      spot: [
+        { title:'Level 1 — Foundations',
+          lessons:[
+            'What is spot trading? Custody, wallets, security basics',
+            'Exchanges vs DEXs, order types (market/limit/stop)',
+            'Reading order books and depth; slippage & price impact',
+            'KYC/Audit/Scanner checks; liquidity locks; red flags',
+            'Practice: place a small demo trade and record P/L'
+          ]},
+        { title:'Level 2 — Market Analysis',
+          lessons:[
+            'Trend, support/resistance, moving averages',
+            'Volume and momentum indicators (RSI/MACD basics)',
+            'On-chain data: holders, whale flows, unlocks',
+            'News/Events: catalysts and risk calendars',
+            'Practice: build a trade thesis with entry/exit'
+          ]},
+        { title:'Level 3 — Execution & Risk',
+          lessons:[
+            'Sizing, risk/reward, expectancy',
+            'Stops, take-profit, trailing methods',
+            'Fees and spreads; routing on AMMs',
+            'Position journaling and review',
+            'Practice: simulate 3 trades with rules'
+          ]},
+        { title:'Level 4 — Portfolio & Discipline',
+          lessons:[
+            'Diversification vs concentration',
+            'Managing winners/losers; avoiding FOMO',
+            'Tax-aware recordkeeping basics (jurisdiction varies)',
+            'Automation: alerts, watchlists, routines',
+            'Practice: create a weekly trading plan'
+          ]},
+        { title:'Level 5 — Capstone',
+          lessons:[
+            'End-to-end case study: research → plan → execute',
+            'Common failure modes and how to avoid them',
+            'Capstone project: submit a 2-week paper account',
+            'Assessment quiz and reflection',
+            'Completion review for certificate'
+          ]},
+      ],
+      futures: [
+        { title:'Level 1 — Futures Basics',
+          lessons:[
+            'What are futures and perps? Contract specs',
+            'Funding rates and basis; premium/discount',
+            'Margin types (isolated/cross) and liquidation',
+            'Risk warnings: leverage amplifies losses',
+            'Practice: open a micro position in sandbox'
+          ]},
+        { title:'Level 2 — Execution Mechanics',
+          lessons:[
+            'Order types for derivatives; reduce-only, TP/SL',
+            'Leverage sizing and effective notional',
+            'Funding impact on P/L and carry',
+            'Risk limits and maintenance margin',
+            'Practice: simulate entries/exits with logs'
+          ]},
+        { title:'Level 3 — Strategies',
+          lessons:[
+            'Trend following and breakout systems',
+            'Mean reversion on perps; time-of-day effects',
+            'Hedging spot with futures; basis trades',
+            'Volatility regimes and position adjustments',
+            'Practice: backtest a simple strategy'
+          ]},
+        { title:'Level 4 — Advanced Risk',
+          lessons:[
+            'Cascading liquidations and exchange risk',
+            'Correlation, tail risk, and stress tests',
+            'Event risk (news, unlocks) and halts',
+            'Trade review frameworks and KPIs',
+            'Practice: build a risk checklist'
+          ]},
+        { title:'Level 5 — Capstone',
+          lessons:[
+            'Design a complete futures trading plan',
+            'Run a 2-week simulated diary with rules',
+            'Post-mortem analysis and improvements',
+            'Final quiz and oral-style self assessment',
+            'Certificate eligibility review'
+          ]},
+      ],
+      options: [
+        { title:'Level 1 — Options Foundations',
+          lessons:[
+            'Calls, puts, moneyness, payoff diagrams',
+            'Time value vs intrinsic; assignment basics',
+            'Implied vs historical volatility',
+            'Basic strategies: covered call, protective put',
+            'Practice: analyze option chain'
+          ]},
+        { title:'Level 2 — Greeks & Pricing',
+          lessons:[
+            'Delta, Gamma, Theta, Vega, Rho',
+            'Skew/smile and term structure',
+            'Black-Scholes intuition; discrete fees',
+            'Sensitivity and risk mapping',
+            'Practice: Greek exposure worksheet'
+          ]},
+        { title:'Level 3 — Strategies I',
+          lessons:[
+            'Vertical spreads (debit/credit)',
+            'Straddles/strangles and when to use them',
+            'Calendar and diagonal spreads',
+            'Trade selection and checklist',
+            'Practice: strategy comparison case'
+          ]},
+        { title:'Level 4 — Strategies II & Risk',
+          lessons:[
+            'Iron condors, butterflies',
+            'Managing theta decay and assignment risk',
+            'IV crush and event plays – cautions',
+            'Portfolio Greeks and hedging',
+            'Practice: manage an options book (sim)'
+          ]},
+        { title:'Level 5 — Capstone',
+          lessons:[
+            'Design, execute, and evaluate a 2-week sim strategy',
+            'Stress testing under volatility shocks',
+            'Final quiz and reflection',
+            'Ethics and risk disclosures',
+            'Certificate eligibility review'
+          ]},
+      ],
+    };
+
+    // Render levels with pricing and purchase buttons
+    function renderLevels(track){
+      const target = document.getElementById(track+'Levels');
+      const cfg = PRICES[track];
+      const syllabus = SYLLABUS[track];
+      target.innerHTML = '';
+      syllabus.forEach((lvl, idx)=>{
+        const n = idx+1;
+        const div = document.createElement('div');
+        div.className = 'level';
+        div.innerHTML = `
+          <div class="row" style="justify-content:space-between">
+            <div><b>${lvl.title}</b> · <span class="kv">${lvl.lessons.length} lessons</span></div>
+            <div class="row">
+              <span class="price">$${cfg.pricePer}</span>
+              <button class="btn" onclick="buyLevel('${track}', ${n})">Buy Level ${n}</button>
+              <button class="btn secondary" onclick="openLessons('${track}', ${n})">View Lessons</button>
+            </div>
           </div>
-          <a href="./explorer.html" class="btn" style="height:30px; padding:0 10px;">View</a>
-        </div>
-      `;
-      return el;
+          <ul class="kv" id="${track}-l${n}-list" style="padding-left:18px;margin:8px 0;display:none"></ul>
+          <div class="kv" id="${track}-l${n}-status"></div>
+        `;
+        target.appendChild(div);
+      });
     }
-    for(let i=0;i<5;i++) blocksEl.appendChild(blockEl(i));
+    ['spot','futures','options'].forEach(renderLevels);
+
+    function openLessons(track, n){
+      const ul = document.getElementById(`${track}-l${n}-list`);
+      const lessons = SYLLABUS[track][n-1].lessons;
+      ul.innerHTML = lessons.map(x=>`<li>${x}</li>`).join('');
+      ul.style.display = ul.style.display==='none' ? 'block' : 'none';
+    }
+
+    // Name handling for certificate
+    const nameKey = 'learnerName';
+    document.getElementById('saveName').onclick = ()=>{
+      const nm = document.getElementById('learnerName').value.trim();
+      if(!nm) return alert('Enter your full name.');
+      localStorage.setItem(nameKey, nm);
+      document.getElementById('certName').textContent = nm;
+    };
+    const savedName = localStorage.getItem(nameKey);
+    if(savedName){ document.getElementById('learnerName').value = savedName; document.getElementById('certName').textContent = savedName; }
+
+    // Purchase stubs
+    async function buyLevel(track, level){
+      const email = await ensureEmail();
+      if(!email) return;
+      const price = PRICES[track].pricePer;
+      checkout({email, item:`${track}-level-${level}`, amount: price, currency:'USD', meta:{track,level}});
+    }
+    async function buyBundle(track){
+      const email = await ensureEmail();
+      if(!email) return;
+      const price = PRICES[track].bundle;
+      checkout({email, item:`${track}-bundle`, amount: price, currency:'USD', meta:{track,levels:5,bundle:true}});
+    }
+
+    async function ensureEmail(){
+      let email = localStorage.getItem('learnerEmail');
+      if(email) return email;
+      email = prompt('Enter your email for course access and receipts:');
+      if(!email) return null;
+      // Basic anti-abuse: block obvious malicious words
+      const bad = ['hack','hacker','fraud','scam','phish','exploit'];
+      const low = email.toLowerCase();
+      if(bad.some(k=>low.includes(k))){ alert('This email appears to violate our anti-fraud policy.'); return null; }
+      localStorage.setItem('learnerEmail', email);
+      return email;
+    }
+
+    async function checkout(payload){
+      // Replace with your payment processor call
+      // POST /api/checkout {email,item,amount,currency,meta}
+      try{
+        console.log('Checkout', payload);
+        alert(`Proceeding to payment: ${payload.item} — $${payload.amount}`);
+        // Simulate success
+        setTimeout(async ()=>{
+          await grantAccess(payload);
+          alert('Payment successful. Access granted.');
+        }, 600);
+      }catch(e){
+        alert('Payment failed. Try again.');
+      }
+    }
+
+    async function grantAccess({email, meta, item}){
+      // Replace with your backend: POST /api/courses/access {email,track,level or bundle}
+      const key = accessKey(meta?.track);
+      let acc = JSON.parse(localStorage.getItem(key) || '{}');
+      if(meta?.bundle){
+        acc = { l1:true,l2:true,l3:true,l4:true,l5:true, completed:false };
+      }else if(meta?.level){
+        acc['l'+meta.level] = true;
+      }
+      localStorage.setItem(key, JSON.stringify(acc));
+      renderAccessBadges(meta?.track);
+    }
+
+    function accessKey(track){ return `access-${track}`; }
+    function hasAccess(track, level){
+      const acc = JSON.parse(localStorage.getItem(accessKey(track)) || '{}');
+      return !!acc['l'+level];
+    }
+    function renderAccessBadges(track){
+      const acc = JSON.parse(localStorage.getItem(accessKey(track)) || '{}');
+      for(let i=1;i<=5;i++){
+        const el = document.getElementById(`${track}-l${i}-status`);
+        if(!el) continue;
+        el.innerHTML = acc['l'+i] ? '<span class="pill" style="background:#e9f7ef;border-color:#bcd5c1;color:#1f7a46">Access granted</span>' :
+                                     '<span class="pill">Locked</span>';
+      }
+    }
+    ['spot','futures','options'].forEach(renderAccessBadges);
+
+    // Simple progress + quiz stubs
+    function markCompleted(track, level){
+      const key = `progress-${track}-l${level}`;
+      localStorage.setItem(key, 'done');
+      alert(`Level ${level} marked completed.`);
+    }
+
+    // Certificate generator
+    function newCertId(){ return 'MC-' + Math.random().toString(36).slice(2,8).toUpperCase() + '-' + Date.now().toString().slice(-6); }
+    function updateCertPreview(courseName){
+      const nm = localStorage.getItem(nameKey) || 'Your Name';
+      document.getElementById('certName').textContent = nm;
+      document.getElementById('certCourse').innerHTML = `has successfully completed the <b>${courseName}</b> course (Levels 1–5).`;
+      document.getElementById('certDate').textContent = new Date().toLocaleDateString();
+      const id = newCertId();
+      document.getElementById('certId').textContent = id;
+      localStorage.setItem('lastCertId', id);
+    }
+    // Call this when backend verifies completion; for demo, allow manual preview per track
+    function previewSyllabus(track){
+      const map = {spot:'Spot Trading', futures:'Futures Trading', options:'Options Trading'};
+      updateCertPreview(map[track]);
+    }
+
+    async function downloadCert(){
+      // Replace with real PDF generation on server
+      const nm = localStorage.getItem(nameKey) || 'Your Name';
+      const course = document.getElementById('certCourse').innerText;
+      const id = document.getElementById('certId').innerText || newCertId();
+      const blob = new Blob([`Certificate of Completion\n\nName: ${nm}\n${course}\nDate: ${new Date().toLocaleDateString()}\nID: ${id}\n\nSigned: MedorCoin Blockchain Co.`], {type:'text/plain'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MedorCoin-Certificate-${id}.txt`; a.click();
+      document.getElementById('certOut').textContent = 'Downloaded. For a PDF with seal, connect /api/cert/pdf.';
+    }
+
+    async function verifyCert(){
+      const id = document.getElementById('certId').innerText || localStorage.getItem('lastCertId');
+      if(!id){ return alert('No certificate ID yet.'); }
+      // Replace with GET /api/cert/verify?id=...
+      alert(`Verification stub for ${id}. Connect /api/cert/verify to enable public lookup.`);
+    }
+
+    // Populate lesson lists initially (collapsed)
+    Object.keys(SYLLABUS).forEach(track=>{
+      SYLLABUS[track].forEach((lvl, i)=>{
+        const ul = document.getElementById(`${track}-l${i+1}-list`);
+        if(ul) ul.innerHTML = lvl.lessons.map(x=>`<li>${x}</li>`).join('');
+        if(ul) ul.style.display = 'none';
+      });
+    });
+
+    // Mark unlocked states on load
+    ['spot','futures','options'].forEach(renderAccessBadges);
+
+    // Certificate preview init
+    document.getElementById('certDate').textContent = new Date().toLocaleDateString();
+    document.getElementById('certId').textContent = newCertId();
   </script>
 </body>
 </html>
