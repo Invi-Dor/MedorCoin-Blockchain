@@ -1,9 +1,11 @@
+
+
 name: Auto Update README
 on:
   push:
     paths:
       - 'protocol.json'
-      - 'scripts/auto_update/templates/README.tpl.md'
+      - '.github/workflows/auto-readme.yml'
   workflow_dispatch: {}
 jobs:
   build:
@@ -15,9 +17,42 @@ jobs:
       - name: Setup jq and gettext
         run: sudo apt-get update && sudo apt-get install -y jq gettext-base
 
-      - name: Ensure template exists and render README
+      - name: Render README from embedded template
+        shell: bash
         run: |
-          set -e
-          mkdir -p scripts/auto_update/templates
-          if [ ! -f scripts/auto_update/templates/README.tpl.md ]; then
-            cat > scripts/auto_update/templates/README.tpl.md <<'EOF'
+          set -euo pipefail
+
+          NAME=$(jq -r '.name // "MedorCoin"' protocol.json)
+          TICKER=$(jq -r '.ticker // "MEDUR"' protocol.json)
+          MINER_BPS=$(jq -r '.minerRewardBps // 9000' protocol.json)
+          PROT_BPS=$(jq -r '.protocolRewardBps // 1000' protocol.json)
+          STAKE_BPS=$(jq -r '.stakeLockFeeBps // 50' protocol.json)
+          LIQ_BPS=$(jq -r '.liqLockFeeBps // 50' protocol.json)
+          TREASURY=$(jq -r '.protocolTreasuryAddress // "0x..."' protocol.json)
+          BASE_FEE_POLICY=$(jq -r '.baseFeePolicy // "burn"' protocol.json)
+
+          export NAME TICKER MINER_BPS PROT_BPS STAKE_BPS LIQ_BPS TREASURY BASE_FEE_POLICY
+
+          cat <<'TPL' | envsubst > README.md
+${NAME} — A Minimal, Security-First, EVM-Inspired Blockchain with Simple Mining
+
+Overview
+${NAME} (ticker: ${TICKER}) is a compact, EVM-inspired blockchain focused on clarity, security, and auditability. Miner rewards are split between the miner and the ${NAME} Protocol Treasury. Fees for staking/liquidity locks apply; all value flows are on-chain and auditable.
+
+Economic model (defaults)
+- MINER_REWARD_BPS = ${MINER_BPS}
+- PROTOCOL_REWARD_BPS = ${PROT_BPS}
+- STAKE_LOCK_FEE_BPS = ${STAKE_BPS}
+- LIQ_LOCK_FEE_BPS = ${LIQ_BPS}
+- PROTOCOL_TREASURY_ADDRESS = ${TREASURY}
+- BASE_FEE_POLICY = ${BASE_FEE_POLICY}
+
+Automation note
+This README is auto-generated. Edit protocol.json; the workflow updates README.md automatically.
+TPL
+
+      - name: Commit README
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: auto-regenerate README from protocol.json"
+          file_pattern: README.md
