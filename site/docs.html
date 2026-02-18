@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MedorCoin Docs</title>
+  <meta name="description" content="MedorCoin Blockchain documentation" />
+  <style>
+    :root{
+      --bg:#fafafa;           / soft white /
+      --text:#333333;         / dark grey pencil /
+      --muted:#666666;
+      --card:#ffffff;
+      --line:#e9e9e9;
+      --accent:#3c6e71;
+      --accent-contrast:#ffffff;
+      --radius:12px;
+      --shadow:0 6px 20px rgba(0,0,0,0.06);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; line-height:1.6; }
+    a { color:var(--accent); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 0 8px; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:14px; font-weight:700; letter-spacing:0.2px; }
+    .logo { width:38px; height:38px; border-radius:10px; background: linear-gradient(135deg, #efefef, #ffffff); border:1px solid var(--line); box-shadow: var(--shadow); }
+    nav { display:flex; gap:14px; flex-wrap:wrap; }
+    nav a { padding:8px 12px; border-radius:8px; }
+    nav a.active, nav a:focus-visible { background:var(--card); border:1px solid var(--line); text-decoration:none; }
+
+    main { display:grid; grid-template-columns: 280px 1fr; gap:22px; padding-top:22px; }
+    aside { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px; position:sticky; top:14px; height:max-content; }
+    .toc h2 { margin:6px 0 10px; font-size:16px; color:var(--muted); }
+    .toc a { display:block; padding:6px 8px; border-radius:8px; color:var(--text); }
+    .toc a:hover { background:#f4f4f4; text-decoration:none; }
+
+    article { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px; }
+    h1 { margin:0 0 8px; font-size:clamp(26px, 4vw, 38px); line-height:1.2; }
+    h2 { margin:20px 0 8px; font-size:22px; }
+    h3 { margin:16px 0 6px; font-size:18px; }
+    p { margin:8px 0; color:var(--text); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    pre { background:#f7f7f7; border:1px solid var(--line); border-radius:10px; padding:12px; overflow:auto; }
+    .note { background:#fffff3; border:1px solid #f0e6a6; padding:10px 12px; border-radius:10px; color:#5a5600; }
+
+    footer { margin-top:28px; padding:16px 0; border-top:1px solid var(--line); color:var(--muted); font-size:14px; }
+
+    @media (max-width: 900px){
+      main { grid-template-columns: 1fr; }
+      aside { position:static; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>MedorCoin Blockchain</div>
+      </div>
+      <nav aria-label="Primary">
+        <a href="./">Home</a>
+        <a class="active" href="./docs.html">Docs</a>
+        <a href="./explorer.html">Explorer</a>
+        <a href="https://github.com/invi-dor/MedorCoin-Blockchain" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <aside>
+        <div class="toc" aria-label="Table of contents">
+          <h2>On this page</h2>
+          <a href="#intro">Introduction</a>
+          <a href="#quickstart">Quick Start</a>
+          <a href="#config">Configuration</a>
+          <a href="#deployment">Deployment</a>
+          <a href="#faq">FAQ</a>
+        </div>
+      </aside>
+
+      <article>
+        <h1 id="intro">MedorCoin Documentation</h1>
+        <p class="note">Tip: Keep private values out of your repo. Use a gitignored file or environment variables.</p>
+
+        <h2 id="quickstart">Quick Start</h2>
+        <ol>
+          <li>Clone the repo: git clone https://github.com/invi-dor/MedorCoin-Blockchain</li>
+          <li>Open index.html locally to view the landing page.</li>
+          <li>Edit docs.html as your documentation grows.</li>
+        </ol>
+
+        <h2 id="config">Configuration</h2>
+        <p>Recommended public and private configuration files:</p>
+        <pre><code>{
+  "name": "MedorCoin",
+  "ticker": "MEDUR",
+  "stakeLockFeeBps": 50,
+  "liqLockFeeBps": 50,
+  "miningRewards": "enabled"
+}</code></pre>
+        <pre><code>{
+  "minerRewardBps": 9000,
+  "protocolRewardBps": 1000,
+  "baseFeePolicy": "split",
+  "splitBpsToTreasury": 7000,
+  "splitBpsToMiners": 3000,
+  "protocolTreasuryAddress": "0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0"
+}</code></pre>
+
+        <h3>Environment variables (optional)</h3>
+        <pre><code># .env (example)
+MINER_REWARD_BPS=9000
+PROTOCOL_REWARD_BPS=1000
+BASE_FEE_POLICY=split
+SPLIT_BPS_TREASURY=7000
+SPLIT_BPS_MINERS=3000
+PROTOCOL_TREASURY_ADDRESS=0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0</code></pre>
+
+        <h2 id="deployment">Deployment</h2>
+        <ol>
+          <li>Commit index.html and docs.html to your gh-pages branch or main with Pages enabled.</li>
+          <li>Set Pages to deploy from / root. URL will be your GitHub Pages link.</li>
+          <li>Verify navigation links work between Home, Docs, and Explorer.</li>
+        </ol>
+
+        <h2 id="faq">FAQ</h2>
+        <p><strong>Q:</strong> Can I change the accent color?<br>
+        <strong>A:</strong> Yes, update --accent in the :root CSS.</p>
+
+        <p><strong>Q:</strong> Where do I add new sections?<br>
+        <strong>A:</strong> Duplicate the article blocks or add new headings and link them in the TOC.</p>
+      </article>
+    </main>
+
+    <footer>
+      © <span id="y"></span> MedorCoin. All rights reserved.
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
