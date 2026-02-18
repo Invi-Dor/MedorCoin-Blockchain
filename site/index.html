@@ -1,88 +1,91 @@
+index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MedorCoin — Index</title>
-  <meta name="theme-color" content="#c7a652" />
+  <title>MedorCoin — Learn & Verify</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
-    :root{
-      --gold:#c7a652; --gold-2:#e4c272; --bg:#faf6ea; --ink:#1e2126;
-      --panel:#fffdf8; --border:#e2d3ae; --muted:#545b66; --ok:#1f7a46; --danger:#8a1d1d;
-      --pill:#eef2ff; --pill-b:#c7cff7; --pill-ink:#2d3c8f;
-    }
-    *{box-sizing:border-box}
-    body{font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0}
-    a{color:#2d3c8f;text-decoration:none}
-    .wrap{max-width:1100px;margin:0 auto;padding:16px}
-    .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;margin:10px 0}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .grid{display:grid;gap:12px}
-    @media(min-width:1000px){.grid-2{grid-template-columns:1fr 1fr}}
-    .btn{padding:8px 12px;border-radius:10px;border:1px solid #c3a156;background:linear-gradient(135deg,#fff1c1,var(--gold-2));cursor:pointer}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--pill);border:1px solid var(--pill-b);color:var(--pill-ink);font-size:12px}
-    .kv{color:#4a4f57;font-size:13px}
-    .addr{font-family:ui-monospace, Menlo, Consolas, monospace; font-size:12px; background:#fff7e0; padding:6px 8px; border-radius:8px; border:1px dashed #d8c089}
-    .banner{position:sticky;top:0;z-index:50;background:#fff4d6;border-bottom:2px solid #e7cc82;color:#5b4100;padding:10px 12px;font-weight:600;display:none}
-    .banner .tag{background:#ffe6a3;border:1px solid #d3b66e;color:#704f00;padding:2px 8px;border-radius:999px;margin-right:8px}
-    .warn{color:var(--danger);font-weight:600}
-    .success{color:var(--ok)}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:8px;border-bottom:1px solid #efe5c6;text-align:left}
-    th{background:#fff5cc}
-    .small{font-size:12px;color:#6b7280}
-    .copy-btn{margin-left:8px;padding:2px 6px;border-radius:6px;border:1px solid #c3a156;background:#fff8d8;cursor:pointer;font-size:12px}
-    .section-title{display:flex;align-items:center;justify-content:space-between}
-    .note{background:#fff9e6;border:1px solid #f0dfab;padding:8px;border-radius:8px}
-    .hero{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+    body { font-family: system-ui, Arial, sans-serif; margin: 0; padding: 0; background: #0e0f12; color: #eaecef; }
+    header, footer { padding: 16px; background: #12141a; border-bottom: 1px solid #252833; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+    h1, h2, h3 { margin: 12px 0; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .col { flex: 1; min-width: 260px; }
+    input, select { width: 100%; padding: 10px; background: #161a22; color: #eaecef; border: 1px solid #2a2f3a; border-radius: 6px; }
+    .btn { padding: 10px 14px; background: #2b5cff; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .btn.secondary { background: #2a2f3a; }
+    .card { background: #12141a; border: 1px solid #252833; border-radius: 10px; padding: 16px; }
+    .muted { color: #98a2b3; }
+    .success { color: #4ade80; }
+    .warn { color: #f59e0b; }
+    .error { color: #ef4444; }
+    code { background: #0b0d12; padding: 2px 6px; border-radius: 4px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 12px; }
+    .badge { padding: 4px 8px; background: #1b1f2a; border: 1px solid #2a2f3a; border-radius: 999px; font-size: 12px; }
+    .level { padding: 8px; border-radius: 8px; border: 1px dashed #2a2f3a; text-align: center; }
+    a { color: #7aa2ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .divider { height: 1px; background: #252833; margin: 16px 0; }
+    small { display: block; }
   </style>
 </head>
 <body>
-  <div id="demoBanner" class="banner">
-    <span class="tag">DEMO</span>
-    Running in Mock Mode. Payments are simulated; unlocks and certificates are for testing only.
-  </div>
-
-  <div class="wrap">
-    <div class="hero">
-      <h1>MedorCoin — Index</h1>
+  <header>
+    <div class="container row" style="justify-content: space-between;">
+      <div>
+        <h1>MedorCoin Classroom</h1>
+        <small class="muted">Real payments, real access. Demo preview available without login.</small>
+      </div>
       <div class="row">
-        <a class="btn" href="/index.html">Home</a>
-        <a class="btn" href="/learners.html">Learners</a>
-        <a class="btn" href="/my-classroom.html">My Classroom</a>
+        <span id="userEmail" class="badge">Not logged in</span>
+        <button class="btn" onclick="loginRequest()">Log in</button>
+        <button class="btn secondary" onclick="logout()">Log out</button>
       </div>
     </div>
+  </header>
 
-    <div class="panel">
-      <div class="row">
-        <input id="email" placeholder="you@example.com" style="min-width:260px" />
-        <button class="btn" onclick="saveEmail()">Use this email</button>
-        <span id="userOut" class="kv"></span>
+  <main class="container">
+    <section class="card">
+      <h2>Quick Demo (no login)</h2>
+      <p class="muted">Preview content from Level 1. To take quizzes, get certificates, or unlock higher levels, please log in and purchase.</p>
+      <div class="grid">
+        <div class="level">Spot Trading — Level 1 preview: Market vs. Limit orders</div>
+        <div class="level">Futures — Level 1 preview: Leverage basics and risks</div>
+        <div class="level">Options — Level 1 preview: Calls vs. Puts overview</div>
       </div>
-    </div>
+    </section>
 
-    <div class="grid grid-2">
-      <div class="panel">
-        <div class="section-title">
-          <h3>Purchase Access</h3>
-          <span class="pill">MOCK_MODE aware</span>
+    <div class="divider"></div>
+
+    <section class="card">
+      <h2>Purchase and Verify Payment</h2>
+      <div class="row">
+        <div class="col">
+          <label>Network</label>
+          <select id="network">
+            <option value="eth">ETH (Ethereum)</option>
+            <option value="bnb">BNB (BSC)</option>
+            <option value="btc">BTC (Bitcoin)</option>
+          </select>
         </div>
-        <div class="note small">In DEMO, any tx hash with length ≥ 10 verifies.</div>
-
-        <div style="margin-top:10px">
-          <label>Track</label><br />
+        <div class="col">
+          <label>Choose track</label>
           <select id="track">
             <option value="spot">Spot</option>
             <option value="futures">Futures</option>
             <option value="options">Options</option>
           </select>
         </div>
-        <div class="row" style="margin-top:10px">
-          <label><input type="radio" name="itemType" value="level" checked /> Single Level</label>
-          <label><input type="radio" name="itemType" value="bundle" /> Bundle (L1–L5)</label>
+        <div class="col">
+          <label>Purchase type</label>
+          <div>
+            <label><input type="radio" name="itemType" value="level" checked /> Single Level</label>
+            <label style="margin-left:12px;"><input type="radio" name="itemType" value="bundle" /> Bundle (L1–L5)</label>
+          </div>
         </div>
-        <div id="levelRow" style="margin-top:10px">
-          <label>Level</label><br />
+        <div class="col" id="levelCol">
+          <label>Level</label>
           <select id="level">
             <option value="1">Level 1</option>
             <option value="2">Level 2</option>
@@ -91,312 +94,285 @@
             <option value="5">Level 5</option>
           </select>
         </div>
+      </div>
 
-        <div class="panel" style="margin-top:12px">
-          <div class="section-title">
-            <h4>Send Payment To</h4>
-            <span class="small">Use the address for your network</span>
-          </div>
-
-          <div class="row">
-            <div>
-              <div><b>ETH</b> <span class="addr" id="addr-eth"></span><button class="copy-btn" onclick="copyAddr('eth')">Copy</button></div>
-              <div class="small">Network: Ethereum</div>
-            </div>
-            <div>
-              <div><b>BNB</b> <span class="addr" id="addr-bnb"></span><button class="copy-btn" onclick="copyAddr('bnb')">Copy</button></div>
-              <div class="small">Network: BNB Smart Chain</div>
-            </div>
-            <div>
-              <div><b>BTC</b> <span class="addr" id="addr-btc"></span><button class="copy-btn" onclick="copyAddr('btc')">Copy</button></div>
-              <div class="small">Network: Bitcoin</div>
-            </div>
-          </div>
-
-          <div class="row" style="margin-top:10px">
-            <input id="txHash" placeholder="Paste your transaction hash" style="min-width:320px" />
-            <select id="network">
-              <option value="eth">ETH</option>
-              <option value="bnb">BNB</option>
-              <option value="btc">BTC</option>
-            </select>
-            <button class="btn" onclick="verifyPayment()">Verify & Unlock</button>
-          </div>
-          <div id="payOut" class="kv" style="margin-top:6px"></div>
+      <div class="row" style="margin-top:12px;">
+        <div class="col">
+          <label>Transaction Hash</label>
+          <input id="txHash" placeholder="Paste your on-chain tx hash here" />
+          <small class="muted">
+            Send payment to:
+            <span id="addrEth">ETH/BNB: 0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0</span> —
+            <span id="addrBtc">BTC: bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv</span>
+          </small>
+        </div>
+        <div class="col" style="align-self: end;">
+          <button class="btn" onclick="verifyPayment()">Verify Payment</button>
         </div>
       </div>
+      <p id="payOut" class="muted"></p>
+    </section>
 
-      <div class="panel">
-        <h3>Your Access</h3>
-        <div class="kv">Unlocked levels for your email.</div>
-        <div class="grid" style="grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:8px">
-          <div>
-            <h4>Spot</h4>
-            <div id="spotLevels"></div>
-          </div>
-          <div>
-            <h4>Futures</h4>
-            <div id="futuresLevels"></div>
-          </div>
-          <div>
-            <h4>Options</h4>
-            <div id="optionsLevels"></div>
-          </div>
+    <div class="divider"></div>
+
+    <section class="card">
+      <h2>My Access</h2>
+      <p class="muted">Shows unlocked levels after successful verification.</p>
+      <div id="accessGrid" class="grid"></div>
+      <div class="row" style="margin-top:8px;">
+        <button class="btn" onclick="refreshAccess()">Refresh Access</button>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="card">
+      <h2>Payments History</h2>
+      <div id="history"></div>
+      <div class="row" style="margin-top:8px;">
+        <button class="btn" onclick="loadPayments()">Load History</button>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="card">
+      <h2>Certificate (requires Level 5)</h2>
+      <div class="row">
+        <div class="col">
+          <label>Name on certificate</label>
+          <input id="certName" placeholder="Your full name" />
         </div>
-        <div class="row" style="margin-top:10px">
-          <button class="btn" onclick="refreshAccess()">Refresh</button>
-          <a class="btn" href="/my-classroom.html">Open My Classroom</a>
+        <div class="col">
+          <label>Track</label>
+          <select id="certTrack">
+            <option value="spot">Spot</option>
+            <option value="futures">Futures</option>
+            <option value="options">Options</option>
+          </select>
+        </div>
+        <div class="col" style="align-self:end;">
+          <button class="btn" onclick="issueCert()">Issue Certificate</button>
         </div>
       </div>
-    </div>
+      <p id="certOut" class="muted"></p>
+    </section>
+  </main>
 
-    <div class="panel">
-      <h3>Certificates</h3>
-      <div class="kv">Issue a test certificate, then verify it.</div>
-      <div class="row" style="margin-top:8px">
-        <input id="fullName" placeholder="Your Full Name" />
-        <select id="certTrack">
-          <option value="spot">Spot</option>
-          <option value="futures">Futures</option>
-          <option value="options">Options</option>
-        </select>
-        <button class="btn" onclick="issueCert()">Issue Certificate</button>
-      </div>
-      <div id="certOut" class="kv" style="margin-top:6px"></div>
-
-      <div class="row" style="margin-top:10px">
-        <input id="verifyId" placeholder="Enter Certificate ID (e.g., MC-XX-ABC123-123456)" style="min-width:320px" />
-        <button class="btn" onclick="verifyCert()">Verify</button>
-      </div>
-      <div id="verifyOut" class="kv" style="margin-top:6px"></div>
+  <footer>
+    <div class="container">
+      <small class="muted">Version check enabled. The page refreshes when a new deploy is detected.</small>
     </div>
-
-    <div class="panel">
-      <h3>Payments History</h3>
-      <div class="kv">Recent purchases for your email.</div>
-      <table style="margin-top:8px">
-        <thead><tr><th>When</th><th>Item</th><th>Network</th><th>Tx</th><th>Amount (USD)</th></tr></thead>
-        <tbody id="payTable"><tr><td colspan="5" class="small">No data</td></tr></tbody>
-      </table>
-      <div class="row" style="margin-top:10px">
-        <button class="btn" onclick="loadPayments()">Reload</button>
-      </div>
-    </div>
-  </div>
+  </footer>
 
   <script>
-    // Inline config (MOCK_MODE switch)
-    window.__ENV = window.__ENV || {
-      MOCK_MODE: true,
-      API_BASE: ''
-    };
-    const ENV = window.__ENV;
-    const API = ENV.API_BASE || '';
-    const MOCK = String(ENV.MOCK_MODE).toLowerCase() === 'true';
+    // Configure your backend URL
+    window.__ENV = window.__ENV || {};
+    window.__ENV.API_BASE = window.__ENV.API_BASE || 'http://localhost:8080';
 
-    // Payment addresses
-    const ADDR = {
-      eth: '0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0',
-      bnb: '0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0',
-      btc: 'bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv'
-    };
+    let AUTH_TOKEN = localStorage.getItem('mc_token') || null;
 
-    const state = { email:null };
+    function authHeaders() {
+      return AUTH_TOKEN ? { Authorization: 'Bearer ' + AUTH_TOKEN } : {};
+    }
 
-    function init(){
-      // Fill addresses
-      document.getElementById('addr-eth').textContent = ADDR.eth;
-      document.getElementById('addr-bnb').textContent = ADDR.bnb;
-      document.getElementById('addr-btc').textContent = ADDR.btc;
+    function logout() {
+      localStorage.removeItem('mc_token');
+      AUTH_TOKEN = null;
+      document.getElementById('userEmail').textContent = 'Not logged in';
+      alert('Logged out');
+    }
 
-      // Restore email
-      const e = localStorage.getItem('learnerEmail');
-      if(e){ state.email = e; document.getElementById('email').value = e; }
-      updateUserOut();
-
-      // UI toggles
-      toggleDemoBanner();
-      handleItemTypeChange();
-      document.querySelectorAll('input[name="itemType"]').forEach(r=>{
-        r.addEventListener('change', handleItemTypeChange);
+    async function loginRequest() {
+      const email = prompt('Enter your email to receive a login link:');
+      if (!email) return;
+      await fetch(`${window.__ENV.API_BASE}/api/auth/request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
       });
-
-      // Data
-      refreshAccess();
-      loadPayments();
+      alert('Check your email for the login link. If SMTP is not configured, see server logs for the link.');
     }
 
-    function toggleDemoBanner(){
-      document.getElementById('demoBanner').style.display = MOCK ? 'block' : 'none';
+    // Handle redirect after magic-link sign-in if this page is /auth-complete
+    (function checkAuthComplete() {
+      if (location.pathname.endsWith('/auth-complete')) {
+        const token = location.hash.replace('#token=', '');
+        if (token) {
+          localStorage.setItem('mc_token', token);
+          AUTH_TOKEN = token;
+          alert('Logged in successfully.');
+          window.location.href = '/';
+        }
+      }
+    })();
+
+    async function me() {
+      if (!AUTH_TOKEN) return;
+      try {
+        const r = await fetch(`${window.__ENV.API_BASE}/api/me`, { headers: { ...authHeaders() } });
+        if (r.ok) {
+          const j = await r.json();
+          document.getElementById('userEmail').textContent = j.user.email;
+        }
+      } catch {}
     }
 
-    function handleItemTypeChange(){
-      const val = document.querySelector('input[name="itemType"]:checked')?.value || 'level';
-      document.getElementById('levelRow').style.display = val === 'level' ? 'block' : 'none';
-    }
+    // Toggle level selector with purchase type
+    document.addEventListener('change', (e) => {
+      if (e.target && e.target.name === 'itemType') {
+        const isBundle = e.target.value === 'bundle';
+        document.getElementById('levelCol').style.display = isBundle ? 'none' : 'block';
+      }
+    });
 
-    function saveEmail(){
-      const e = document.getElementById('email').value.trim();
-      if(!e) return alert('Enter email');
-      state.email = e;
-      localStorage.setItem('learnerEmail', e);
-      updateUserOut();
-      refreshAccess();
-      loadPayments();
-    }
-
-    function updateUserOut(){
-      const e = state.email || document.getElementById('email').value.trim();
-      state.email = e || null;
-      document.getElementById('userOut').textContent = e ? `Using ${e}` : 'No email set.';
-    }
-
-    function itemString(){
+    async function verifyPayment() {
+      if (!AUTH_TOKEN) { alert('Please log in first.'); return; }
+      const txHash = document.getElementById('txHash').value.trim();
+      const network = document.getElementById('network').value; // eth | bnb | btc
       const track = document.getElementById('track').value;
       const itemType = document.querySelector('input[name="itemType"]:checked')?.value || 'level';
-      if(itemType === 'bundle') return `${track}-bundle`;
-      const lvl = document.getElementById('level').value;
-      return `${track}-level-${lvl}`;
-    }
-
-    async function verifyPayment(){
-      if(!state.email) return alert('Set your email first.');
-      const txHash = document.getElementById('txHash').value.trim();
-      const network = document.getElementById('network').value;
-      const item = itemString();
-      if(!txHash) return alert('Paste your transaction hash first.');
+      const level = itemType === 'level' ? Number(document.getElementById('level').value) : null;
+      const bundle = itemType === 'bundle';
 
       const out = document.getElementById('payOut');
-      out.textContent = 'Verifying...';
+      out.className = 'muted';
+      out.textContent = 'Verifying on-chain payment...';
 
-      try{
-        let r;
-        if(network === 'btc'){
-          r = await fetch(`${API}/api/payments/btc/verify`, {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({email: state.email, item, txHash})
-          });
-        } else {
-          r = await fetch(`${API}/api/payments/evm/verify`, {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({email: state.email, item, network, txHash})
-          });
-        }
-        const j = await r.json();
-        if(j.paid){
-          out.innerHTML = `<span class="success">Payment verified.</span> Unlocked: ${j.bundle? 'Bundle (L1–L5)': `Level ${j.level}`} for ${j.track}. Amount: $${j.amountUsd}`;
-          await refreshAccess();
-          await loadPayments();
-        } else {
-          out.innerHTML = `<span class="warn">Not verified.</span> Confirmations: ${j.confirmations||0}`;
-        }
-      }catch(err){
-        out.innerHTML = `<span class="warn">Verification failed.</span>`;
-      }
-    }
+      try {
+        const url = network === 'btc'
+          ? `${window.__ENV.API_BASE}/api/payments/btc/verify`
+          : `${window.__ENV.API_BASE}/api/payments/evm/verify`;
+        const body = network === 'btc'
+          ? { txHash, track, level, bundle }
+          : { network, txHash, track, level, bundle };
 
-    async function refreshAccess(){
-      const email = state.email || document.getElementById('email').value.trim();
-      if(!email){
-        ['spot','futures','options'].forEach(t=>renderLevels(t,{}));
-        return;
-      }
-      try{
-        const r = await fetch(`${API}/api/courses/access?email=${encodeURIComponent(email)}`);
-        const acc = await r.json();
-        renderLevels('spot', acc.spot||{});
-        renderLevels('futures', acc.futures||{});
-        renderLevels('options', acc.options||{});
-      }catch(e){
-        ['spot','futures','options'].forEach(t=>renderLevels(t,{}));
-      }
-    }
-
-    function renderLevels(track, obj){
-      const el = document.getElementById(track+'Levels');
-      let html = '';
-      for(let i=1;i<=5;i++){
-        const u = !!obj['l'+i];
-        html += `<div class="row" style="justify-content:space-between;margin:4px 0">
-          <div>Level ${i} ${u?'<span class="pill" style="background:#e9f7ef;border-color:#bcd5c1;color:#1f7a46">Unlocked</span>':'<span class="pill">Locked</span>'}</div>
-          <div>${u?`<a class="btn" href="/my-classroom.html">Open</a>`:`<span class="small">Complete prior level or purchase</span>`}</div>
-        </div>`;
-      }
-      el.innerHTML = html;
-    }
-
-    async function issueCert(){
-      if(!state.email) return alert('Set your email first.');
-      const name = document.getElementById('fullName').value.trim();
-      const track = document.getElementById('certTrack').value;
-      if(!name) return alert('Enter your full name.');
-      const out = document.getElementById('certOut');
-      out.textContent = 'Issuing...';
-      try{
-        const r = await fetch(`${API}/api/cert/issue`, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({email: state.email, name, track})
+        const r = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders() },
+          body: JSON.stringify(body)
         });
         const j = await r.json();
-        if(j.certId){
-          out.innerHTML = `Issued <b>${j.certId}</b>. <a href="${j.pdfUrl}" target="_blank">Download PDF</a>`;
-        }else{
-          out.textContent = 'Issue failed.';
+
+        if (r.ok && j.paid) {
+          out.className = 'success';
+          out.innerHTML = `Payment verified. Unlocked: ${j.bundle ? 'Bundle (L1–L5)' : `Level ${j.level}`} for <b>${j.track}</b>. Amount: $${Number(j.amountUsd).toFixed(2)}.`;
+          await refreshAccess();
+          await loadPayments();
+        } else if (r.ok && j.paid === false) {
+          out.className = 'warn';
+          out.innerHTML = `Waiting for confirmations: ${j.confirmations || 0}. Try again in a moment.`;
+        } else {
+          out.className = 'error';
+          out.innerHTML = `Verification failed: ${j.error || 'Unknown error'}`;
         }
-      }catch(e){
-        out.textContent = 'Issue failed.';
+      } catch (e) {
+        out.className = 'error';
+        out.textContent = 'Verification failed (network error).';
       }
     }
 
-    async function verifyCert(){
-      const id = document.getElementById('verifyId').value.trim();
-      if(!id) return alert('Enter certificate ID.');
-      const out = document.getElementById('verifyOut');
-      out.textContent = 'Checking...';
-      try{
-        const r = await fetch(`${API}/api/cert/verify?id=${encodeURIComponent(id)}`);
+    async function refreshAccess() {
+      const grid = document.getElementById('accessGrid');
+      grid.innerHTML = '';
+      if (!AUTH_TOKEN) {
+        grid.innerHTML = '<div class="muted">Log in to view your unlocked levels.</div>';
+        return;
+      }
+      try {
+        const r = await fetch(`${window.__ENV.API_BASE}/api/courses/access`, { headers: { ...authHeaders() } });
+        const data = await r.json();
+        const tracks = ['spot', 'futures', 'options'];
+        tracks.forEach(tr => {
+          for (let i = 1; i <= 5; i++) {
+            const unlocked = data?.[tr]?.['l' + i];
+            const d = document.createElement('div');
+            d.className = 'level';
+            d.innerHTML = `${tr.toUpperCase()} — Level ${i} ${unlocked ? '<span class="badge success">Unlocked</span>' : '<span class="badge">Locked</span>'}`;
+            grid.appendChild(d);
+          }
+        });
+      } catch {
+        grid.innerHTML = '<div class="error">Failed to load access.</div>';
+      }
+    }
+
+    async function loadPayments() {
+      const box = document.getElementById('history');
+      box.innerHTML = '';
+      if (!AUTH_TOKEN) {
+        box.innerHTML = '<div class="muted">Log in to view your payment history.</div>';
+        return;
+      }
+      try {
+        const r = await fetch(`${window.__ENV.API_BASE}/api/payments/history`, { headers: { ...authHeaders() } });
         const j = await r.json();
-        if(j.valid){
-          out.innerHTML = `Valid ✅ — ${j.name} • ${j.track} • ${new Date(j.date).toLocaleString()}`;
-        }else{
-          out.innerHTML = `Invalid or revoked ❌`;
+        if (!j.items || !j.items.length) {
+          box.innerHTML = '<div class="muted">No payments yet.</div>';
+          return;
         }
-      }catch(e){
-        out.textContent = 'Verification failed.';
+        const ul = document.createElement('ul');
+        j.items.forEach(p => {
+          const li = document.createElement('li');
+          li.innerHTML = `<code>${p.network.toUpperCase()}</code> — ${p.track}${p.level ? ' L' + p.level : ' Bundle'} — $${p.amountUsd.toFixed(2)} — ${p.confirmed ? 'Confirmed' : 'Pending'} — <small class="muted">${p.txHash}</small>`;
+          ul.appendChild(li);
+        });
+        box.appendChild(ul);
+      } catch {
+        box.innerHTML = '<div class="error">Failed to load history.</div>';
       }
     }
 
-    async function loadPayments(){
-      const email = state.email || document.getElementById('email').value.trim();
-      const tb = document.getElementById('payTable');
-      if(!email){ tb.innerHTML = `<tr><td colspan="5" class="small">Set your email to view history.</td></tr>`; return; }
-      try{
-        const r = await fetch(`${API}/api/payments/history?email=${encodeURIComponent(email)}`);
+    async function issueCert() {
+      if (!AUTH_TOKEN) { alert('Log in first.'); return; }
+      const name = document.getElementById('certName').value.trim();
+      const track = document.getElementById('certTrack').value;
+      const out = document.getElementById('certOut');
+      if (!name) { out.className = 'error'; out.textContent = 'Enter your name.'; return; }
+      out.className = 'muted';
+      out.textContent = 'Issuing certificate...';
+      try {
+        const r = await fetch(`${window.__ENV.API_BASE}/api/cert/issue`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders() },
+          body: JSON.stringify({ name, track })
+        });
         const j = await r.json();
-        const rows = (j.items||[]).map(it=>`
-          <tr>
-            <td>${new Date(it.at).toLocaleString()}</td>
-            <td>${it.bundle?`${it.track} bundle`:`${it.track} level ${it.level}`}</td>
-            <td>${it.network.toUpperCase()}</td>
-            <td class="small">${it.txHash}</td>
-            <td>$${it.amountUsd}</td>
-          </tr>
-        `).join('');
-        tb.innerHTML = rows || `<tr><td colspan="5" class="small">No payments yet.</td></tr>`;
-      }catch(e){
-        tb.innerHTML = `<tr><td colspan="5" class="small">Failed to load.</td></tr>`;
+        if (r.ok && j.pdfUrl) {
+          out.className = 'success';
+          const abs = j.pdfUrl.startsWith('http') ? j.pdfUrl : `${window.__ENV.API_BASE}${j.pdfUrl}`;
+          out.innerHTML = `Certificate generated. <a href="${abs}" target="_blank">Download PDF</a> — Verify: <a target="_blank" href="${window.__ENV.API_BASE}/api/cert/verify?id=${encodeURIComponent(j.certId)}">${j.certId}</a>`;
+        } else {
+          out.className = 'error';
+          out.textContent = j.error || 'Failed to issue certificate (need Level 5 access).';
+        }
+      } catch {
+        out.className = 'error';
+        out.textContent = 'Failed to issue certificate.';
       }
     }
 
-    function copyAddr(net){
-      const val = ADDR[net];
-      navigator.clipboard.writeText(val).then(()=>{
-        alert(`${net.toUpperCase()} address copied`);
-      });
+    // Simple service-worker-like version check (poll every 60s for /api/health)
+    let lastOk = null;
+    async function versionCheck() {
+      try {
+        const r = await fetch(`${window.__ENV.API_BASE}/api/health`, { cache: 'no-store' });
+        const j = await r.json();
+        const sig = JSON.stringify(j);
+        if (lastOk && lastOk !== sig) {
+          // backend changed; refresh page to get latest frontend config
+          location.reload();
+        }
+        lastOk = sig;
+      } catch {}
+      setTimeout(versionCheck, 60000);
     }
 
-    // Start
-    init();
+    // Initial load
+    me();
+    refreshAccess();
+    loadPayments();
+    versionCheck();
   </script>
 </body>
 </html>
