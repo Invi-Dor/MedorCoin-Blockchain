@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MedorCoin — My Classroom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 0; padding: 0; background: #0e0f12; color: #eaecef; }
+    header, footer { padding: 16px; background: #12141a; border-bottom: 1px solid #252833; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+    h1, h2, h3 { margin: 12px 0; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .col { flex: 1; min-width: 260px; }
+    .card { background: #12141a; border: 1px solid #252833; border-radius: 10px; padding: 16px; }
+    .btn { padding: 10px 14px; background: #2b5cff; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .btn.secondary { background: #2a2f3a; }
+    .muted { color: #98a2b3; }
+    .success { color: #4ade80; }
+    .warn { color: #f59e0b; }
+    .error { color: #ef4444; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 12px; }
+    .level { padding: 8px; border-radius: 8px; border: 1px dashed #2a2f3a; }
+    input, select { width: 100%; padding: 10px; background: #161a22; color: #eaecef; border: 1px solid #2a2f3a; border-radius: 6px; }
+    textarea { width: 100%; min-height: 120px; padding: 10px; background: #161a22; color: #eaecef; border: 1px solid #2a2f3a; border-radius: 6px; }
+    a { color: #7aa2ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .badge { padding: 4px 8px; background: #1b1f2a; border: 1px solid #2a2f3a; border-radius: 999px; font-size: 12px; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="container row" style="justify-content: space-between;">
+    <div>
+      <h1>My Classroom</h1>
+      <small class="muted">Complete lessons, take quizzes, unlock next levels, and download certificates.</small>
+    </div>
+    <div class="row">
+      <span id="userEmail" class="badge">Not logged in</span>
+      <button class="btn" onclick="loginRequest()">Log in</button>
+      <button class="btn secondary" onclick="logout()">Log out</button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="card">
+    <h2>Current Track and Level</h2>
+    <div class="row">
+      <div class="col">
+        <label>Track</label>
+        <select id="track">
+          <option value="spot">Spot</option>
+          <option value="futures">Futures</option>
+          <option value="options">Options</option>
+        </select>
+      </div>
+      <div class="col">
+        <label>Level</label>
+        <select id="level">
+          <option value="1">Level 1</option>
+          <option value="2">Level 2</option>
+          <option value="3">Level 3</option>
+          <option value="4">Level 4</option>
+          <option value="5">Level 5</option>
+        </select>
+      </div>
+      <div class="col" style="align-self:end;">
+        <button class="btn" onclick="refreshAccess()">Check Access</button>
+      </div>
+    </div>
+    <p id="accessNote" class="muted"></p>
+  </section>
+
+  <section class="card">
+    <h2>Lesson Content</h2>
+    <p id="lessonText" class="muted">Select a track and level, then mark a lesson complete.</p>
+    <div class="row">
+      <div class="col">
+        <label>Lesson Number</label>
+        <select id="lessonNum">
+          <option value="1">Lesson 1</option>
+          <option value="2">Lesson 2</option>
+          <option value="3">Lesson 3</option>
+          <option value="4">Lesson 4</option>
+        </select>
+      </div>
+      <div class="col" style="align-self:end;">
+        <button class="btn" onclick="completeLesson()">Mark Lesson Complete</button>
+      </div>
+    </div>
+    <p id="lessonOut" class="muted"></p>
+  </section>
+
+  <section class="card">
+    <h2>Quiz</h2>
+    <p class="muted">Enter your quiz score (0–100). Passing is 70+. Passing auto-unlocks the next level.</p>
+    <div class="row">
+      <div class="col">
+        <label>Score</label>
+        <input id="quizScore" type="number" min="0" max="100" placeholder="e.g., 85" />
+      </div>
+      <div class="col" style="align-self:end;">
+        <button class="btn" onclick="submitQuiz()">Submit Quiz</button>
+      </div>
+    </div>
+    <p id="quizOut" class="muted"></p>
+  </section>
+
+  <section class="card">
+    <h2>My Access & Payments</h2>
+    <div class="grid">
+      <div>
+        <h3>Access</h3>
+        <div id="accessGrid" class="grid"></div>
+        <button class="btn" style="margin-top:8px;" onclick="refreshAccess()">Refresh</button>
+      </div>
+      <div>
+        <h3>Payments</h3>
+        <div id="history"></div>
+        <button class="btn" style="margin-top:8px;" onclick="loadPayments()">Load History</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Certificate</h2>
+    <div class="row">
+      <div class="col">
+        <input id="certName" placeholder="Your full name" />
+      </div>
+      <div class="col">
+        <select id="certTrack">
+          <option value="spot">Spot</option>
+          <option value="futures">Futures</option>
+          <option value="options">Options</option>
+        </select>
+      </div>
+      <div class="col" style="align-self:end;">
+        <button class="btn" onclick="issueCert()">Issue Certificate</button>
+      </div>
+    </div>
+    <p id="certOut" class="muted"></p>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <small class="muted">MedorCoin ©</small>
+  </div>
+</footer>
+
+<script>
+  // Backend base URL
+  window.__ENV = window.__ENV || {};
+  window.__ENV.API_BASE = window.__ENV.API_BASE || 'http://localhost:8080';
+
+  let AUTH_TOKEN = localStorage.getItem('mc_token') || null;
+
+  function authHeaders(){ return AUTH_TOKEN ? { Authorization: 'Bearer ' + AUTH_TOKEN } : {}; }
+
+  function logout(){
+    localStorage.removeItem('mc_token');
+    AUTH_TOKEN = null;
+    document.getElementById('userEmail').textContent = 'Not logged in';
+    alert('Logged out');
+  }
+
+  async function loginRequest(){
+    const email = prompt('Enter your email to receive a login link:');
+    if(!email) return;
+    await fetch(`${window.__ENV.API_BASE}/api/auth/request`, {
+      method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ email })
+    });
+    alert('Check your email for the login link. If SMTP isn’t configured, copy the link from backend logs.');
+  }
+
+  // Handle magic-link redirect if this page is used as the callback
+  (function checkAuthComplete(){
+    if (location.pathname.endsWith('/auth-complete')) {
+      const token = location.hash.replace('#token=', '');
+      if (token) {
+        localStorage.setItem('mc_token', token);
+        AUTH_TOKEN = token;
+        alert('Logged in.');
+        window.location.href = '/my-classroom.html';
+      }
+    }
+  })();
+
+  async function me(){
+    if(!AUTH_TOKEN) return;
+    try{
+      const r = await fetch(`${window.__ENV.API_BASE}/api/me`, { headers:{ ...authHeaders() } });
+      if(r.ok){
+        const j = await r.json();
+        document.getElementById('userEmail').textContent = j.user.email;
+      }
+    }catch{}
+  }
+
+  function trackLabel(tr, lvl){ return `${tr.toUpperCase()} — Level ${lvl}`; }
+
+  async function refreshAccess(){
+    const note = document.getElementById('accessNote');
+    const grid = document.getElementById('accessGrid');
+    grid.innerHTML = '';
+    if(!AUTH_TOKEN){ note.textContent = 'Log in to check access.'; return; }
+
+    const tr = document.getElementById('track').value;
+    const lvl = Number(document.getElementById('level').value);
+
+    try{
+      const r = await fetch(`${window.__ENV.API_BASE}/api/courses/access`, { headers: { ...authHeaders() } });
+      const data = await r.json();
+
+      const unlocked = !!data?.[tr]?.['l'+lvl];
+      note.textContent = unlocked
+        ? `You have access to ${trackLabel(tr, lvl)}.`
+        : `Locked: ${trackLabel(tr, lvl)}. Purchase and verify to unlock.`;
+
+      ['spot','futures','options'].forEach(tt=>{
+        for(let i=1;i<=5;i++){
+          const d = document.createElement('div');
+          d.className = 'level';
+          d.innerHTML = `${tt.toUpperCase()} — Level ${i} ${data?.[tt]?.['l'+i] ? '<span class="success">Unlocked</span>' : '<span class="muted">Locked</span>'}`;
+          grid.appendChild(d);
+        }
+      });
+    }catch{
+      note.textContent = 'Failed to load access.';
+    }
+  }
+
+  async function completeLesson(){
+    const tr = document.getElementById('track').value;
+    const lvl = Number(document.getElementById('level').value);
+    const lesson = Number(document.getElementById('lessonNum').value);
+    const out = document.getElementById('lessonOut');
+
+    if(!AUTH_TOKEN){ out.className='error'; out.textContent='Log in first.'; return; }
+    out.className='muted'; out.textContent='Saving...';
+
+    try{
+      const r = await fetch(`${window.__ENV.API_BASE}/api/lesson/complete`, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', ...authHeaders() },
+        body: JSON.stringify({ track: tr, level: lvl, lesson })
+      });
+      const j = await r.json();
+
+      if(r.ok && j.ok){
+        out.className='success';
+        out.textContent = `Marked lesson ${lesson} complete for ${trackLabel(tr,lvl)}.`;
+      } else if (r.status === 403) {
+        out.className='error';
+        out.textContent='No access. Purchase and verify first.';
+      } else {
+        out.className='error';
+        out.textContent=j.error || 'Failed to save progress.';
+      }
+    }catch{
+      out.className='error';
+      out.textContent='Network error.';
+    }
+  }
+
+  async function submitQuiz(){
+    const tr = document.getElementById('track').value;
+    const lvl = Number(document.getElementById('level').value);
+    const score = Number(document.getElementById('quizScore').value);
+    const out = document.getElementById('quizOut');
+
+    if(!AUTH_TOKEN){ out.className='error'; out.textContent='Log in first.'; return; }
+    if(isNaN(score) || score < 0 || score > 100){ out.className='error'; out.textContent='Enter a valid score 0–100.'; return; }
+
+    out.className='muted'; out.textContent='Submitting...';
+
+    try{
+      const r = await fetch(`${window.__ENV.API_BASE}/api/quiz/submit`, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', ...authHeaders() },
+        body: JSON.stringify({ track: tr, level: lvl, score })
+      });
+      const j = await r.json();
+
+      if(r.ok && j.ok){
+        out.className = j.passed ? 'success' : 'warn';
+        out.textContent = j.passed ? `Passed! Next level unlocked (if below 5).` : `Did not pass. Try again.`;
+        await refreshAccess();
+      } else if (r.status === 403) {
+        out.className='error';
+        out.textContent='No access. Purchase and verify first.';
+      } else {
+        out.className='error';
+        out.textContent=j.error || 'Failed to submit quiz.';
+      }
+    }catch{
+      out.className='error';
+      out.textContent='Network error.';
+    }
+  }
+
+  async function loadPayments(){
+    const box = document.getElementById('history');
+    box.innerHTML = '';
+    if(!AUTH_TOKEN){ box.innerHTML='<div class="muted">Log in to view history.</div>'; return; }
+
+    try{
+      const r = await fetch(`${window.__ENV.API_BASE}/api/payments/history`, { headers: { ...authHeaders() } });
+      const j = await r.json();
+
+      if(!j.items || !j.items.length){
+        box.innerHTML='<div class="muted">No payments yet.</div>';
+        return;
+      }
+      const ul = document.createElement('ul');
+      j.items.forEach(p=>{
+        const li = document.createElement('li');
+        li.innerHTML = `<code>${(p.network||'').toUpperCase()}</code> — ${p.track}${p.level? ' L'+p.level : ' Bundle'} — $${Number(p.amountUsd).toFixed(2)} — ${p.confirmed ? 'Confirmed':'Pending'} — <small class="muted">${p.txHash}</small>`;
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    }catch{
+      box.innerHTML = '<div class="error">Failed to load history.</div>';
+    }
+  }
+
+  // Initialize
+  me();
+  refreshAccess();
+  loadPayments();
+</script>
+</body>
+</html>
