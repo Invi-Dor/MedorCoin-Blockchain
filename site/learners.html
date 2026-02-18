@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MedorCoin — Learners</title>
+  <meta name="theme-color" content="#c7a652">
+  <style>
+    :root{
+      --gold:#c7a652; --gold-2:#e4c272; --bg:#faf6ea; --ink:#1e2126;
+      --panel:#fffdf8; --border:#e2d3ae; --muted:#545b66; --ok:#1f7a46; --danger:#8a1d1d;
+      --pill:#eef2ff; --pill-b:#c7cff7; --pill-ink:#2d3c8f;
+    }
+    {box-sizing:border-box}
+    body{font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0}
+    a{color:#2d3c8f;text-decoration:none}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;margin:10px 0}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .grid{display:grid;gap:12px}
+    @media(min-width:1000px){.grid-2{grid-template-columns:1fr 1fr}}
+    .btn{padding:8px 12px;border-radius:10px;border:1px solid #c3a156;background:linear-gradient(135deg,#fff1c1,var(--gold-2));cursor:pointer}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--pill);border:1px solid #c7cff7;color:#2d3c8f;font-size:12px}
+    .kv{color:#4a4f57;font-size:13px}
+    .addr{font-family:ui-monospace, Menlo, Consolas, monospace; font-size:12px; background:#fff7e0; padding:6px 8px; border-radius:8px; border:1px dashed #d8c089}
+    .banner{position:sticky;top:0;z-index:50;background:#fff4d6;border-bottom:2px solid #e7cc82;color:#5b4100;padding:10px 12px;font-weight:600;display:none}
+    .banner .tag{background:#ffe6a3;border:1px solid #d3b66e;color:#704f00;padding:2px 8px;border-radius:999px;margin-right:8px}
+    .warn{color:var(--danger);font-weight:600}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border-bottom:1px solid #efe5c6;text-align:left}
+    th{background:#fff5cc}
+    .small{font-size:12px;color:#6b7280}
+    .success{color:var(--ok)}
+    .copy-btn{margin-left:8px;padding:2px 6px;border-radius:6px;border:1px solid #c3a156;background:#fff8d8;cursor:pointer;font-size:12px}
+    .section-title{display:flex;align-items:center;justify-content:space-between}
+    .note{background:#fff9e6;border:1px solid #f0dfab;padding:8px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <div id="demoBanner" class="banner">
+    <span class="tag">DEMO</span>
+    Running in Mock Mode. Payments are simulated; unlocks and certificates are for testing only.
+  </div>
+
+  <div class="wrap">
+    <h1>Learners</h1>
+
+    <div class="panel">
+      <div class="row">
+        <input id="email" placeholder="you@example.com" style="min-width:260px">
+        <button class="btn" onclick="saveEmail()">Use this email</button>
+        <a class="btn" href="/my-classroom.html">Go to My Classroom</a>
+      </div>
+      <div id="userOut" class="kv" style="margin-top:6px"></div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="panel">
+        <div class="section-title">
+          <h3>Purchase Access</h3>
+          <span class="pill">MOCK_MODE aware</span>
+        </div>
+        <div class="note small">In DEMO, any tx hash with length ≥ 10 verifies.</div>
+
+        <div style="margin-top:10px">
+          <label>Track</label><br>
+          <select id="track">
+            <option value="spot">Spot</option>
+            <option value="futures">Futures</option>
+            <option value="options">Options</option>
+          </select>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <label><input type="radio" name="itemType" value="level" checked> Single Level</label>
+          <label><input type="radio" name="itemType" value="bundle"> Bundle (L1–L5)</label>
+        </div>
+        <div id="levelRow" style="margin-top:10px">
+          <label>Level</label><br>
+          <select id="level">
+            <option value="1">Level 1</option>
+            <option value="2">Level 2</option>
+            <option value="3">Level 3</option>
+            <option value="4">Level 4</option>
+            <option value="5">Level 5</option>
+          </select>
+        </div>
+
+        <div class="panel" style="margin-top:12px">
+          <div class="section-title">
+            <h4>Send Payment To</h4>
+            <span class="small">Use the address for your network</span>
+          </div>
+
+          <div class="row">
+            <div>
+              <div><b>ETH</b> <span class="addr" id="addr-eth"></span><button class="copy-btn" onclick="copyAddr('eth')">Copy</button></div>
+              <div class="small">Network: Ethereum</div>
+            </div>
+            <div>
+              <div><b>BNB</b> <span class="addr" id="addr-bnb"></span><button class="copy-btn" onclick="copyAddr('bnb')">Copy</button></div>
+              <div class="small">Network: BNB Smart Chain</div>
+            </div>
+            <div>
+              <div><b>BTC</b> <span class="addr" id="addr-btc"></span><button class="copy-btn" onclick="copyAddr('btc')">Copy</button></div>
+              <div class="small">Network: Bitcoin</div>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px">
+            <input id="txHash" placeholder="Paste your transaction hash" style="min-width:320px">
+            <select id="network">
+              <option value="eth">ETH</option>
+              <option value="bnb">BNB</option>
+              <option value="btc">BTC</option>
+            </select>
+            <button class="btn" onclick="verifyPayment()">Verify & Unlock</button>
+          </div>
+          <div id="payOut" class="kv" style="margin-top:6px"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Your Access</h3>
+        <div class="kv">Unlocked levels for your email.</div>
+        <div class="grid" style="grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:8px">
+          <div>
+            <h4>Spot</h4>
+            <div id="spotLevels"></div>
+          </div>
+          <div>
+            <h4>Futures</h4>
+            <div id="futuresLevels"></div>
+          </div>
+          <div>
+            <h4>Options</h4>
+            <div id="optionsLevels"></div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" onclick="refreshAccess()">Refresh</button>
+          <a class="btn" href="/my-classroom.html">Open My Classroom</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Certificates</h3>
+      <div class="kv">Issue a test certificate, then verify it.</div>
+      <div class="row" style="margin-top:8px">
+        <input id="fullName" placeholder="Your Full Name">
+        <select id="certTrack">
+          <option value="spot">Spot</option>
+          <option value="futures">Futures</option>
+          <option value="options">Options</option>
+        </select>
+        <button class="btn" onclick="issueCert()">Issue Certificate</button>
+      </div>
+      <div id="certOut" class="kv" style="margin-top:6px"></div>
+
+      <div class="row" style="margin-top:10px">
+        <input id="verifyId" placeholder="Enter Certificate ID (e.g., MC-XX-ABC123-123456)" style="min-width:320px">
+        <button class="btn" onclick="verifyCert()">Verify</button>
+      </div>
+      <div id="verifyOut" class="kv" style="margin-top:6px"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Payments History</h3>
+      <div class="kv">Recent purchases for your email.</div>
+      <table style="margin-top:8px">
+        <thead><tr><th>When</th><th>Item</th><th>Network</th><th>Tx</th><th>Amount (USD)</th></tr></thead>
+        <tbody id="payTable"><tr><td colspan="5" class="small">No data</td></tr></tbody>
+      </table>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" onclick="loadPayments()">Reload</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.__ENV = window.__ENV || { MOCK_MODE: true, API_BASE: '' };
+    const ENV = window.__ENV;
+    const API = ENV.API_BASE || '';
+    const MOCK = String(ENV.MOCK_MODE).toLowerCase() === 'true';
+
+    const ADDR = {
+      eth: '0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0',
+      bnb: '0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0',
+      btc: 'bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv'
+    };
+
+    function init(){
+      document.getElementById('addr-eth').textContent = ADDR.eth;
+      document.getElementById('addr-bnb').textContent = ADDR.bnb;
+      document.getElementById('addr-btc').textContent = ADDR.btc;
+
+      const e = localStorage.getItem('learnerEmail');
+      if(e){ document.getElementById('email').value = e; state.email = e; }
+      updateUserOut();
+      toggleDemoBanner();
+      handleItemTypeChange();
+      refreshAccess();
+      loadPayments();
+
+      document.querySelectorAll('input[name="itemType"]').forEach(r=>{
+        r.addEventListener('change', handleItemTypeChange);
+      });
+    }
+
+    function toggleDemoBanner(){
+      document.getElementById('demoBanner').style.display = MOCK ? 'block' : 'none';
+    }
+
+    function handleItemTypeChange(){
+      const val = document.querySelector('input[name="itemType"]:checked')?.value || 'level';
+      document.getElementById('levelRow').style.display = val === 'level' ? 'block' : 'none';
+    }
+
+    const state = { email:null };
+
+    function saveEmail(){
+      const e = document.getElementById('email').value.trim();
+      if(!e) return alert('Enter email');
+      localStorage.setItem('learnerEmail', e);
+      state.email = e;
+      updateUserOut();
+      refreshAccess();
+      loadPayments();
+    }
+    function updateUserOut(){
+      const e = state.email || document.getElementById('email').value.trim();
+      state.email = e || null;
+      document.getElementById('userOut').textContent = e ? `Using ${e}` : 'No email set.';
+    }
+
+    function itemString(){
+      const track = document.getElementById('track').value;
+      const itemType = document.querySelector('input[name="itemType"]:checked')?.value || 'level';
+      if(itemType === 'bundle') return `${track}-bundle`;
+      const lvl = document.getElementById('level').value;
+      return `${track}-level-${lvl}`;
+    }
+
+    async function verifyPayment(){
+      if(!state.email) return alert('Set your email first.');
+      const txHash = document.getElementById('txHash').value.trim();
+      const network = document.getElementById('network').value;
+      const item = itemString();
+      if(!txHash) return alert('Paste your transaction hash first.');
+
+      const out = document.getElementById('payOut');
+      out.textContent = 'Verifying...';
+
+      try{
+        let r;
+        if(network === 'btc'){
+          r = await fetch(`${API}/api/payments/btc/verify`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({email: state.email, item, txHash})
+          });
+        } else {
+          r = await fetch(`${API}/api/payments/evm/verify`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({email: state.email, item, network, txHash})
+          });
+        }
+        const j = await r.json();
+        if(j.paid){
+          out.innerHTML = `<span class="success">Payment verified.</span> Unlocked: ${j.bundle? 'Bundle (L1–L5)': `Level ${j.level}`} for ${j.track}. Amount: $${j.amountUsd}`;
+          await refreshAccess();
+          await loadPayments();
+        } else {
+          out.innerHTML = `<span class="warn">Not verified.</span> Confirmations: ${j.confirmations||0}`;
+        }
+      }catch(err){
+        out.innerHTML = `<span class="warn">Verification failed.</span>`;
+      }
+    }
+
+    async function refreshAccess(){
+      const email = state.email || document.getElementById('email').value.trim();
+      if(!email){
+        ['spot','futures','options'].forEach(t=>renderLevels(t,{}));
+        return;
+      }
+      try{
+        const r = await fetch(`${API}/api/courses/access?email=${encodeURIComponent(email)}`);
+        const acc = await r.json();
+        renderLevels('spot', acc.spot||{});
+        renderLevels('futures', acc.futures||{});
+        renderLevels('options', acc.options||{});
+      }catch(e){
+        ['spot','futures','options'].forEach(t=>renderLevels(t,{}));
+      }
+    }
+
+    function renderLevels(track, obj){
+      const el = document.getElementById(track+'Levels');
+      let html = '';
+      for(let i=1;i<=5;i++){
+        const u = !!obj['l'+i];
+        html += `<div class="row" style="justify-content:space-between;margin:4px 0">
+          <div>Level ${i} ${u?'<span class="pill" style="background:#e9f7ef;border-color:#bcd5c1;color:#1f7a46">Unlocked</span>':'<span class="pill">Locked</span>'}</div>
+          <div>${u?`<a class="btn" href="/my-classroom.html">Open</a>`:`<span class="small">Complete prior level or purchase</span>`}</div>
+        </div>`;
+      }
+      el.innerHTML = html;
+    }
+
+    async function issueCert(){
+      if(!state.email) return alert('Set your email first.');
+      const name = document.getElementById('fullName').value.trim();
+      const track = document.getElementById('certTrack').value;
+      if(!name) return alert('Enter your full name.');
+      const out = document.getElementById('certOut');
+      out.textContent = 'Issuing...';
+      try{
+        const r = await fetch(`${API}/api/cert/issue`, {method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({email: state.email, name, track})});
+        const j = await r.json();
+        if(j.certId){
+          out.innerHTML = `Issued <b>${j.certId}</b>. <a href="${j.pdfUrl}" target="_blank">Download PDF</a>`;
+        }else{
+          out.textContent = 'Issue failed.';
+        }
+      }catch(e){
+        out.textContent = 'Issue failed.';
+      }
+    }
+
+    async function verifyCert(){
+      const id = document.getElementById('verifyId').value.trim();
+      if(!id) return alert('Enter certificate ID.');
+      const out = document.getElementById('verifyOut');
+      out.textContent = 'Checking...';
+      try{
+        const r = await fetch(`${API}/api/cert/verify?id=${encodeURIComponent(id)}`);
+        const j = await r.json();
+        if(j.valid){
+          out.innerHTML = `Valid ✅ — ${j.name} • ${j.track} • ${new Date(j.date).toLocaleString()}`;
+        }else{
+          out.innerHTML = `Invalid or revoked ❌`;
+        }
+      }catch(e){
+        out.textContent = 'Verification failed.';
+      }
+    }
+
+    async function loadPayments(){
+      const email = state.email || document.getElementById('email').value.trim();
+      const tb = document.getElementById('payTable');
+      if(!email){ tb.innerHTML = `<tr><td colspan="5" class="small">Set your email to view history.</td></tr>`; return; }
+      try{
+        const r = await fetch(`${API}/api/payments/history?email=${encodeURIComponent(email)}`);
+        const j = await r.json();
+        const rows = (j.items||[]).map(it=>`
+          <tr>
+            <td>${new Date(it.at).toLocaleString()}</td>
+            <td>${it.bundle?`${it.track} bundle`:`${it.track} level ${it.level}`}</td>
+            <td>${it.network.toUpperCase()}</td>
+            <td class="small">${it.txHash}</td>
+            <td>$${it.amountUsd}</td>
+          </tr>
+        `).join('');
+        tb.innerHTML = rows || `<tr><td colspan="5" class="small">No payments yet.</td></tr>`;
+      }catch(e){
+        tb.innerHTML = `<tr><td colspan="5" class="small">Failed to load.</td></tr>`;
+      }
+    }
+
+    function copyAddr(net){
+      const val = ADDR[net];
+      navigator.clipboard.writeText(val).then(()=>{
+        alert(`${net.toUpperCase()} address copied`);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
+[Paste ends]
+
+File 2: my-classroom.html
+[Paste starts below]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MedorCoin — My Classroom</title>
+  <meta name="theme-color" content="#c7a652">
+  <style>
+    :root{
+      --gold:#c7a652; --gold-2:#e4c272; --bg:#faf6ea; --ink:#1e2126;
+      --panel:#fffdf8; --border:#e2d3ae; --muted:#545b66; --ok:#1f7a46; --danger:#8a1d1d;
+      --pill:#eef2ff; --pill-b:#c7cff7; --pill-ink:#2d3c8f;
+    }
+    {box-sizing:border-box}
+    body{font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0}
+    a{color:#2d3c8f;text-decoration:none}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;margin:10px 0}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .grid{display:grid;gap:12px}
+    @media(min-width:1000px){.grid-2{grid-template-columns:1fr 1fr}}
+    .btn{padding:8px 12px;border-radius:10px;border:1px solid #c3a156;background:linear-gradient(135deg,#fff1c1,var(--gold-2));cursor:pointer}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--pill);border:1px solid #c7cff7;color:#2d3c8f;font-size:12px}
+    .kv{color:#4a4f57;font-size:13px}
+    .banner{position:sticky;top:0;z-index:50;background:#fff4d6;border-bottom:2px solid #e7cc82;color:#5b4100;padding:10px 12px;font-weight:600;display:none}
+    .banner .tag{background:#ffe6a3;border:1px solid #d3b66e;color:#704f00;padding:2px 8px;border-radius:999px;margin-right:8px}
+    .small{font-size:12px;color:#6b7280}
+    .success{color:var(--ok)}
+    .warn{color:var(--danger);font-weight:600}
+    .lesson{border:1px dashed #e2d3ae;border-radius:10px;padding:10px;margin:6px 0;background:#fffef9}
+    .lesson.done{background:#e9f7ef;border-color:#bcd5c1}
+    .lesson .title{font-weight:600}
+    .stat{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;border:1px solid #e2d3ae;background:#fff}
+    .level-card{border:1px solid #efe5c6;border-radius:10px;padding:10px;margin:4px 0;background:#fffdfa;display:flex;justify-content:space-between;align-items:center}
+  </style>
+</head>
+<body>
+  <div id="demoBanner" class="banner">
+    <span class="tag">DEMO</span>
+    This classroom is connected to a Mock backend. Progress and quizzes are for testing only.
+  </div>
+
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between">
+      <h1>My Classroom</h1>
+      <div class="row">
+        <a class="btn" href="/learners.html">Back to Learners</a>
+        <button class="btn" onclick="hardRefresh()">Refresh</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="row">
+        <input id="email" placeholder="you@example.com" style="min-width:260px">
+        <button class="btn" onclick="saveEmail()">Use this email</button>
+        <span id="emailOut" class="kv"></span>
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="panel">
+        <div class="row" style="justify-content:space-between">
+          <h3>Track & Level</h3>
+          <span id="unlockStat" class="stat">Loading unlocks…</span>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <select id="track">
+            <option value="spot">Spot</option>
+            <option value="futures">Futures</option>
+            <option value="options">Options</option>
+          </select>
+          <select id="level">
+            <option value="1">Level 1</option>
+            <option value="2">Level 2</option>
+            <option value="3">Level 3</option>
+            <option value="4">Level 4</option>
+            <option value="5">Level 5</option>
+          </select>
+          <button class="btn" onclick="loadAll()">Load</button>
+        </div>
+
+        <div id="levelsGrid" style="margin-top:10px"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Level Content</h3>
+        <div class="kv">Complete each lesson, then take the quiz. Passing unlocks the next level in DEMO.</div>
+        <div id="lessonsWrap" style="margin-top:8px"></div>
+
+        <div class="panel" style="margin-top:12px">
+          <div class="row" style="justify-content:space-between">
+            <h4>Level Quiz</h4>
+            <span id="quizStat" class="small">Not attempted</span>
+          </div>
+
+          <div id="quizWrap" style="margin-top:8px"></div>
+
+          <div class="row" style="margin-top:8px">
+            <button class="btn" onclick="submitQuiz()">Submit Quiz</button>
+            <button class="btn" onclick="loadProgress()">Reload Progress</button>
+          </div>
+          <div id="quizOut" class="kv" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Tips</h3>
+      <ul>
+        <li>Use the same email you used to purchase access.</li>
+        <li>Passing a quiz (>=60%) auto-unlocks the next level in the selected track (MOCK).</li>
+        <li>Go to Learners to view or purchase additional levels or a bundle.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    window.__ENV = window.__ENV || { MOCK_MODE: true, API_BASE: '' };
+    const ENV = window.__ENV;
+    const API = ENV.API_BASE || '';
+    const MOCK = String(ENV.MOCK_MODE).toLowerCase() === 'true';
+
+    const LESSONS = {
+      spot: {
+        1: [
+          { id:'intro-market', title:'Introduction to Spot Markets', body:'Understand order books, bids/asks, and matching.' },
+          { id:'custody', title:'Custody and Wallet Basics', body:'Centralized vs self-custody, addresses, and fees.' },
+          { id:'risk', title:'Risk Management 101', body:'Position sizing and stop-loss planning.' },
+        ],
+        2: [
+          { id:'liquidity', title:'Liquidity & Slippage', body:'Impact of depth on execution quality.' },
+          { id:'ta-basics', title:'TA Basics', body:'Trends, support/resistance, and MAs.' },
+        ],
+        3: [
+          { id:'advanced-orders', title:'Advanced Order Types', body:'Stop, stop-limit, OCO, and trailing.' },
+          { id:'volatility', title:'Volatility Awareness', body:'ATR and adapting position sizes.' },
+        ],
+        4: [
+          { id:'portfolio', title:'Portfolio Construction', body:'Diversification and rebalancing.' },
+          { id:'onchain', title:'On-chain Transfers', body:'Bridges, fees, and confirmations.' },
+        ],
+        5: [
+          { id:'execution', title:'Execution Playbook', body:'From idea to post-trade review.' },
+        ],
+      },
+      futures: {
+        1: [
+          { id:'perps-intro', title:'What Are Perpetuals?', body:'Funding, index price, and leverage.' },
+          { id:'margin', title:'Margin & Liquidations', body:'Initial vs maintenance margin.' },
+        ],
+        2: [
+          { id:'funding', title:'Funding Rates', body:'Long/short basis and costs.' },
+        ],
+        3: [
+          { id:'hedging', title:'Hedging With Futures', body:'Offsetting spot exposure.' },
+        ],
+        4: [
+          { id:'risk-adv', title:'Advanced Risk Controls', body:'Kelly fraction, drawdown control.' },
+        ],
+        5: [
+          { id:'systems', title:'Systematized Trading', body:'Rules, logging, and iteration.' },
+        ],
+      },
+      options: {
+        1: [
+          { id:'greeks', title:'Greeks Overview', body:'Delta, gamma, theta, vega.' },
+          { id:'callsputs', title:'Calls and Puts', body:'Payoffs and basic uses.' },
+        ],
+        2: [
+          { id:'iv', title:'Implied Volatility', body:'Skew, term structure.' },
+        ],
+        3: [
+          { id:'spreads', title:'Vertical Spreads', body:'Credit vs debit.' },
+        ],
+        4: [
+          { id:'condors', title:'Iron Condors', body:'Risk graphs and adjustments.' },
+        ],
+        5: [
+          { id:'port-opt', title:'Portfolio Insurance', body:'Protective puts and collars.' },
+        ],
+      }
+    };
+
+    const QUIZZES = {
+      spot: {
+        1: [
+          { q:'An order book lists bids and asks for an asset.', correct:true },
+          { q:'Slippage never happens in spot markets.', correct:false },
+          { q:'Stop-loss orders can help manage downside risk.', correct:true },
+          { q:'Wallet addresses are identical across all chains.', correct:false },
+          { q:'Position sizing matters for risk control.', correct:true },
+        ],
+        2: [
+          { q:'Higher liquidity generally reduces slippage.', correct:true },
+          { q:'Support is a price area where demand may appear.', correct:true },
+          { q:'Moving averages are useless for trends.', correct:false },
+          { q:'Order depth doesn’t affect execution quality.', correct:false },
+          { q:'Risk management is optional.', correct:false },
+        ],
+        3: [
+          { q:'OCO is One-Cancels-the-Other.', correct:true },
+          { q:'ATR is not related to volatility.', correct:false },
+          { q:'Trailing stops can lock in profits.', correct:true },
+          { q:'Stop orders execute instantly at any price.', correct:false },
+          { q:'Position sizing can adjust to volatility.', correct:true },
+        ],
+        4: [
+          { q:'Diversification spreads risk.', correct:true },
+          { q:'Rebalancing adjusts portfolio weights.', correct:true },
+          { q:'Bridging assets is always free.', correct:false },
+          { q:'Confirmations increase tx finality.', correct:true },
+          { q:'On-chain fees are constant across networks.', correct:false },
+        ],
+        5: [
+          { q:'A trading playbook standardizes execution.', correct:true },
+          { q:'Post-trade reviews are unnecessary.', correct:false },
+          { q:'Rules reduce emotional decisions.', correct:true },
+          { q:'You should ignore transaction fees.', correct:false },
+          { q:'Consistency helps evaluate strategy.', correct:true },
+        ],
+      },
+      futures: {
+        1: [
+          { q:'Perpetuals have no expiry.', correct:true },
+          { q:'Funding aligns perp price with index price.', correct:true },
+          { q:'Leverage reduces liquidation risk.', correct:false },
+          { q:'Maintenance margin is lower than initial.', correct:true },
+          { q:'Perps are identical to futures with expiries.', correct:false },
+        ],
+        2: [
+          { q:'Funding can be positive or negative.', correct:true },
+          { q:'If you pay funding, your side has advantage.', correct:false },
+          { q:'Basis reflects cost of carry and sentiment.', correct:true },
+          { q:'You can’t hedge spot with futures.', correct:false },
+          { q:'Risk management doesn’t matter with leverage.', correct:false },
+        ],
+        3: [
+          { q:'Futures can hedge spot risk.', correct:true },
+          { q:'Hedging eliminates all risk perfectly.', correct:false },
+          { q:'Cross-hedging may introduce basis risk.', correct:true },
+          { q:'Perps always track exactly with no drift.', correct:false },
+          { q:'Position sizing with leverage is critical.', correct:true },
+        ],
+        4: [
+          { q:'Kelly aims to maximize growth rate.', correct:true },
+          { q:'Drawdown control is irrelevant.', correct:false },
+          { q:'Higher leverage magnifies risk.', correct:true },
+          { q:'Stop-outs never occur on volatile assets.', correct:false },
+          { q:'Risk per trade can be capped.', correct:true },
+        ],
+        5: [
+          { q:'Systems define entry/exit rules.', correct:true },
+          { q:'Logs help improve strategies.', correct:true },
+          { q:'Discipline is optional for systems.', correct:false },
+          { q:'Backtesting provides insights.', correct:true },
+          { q:'Iteration refines performance.', correct:true },
+        ],
+      },
+      options: {
+        1: [
+          { q:'Delta measures price sensitivity.', correct:true },
+          { q:'Gamma measures time decay.', correct:false },
+          { q:'Calls give right to buy; puts to sell.', correct:true },
+          { q:'Greeks have no effect on options.', correct:false },
+          { q:'Theta is time decay.', correct:true },
+        ],
+        2: [
+          { q:'IV reflects expected volatility.', correct:true },
+          { q:'Skew is the same across maturities.', correct:false },
+          { q:'Term structure shows IV vs tenor.', correct:true },
+          { q:'Higher IV means cheaper options.', correct:false },
+          { q:'Realized vol equals IV always.', correct:false },
+        ],
+        3: [
+          { q:'Vertical spreads combine two strikes.', correct:true },
+          { q:'Credit spreads receive premium upfront.', correct:true },
+          { q:'Debit spreads always profit instantly.', correct:false },
+          { q:'Spreads can cap risk and reward.', correct:true },
+          { q:'Spreads require two legs.', correct:true },
+        ],
+        4: [
+          { q:'Iron condor uses four options legs.', correct:true },
+          { q:'Risk graphs visualize P/L by price.', correct:true },
+          { q:'Adjustments are impossible.', correct:false },
+          { q:'Condors are always risk-free.', correct:false },
+          { q:'Short vol strategies need risk control.', correct:true },
+        ],
+        5: [
+          { q:'Protective puts cap downside.', correct:true },
+          { q:'Collars combine put + short call.', correct:true },
+          { q:'Insurance is always free.', correct:false },
+          { q:'Hedging costs can be optimized.', correct:true },
+          { q:'Puts never change delta exposure.', correct:false },
+        ],
+      }
+    };
+
+    const state = { email: null, track: 'spot', level: 1, unlocked: { spot:{}, futures:{}, options:{} }, progress: { completedLessons: [], quiz: null } };
+
+    function init(){
+      document.getElementById('demoBanner').style.display = MOCK ? 'block' : 'none';
+      const e = localStorage.getItem('learnerEmail');
+      if(e){ state.email = e; document.getElementById('email').value = e; }
+      updateEmailOut();
+
+      document.getElementById('track').value = state.track;
+      document.getElementById('level').value = String(state.level);
+
+      document.getElementById('track').addEventListener('change', (ev)=>{ state.track = ev.target.value; renderLevelsTiles(); loadProgress(); });
+      document.getElementById('level').addEventListener('change', (ev)=>{ state.level = Number(ev.target.value); loadProgress(); });
+
+      loadUnlocks().then(()=>{ renderLevelsTiles(); loadProgress(); });
+    }
+
+    function saveEmail(){
+      const e = document.getElementById('email').value.trim();
+      if(!e) return alert('Enter email');
+      state.email = e; localStorage.setItem('learnerEmail', e);
+      updateEmailOut();
+      loadUnlocks().then(()=>{ renderLevelsTiles(); loadProgress(); });
+    }
+
+    function updateEmailOut(){
+      const e = state.email || document.getElementById('email').value.trim();
+      document.getElementById('emailOut').textContent = e ? `Using ${e}` : 'No email set.';
+    }
+
+    function hardRefresh(){ loadUnlocks().then(()=>{ renderLevelsTiles(); loadProgress(); }); }
+
+    async function loadUnlocks(){
+      if(!state.email){
+        state.unlocked = { spot:{}, futures:{}, options:{} };
+        document.getElementById('unlockStat').textContent = 'No email';
+        return;
+      }
+      try{
+        const r = await fetch(`${API}/api/courses/access?email=${encodeURIComponent(state.email)}`);
+        const j = await r.json();
+        state.unlocked = j || { spot:{}, futures:{}, options:{} };
+        const count = Object.values(state.unlocked[state.track]||{}).filter(Boolean).length;
+        document.getElementById('unlockStat').textContent = `Unlocked in ${state.track}: ${count}/5`;
+      }catch(e){
+        document.getElementById('unlockStat').textContent = 'Failed to load';
+      }
+    }
+
+    function renderLevelsTiles(){
+      const container = document.getElementById('levelsGrid');
+      const tr = state.track;
+      const acc = state.unlocked[tr] || {};
+      let html = '';
+      for(let i=1;i<=5;i++){
+        const u = !!acc['l'+i];
+        html += `<div class="level-card">
+          <div>Level ${i} ${u?'<span class="pill" style="background:#e9f7ef;border-color:#bcd5c1;color:#1f7a46">Unlocked</span>':'<span class="pill">Locked</span>'}</div>
+          <div>${u?`<button class="btn" onclick="gotoLevel(${i})">Open</button>`:`<span class="small">Finish prior level or purchase</span>`}</div>
+        </div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function gotoLevel(i){
+      state.level = i; document.getElementById('level').value = String(i);
+      loadProgress(); window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    async function loadProgress(){
+      const wrap = document.getElementById('lessonsWrap');
+      const quizWrap = document.getElementById('quizWrap');
+      const quizStat = document.getElementById('quizStat');
+      const quizOut = document.getElementById('quizOut');
+
+      wrap.innerHTML = 'Loading...';
+      quizOut.textContent = '';
+      if(!state.email){
+        wrap.innerHTML = '<div class="small">Set your email to view lessons.</div>';
+        quizWrap.innerHTML = '';
+        quizStat.textContent = 'No email';
+        return;
+      }
+      try{
+        const r = await fetch(`${API}/api/progress?email=${encodeURIComponent(state.email)}&track=${encodeURIComponent(state.track)}&level=${state.level}`);
+        const j = await r.json();
+        state.progress = j || { completedLessons: [], quiz:null };
+
+        renderLessons();
+        renderQuiz();
+        quizStat.textContent = state.progress.quiz ? `Last score: ${state.progress.quiz.score}% (${state.progress.quiz.passed?'passed':'failed'})` : 'Not attempted';
+      }catch(e){
+        wrap.innerHTML = '<div class="small">Failed to load progress.</div>';
+        quizWrap.innerHTML = '';
+        quizStat.textContent = 'Failed';
+      }
+    }
+
+    function renderLessons(){
+      const list = (LESSONS[state.track] && LESSONS[state.track][state.level]) || [];
+      const done = new Set(state.progress.completedLessons || []);
+      const wrap = document.getElementById('lessonsWrap');
+      if(!list.length){
+        wrap.innerHTML = '<div class="small">No lessons defined for this level.</div>';
+        return;
+      }
+      wrap.innerHTML = list.map(les=>{
+        const isDone = done.has(les.id);
+        return `<div class="lesson ${isDone?'done':''}">
+          <div class="title">${les.title}</div>
+          <div class="small" style="margin:4px 0">${les.body}</div>
+          <div class="row">
+            <button class="btn" onclick="markLesson('${les.id}')">${isDone?'Completed':'Mark Complete'}</button>
+            ${isDone?'<span class="success small">Saved</span>':''}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderQuiz(){
+      const qs = (QUIZZES[state.track] && QUIZZES[state.track][state.level]) || [];
+      const wrap = document.getElementById('quizWrap');
+      if(!qs.length){
+        wrap.innerHTML = '<div class="small">No quiz for this level.</div>';
+        return;
+      }
+      wrap.innerHTML = qs.map((q,i)=>`
+        <div class="row" style="align-items:flex-start;margin:6px 0">
+          <div style="min-width:24px">${i+1}.</div>
+          <div style="flex:1">
+            <div>${q.q}</div>
+            <div class="row small">
+              <label><input type="radio" name="q${i}" value="yes"> Yes</label>
+              <label><input type="radio" name="q${i}" value="no"> No</label>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function markLesson(id){
+      if(!state.email) return alert('Set your email first.');
+      try{
+        const r = await fetch(`${API}/api/progress/lesson`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ email: state.email, track: state.track, level: state.level, lessonId: id })
+        });
+        const j = await r.json();
+        if(j.ok){
+          state.progress.completedLessons = j.completedLessons || [];
+          renderLessons();
+        }else{
+          alert('Failed to save.');
+        }
+      }catch(e){
+        alert('Failed to save.');
+      }
+    }
+
+    async function submitQuiz(){
+      if(!state.email) return alert('Set your email first.');
+      const qs = (QUIZZES[state.track] && QUIZZES[state.track][state.level]) || [];
+      if(!qs.length) return alert('No quiz for this level.');
+      const answers = [];
+      for(let i=0;i<qs.length;i++){
+        const choice = document.querySelector(`input[name="q${i}"]:checked`)?.value;
+        if(!choice){ return alert(`Answer question ${i+1}`); }
+        const pickedYes = choice === 'yes';
+        const correctYes = !!qs[i].correct;
+        answers.push(pickedYes === correctYes);
+      }
+
+      const quizOut = document.getElementById('quizOut');
+      quizOut.textContent = 'Submitting...';
+      try{
+        const r = await fetch(`${API}/api/progress/quiz`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ email: state.email, track: state.track, level: state.level, answers })
+        });
+        const j = await r.json();
+        if(typeof j.passed === 'boolean'){
+          quizOut.innerHTML = j.passed ? `<span class="success">Passed with ${j.score}%</span>` : `<span class="warn">Failed with ${j.score}%</span>`;
+          await loadUnlocks();
+          renderLevelsTiles();
+          await loadProgress();
+        }else{
+          quizOut.textContent = 'Submission failed.';
+        }
+      }catch(e){
+        quizOut.textContent = 'Submission failed.';
+      }
+    }
+
+    function loadAll(){ loadUnlocks().then(()=>{ renderLevelsTiles(); loadProgress(); }); }
+
+    init();
+  </script>
+</body>
+</html>
+[Paste ends]
+
+File 3: server.js
+[Paste starts below]
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const { nanoid } = require('nanoid');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+const store = {
+  users: {},
+  certs: {},
+};
+
+const ADDR = {
+  eth: '0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0',
+  bnb: '0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0',
+  btc: 'bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv',
+};
+
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.static('.'));
+
+function ensureUser(email){
+  if(!store.users[email]){
+    store.users[email] = {
+      access: { spot:{}, futures:{}, options:{} },
+      payments: [],
+      progress: {},
+      certs: []
+    };
+  }
+  return store.users[email];
+}
+
+function parseItem(item){
+  const [track, type, maybeLevel] = item.split('-');
+  if(type === 'bundle') return { track, bundle:true };
+  if(type === 'level') return { track, level: Number(maybeLevel) };
+  const m = item.match(/(spot|futures|options)-level-(\d)/);
+  if(m) return { track:m[1], level:Number(m[2]) };
+  return { track:'spot', level:1 };
+}
+
+function unlock(user, spec){
+  const t = spec.track;
+  if(spec.bundle){
+    for(let i=1;i<=5;i++) user.access[t]['l'+i] = true;
+    return { track:t, bundle:true };
+  }
+  const L = Math.min(Math.max(spec.level||1,1),5);
+  user.access[t]['l'+L] = true;
+  for(let i=1;i<L;i++) user.access[t]['l'+i] = true;
+  return { track:t, level:L, bundle:false };
+}
+
+function mockUsdFor(spec){
+  if(spec.bundle) return 149;
+  const map = {1:29,2:39,3:49,4:59,5:69};
+  return map[spec.level] || 29;
+}
+
+function mockVerifyTx(txHash){ return typeof txHash === 'string' && txHash.trim().length >= 10; }
+
+app.get('/api/health', (_req,res)=>res.json({ok:true, mode:'MOCK'}));
+
+app.get('/api/courses/access', (req,res)=>{
+  const email = (req.query.email||'').toLowerCase().trim();
+  if(!email) return res.status(400).json({error:'email required'});
+  res.json(ensureUser(email).access);
+});
+
+app.get('/api/payments/history', (req,res)=>{
+  const email = (req.query.email||'').toLowerCase().trim();
+  if(!email) return res.status(400).json({error:'email required'});
+  res.json({ items: ensureUser(email).payments });
+});
+
+app.post('/api/payments/evm/verify', (req,res)=>{
+  const { email, item, network='eth', txHash } = req.body||{};
+  if(!email || !item || !txHash) return res.status(400).json({error:'missing fields'});
+  if(!['eth','bnb'].includes(network)) return res.status(400).json({error:'network'});
+  const ok = mockVerifyTx(txHash);
+  const spec = parseItem(item);
+  const u = ensureUser(email.toLowerCase().trim());
+  if(!ok) return res.json({ paid:false, confirmations:0 });
+
+  const unlocked = unlock(u, spec);
+  const amountUsd = mockUsdFor(spec);
+  u.payments.unshift({ at: Date.now(), item, track: unlocked.track, bundle: !!unlocked.bundle, level: unlocked.level || null, network, txHash, amountUsd });
+  res.json({ paid:true, track: unlocked.track, bundle: !!unlocked.bundle, level: unlocked.level || null, amountUsd, address: ADDR[network] });
+});
+
+app.post('/api/payments/btc/verify', (req,res)=>{
+  const { email, item, txHash } = req.body||{};
+  if(!email || !item || !txHash) return res.status(400).json({error:'missing fields'});
+  const ok = mockVerifyTx(txHash);
+  const spec = parseItem(item);
+  const u = ensureUser(email.toLowerCase().trim());
+  if(!ok) return res.json({ paid:false, confirmations:0 });
+
+  const unlocked = unlock(u, spec);
+  const amountUsd = mockUsdFor(spec);
+  u.payments.unshift({ at: Date.now(), item, track: unlocked.track, bundle: !!unlocked.bundle, level: unlocked.level || null, network:'btc', txHash, amountUsd });
+  res.json({ paid:true, track: unlocked.track, bundle: !!unlocked.bundle, level: unlocked.level || null, amountUsd, address: ADDR.btc });
+});
+
+app.post('/api/cert/issue', (req,res)=>{
+  const { email, name, track } = req.body||{};
+  if(!email || !name || !track) return res.status(400).json({error:'missing fields'});
+  const u = ensureUser(email.toLowerCase().trim());
+  const hasL5 = u.access?.[track]?.l5;
+  if(!hasL5) return res.status(403).json({error:'complete level 5 to issue cert'});
+  const short = nanoid(6).toUpperCase();
+  const certId = `MC-${track.slice(0,2).toUpperCase()}-${short}-${Date.now().toString().slice(-6)}`;
+  const record = { certId, email: email.toLowerCase().trim(), name, track, date: Date.now(), pdfUrl: `/certificates/${certId}.pdf`, valid: true };
+  store.certs[certId] = record;
+  u.certs.unshift({ certId, track, date: record.date });
+  res.json({ certId, pdfUrl: record.pdfUrl, name, track, date: record.date });
+});
+
+app.get('/api/cert/verify', (req,res)=>{
+  const id = (req.query.id||'').trim();
+  if(!id) return res.status(400).json({error:'id required'});
+  const c = store.certs[id];
+  if(!c || !c.valid) return res.json({ valid:false });
+  res.json({ valid:true, name:c.name, track:c.track, date:c.date, email:c.email, certId:c.certId });
+});
+
+app.get('/api/progress', (req,res)=>{
+  const email = (req.query.email||'').toLowerCase().trim();
+  const track = (req.query.track||'').trim();
+  const level = Number(req.query.level||1);
+  if(!email || !track) return res.status(400).json({error:'missing fields'});
+  const u = ensureUser(email);
+  const key = `${track}-${level}`;
+  res.json(u.progress[key] || { completedLessons: [], quiz: null });
+});
+
+app.post('/api/progress/lesson', (req,res)=>{
+  const { email, track, level, lessonId } = req.body||{};
+  if(!email || !track || !level || !lessonId) return res.status(400).json({error:'missing fields'});
+  const u = ensureUser(email.toLowerCase().trim());
+  const key = `${track}-${level}`;
+  const cur = u.progress[key] || { completedLessons: [], quiz: null };
+  if(!cur.completedLessons.includes(lessonId)) cur.completedLessons.push(lessonId);
+  u.progress[key] = cur;
+  res.json({ ok:true, completedLessons: cur.completedLessons });
+});
+
+app.post('/api/progress/quiz', (req,res)=>{
+  const { email, track, level, answers } = req.body||{};
+  if(!email || !track || !level || !Array.isArray(answers)) return res.status(400).json({error:'missing fields'});
+  const u = ensureUser(email.toLowerCase().trim());
+  const total = answers.length || 5;
+  const correct = answers.filter(Boolean).length;
+  const score = Math.round((correct/total)*100);
+  const passed = score >= 60;
+  const key = `${track}-${level}`;
+  const cur = u.progress[key] || { completedLessons: [], quiz: null };
+  cur.quiz = { score, passed, at: Date.now() };
+  u.progress[key] = cur;
+  if(passed){
+    const next = Math.min(Number(level)+1, 5);
+    u.access[track]['l'+next] = true;
+  }
+  res.json({ passed, score });
+});
+
+app.use((req,res)=>res.status(404).json({error:'Not found (MOCK)'}));
+
+app.listen(PORT, ()=>{
+  console.log(`Mock server running at http://localhost:${PORT}`);
+  console.log('Serving static files from current directory. Open learners.html or my-classroom.html.');
+});
