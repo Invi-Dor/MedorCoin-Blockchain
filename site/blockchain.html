@@ -1,1 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MedorCoin — Blockchain</title>
+<meta name="description" content="On-chain tools, explorers, and verification for MedorCoin."/>
+<style>
+  :root{--bg:#faf9f6;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb}
+  {box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  a{color:#B5943F;text-decoration:none} a:hover{text-decoration:underline}
+  .container{max-width:980px;margin:0 auto;padding:12px}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.space{justify-content:space-between}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7}
+  .brand{font-weight:800;font-size:18px}
+  .tabs{display:flex;gap:10px;overflow:auto;padding:10px 0;margin-top:8px}
+  .tab{display:flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid var(--border);color:var(--ink);border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+  .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+  .icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#eef1f5;border:1px solid #e2e8f0}
+  .muted{color:var(--muted);font-size:12px}
+  .icon svg{width:22px;height:22px;display:block}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="row space">
+      <div class="logo"><img src="../assets/logo.png" alt="MedorCoin Logo"/><div class="brand">MedorCoin</div></div>
+    </div>
 
+    <div class="tabs">
+      <a class="tab" href="../index.html">🏠 HomePage</a>
+      <a class="tab" href="../food.html">🍽️ Food</a>
+      <a class="tab" href="../miners.html">⛏️ Miners</a>
+      <a class="tab" href="../developers.html">👩‍💻 Developers</a>
+      <a class="tab" href="../trading.html">📈 Crypto Trading</a>
+    </div>
+
+    <h2 style="margin:8px 0 0 2px">⛓️ Blockchain</h2>
+    <div class="muted" style="margin:4px 2px 10px">On-chain explorer, verification tools, and network endpoints.</div>
+
+    <div class="grid">
+      <div class="tile">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#B5943F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="5" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <circle cx="19" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <circle cx="5" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <circle cx="19" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <path d="M7.2 6h9.6"/><path d="M5 8.6v6.8"/><path d="M19 8.6v6.8"/><path d="M6.6 16.8L10.8 12h-2.2l4.8-4.8M12.8 12l4.6 4.6"/>
+          </svg>
+        </div>
+        <b>Explorer</b>
+        <span class="muted">Search tx, blocks, addresses</span>
+      </div>
+
+      <div class="tile">
+        <div class="icon" aria-hidden="true">✅</div>
+        <b>Verify</b>
+        <span class="muted">Proofs & signatures</span>
+      </div>
+
+      <div class="tile">
+        <div class="icon" aria-hidden="true">🛰️</div>
+        <b>RPC Endpoints</b>
+        <span class="muted">Public/Private nodes</span>
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top:14px"><a href="../index.html">← Back to Home</a></p>
+  </div>
+</body>
+</html>
