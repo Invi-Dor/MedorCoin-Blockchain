@@ -95,3 +95,149 @@
   </div>
 </body>
 </html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>MedorCoin Live Transactions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { font-size: 1.4rem; }
+blockInfo { margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f2f2f2; }
+    .loading { color: #888; }
+  </style>
+</head>
+<body>
+  <h1>MedorCoin — Live First 10 Transactions</h1>
+  <div id="blockInfo">
+    <span class="loading" id="loadingNote">Loading latest block and transactions...</span>
+  </div>
+  <table id="txTable" aria-label="Transactions table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Tx Hash</th>
+        <th>From</th>
+        <th>To</th>
+        <th>Value</th>
+        <th>Gas Used</th>
+        <th>Block</th>
+      </tr>
+    </thead>
+    <tbody id="txBody">
+      <!-- rows inserted here -->
+    </tbody>
+  </table>
+
+  <script>
+    // Configuration: replace with your MedorCoin API URL
+    const MEDORCOIN_RPC_URL = "https://api.medorcoin.org"; // e.g., base URL
+    // If your API requires a specific path for latest block, adjust endpoints below.
+
+    // How many transactions to show
+    const TARGET_TX_COUNT = 10;
+    // Poll interval in ms
+    const POLL_MS = 15000;
+
+    async function fetchLatestBlock() {
+      // This function should return the latest block including its transactions
+      // Adjust the endpoint and structure to your API.
+      // Example for Ethereum-like API:
+      // GET /block/latest => { number, hash, timestamp, transactions: [ ... ] }
+
+      const blockEndpoint = `${MEDORCOIN_RPC_URL}/block/latest`; // customize if needed
+      const resp = await fetch(blockEndpoint, { cache: "no-store" });
+      if (!resp.ok) throw new Error(`Block fetch failed: ${resp.status}`);
+      const data = await resp.json();
+      // If your API returns differently, map fields here.
+      // Normalize to: { number, hash, timestamp, transactions: [] }
+      return data;
+    }
+
+    function shorten(addr) {
+      if (!addr) return "";
+      if (addr.length <= 10) return addr;
+      return addr.slice(0, 6) + "..." + addr.slice(-4);
+    }
+
+    function formatValueWeiToEth(valueWei) {
+      // If value is in wei and you want ETH, convert accordingly.
+      // Adjust if your blockchain uses a different unit.
+      const wei = BigInt(valueWei ?? 0);
+      // Assuming 1 ETH = 1e18 wei
+      const eth = Number(wei) / 1e18;
+      // Keep 6 decimal places
+      return eth.toLocaleString(undefined, { minimumFractionDigits: 6, maximumFractionDigits: 6 });
+    }
+
+    function renderTxRows(transactions, blockNumber) {
+      const tbody = document.getElementById("txBody");
+      tbody.innerHTML = ""; // clear
+      const max = Math.min(transactions.length, TARGET_TX_COUNT);
+      for (let i = 0; i < max; i++) {
+        const tx = transactions[i];
+        const tr = document.createElement("tr");
+
+        const idxTd = document.createElement("td");
+        idxTd.textContent = (i + 1);
+        tr.appendChild(idxTd);
+
+        const hashTd = document.createElement("td");
+        hashTd.textContent = tx.hash || "";
+        hashTd.title = tx.hash || "";
+        tr.appendChild(hashTd);
+
+        const fromTd = document.createElement("td");
+        fromTd.textContent = shorten(tx.from);
+        tr.appendChild(fromTd);
+
+        const toTd = document.createElement("td");
+        toTd.textContent = shorten(tx.to);
+        tr.appendChild(toTd);
+
+        const valueTd = document.createElement("td");
+        // If value is provided in wei
+        valueTd.textContent = tx.value ? formatValueWeiToEth(tx.value) + " ETH" : "";
+        tr.appendChild(valueTd);
+
+        const gasTd = document.createElement("td");
+        gasTd.textContent = tx.gasUsed ?? "";
+        tr.appendChild(gasTd);
+
+        const blockTd = document.createElement("td");
+        blockTd.textContent = blockNumber ?? "";
+        tr.appendChild(blockTd);
+
+        tbody.appendChild(tr);
+      }
+
+      // Update info
+      const loadingNote = document.getElementById("loadingNote");
+      loadingNote.textContent = `Showing first ${max} transaction(s) from block ${blockNumber ?? ""}`;
+    }
+
+    async function updateLive() {
+      try {
+        const block = await fetchLatestBlock();
+        // Validate
+        const transactions = Array.isArray(block.transactions) ? block.transactions : [];
+        renderTxRows(transactions.slice(0, TARGET_TX_COUNT), block.number ?? "");
+      } catch (err) {
+        console.error(err);
+        const loadingNote = document.getElementById("loadingNote");
+        loadingNote.textContent = `Error loading data: ${err.message}`;
+      }
+    }
+
+    // Initial load
+    updateLive();
+    // Periodic updates
+    setInterval(updateLive, POLL_MS);
+  </script>
+</body>
+</html>
