@@ -1,390 +1,515 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>MedorCoin Miners</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root{
-      --bg:#1a1a1a;
-      --bg2:#1e1e1e;
-      --card:#222;
-      --orange:#ff7a18;
-      --text:#e8e8e8;
-      --muted:#b8b8b8;
-      --green:#4bd26a;
-      --red:#e05555;
-      --shadow:0 6px 18px rgba(0,0,0,.4);
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,Arial}
-    header{padding:16px 20px;border-bottom:1px solid #333;background:linear-gradient(#2a2a2a,#1a1a1a)}
-    header h1{margin:0;font-size:20px;font-weight:600}
-    .container{max-width:980px;margin:0 auto;padding:16px}
-    .gif{width:100%;max-width:640px;border-radius:12px;display:block;margin:0 auto 14px auto}
-    .section{background:var(--card);border-radius:12px;padding:16px;margin:14px 0;box-shadow:var(--shadow)}
-    .section h2{margin:0 0 8px 0;font-size:16px;letter-spacing:.4px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    @media (max-width:700px){
-      .grid{grid-template-columns:1fr}
-    }
-    .plan{border:1px solid #333;border-radius:10px;padding:14px;position:relative}
-    .plan h3{margin:0 0 6px 0;font-size:15px}
-    .muted{color:var(--muted);font-size:12px}
-    .price{font-size:20px;font-weight:700;color:var(--orange)}
-    .strike{text-decoration:line-through;color:#999;margin-left:6px}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;border:1px solid #444;background:#2a2a2a;color:#fff;cursor:pointer}
-    .btn.primary{background:var(--orange);border-color:#e06720}
-    .btn.ghost{background:transparent;border:1px dashed #555}
-    .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-    .badge{padding:4px 8px;border-radius:999px;background:#333;color:#fff;font-size:11px}
-    .copy{font-family: monospace;background:#111;border:1px solid #333;padding:6px 10px;border-radius:6px;min-width:280px;word-break:break-all}
-    .link{color:#9bd0ff;text-decoration:underline;cursor:pointer}
-    .section-title{font-weight:600;margin-bottom:8px}
-    .hr{height:1px;background:#333;margin:12px 0}
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center}
-    .modal.open{display:flex}
-    .modal-card{width:min(720px,92vw);background:#1f1f1f;border-radius:12px;padding:16px;border:1px solid #444}
-    .checkbox{display:flex;align-items:center;gap:8px;margin:8px 0}
-    .tiny{font-size:11px;color:#ddd}
-    .footer{margin-top:14px;font-size:12px;color:#bbb}
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>MedorCoin — Miners</title>
+<meta name="description" content="MedorCoin Mining Plans — free 12h at 4 GH/s or subscribe for 610 GH/s. Secure checkout with 2FA; pay by card (bridge to ETH/BNB) or direct crypto."/>
+<style>
+  :root{
+    --bg:#0f1013;         /* very dark grey (pencil-like) */
+    --bg-elev:#15171b;
+    --ink:#f1f5f9;
+    --muted:#a3a3a3;
+    --border:#232630;
+    --accent:#ff8a00;     /* orange replacing purple */
+    --accent-2:#ffb84d;
+    --accent-3:#ffd199;
+    --good:#10b981;
+    --warn:#f59e0b;
+    --bad:#ef4444;
+    --pill:#1c2029;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.45;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent-2);text-decoration:none} a:hover{text-decoration:underline}
+
+  /* Mobile-first layout inspired by your screenshot */
+  .app{max-width:520px;margin:0 auto;padding-bottom:80px;position:relative}
+  .topbar{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#0f1013 60%,#0f1013cc);backdrop-filter:saturate(120%) blur(6px);border-bottom:1px solid var(--border)}
+  .status{display:flex;align-items:center;justify-content:space-between;padding:10px 14px}
+  .status .balance{display:flex;align-items:center;gap:8px}
+  .badge{background:var(--accent);color:#1a1a1a;border-radius:999px;padding:2px 8px;font-weight:700;font-size:12px}
+  .notif{position:relative}
+  .notif .dot{position:absolute;top:-2px;right:-2px;background:#ff4d4d;border:2px solid #0f1013;width:10px;height:10px;border-radius:50%}
+  .summary{padding:12px 14px 8px}
+  .title{font-weight:800;font-size:18px}
+  .subtitle{color:var(--muted);font-size:12px;margin-top:4px}
+
+  .panel{background:var(--bg-elev);border:1px solid var(--border);border-radius:16px;padding:12px;margin:10px 14px}
+  .hrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .kicker{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2)}
+  .hint{font-size:11px;color:#9ca3af}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:var(--pill);border:1px solid #29303a;border-radius:999px;padding:6px 10px;font-size:12px}
+
+  /* Slider */
+  .slider-wrap{margin-top:10px}
+  input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:999px;background:#20232b;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:linear-gradient(180deg,var(--accent-2),var(--accent));border:2px solid #da7a05;box-shadow:0 2px 6px #0007;cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:linear-gradient(180deg,var(--accent-2),var(--accent));border:2px solid #da7a05;box-shadow:0 2px 6px #0007;cursor:pointer}
+
+  /* Cards grid */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  @media(min-width:480px){.grid.triple{grid-template-columns:repeat(3,1fr)}}
+  .card{background:#0f1115;border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:6px}
+  .card.pop{border-color:#da7a05;box-shadow:inset 0 0 0 1px #da7a05}
+  .price{font-weight:800;color:#ffce7a}
+  .speed{font-weight:700;color:#ffdca8}
+  .btn{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--accent-2),var(--accent));border:1px solid #da7a05;color:#1a1a1a;border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer}
+  .btn.secondary{background:#0f1115;color:#f1f5f9;border:1px solid var(--border)}
+  .btn.ghost{background:transparent;color:#f1f5f9;border:1px dashed #394150}
+  .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
+  .divider{height:1px;background:var(--border);margin:10px 0}
+
+  /* Bottom nav like the screenshot */
+  .bottom-nav{position:fixed;left:0;right:0;bottom:0;border-top:1px solid var(--border);background:#0f1013ee;backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:space-around;padding:8px 6px;z-index:20}
+  .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:#c7c7c7;font-size:11px}
+  .nav-item.active{color:var(--accent-2)}
+  .nav-item .icon{font-size:18px}
+
+  /* Right GIF on larger screens */
+  .wrap{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:900px){
+    .wrap{grid-template-columns:1fr 360px}
+    .gifWrap{position:sticky;top:12px;align-self:start;margin-right:14px}
+    .gifWrap .gif-card{padding:0;border-radius:16px;overflow:hidden;background:var(--bg-elev);border:1px solid var(--border)}
+    .gifWrap img{width:100%;height:auto;display:block}
+  }
+
+  /* Modals */
+  .modal-backdrop{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;z-index:50}
+  .modal{background:#0f1115;border:1px solid var(--border);border-radius:14px;max-width:540px;width:92%;padding:16px}
+</style>
 </head>
 <body>
-  <header>
-    <h1>Miners</h1>
-  </header>
-
-  <main class="container">
-    <!-- GIF / animation preserved -->
-    <img class="gif" src="data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAUwAOw==" alt="Mining animation placeholder" />
-
-    <!-- Disclaimer / notice -->
-    <div class="section" id="intro">
-      <h2>Disclaimer</h2>
-      <p class="muted">This is a simulated mining platform for demonstration. The UI shows plans, payments, and contract flows. It does not perform real crypto transfers in this environment. Crypto markets are volatile; never invest more than you can afford. A separate terms and conditions screen applies before account creation and before starting mining.</p>
-    </div>
-
-    <!-- How it works -->
-    <div class="section" id="how-it-works">
-      <h2>How Mining Works (Step-by-Step)</h2>
-      <ol class="muted" style="margin:0 0 8px 18px; padding:0 0 0 18px">
-        <li>Choose a plan: Free tier or paid plans with different GH/s and durations.</li>
-        <li>Provide payment method: Debit/Credit card bridge to crypto or crypto direct (BNB, ETH, BTC).</li>
-        <li>For card payments: USD amount is converted to the chosen crypto at current rate inside the app.</li>
-        <li>For crypto payments: send the exact address to the platform for the selected plan’s duration and speed.</li>
-        <li>Contracts renew every 24 hours on paid plans; free tier renewals occur every 12 hours with limited GH/s.</li>
-        <li>Earn MedorCoin as you mine; higher speed yields more rewards.</li>
-        <li>Before starting, answer two quick quizzes and complete a verification (email or phone).</li>
-        <li>All accounts require adult consent (18+) and acceptance of terms.</li>
-      </ol>
-    </div>
-
-    <!-- Pricing / Plans -->
-    <section class="section" id="plans">
-      <h2 class="section-title">Mining Plans</h2>
-      <div class="grid" id="plans-grid">
-        <!-- Plan 1: Free -->
-        <div class="plan" aria-label="Free mining plan">
-          <h3>Free Plan</h3>
-          <div class="row">
-            <span>Speed</span><span class="badge">4 GH/s</span>
+  <div class="wrap">
+    <div class="app" role="main" aria-label="MedorCoin Miners">
+      <!-- Top bar -->
+      <div class="topbar">
+        <div class="status">
+          <div class="balance">
+            <span class="pill">Balance</span>
+            <span class="mono" id="walletBalance">0.00000000 MEDOR</span>
           </div>
           <div class="row">
-            <span>Duration</span><span class="muted">12 hours per contract</span>
-          </div>
-          <div class="row" style="align-items:flex-end;">
-            <span class="muted">Limited to 12h until renewal.</span>
-            <span class="price" title="Free">Free</span>
-          </div>
-          <div class="row" style="margin-top:8px;">
-            <span class="muted">Bonus for first-time users: multiple contracts available for early access.</span>
-            <button class="btn" onclick="selectPlan('free')">Start Free</button>
-          </div>
-          <div class="tiny">Note: free tier is not 24 hours; 12-hour cycles only.</div>
-        </div>
-
-        <!-- Plan 2: 1 Month -->
-        <div class="plan" aria-label="1 month mining plan">
-          <h3>1 Month Plan</h3>
-          <div class="row">
-            <span>Price</span><span class="price">$15</span>
-          </div>
-          <div class="row">
-            <span>Speed</span><span class="badge">610 GH/s</span>
-          </div>
-          <div class="row">
-            <span>Duration</span><span class="muted">30 days</span>
-          </div>
-          <div class="row" style="margin-top:6px;">
-            <span class="muted">Includes full benefits and standard security checks.</span>
-            <button class="btn primary" onclick="selectPlan('1m')">Subscribe</button>
+            <span class="badge" id="networkPill">Mainnet</span>
+            <div class="notif" aria-label="Notifications"><span class="icon">🔔</span><span class="dot" id="notifDot" style="display:none"></span></div>
           </div>
         </div>
+        <div class="summary">
+          <div class="title">MedorCoin Mining Plans</div>
+          <div class="subtitle">Start with a free plan, then boost your hashrate with optional paid upgrades.</div>
+        </div>
+      </div>
 
-        <!-- Plan 3: 3 Months -->
-        <div class="plan" aria-label="3 months mining plan">
-          <h3>3 Months Plan</h3>
-          <div class="row">
-            <span>Original</span><span class="price" style="text-decoration: line-through;">$45</span>
+      <!-- Account panel -->
+      <div class="panel" aria-labelledby="accTitle">
+        <div class="hrow"><div class="kicker" id="accTitle">Account</div></div>
+        <div class="grid">
+          <form class="card" onsubmit="return false;">
+            <b>Sign in</b>
+            <label>Email</label><input id="si-email" type="email" placeholder="you@example.com" required/>
+            <label>Password</label><input id="si-pass" type="password" placeholder="••••••••" required/>
+            <label class="row"><input id="si-2fa" type="checkbox"/> Use 2FA (TOTP)</label>
+            <button class="btn" onclick="login()">Sign In</button>
+            <div id="si-msg" class="hint"></div>
+          </form>
+          <form class="card" onsubmit="return false;">
+            <b>Sign up</b>
+            <label>Email</label><input id="su-email" type="email" required/>
+            <label>Password</label><input id="su-pass" type="password" placeholder="Min 8 chars" required/>
+            <label>Confirm</label><input id="su-pass2" type="password" required/>
+            <label class="row"><input id="su-18" type="checkbox" required/> I am 18+ </label>
+            <label class="row"><input id="su-terms" type="checkbox" required/> I accept Terms & Mining Policy</label>
+            <label class="row"><input id="su-2fa" type="checkbox" checked/> Enable 2FA</label>
+            <button class="btn" onclick="register()">Create Account</button>
+            <div id="su-msg" class="hint"></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Mining speed (slider) -->
+      <div class="panel" aria-labelledby="speedTitle">
+        <div class="hrow">
+          <div>
+            <div class="kicker">Mining speed</div>
+            <b id="speedTitle">Drag slider to select hashrate</b>
           </div>
-          <div class="row">
-            <span>Discount</span><span class="badge">20%</span>
+          <div class="pill"><span>Hashrate</span><span class="mono" id="hashrateLbl">4.00 GH/s</span></div>
+        </div>
+        <div class="slider-wrap">
+          <!-- Slider range 4 -> 610 GH/s -->
+          <input id="speedSlider" type="range" min="4" max="610" step="1" value="4" oninput="onSpeedChange(this.value)"/>
+          <div class="hint">Free plan max is 4 GH/s for 12 hours. Paid plans unlock 610 GH/s.</div>
+        </div>
+      </div>
+
+      <!-- Duration and quick actions -->
+      <div class="panel">
+        <div class="kicker">Duration</div>
+        <div class="grid">
+          <div class="card">
+            <b>Free</b>
+            <div>12 Hours</div>
+            <div class="hint">First-time: up to 2 concurrent sessions.</div>
+            <button class="btn" onclick="startFreeContract()">Start Free 12h</button>
           </div>
-          <div class="row">
-            <span>Speed</span><span class="badge">610 GH/s</span>
-          </div>
-          <div class="row">
-            <span>Duration</span><span class="muted">90 days</span>
-          </div>
-          <div class="row" style="margin-top:6px;">
-            <span class="muted">Pay 80% of total after discount.</span>
-            <button class="btn primary" onclick="selectPlan('3m')">Subscribe</button>
+          <div class="card">
+            <b>Paid</b>
+            <div>Renews per plan term</div>
+            <div class="hint">Auto or manual renew (24h/term)</div>
+            <button class="btn secondary" onclick="location.hash='#plans'">View Plans</button>
           </div>
         </div>
+        <div class="divider"></div>
+        <label class="row"><input id="agree-mining-terms" type="checkbox"/> I agree that rewards vary and are not guaranteed.</label>
+      </div>
 
-        <!-- Plan 4: 6 Months -->
-        <div class="plan" aria-label="6 months mining plan">
-          <h3>6 Months Plan</h3>
-          <div class="row">
-            <span>Original</span><span class="price" style="text-decoration: line-through;">$90</span>
-          </div>
-          <div class="row">
-            <span>Discount</span><span class="badge">40%</span>
-          </div>
-          <div class="row">
-            <span>Speed</span><span class="badge">610 GH/s</span>
-          </div>
-          <div class="row">
-            <span>Duration</span><span class="muted">180 days</span>
-          </div>
-          <div class="row" style="margin-top:6px;">
-            <span class="muted">Pay 60% of total after discount.</span>
-            <button class="btn primary" onclick="selectPlan('6m')">Subscribe</button>
-          </div>
+      <!-- Plans (match screenshot style with badges) -->
+      <div class="panel" id="plans">
+        <div class="hrow">
+          <div class="kicker">Plans</div>
+          <div class="pill">Popular</div>
         </div>
+        <div class="grid">
+          <div class="card pop">
+            <div class="row" style="justify-content:space-between">
+              <b>Monthly</b>
+              <span class="badge">-</span>
+            </div>
+            <div class="row"><span class="price">$15 / Month</span><span class="speed">610 GH/s</span></div>
+            <div class="hint">All Pro benefits: priority pool routing, higher throughput.</div>
+            <div class="row">
+              <button class="btn" onclick="openCheckout('monthly')">Subscribe</button>
+              <button class="btn secondary" onclick="openCryptoFor('monthly')">Crypto</button>
+            </div>
+          </div>
 
-        <!-- Plan 5: 12 Months -->
-        <div class="plan" aria-label="12 months mining plan">
-          <h3>12 Months Plan</h3>
-          <div class="row">
-            <span>Original</span><span class="price" style="text-decoration: line-through;">$180</span>
+          <div class="card">
+            <div class="row" style="justify-content:space-between">
+              <b>3 Months</b>
+              <span class="badge">-20%</span>
+            </div>
+            <div class="row"><span class="price">$36</span><span class="speed">610 GH/s</span></div>
+            <div class="hint">Same Pro benefits. Discounted bundle.</div>
+            <div class="row">
+              <button class="btn" onclick="openCheckout('quarterly')">Subscribe</button>
+              <button class="btn secondary" onclick="openCryptoFor('quarterly')">Crypto</button>
+            </div>
           </div>
-          <div class="row">
-            <span>Discount</span><span class="badge">60%</span>
+
+          <div class="card">
+            <div class="row" style="justify-content:space-between">
+              <b>6 Months</b>
+              <span class="badge">-40%</span>
+            </div>
+            <div class="row"><span class="price">$54</span><span class="speed">610 GH/s</span></div>
+            <div class="hint">Best mid-term saving.</div>
+            <div class="row">
+              <button class="btn" onclick="openCheckout('semiannual')">Subscribe</button>
+              <button class="btn secondary" onclick="openCryptoFor('semiannual')">Crypto</button>
+            </div>
           </div>
-          <div class="row">
-            <span>Speed</span><span class="badge">610 GH/s</span>
-          </div>
-          <div class="row">
-            <span>Duration</span><span class="muted">365 days</span>
-          </div>
-          <div class="row" style="margin-top:6px;">
-            <span class="muted">Pay 40% of total after discount.</span>
-            <button class="btn primary" onclick="selectPlan('12m')">Subscribe</button>
+
+          <div class="card">
+            <div class="row" style="justify-content:space-between">
+              <b>12 Months</b>
+              <span class="badge">-60%</span>
+            </div>
+            <div class="row"><span class="price">$72</span><span class="speed">610 GH/s</span></div>
+            <div class="hint">Best value long-term.</div>
+            <div class="row">
+              <button class="btn" onclick="openCheckout('annual')">Subscribe</button>
+              <button class="btn secondary" onclick="openCryptoFor('annual')">Crypto</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="hr"></div>
-
-      <div class="section" id="security">
-        <h2 class="section-title">Security & Verification</h2>
-        <div class="checkbox">
-          <input type="checkbox" id="quiz1" />
-          <label for="quiz1">I understand mining risks and have completed the two-question awareness quiz.</label>
-        </div>
-        <div class="checkbox">
-          <input type="checkbox" id="verify" />
-          <label for="verify">I agree to verify my purchase via email or phone before confirming.</label>
-        </div>
-        <div class="muted" style="margin-top:6px;">
-          Adult consent (18+) required. All terms and conditions must be accepted before account creation and before starting mining.
-        </div>
-      </div>
-    </section>
-
-    <!-- Payment Bridge / Crypto Section (no real processing) -->
-    <section class="section" id="payments">
-      <h2 class="section-title">Payment Methods & Crypto Addresses</h2>
-
-      <!-- BNB Chain -->
-      <div class="plan" aria-label="BNB Chain payment">
-        <h3>BNB Chain</h3>
-        <div class="row">
-          <span>Address</span>
-          <span class="copy" id="addr-bnb">0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D</span>
-        </div>
-        <div class="row" style="margin-top:6px;">
-          <span class="muted">View on Explorer</span>
-          <a class="link" href="https://bscscan.com/address/0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D" target="_blank" rel="noopener">Open BscScan</a>
-        </div>
-        <div class="row" style="margin-top:6px;">
-          <button class="btn" onclick="copyText('addr-bnb')">Copy Address</button>
-        </div>
+      <!-- Earn more -->
+      <div class="panel">
+        <div class="kicker">Earn More</div>
+        <ul style="margin:6px 0 0 18px">
+          <li>Keep rigs cool to stabilize hashrate.</li>
+          <li>Use regional pools to reduce stale shares.</li>
+          <li>Secure payout settings with 2FA.</li>
+          <li>Track profitability; adjust thresholds.</li>
+        </ul>
       </div>
 
-      <!-- BTC -->
-      <div class="plan" aria-label="BTC payment">
-        <h3>BTC</h3>
-        <div class="row">
-          <span>Address</span>
-          <span class="copy" id="addr-btc">bc1qqw23mshetzu6gshssuu8pl2pdknra02d4ucfd5</span>
-        </div>
-        <div class="row" style="margin-top:6px;">
-          <span class="muted">View on Explorer</span>
-          <a class="link" href="https://blockstream.info/bech32/bc1qqw23mshetzu6gshssuu8pl2pdknra02d4ucfd5" target="_blank" rel="noopener">Open Blockstream</a>
-        </div>
-        <div class="row" style="margin-top:6px;">
-          <button class="btn" onclick="copyText('addr-btc')">Copy Address</button>
-        </div>
-      </div>
-
-      <!-- ETH -->
-      <div class="plan" aria-label="ETH payment">
-        <h3>Ethereum</h3>
-        <div class="row">
-          <span>Address</span>
-          <span class="copy" id="addr-eth">0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D</span>
-        </div>
-        <div class="row" style="margin-top:6px;">
-          <span class="muted">View on Explorer</span>
-          <a class="link" href="https://etherscan.io/address/0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D" target="_blank" rel="noopener">Open Etherscan</a>
-        </div>
-        <div class="row" style="margin-top:6px;">
-          <button class="btn" onclick="copyText('addr-eth')">Copy Address</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Verification modal (quiz and verification steps) -->
-    <div class="modal" id="verifyModal" aria-hidden="true">
-      <div class="modal-card">
-        <h3>Before You Start Mining</h3>
-        <p class="muted" style="margin-top:4px;">
-          Please answer two quick quiz questions to confirm you understand the mining process.
-        </p>
-        <ol style="margin:8px 0 12px 18px;">
-          <li>Is mining a bandwidth and electricity-consuming activity? (Yes/No)</li>
-          <li>Solve: What is 2 + 2? (Answer: 4)</li>
-        </ol>
-
-        <div class="checkbox">
-          <input type="checkbox" id="quizCheck" />
-          <label for="quizCheck">I completed the quiz and understand the risk.</label>
-        </div>
-
-        <div class="row" style="justify-content:flex-end;margin-top:8px;">
-          <button class="btn" onclick="closeVerify()">Cancel</button>
-          <button class="btn primary" onclick="openCardVerify()">Verify & Proceed</button>
-        </div>
+      <!-- Disclaimer -->
+      <div class="panel">
+        <b>Disclaimer</b>
+        <ul style="margin:6px 0 0 18px">
+          <li>Crypto markets are volatile; rewards are not guaranteed.</li>
+          <li>MedorCoin protocol is not liable for losses or interruptions.</li>
+          <li>Adults only. By continuing, you confirm you are 18+ and accept Terms.</li>
+        </ul>
       </div>
     </div>
 
-    <!-- Card verification modal (simulated) -->
-    <div class="modal" id="cardModal" aria-hidden="true">
-      <div class="modal-card">
-        <h3>Card Verification</h3>
-        <p class="muted" style="margin-top:4px;">
-          Please enter a dummy 2-step verification to confirm your card. This is a simulated flow.
-        </p>
-        <div class="row" style="gap:8px;flex-wrap:wrap;">
-          <input placeholder="Email or Phone (for verification)" id="verifyInput" style="flex:1 1 260px;padding:8px;border-radius:6px;border:1px solid #444;background:#111;color:#fff;" />
-        </div>
-        <div class="row" style="margin-top:8px;">
-          <button class="btn" onclick="closeCard()">Cancel</button>
-          <button class="btn primary" onclick="completePayment()">Confirm Purchase</button>
-        </div>
-        <div class="tiny" style="margin-top:6px;">Disclaimer: This is a simulated verification – no real payments are processed.</div>
+    <!-- Right GIF (hidden on small screens) -->
+    <aside class="gifWrap" aria-label="Animated miner">
+      <div class="gif-card">
+        <img src="assets/miner-digging.gif" alt="Animated crypto miner digging under earth with coin heap" loading="eager"/>
       </div>
-    </div>
+    </aside>
+  </div>
 
-    <div class="footer" style="text-align:center;margin-top:18px;">
-      © MedorCoin Miners - All rights reserved.
+  <!-- Quiz Modal -->
+  <div class="modal-backdrop" id="quizModal">
+    <div class="modal">
+      <b>Quick Check</b>
+      <p class="hint">Confirm you understand mining basics.</p>
+      <label>1) Do rewards vary with network difficulty and hashrate?</label>
+      <select id="q1"><option value="">Choose</option><option value="yes">Yes</option><option value="no">No</option></select>
+      <label style="margin-top:8px">2) What affects payouts more: hashrate or wallpaper?</label>
+      <select id="q2"><option value="">Choose</option><option value="hashrate">Hashrate</option><option value="wallpaper">Wallpaper</option></select>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" onclick="quizSubmit()">Continue</button>
+        <button class="btn secondary" onclick="quizClose()">Cancel</button>
+      </div>
+      <div id="quizMsg" class="hint" style="margin-top:6px"></div>
     </div>
-  </main>
+  </div>
+
+  <!-- Checkout Verification Modal -->
+  <div class="modal-backdrop" id="verifyModal">
+    <div class="modal">
+      <b>Checkout Verification</b>
+      <div class="row" style="gap:6px;margin-top:4px">
+        <span class="hint">Plan:</span><span id="planLabel" class="mono"></span>
+        <span class="hint">USD:</span><span id="planUsd" class="mono"></span>
+        <span class="hint">Est. ETH/BNB:</span><span id="planCryptoQuote" class="mono"></span>
+      </div>
+      <div class="divider"></div>
+      <label>Verification method</label>
+      <select id="verifMethod"><option value="email">Email</option><option value="sms">SMS</option></select>
+      <div class="row" style="margin-top:8px"><button class="btn" onclick="sendVerification()">Send Code</button></div>
+      <label style="margin-top:8px">Enter verification code</label><input id="verifCode" type="text" placeholder="123456"/>
+      <label style="margin-top:8px">2FA (TOTP) code (if enabled)</label><input id="totp" type="text" placeholder="6-digit"/>
+      <label class="row" style="margin-top:8px"><input id="saveCard" type="checkbox"/> Save card (tokenized)</label>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" onclick="confirmCheckout()">Confirm Purchase</button>
+        <button class="btn secondary" onclick="closeVerify()">Cancel</button>
+      </div>
+      <div id="verifyMsg" class="hint" style="margin-top:6px"></div>
+    </div>
+  </div>
+
+  <!-- Crypto Pay Modal -->
+  <div class="modal-backdrop" id="cryptoModal">
+    <div class="modal">
+      <b>Pay with Crypto</b>
+      <div class="row" style="gap:6px;margin-top:4px">
+        <span class="hint">Plan:</span><span id="cPlanLabel" class="mono"></span>
+        <span class="hint">USD:</span><span id="cPlanUsd" class="mono"></span>
+      </div>
+      <div class="divider"></div>
+      <div class="grid">
+        <div class="card">
+          <b>Ethereum (ETH)</b>
+          <div class="hint">Send to:</div>
+          <div class="mono" style="word-break:break-all">0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D</div>
+          <img id="qr-eth" src="assets/qr-eth.png" alt="ETH QR" style="margin-top:6px;max-width:180px;width:100%"/>
+          <button class="btn secondary" onclick="copyAddr('eth')">Copy Address</button>
+        </div>
+        <div class="card">
+          <b>BNB Chain (BNB)</b>
+          <div class="hint">Send to:</div>
+          <div class="mono" style="word-break:break-all">0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D</div>
+          <img id="qr-bnb" src="assets/qr-bnb.png" alt="BNB QR" style="margin-top:6px;max-width:180px;width:100%"/>
+          <button class="btn secondary" onclick="copyAddr('bnb')">Copy Address</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <label>Paste your transaction hash</label>
+      <input id="txHash" type="text" placeholder="0x..."/>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" onclick="verifyCrypto()">I’ve Paid — Verify</button>
+        <button class="btn secondary" onclick="closeCrypto()">Close</button>
+      </div>
+      <div id="cryptoMsg" class="hint" style="margin-top:6px"></div>
+    </div>
+  </div>
 
   <script>
-    // Simple helpers
-    function copyText(elId){
-      const el = document.getElementById(elId);
-      const text = el.textContent || el.value;
-      navigator.clipboard.writeText(text).then(()=>{ alert('Copied: ' + text); }).catch(()=>{});
+    // Endpoints (to be wired on your backend)
+    const API = {
+      auth:{ login:'/api/auth/login', register:'/api/auth/register', me:'/api/auth/me' },
+      twofa:{ send:'/api/2fa/send', confirm:'/api/2fa/confirm' },
+      payments:{
+        fiatIntent:'/api/payments/fiat/intent',   // {planId, saveCard} -> {paymentId, clientSecret, quote:{eth, bnb}}
+        fiatConfirm:'/api/payments/fiat/confirm', // {paymentId, verificationCode, totp, saveCard} -> {bridgeTxId|paymentId}
+        cryptoVerify:'/api/payments/crypto/verify'// {planId, network:'eth'|'bnb', txHash}
+      },
+      contracts:{ startFree:'/api/contracts/free/start', subscribe:'/api/contracts/subscribe' }
+    };
+
+    // Pricing and state
+    const PRICING = {
+      monthly:{label:'Monthly',months:1,price:15,speed:610},
+      quarterly:{label:'3 Months',months:3,price:36,speed:610},  // 20% off 45
+      semiannual:{label:'6 Months',months:6,price:54,speed:610}, // 40% off 90
+      annual:{label:'12 Months',months:12,price:72,speed:610}    // 60% off 180
+    };
+    let currentPlan=null;
+
+    // UI: slider
+    function onSpeedChange(v){
+      const val = Math.max(4, Math.min(610, Number(v)||4));
+      document.getElementById('hashrateLbl').textContent = val.toFixed(0)+' GH/s';
     }
 
-    // Plan selection flow (simulated)
-    function selectPlan(key){
-      // Ensure quizzes and verification are checked
-      const quizOk = document.getElementById('quiz1')?.checked;
-      const verifyOk = document.getElementById('verify')?.checked;
-      // For demo, just show the two-step verify modal
-      if(!quizOk){
-        alert('Please complete the awareness quiz first.');
-        openVerify();
-        return;
-      }
-      if(!verifyOk){
-        alert('Please acknowledge verification before subscribing.');
-        openVerify();
-        return;
-      }
-      // Start simulated flow
-      if(key === 'free'){
-        alert('Starting Free Plan: 4 GH/s for 12 hours. You can renew every 12 hours.');
-        // open verification to proceed
-      } else {
-        alert('Selected plan: ' + key + '. You will be guided to the card/crypto bridge to complete payment.');
-      }
-      // Open verification modal
-      openVerify();
+    // Auth
+    async function login(){
+      const email=document.getElementById('si-email').value.trim();
+      const pass=document.getElementById('si-pass').value;
+      const use2fa=document.getElementById('si-2fa').checked;
+      const msg=document.getElementById('si-msg'); msg.textContent='Signing in...';
+      try{
+        const res=await fetch(API.auth.login,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass,require2fa:use2fa})});
+        if(!res.ok) throw new Error('Login failed');
+        await res.json();
+        msg.textContent='Signed in.';
+      }catch(e){ msg.textContent='Error: '+e.message; }
+    }
+    async function register(){
+      const email=document.getElementById('su-email').value.trim();
+      const p1=document.getElementById('su-pass').value;
+      const p2=document.getElementById('su-pass2').value;
+      const over18=document.getElementById('su-18').checked;
+      const terms=document.getElementById('su-terms').checked;
+      const msg=document.getElementById('su-msg');
+      if(!email||!p1||!p2){ msg.textContent='Fill all fields.'; return; }
+      if(p1!==p2){ msg.textContent='Passwords do not match.'; return; }
+      if(p1.length<8){ msg.textContent='Use 8+ characters.'; return; }
+      if(!over18||!terms){ msg.textContent='Confirm 18+ and accept Terms.'; return; }
+      msg.textContent='Creating account...';
+      try{
+        const res=await fetch(API.auth.register,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:p1,enable2fa:document.getElementById('su-2fa').checked})});
+        if(!res.ok) throw new Error('Registration failed');
+        await res.json();
+        msg.textContent='Account created. Please sign in.';
+      }catch(e){ msg.textContent='Error: '+e.message; }
     }
 
-    // Modals handling
-    function openVerify(){
-      const m = document.getElementById('verifyModal');
-      m.classList.add('open');
-      m.setAttribute('aria-hidden','false');
+    // Gates
+    function consentOk(){
+      if(!document.getElementById('agree-mining-terms').checked){ alert('Please agree to the Mining Terms.'); return false; }
+      return true;
     }
-    function closeVerify(){
-      const m = document.getElementById('verifyModal');
-      m.classList.remove('open');
-      m.setAttribute('aria-hidden','true');
+    function openQuizThen(action){
+      if(!consentOk()) return;
+      window.__postQuizAction=action;
+      document.getElementById('quizMsg').textContent='';
+      document.getElementById('q1').value=''; document.getElementById('q2').value='';
+      document.getElementById('quizModal').style.display='flex';
+    }
+    function quizSubmit(){
+      const q1=document.getElementById('q1').value, q2=document.getElementById('q2').value;
+      const msg=document.getElementById('quizMsg');
+      if(q1!=='yes'||q2!=='hashrate'){ msg.textContent='Correct answers required to proceed.'; return; }
+      document.getElementById('quizModal').style.display='none';
+      if(typeof window.__postQuizAction==='function') window.__postQuizAction();
+    }
+    function quizClose(){ document.getElementById('quizModal').style.display='none'; }
+
+    // Free contract
+    function startFreeContract(){
+      openQuizThen(async ()=>{
+        try{
+          const res=await fetch(API.contracts.startFree,{method:'POST'});
+          if(!res.ok) throw new Error('Could not start free session');
+          alert('Free 12h session at 4 GH/s started. First-time users may run 2 sessions concurrently.');
+        }catch(e){ alert('Error: '+e.message); }
+      });
     }
 
-    function openCardVerify(){
-      closeVerify();
-      const m = document.getElementById('cardModal');
-      m.classList.add('open');
-      m.setAttribute('aria-hidden','false');
+    // Checkout (card → crypto bridge)
+    function openCheckout(planId){
+      currentPlan=planId;
+      openQuizThen(async ()=>{
+        try{
+          const res=await fetch(API.payments.fiatIntent,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({planId,saveCard:false})});
+          if(!res.ok) throw new Error('Failed to initialize checkout');
+          const data=await res.json();
+          window.__payment={id:data.paymentId,clientSecret:data.clientSecret};
+          const p=PRICING[planId];
+          document.getElementById('planLabel').textContent=p.label+' — '+p.speed+' GH/s';
+          document.getElementById('planUsd').textContent='$'+p.price.toFixed(2);
+          const q=data.quote||{};
+          document.getElementById('planCryptoQuote').textContent=(q.eth?'~'+q.eth+' ETH':'?')+' / '+(q.bnb?'~'+q.bnb+' BNB':'?');
+          document.getElementById('verifyMsg').textContent='';
+          document.getElementById('verifyModal').style.display='flex';
+        }catch(e){ alert('Checkout init error: '+e.message); }
+      });
     }
-    function closeCard(){
-      const m = document.getElementById('cardModal');
-      m.classList.remove('open');
-      m.setAttribute('aria-hidden','true');
+    function closeVerify(){ document.getElementById('verifyModal').style.display='none'; }
+    async function sendVerification(){
+      const method=document.getElementById('verifMethod').value, msg=document.getElementById('verifyMsg');
+      msg.textContent='Sending code...';
+      try{
+        const res=await fetch(API.twofa.send,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({method})});
+        if(!res.ok) throw new Error('Failed to send code');
+        msg.textContent='Code sent via '+method+'.';
+      }catch(e){ msg.textContent='Error: '+e.message; }
+    }
+    async function confirmCheckout(){
+      const msg=document.getElementById('verifyMsg');
+      const code=document.getElementById('verifCode').value.trim();
+      const totp=document.getElementById('totp').value.trim();
+      const saveCard=document.getElementById('saveCard').checked;
+      if(!window.__payment){ msg.textContent='No payment initialized.'; return; }
+      if(!code){ msg.textContent='Enter verification code.'; return; }
+      msg.textContent='Confirming payment and bridging to crypto...';
+      try{
+        const res=await fetch(API.payments.fiatConfirm,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentId:window.__payment.id,verificationCode:code,totp,saveCard})});
+        if(!res.ok) throw new Error('Payment/verification failed');
+        const data=await res.json();
+        const sres=await fetch(API.contracts.subscribe,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({planId:currentPlan,paymentRef:data.bridgeTxId||data.paymentId})});
+        if(!sres.ok) throw new Error('Subscription activation failed');
+        document.getElementById('verifyModal').style.display='none';
+        alert('Subscription active: '+PRICING[currentPlan].label+' — '+PRICING[currentPlan].speed+' GH/s.');
+      }catch(e){ msg.textContent='Error: '+e.message; }
     }
 
-    function completePayment(){
-      // Simulated payment completion
-      closeCard();
-      alert('Payment flow simulated. Your mining contract is now active. You can monitor progress in the dashboard.');
+    // Crypto direct
+    function openCryptoFor(planId){
+      currentPlan=planId;
+      const p=PRICING[planId];
+      document.getElementById('cPlanLabel').textContent=p.label+' — '+p.speed+' GH/s';
+      document.getElementById('cPlanUsd').textContent='$'+p.price.toFixed(2);
+      openQuizThen(()=>{ document.getElementById('cryptoMsg').textContent=''; document.getElementById('cryptoModal').style.display='flex'; });
+    }
+    function closeCrypto(){ document.getElementById('cryptoModal').style.display='none'; }
+    function copyAddr(){ const a='0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D'; navigator.clipboard.writeText(a).then(()=>alert('Address copied.')); }
+    async function verifyCrypto(){
+      const txHash=document.getElementById('txHash').value.trim();
+      const msg=document.getElementById('cryptoMsg');
+      if(!txHash){ msg.textContent='Enter transaction hash.'; return; }
+      msg.textContent='Verifying on-chain payment...';
+      try{
+        const network=txHash.startsWith('0x')?'eth':'bnb';
+        const res=await fetch(API.payments.cryptoVerify,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({planId:currentPlan,network,txHash})});
+        if(!res.ok) throw new Error('Could not verify payment');
+        await res.json();
+        const sres=await fetch(API.contracts.subscribe,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({planId:currentPlan,paymentRef:txHash})});
+        if(!sres.ok) throw new Error('Subscription activation failed');
+        document.getElementById('cryptoModal').style.display='none';
+        alert('Subscription active: '+PRICING[currentPlan].label+' — '+PRICING[currentPlan].speed+' GH/s.');
+      }catch(e){ msg.textContent='Error: '+e.message; }
     }
 
-    // Initialize (no external data or API calls)
-    // Ensure modals are hidden on load
-    window.addEventListener('load', ()=>{
-      document.getElementById('verifyModal').classList.remove('open');
-      document.getElementById('cardModal').classList.remove('open');
-    });
-
-    // Keyboard accessibility: close modals with escape
-    window.addEventListener('keydown', (e)=>{
-      if(e.key === 'Escape'){
-        document.querySelectorAll('.modal.open').forEach(m => {
-          m.classList.remove('open');
-          m.setAttribute('aria-hidden','true');
-        });
-      }
-    });
+    // Init
+    (async function init(){
+      try{
+        const res=await fetch(API.auth.me);
+        if(res.ok){ document.getElementById('notifDot').style.display='block'; }
+      }catch(e){}
+    })();
   </script>
 </body>
 </html>
