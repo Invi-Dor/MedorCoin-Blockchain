@@ -1,1 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Medori Coin (white background)">
+  <defs>
+    <linearGradient id="goldBase" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff6cf"/>
+      <stop offset="30%" stop-color="#e9c873"/>
+      <stop offset="60%" stop-color="#c79e52"/>
+      <stop offset="100%" stop-color="#8b6424"/>
+    </linearGradient>
+    <radialGradient id="goldSheen" cx="36%" cy="26%" r="74%">
+      <stop offset="0%" stop-color="#fff9dc"/>
+      <stop offset="40%" stop-color="#e8c874"/>
+      <stop offset="78%" stop-color="#b98635"/>
+      <stop offset="100%" stop-color="#724f1a"/>
+    </radialGradient>
+    <linearGradient id="edgeShade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d6b260"/>
+      <stop offset="50%" stop-color="#966b29"/>
+      <stop offset="100%" stop-color="#e0c271"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f4e4b1"/>
+      <stop offset="100%" stop-color="#c99c49"/>
+    </linearGradient>
+    <linearGradient id="circuitGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f3e0ad"/>
+      <stop offset="100%" stop-color="#b68431"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feOffset dy="10"/>
+      <feGaussianBlur stdDeviation="12"/>
+      <feColorMatrix type="matrix"
+        values="0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 .35 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+    <path id="topArc" d="M108,214 A155,155 0 0,1 404,214" fill="none"/>
+    <path id="botArc" d="M404,298 A155,155 0 0,1 108,298" fill="none"/>
+    <symbol id="star" viewBox="0 0 100 100">
+      <polygon points="50,4 62,36 96,36 67,55 78,88 50,68 22,88 33,55 4,36 38,36"/>
+    </symbol>
+    <style>
+      .bg { fill:#ffffff; }
+      .edge { fill:url(#edgeShade); }
+      .face { fill:url(#goldSheen); }
+      .ring { fill:url(#ringGrad); }
+      .ringBorder { fill:none; stroke:#b18436; stroke-width:3; }
+      .star { fill:#ecd089; stroke:#a77930; stroke-width:2; }
+      .m { fill:url(#goldBase); stroke:#7d571f; stroke-width:3; }
+      .circuit { fill:none; stroke:url(#circuitGrad); stroke-width:3; stroke-linecap:round; }
+      .pad { fill:#ead39b; stroke:#9b6f2d; stroke-width:2; }
+      .txt { fill:#c79b49; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; font-weight:800; letter-spacing:2px; }
+      .txt2 { fill:#c79b49; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; font-weight:700; letter-spacing:6px; }
+    </style>
+  </defs>
 
+  <rect class="bg" x="0" y="0" width="512" height="512"/>
+
+  <g filter="url(#shadow)" transform="translate(0,-8)">
+    <g transform="translate(256,256) rotate(-12) translate(-256,-256)">
+      <!-- Ridged edge -->
+      <g transform="translate(256,256)">
+        <ellipse rx="198" ry="198" class="edge" transform="translate(0,7)"/>
+        <!-- 56 ridges -->
+        <g>
+          <!-- repeated short rim rectangles to mimic ribbing -->
+          <!-- You may adjust colors/quantity to match your source even closer -->
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(0)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(6)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(12)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(18)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(24)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(30)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(36)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(42)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(48)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(54)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(60)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(66)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(72)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(78)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(84)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(90)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(96)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(102)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(108)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(114)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(120)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(126)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(132)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(138)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(144)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(150)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(156)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(162)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(168)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(174)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(180)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(186)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(192)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(198)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(204)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(210)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(216)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(222)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(228)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(234)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(240)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(246)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(252)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(258)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(264)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(270)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(276)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(282)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(288)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(294)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(300)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(306)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(312)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(318)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(324)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(330)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(336)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#b28535" transform="rotate(342)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#cb9a46" transform="rotate(348)"/>
+          <rect x="-2" y="-206" width="4" height="16" fill="#9f742b" transform="rotate(354)"/>
+        </g>
+      </g>
+
+      <!-- Coin face -->
+      <g transform="translate(256,256)">
+        <circle r="188" class="face"/>
+        <circle r="164" class="ring"/>
+        <circle r="164" class="ringBorder"/>
+      </g>
+
+      <!-- Stars ring -->
+      <g transform="translate(256,256) rotate(-8)">
+        <g>
+          <g transform="rotate(0) translate(0,-164)"><use href="#star" width="16" height="16" x="-8" y="-8" class="star"/></g>
+          <g transform="rotate(30) translate(0,-164)"><use href="#star" width="16" height="16" x="-8" y="-8" class="star"/></g>
+          <g transform="rotate(60) translate(0,-164)"><use href="#star" width="16" height="16" x="-8" y="-8" class="star"/></g>
+          <g transform="rotate(90) translate(0,-164)"><use href="#star" width="16" height="16" x="-8" y="-8" class="star"/></g>
+          <g transform="rotate(120) translate(0,-164)"><use href="#star" width="16" height="16" x="-8" y="-8" class="star"/></g>
+          <g transform="rotate(150) translate(0,-164)"><use href="#star" width="16" height="16" x="-8" y="-8" class="star"/></g>
+          <g transform="rotate(180) translate(0,-164)"><use href="#star" width="16" height="16" x="-8" y="-8" class="star"/></g>
+          <g transform="rotate(210) translate(0,-164)"><use href="#star" width="16" height="16" x="-8" y="-8" class="star"/></g>
+          <g transform="rotate(240) translate(0,-164)"><use href="#star" width="16" height="16" x="-8" y="-8" class="star"/></g>
+          <g transform="rotate(270) translate(0,-164)"><use href="#star" width="16" height="16" x="-8" y="-8" class="star"/></g>
+          <g transform="rotate(300) translate(0,-164)"><use href="#star" width="16" height="16" x="-8" y="-8" class="star"/></g>
+          <g transform="rotate(330) translate(0,-164)"><use href="#star" width="16" height="16" x="-8" y="-8" class="star"/></g>
+        </g>
+      </g>
+
+      <!-- Circuit motif -->
+      <g transform="translate(256,256)">
+        <path class="circuit" d="M-90,-10 h60 a10,10 0 0 1 10,10 v36
+                                 m-46,-46 v-20 a10,10 0 0 1 10,-10 h46
+                                 m-10,86 h26 a10,10 0 0 0 10,-10 v-26
+                                 M-40,52 h-30 a10,10 0 0 1 -10,-10 v-16
+                                 M28,-56 h38 a12,12 0 0 1 12,12 v24
+                                 M60,40 v26 a10,10 0 0 1 -10,10 h-28"/>
+        <circle class="pad" cx="-30" cy="-10" r="4"/>
+        <circle class="pad" cx="0" cy="26" r="4"/>
+        <circle class="pad" cx="52" cy="-20" r="4"/>
+        <circle class="pad" cx="36" cy="66" r="4"/>
+      </g>
+
+      <!-- Central M emblem -->
+      <g transform="translate(256,256) scale(1.05)">
+        <path class="m" d="M-72,68 v-136 h30 l42,62 42,-62 h30 v136 h-30 v-78 l-42,60 -42,-60 v78z"/>
+      </g>
+
+      <!-- Text on arcs -->
+      <g transform="translate(256,256)">
+        <text class="txt" font-size="34">
+          <textPath href="#topArc" startOffset="50%" text-anchor="middle">MEDORI</textPath>
+        </text>
+        <text class="txt2" font-size="28">
+          <textPath href="#botArc" startOffset="50%" text-anchor="middle">COIN</textPath>
+        </text>
+      </g>
+    </g>
+  </g>
+</svg>
