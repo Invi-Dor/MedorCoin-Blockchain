@@ -171,7 +171,7 @@
     if(!email) return;
     // Tell the backend to send a magic link that redirects back to this page’s /auth-complete
     // If your backend supports 'redirectUrl', include it; otherwise it should be preconfigured server-side.
-    const redirectUrl = SITE_ROOT + '/site/learners.html/auth-complete';
+    const redirectUrl = SITE_ROOT + '/learn.html/auth-complete';
     try{
       await fetch(`${window.__ENV.API_BASE}/api/auth/request`, {
         method: 'POST',
@@ -187,15 +187,15 @@
   // Handle magic-link redirect on this page if path ends with /auth-complete
   (function checkAuthComplete(){
     // Works for: https://invi-dor.github.io/MedorCoin-Blockchain/site/learners.html/auth-complete#token=...
-    if (location.pathname.endsWith('/site/learners.html/auth-complete') ||
-        location.pathname.endsWith('/learners.html/auth-complete')) {
+    if (location.pathname.endsWith('/learn.html/auth-complete') ||
+        location.pathname.endsWith('/learn.html/auth-complete')) {
       const token = location.hash.replace('#token=', '');
       if (token) {
         localStorage.setItem('mc_token', token);
         AUTH_TOKEN = token;
         alert('Logged in successfully.');
         // Redirect to canonical learners page on your site root
-        window.location.href = SITE_ROOT + '/site/learners.html';
+        window.location.href = SITE_ROOT + '/site/learn.html';
       }
     }
   })();
