@@ -1,1 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>MedorCoin Miners</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#1a1a1a;
+      --bg2:#1e1e1e;
+      --card:#222;
+      --orange:#ff7a18;
+      --text:#e8e8e8;
+      --muted:#b8b8b8;
+      --green:#4bd26a;
+      --red:#e05555;
+      --shadow:0 6px 18px rgba(0,0,0,.4);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,Arial}
+    header{padding:16px 20px;border-bottom:1px solid #333;background:linear-gradient(#2a2a2a,#1a1a1a)}
+    header h1{margin:0;font-size:20px;font-weight:600}
+    .container{max-width:980px;margin:0 auto;padding:16px}
+    .gif{width:100%;max-width:640px;border-radius:12px;display:block;margin:0 auto 14px auto}
+    .section{background:var(--card);border-radius:12px;padding:16px;margin:14px 0;box-shadow:var(--shadow)}
+    .section h2{margin:0 0 8px 0;font-size:16px;letter-spacing:.4px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media (max-width:700px){
+      .grid{grid-template-columns:1fr}
+    }
+    .plan{border:1px solid #333;border-radius:10px;padding:14px;position:relative}
+    .plan h3{margin:0 0 6px 0;font-size:15px}
+    .muted{color:var(--muted);font-size:12px}
+    .price{font-size:20px;font-weight:700;color:var(--orange)}
+    .strike{text-decoration:line-through;color:#999;margin-left:6px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;border:1px solid #444;background:#2a2a2a;color:#fff;cursor:pointer}
+    .btn.primary{background:var(--orange);border-color:#e06720}
+    .btn.ghost{background:transparent;border:1px dashed #555}
+    .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .badge{padding:4px 8px;border-radius:999px;background:#333;color:#fff;font-size:11px}
+    .copy{font-family: monospace;background:#111;border:1px solid #333;padding:6px 10px;border-radius:6px;min-width:280px;word-break:break-all}
+    .link{color:#9bd0ff;text-decoration:underline;cursor:pointer}
+    .section-title{font-weight:600;margin-bottom:8px}
+    .hr{height:1px;background:#333;margin:12px 0}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center}
+    .modal.open{display:flex}
+    .modal-card{width:min(720px,92vw);background:#1f1f1f;border-radius:12px;padding:16px;border:1px solid #444}
+    .checkbox{display:flex;align-items:center;gap:8px;margin:8px 0}
+    .tiny{font-size:11px;color:#ddd}
+    .footer{margin-top:14px;font-size:12px;color:#bbb}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Miners</h1>
+  </header>
 
+  <main class="container">
+    <!-- GIF / animation preserved -->
+    <img class="gif" src="data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAUwAOw==" alt="Mining animation placeholder" />
+
+    <!-- Disclaimer / notice -->
+    <div class="section" id="intro">
+      <h2>Disclaimer</h2>
+      <p class="muted">This is a simulated mining platform for demonstration. The UI shows plans, payments, and contract flows. It does not perform real crypto transfers in this environment. Crypto markets are volatile; never invest more than you can afford. A separate terms and conditions screen applies before account creation and before starting mining.</p>
+    </div>
+
+    <!-- How it works -->
+    <div class="section" id="how-it-works">
+      <h2>How Mining Works (Step-by-Step)</h2>
+      <ol class="muted" style="margin:0 0 8px 18px; padding:0 0 0 18px">
+        <li>Choose a plan: Free tier or paid plans with different GH/s and durations.</li>
+        <li>Provide payment method: Debit/Credit card bridge to crypto or crypto direct (BNB, ETH, BTC).</li>
+        <li>For card payments: USD amount is converted to the chosen crypto at current rate inside the app.</li>
+        <li>For crypto payments: send the exact address to the platform for the selected plan’s duration and speed.</li>
+        <li>Contracts renew every 24 hours on paid plans; free tier renewals occur every 12 hours with limited GH/s.</li>
+        <li>Earn MedorCoin as you mine; higher speed yields more rewards.</li>
+        <li>Before starting, answer two quick quizzes and complete a verification (email or phone).</li>
+        <li>All accounts require adult consent (18+) and acceptance of terms.</li>
+      </ol>
+    </div>
+
+    <!-- Pricing / Plans -->
+    <section class="section" id="plans">
+      <h2 class="section-title">Mining Plans</h2>
+      <div class="grid" id="plans-grid">
+        <!-- Plan 1: Free -->
+        <div class="plan" aria-label="Free mining plan">
+          <h3>Free Plan</h3>
+          <div class="row">
+            <span>Speed</span><span class="badge">4 GH/s</span>
+          </div>
+          <div class="row">
+            <span>Duration</span><span class="muted">12 hours per contract</span>
+          </div>
+          <div class="row" style="align-items:flex-end;">
+            <span class="muted">Limited to 12h until renewal.</span>
+            <span class="price" title="Free">Free</span>
+          </div>
+          <div class="row" style="margin-top:8px;">
+            <span class="muted">Bonus for first-time users: multiple contracts available for early access.</span>
+            <button class="btn" onclick="selectPlan('free')">Start Free</button>
+          </div>
+          <div class="tiny">Note: free tier is not 24 hours; 12-hour cycles only.</div>
+        </div>
+
+        <!-- Plan 2: 1 Month -->
+        <div class="plan" aria-label="1 month mining plan">
+          <h3>1 Month Plan</h3>
+          <div class="row">
+            <span>Price</span><span class="price">$15</span>
+          </div>
+          <div class="row">
+            <span>Speed</span><span class="badge">610 GH/s</span>
+          </div>
+          <div class="row">
+            <span>Duration</span><span class="muted">30 days</span>
+          </div>
+          <div class="row" style="margin-top:6px;">
+            <span class="muted">Includes full benefits and standard security checks.</span>
+            <button class="btn primary" onclick="selectPlan('1m')">Subscribe</button>
+          </div>
+        </div>
+
+        <!-- Plan 3: 3 Months -->
+        <div class="plan" aria-label="3 months mining plan">
+          <h3>3 Months Plan</h3>
+          <div class="row">
+            <span>Original</span><span class="price" style="text-decoration: line-through;">$45</span>
+          </div>
+          <div class="row">
+            <span>Discount</span><span class="badge">20%</span>
+          </div>
+          <div class="row">
+            <span>Speed</span><span class="badge">610 GH/s</span>
+          </div>
+          <div class="row">
+            <span>Duration</span><span class="muted">90 days</span>
+          </div>
+          <div class="row" style="margin-top:6px;">
+            <span class="muted">Pay 80% of total after discount.</span>
+            <button class="btn primary" onclick="selectPlan('3m')">Subscribe</button>
+          </div>
+        </div>
+
+        <!-- Plan 4: 6 Months -->
+        <div class="plan" aria-label="6 months mining plan">
+          <h3>6 Months Plan</h3>
+          <div class="row">
+            <span>Original</span><span class="price" style="text-decoration: line-through;">$90</span>
+          </div>
+          <div class="row">
+            <span>Discount</span><span class="badge">40%</span>
+          </div>
+          <div class="row">
+            <span>Speed</span><span class="badge">610 GH/s</span>
+          </div>
+          <div class="row">
+            <span>Duration</span><span class="muted">180 days</span>
+          </div>
+          <div class="row" style="margin-top:6px;">
+            <span class="muted">Pay 60% of total after discount.</span>
+            <button class="btn primary" onclick="selectPlan('6m')">Subscribe</button>
+          </div>
+        </div>
+
+        <!-- Plan 5: 12 Months -->
+        <div class="plan" aria-label="12 months mining plan">
+          <h3>12 Months Plan</h3>
+          <div class="row">
+            <span>Original</span><span class="price" style="text-decoration: line-through;">$180</span>
+          </div>
+          <div class="row">
+            <span>Discount</span><span class="badge">60%</span>
+          </div>
+          <div class="row">
+            <span>Speed</span><span class="badge">610 GH/s</span>
+          </div>
+          <div class="row">
+            <span>Duration</span><span class="muted">365 days</span>
+          </div>
+          <div class="row" style="margin-top:6px;">
+            <span class="muted">Pay 40% of total after discount.</span>
+            <button class="btn primary" onclick="selectPlan('12m')">Subscribe</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="section" id="security">
+        <h2 class="section-title">Security & Verification</h2>
+        <div class="checkbox">
+          <input type="checkbox" id="quiz1" />
+          <label for="quiz1">I understand mining risks and have completed the two-question awareness quiz.</label>
+        </div>
+        <div class="checkbox">
+          <input type="checkbox" id="verify" />
+          <label for="verify">I agree to verify my purchase via email or phone before confirming.</label>
+        </div>
+        <div class="muted" style="margin-top:6px;">
+          Adult consent (18+) required. All terms and conditions must be accepted before account creation and before starting mining.
+        </div>
+      </div>
+    </section>
+
+    <!-- Payment Bridge / Crypto Section (no real processing) -->
+    <section class="section" id="payments">
+      <h2 class="section-title">Payment Methods & Crypto Addresses</h2>
+
+      <!-- BNB Chain -->
+      <div class="plan" aria-label="BNB Chain payment">
+        <h3>BNB Chain</h3>
+        <div class="row">
+          <span>Address</span>
+          <span class="copy" id="addr-bnb">0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D</span>
+        </div>
+        <div class="row" style="margin-top:6px;">
+          <span class="muted">View on Explorer</span>
+          <a class="link" href="https://bscscan.com/address/0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D" target="_blank" rel="noopener">Open BscScan</a>
+        </div>
+        <div class="row" style="margin-top:6px;">
+          <button class="btn" onclick="copyText('addr-bnb')">Copy Address</button>
+        </div>
+      </div>
+
+      <!-- BTC -->
+      <div class="plan" aria-label="BTC payment">
+        <h3>BTC</h3>
+        <div class="row">
+          <span>Address</span>
+          <span class="copy" id="addr-btc">bc1qqw23mshetzu6gshssuu8pl2pdknra02d4ucfd5</span>
+        </div>
+        <div class="row" style="margin-top:6px;">
+          <span class="muted">View on Explorer</span>
+          <a class="link" href="https://blockstream.info/bech32/bc1qqw23mshetzu6gshssuu8pl2pdknra02d4ucfd5" target="_blank" rel="noopener">Open Blockstream</a>
+        </div>
+        <div class="row" style="margin-top:6px;">
+          <button class="btn" onclick="copyText('addr-btc')">Copy Address</button>
+        </div>
+      </div>
+
+      <!-- ETH -->
+      <div class="plan" aria-label="ETH payment">
+        <h3>Ethereum</h3>
+        <div class="row">
+          <span>Address</span>
+          <span class="copy" id="addr-eth">0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D</span>
+        </div>
+        <div class="row" style="margin-top:6px;">
+          <span class="muted">View
