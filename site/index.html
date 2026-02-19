@@ -1,165 +1,225 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MedorCoin — Home</title>
-  <meta name="description" content="MedorCoin — HomePage, Miners, Developers, Crypto Trading, Learn, and more."/>
-  <style>
-    :root{
-      --bg:#f6f8fb; --ink:#0f172a; --muted:#64748b; --primary:#1d4ed8; --accent:#06b6d4;
-      --card:#ffffff; --border:#e5e7eb; --tab:#e2e8f0; --pill:#eef2ff;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-    a{color:var(--primary);text-decoration:none} a:hover{text-decoration:underline}
-    .container{max-width:980px;margin:0 auto;padding:12px}
-    .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .space{justify-content:space-between}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
-    .logo{display:flex;align-items:center;gap:8px}
-    .logo img{height:32px;width:32px;border-radius:8px;object-fit:cover}
-    .brand{font-weight:700}
-    .searchbar{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:10px 12px;margin-top:8px}
-    .searchbar input{border:0;outline:0;flex:1;font-size:14px}
-    .pill{font-size:11px;background:var(--pill);color:#4338ca;border-radius:999px;padding:4px 8px}
-    .tabs{display:flex;gap:10px;overflow:auto;padding:8px 0;margin-top:8px}
-    .tab{display:flex;align-items:center;gap:6px;background:var(--tab);border:1px solid var(--border);color:#0f172a;border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
-    .tab.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
-    .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center}
-    .tile .icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700}
-    .ic-blue{background:#e0f2fe;color:#0369a1}
-    .ic-green{background:#dcfce7;color:#166534}
-    .ic-orange{background:#ffedd5;color:#9a3412}
-    .ic-purple{background:#ede9fe;color:#6d28d9}
-    .ic-red{background:#fee2e2;color:#b91c1c}
-    .ic-gray{background:#e5e7eb;color:#111827}
-    .tile b{font-size:14px}
-    .muted{color:var(--muted);font-size:12px}
-    .headline{font-size:20px;font-weight:700;margin:10px 0 4px}
-    .notif{display:flex;align-items:center;gap:10px}
-    .notif .bell{width:32px;height:32px;border-radius:999px;background:#fee2e2;display:flex;align-items:center;justify-content:center;color:#b91c1c;font-weight:700}
-    .btn{display:inline-block;background:#1d4ed8;color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:600;text-decoration:none}
-    .btn.ghost{background:transparent;border:1px solid var(--border);color:#0f172a}
-    footer{margin:14px 0;color:var(--muted);font-size:12px}
-    .bottomnav{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px 0}
-    .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;margin-right:6px}
-    .ok{background:#16a34a}.warn{background:#f59e0b}.err{background:#ef4444}
-    code{background:#0f172a10;padding:2px 4px;border-radius:4px}
-  </style>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MedorCoin — Home</title>
+<meta name="description" content="MedorCoin home portal."/>
+<style>
+  :root{--bg:#faf9f6;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb}
+  {box-sizing:border-box}
+  body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  a{color:inherit;text-decoration:none}
+  .container{max-width:980px;margin:0 auto;padding:12px}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.space{justify-content:space-between}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7}
+  .brand{font-weight:800;font-size:18px}
+  .searchbar{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:10px 12px;margin-top:10px}
+  .searchbar input{border:0;outline:0;flex:1;font-size:14px;color:var(--ink);background:transparent}
+  .pill{font-size:11px;background:#fff7e6;color:#B5943F;border:1px solid #f2e6bf;border-radius:999px;padding:4px 8px}
+  .tabs{display:flex;gap:10px;overflow:auto;padding:10px 0;margin-top:8px}
+  .tab{display:flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid var(--border);color:var(--ink);border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+  .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+  .muted{color:var(--muted);font-size:12px}
+  .icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+  .icon svg{width:22px;height:22px;display:block}
+  .ic-gold{background:#fff7e6;border:1px solid #f2e6bf}
+  .ic-slate{background:#eef1f5;border:1px solid #e2e8f0}
+</style>
 </head>
 <body>
   <div class="container">
     <div class="row space">
       <div class="logo">
-        <img src="assets/logo.png" alt="MedorCoin Logo" onerror="this.style.display='none'"/>
+        <img src="assets/logo.png" alt="MedorCoin Logo"/>
         <div class="brand">MedorCoin</div>
       </div>
     </div>
 
     <div class="searchbar">
-      <span style="opacity:.6">🔎</span>
+      <span style="opacity:.7">🔎</span>
       <input id="q" placeholder="Search"/>
       <span class="pill">AI</span>
     </div>
 
     <div class="tabs">
-      <a class="tab active" href="#"><span>🏠</span><span>HomePage</span></a>
-      <a class="tab" href="#"><span>🍽️</span><span>Food</span></a>
-      <a class="tab" href="#"><span>⛏️</span><span>Miners</span></a>
-      <a class="tab" href="#"><span>👩‍💻</span><span>Developers</span></a>
-      <a class="tab" href="#"><span>📈</span><span>Crypto Trading</span></a>
+      <a class="tab" href="index.html">🏠 HomePage</a>
+      <a class="tab" href="food.html">🍽️ Food</a>
+      <a class="tab" href="miners.html">⛏️ Miners</a>
+      <a class="tab" href="developers.html">👩‍💻 Developers</a>
+      <a class="tab" href="trading.html">📈 Crypto Trading</a>
     </div>
 
     <div class="grid">
-      <a class="tile" href="miners.html"><div class="icon ic-green">⛏️</div><b>Miners</b><span class="muted">Mining tools & stats</span></a>
-      <a class="tile" href="developers.html"><div class="icon ic-purple">👩‍💻</div><b>Developers</b><span class="muted">Docs, SDKs, APIs</span></a>
-      <a class="tile" href="trading.html"><div class="icon ic-orange">📊</div><b>Crypto Trading</b><span class="muted">Charts & orders</span></a>
-      <a class="tile" href="dialogue.html"><div class="icon ic-blue">💬</div><b>Dialogue</b><span class="muted">Community & chat</span></a>
-      <a class="tile" href="site/learners.html"><div class="icon ic-blue">🎓</div><b>Learn</b><span class="muted">Courses & certificates</span></a>
-      <a class="tile" href="whales.html"><div class="icon ic-red">🐋</div><b>Crypto Whales</b><span class="muted">Large moves</span></a>
-      <a class="tile" href="account.html"><div class="icon ic-gray">👤</div><b>My Account</b><span class="muted">Profile & access</span></a>
-      <a class="tile" href="listings.html"><div class="icon ic-purple">🆕</div><b>New Listing</b><span class="muted">Fresh coins & tokens</span></a>
-      <a class="tile" href="more.html"><div class="icon ic-gray">➕</div><b>More</b><span class="muted">Explore features</span></a>
-    </div>
+      <a class="tile" href="miners.html"><div class="icon ic-slate">⛏️</div><b>Miners</b><span class="muted">Start mining</span></a>
+      <a class="tile" href="developers.html"><div class="icon ic-slate">👩‍💻</div><b>Developers</b><span class="muted">Docs & SDKs</span></a>
+      <a class="tile" href="trading.html"><div class="icon ic-slate">📈</div><b>Crypto Trading</b><span class="muted">Markets & tools</span></a>
+      <a class="tile" href="dialogue.html"><div class="icon ic-slate">💬</div><b>Dialogue</b><span class="muted">Chat & support</span></a>
+      <a class="tile" href="learn.html"><div class="icon ic-slate">📚</div><b>Learn</b><span class="muted">Guides</span></a>
+      <a class="tile" href="whales.html"><div class="icon ic-slate">🐋</div><b>Crypto Whales</b><span class="muted">Large flows</span></a>
+      <a class="tile" href="account.html"><div class="icon ic-slate">👤</div><b>My Account</b><span class="muted">Profile</span></a>
+      <a class="tile" href="new-listing.html"><div class="icon ic-slate">🆕</div><b>New Listing</b><span class="muted">List a token</span></a>
 
-    <div class="card" style="margin-top:12px;">
-      <div class="notif">
-        <div class="bell">🔔</div>
-        <div>
-          <b>View all notifications</b><br/>
-          <span class="muted">You have new updates</span>
+      <!-- Blockchain (lowercase file path) -->
+      <a class="tile" href="sites/blockchain.html">
+        <div class="icon ic-slate" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#B5943F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="5" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <circle cx="19" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <circle cx="5" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <circle cx="19" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <path d="M7.2 6h9.6"/><path d="M5 8.6v6.8"/><path d="M19 8.6v6.8"/><path d="M6.6 16.8L10.8 12h-2.2l4.8-4.8M12.8 12l4.6 4.6"/>
+          </svg>
         </div>
-      </div>
+        <b>Blockchain</b>
+        <span class="muted">On-chain tools & explorer</span>
+      </a>
+
+      <!-- Locks -->
+      <a class="tile" href="locks.html">
+        <div class="icon ic-gold" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M7.5 10V8.5a4.5 4.5 0 1 1 9 0V10" stroke="#A3AAB5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="5.5" y="10" width="13" height="10" rx="2" fill="#D7BF77" stroke="#B5943F" stroke-width="1.4"/>
+            <path d="M6.8 11.4h10.4c.3 0 .5.2.5.5v.2c-1.8.6-3.7.9-5.5.9s-3.7-.3-5.5-.9v-.2c0-.3.2-.5.5-.5z" fill="#F7EFD4" opacity=".55"/>
+            <circle cx="12" cy="15" r="1.2" fill="#8C6A2C"/>
+            <rect x="11.4" y="15.9" width="1.2" height="2.3" rx=".6" fill="#8C6A2C"/>
+          </svg>
+        </div>
+        <b>Locks</b>
+        <span class="muted">Lock-ups & vesting</span>
+      </a>
     </div>
 
-    <div class="card" style="margin-top:12px;">
-      <b>Blockchain's transactions</b>
-      <div class="muted" style="margin-top:6px">Live verification, addresses, and tools.</div>
-      <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap">
-        <a class="btn" href="site/learners.html">Open Learn</a>
-        <a class="btn ghost" href="site/my-classroom.html">My Classroom</a>
-        <span class="muted">EVM: <code>0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0</code></span>
-        <span class="muted">BTC: <code>bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv</code></span>
-      </div>
-      <div class="row" style="gap:16px;margin-top:10px">
-        <div><span id="apiDot" class="dot"></span><span class="muted">API</span> <span id="apiStatus" class="muted">Checking…</span></div>
-        <div><span id="authDot" class="dot"></span><span class="muted">Auth</span> <span id="authStatus" class="muted">Checking…</span></div>
-        <div><span id="payDot" class="dot"></span><span class="muted">Payments</span> <span id="payStatus" class="muted">Checking…</span></div>
-      </div>
-    </div>
-
-    <footer>
-      MedorCoin © · <a href="https://invi-dor.github.io/MedorCoin-Blockchain">Site root</a>
-    </footer>
+    <footer style="margin:14px 0;color:var(--muted);font-size:12px">MedorCoin ©</footer>
   </div>
+</body>
+</html>
 
-  <nav class="bottomnav">
-    <a href="#" class="muted">Video</a>
-    <a href="#" class="muted">Message</a>
-    <a href="#" class="muted">Account</a>
-  </nav>
+FILE: sites/blockchain.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MedorCoin — Blockchain</title>
+<meta name="description" content="On-chain tools, explorers, and verification for MedorCoin."/>
+<style>
+  :root{--bg:#faf9f6;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb}
+  {box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  a{color:#B5943F;text-decoration:none} a:hover{text-decoration:underline}
+  .container{max-width:980px;margin:0 auto;padding:12px}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.space{justify-content:space-between}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7}
+  .brand{font-weight:800;font-size:18px}
+  .tabs{display:flex;gap:10px;overflow:auto;padding:10px 0;margin-top:8px}
+  .tab{display:flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid var(--border);color:var(--ink);border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+  .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+  .icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#eef1f5;border:1px solid #e2e8f0}
+  .muted{color:var(--muted);font-size:12px}
+  .icon svg{width:22px;height:22px;display:block}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="row space">
+      <div class="logo"><img src="../assets/logo.png" alt="MedorCoin Logo"/><div class="brand">MedorCoin</div></div>
+    </div>
 
-  <script>
-    const SITE_ROOT = 'https://invi-dor.github.io/MedorCoin-Blockchain';
-    window.__ENV = window.__ENV || {};
-    window.__ENV.API_BASE = 'https://invi-dor.github.io/MedorCoin-Blockchain/'; // replace later with real API
+    <div class="tabs">
+      <a class="tab" href="../index.html">🏠 HomePage</a>
+      <a class="tab" href="../food.html">🍽️ Food</a>
+      <a class="tab" href="../miners.html">⛏️ Miners</a>
+      <a class="tab" href="../developers.html">👩‍💻 Developers</a>
+      <a class="tab" href="../trading.html">📈 Crypto Trading</a>
+    </div>
 
-    let AUTH_TOKEN = localStorage.getItem('mc_token') || null;
-    function setDot(id, status){
-      const el = document.getElementById(id);
-      el.classList.remove('ok','warn','err');
-      if(status==='ok') el.classList.add('ok');
-      else if(status==='warn') el.classList.add('warn');
-      else if(status==='err') el.classList.add('err');
-    }
-    function authHeaders(){ return AUTH_TOKEN ? { Authorization:'Bearer '+AUTH_TOKEN } : {}; }
+    <h2 style="margin:8px 0 0 2px">⛓️ Blockchain</h2>
+    <div class="muted" style="margin:4px 2px 10px">On-chain explorer, verification tools, and network endpoints.</div>
 
-    async function checkApi(){
-      try{
-        const r = await fetch(`${window.__ENV.API_BASE}/health`);
-        if(r.ok){ setDot('apiDot','ok'); document.getElementById('apiStatus').textContent='Healthy'; }
-        else{ setDot('apiDot','warn'); document.getElementById('apiStatus').textContent='Responding with errors'; }
-      }catch{ setDot('apiDot','err'); document.getElementById('apiStatus').textContent='Unreachable'; }
-    }
-    async function checkAuth(){
-      if(!AUTH_TOKEN){ document.getElementById('authStatus').textContent='Not logged in'; return; }
-      try{
-        const r = await fetch(`${window.__ENV.API_BASE}/api/me`, { headers:{ ...authHeaders() }});
-        if(r.ok){ setDot('authDot','ok'); document.getElementById('authStatus').textContent='Authenticated'; }
-        else if(r.status===401){ setDot('authDot','warn'); document.getElementById('authStatus').textContent='Unauthorized'; }
-        else{ setDot('authDot','warn'); document.getElementById('authStatus').textContent='Error'; }
-      }catch{ setDot('authDot','err'); document.getElementById('authStatus').textContent='Unreachable'; }
-    }
-    async function checkPayments(){
-      try{
-        const r = await fetch(`${window.__ENV.API_BASE}/api/payments/status`);
-        if(r.ok){ const j = await r.json(); const ok = j?.evm?.ok||j?.btc?.ok; setDot('payDot', ok?'ok':'warn'); document.getElementById('payStatus').textContent = ok?'Verifiers online':'Partial/outage'; }
-        else{ setDot('payDot','warn'); document.getElementById('payStatus').textContent='Status error'; }
-      }catch{ setDot('payDot','err'); document.getElementById('payStatus').textContent='Unreachable'; }
-    }
-    (function init(){ checkApi(); checkAuth(); checkPayments(); })();
-  </script>
+    <div class="grid">
+      <div class="tile">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#B5943F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="5" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <circle cx="19" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <circle cx="5" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <circle cx="19" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <path d="M7.2 6h9.6"/><path d="M5 8.6v6.8"/><path d="M19 8.6v6.8"/><path d="M6.6 16.8L10.8 12h-2.2l4.8-4.8M12.8 12l4.6 4.6"/>
+          </svg>
+        </div>
+        <b>Explorer</b>
+        <span class="muted">Search tx, blocks, addresses</span>
+      </div>
+
+      <div class="tile">
+        <div class="icon" aria-hidden="true">✅</div>
+        <b>Verify</b>
+        <span class="muted">Proofs & signatures</span>
+      </div>
+
+      <div class="tile">
+        <div class="icon" aria-hidden="true">🛰️</div>
+        <b>RPC Endpoints</b>
+        <span class="muted">Public/Private nodes</span>
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top:14px"><a href="../index.html">← Back to Home</a></p>
+  </div>
+</body>
+</html>
+
+FILE: locks.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MedorCoin — Locks</title>
+<meta name="description" content="Lock-ups, vesting, and time-locked contracts for MedorCoin."/>
+<style>
+  :root{--bg:#faf9f6;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb}
+  *{box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  a{color:#B5943F;text-decoration:none} a:hover{text-decoration:underline}
+  .container{max-width:980px;margin:0 auto;padding:12px}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.space{justify-content:space-between}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7}
+  .brand{font-weight:800;font-size:18px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+  .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+  .icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#fff7e6;border:1px solid #f2e6bf}
+  .muted{color:var(--muted);font-size:12px}
+  .icon svg{width:22px;height:22px;display:block}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="row space">
+      <div class="logo"><img src="assets/logo.png" alt="MedorCoin Logo"/><div class="brand">MedorCoin</div></div>
+    </div>
+
+    <h2 style="margin:8px 0 0 2px">🔒 Locks</h2>
+    <div class="muted" style="margin:4px 2px 10px">Lock-ups, vesting, and time-locked contracts.</div>
+
+    <div class="grid">
+      <a class="tile" href="#"><div class="icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M7.5 10V8.5a4.5 4.5 0 1 1 9 0V10" stroke="#A3AAB5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="5.5" y="10" width="13" height="10" rx="2" fill="#D7BF77" stroke="#B5943F" stroke-width="1.4"/>
+          <path d="M6.8 11.4h10.4c.3 0 .5.2.5.5v.2c-1.8.6-3.7.9-5.5.9s-3.7-.3-5.5-.9v-.2c0-.3.2-.5.5-.5z" fill="#F7EFD4" opacity=".55"/>
+          <circle cx="12" cy="15" r="1.2" fill="#8C6A2C"/>
+          <rect x="11.4" y="15.9" width="1.2" height="2.3" rx=".6" fill="#8C6A2C"/>
+        </svg>
+      </div><b>Token Lock</b><span class="muted">Create a lock</span></a>
+
+      <a class="tile" href="#"><div class="icon" aria-hidden="true">🗓️</div><b>Vesting</b><span class="muted">Schedules & cliffs</span></a>
+      <a class="tile" href="#"><div class="icon" aria-hidden="true">📜</div><b>Contracts</b><span class="muted">Audits & addresses</span></a>
+    </div>
+
+    <p class="muted" style="margin-top:14px"><a href="index.html">← Back to Home</a></p>
+  </div>
 </body>
 </html>
