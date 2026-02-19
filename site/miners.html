@@ -248,4 +248,143 @@
           <span class="copy" id="addr-eth">0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D</span>
         </div>
         <div class="row" style="margin-top:6px;">
-          <span class="muted">View
+          <span class="muted">View on Explorer</span>
+          <a class="link" href="https://etherscan.io/address/0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D" target="_blank" rel="noopener">Open Etherscan</a>
+        </div>
+        <div class="row" style="margin-top:6px;">
+          <button class="btn" onclick="copyText('addr-eth')">Copy Address</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Verification modal (quiz and verification steps) -->
+    <div class="modal" id="verifyModal" aria-hidden="true">
+      <div class="modal-card">
+        <h3>Before You Start Mining</h3>
+        <p class="muted" style="margin-top:4px;">
+          Please answer two quick quiz questions to confirm you understand the mining process.
+        </p>
+        <ol style="margin:8px 0 12px 18px;">
+          <li>Is mining a bandwidth and electricity-consuming activity? (Yes/No)</li>
+          <li>Solve: What is 2 + 2? (Answer: 4)</li>
+        </ol>
+
+        <div class="checkbox">
+          <input type="checkbox" id="quizCheck" />
+          <label for="quizCheck">I completed the quiz and understand the risk.</label>
+        </div>
+
+        <div class="row" style="justify-content:flex-end;margin-top:8px;">
+          <button class="btn" onclick="closeVerify()">Cancel</button>
+          <button class="btn primary" onclick="openCardVerify()">Verify & Proceed</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card verification modal (simulated) -->
+    <div class="modal" id="cardModal" aria-hidden="true">
+      <div class="modal-card">
+        <h3>Card Verification</h3>
+        <p class="muted" style="margin-top:4px;">
+          Please enter a dummy 2-step verification to confirm your card. This is a simulated flow.
+        </p>
+        <div class="row" style="gap:8px;flex-wrap:wrap;">
+          <input placeholder="Email or Phone (for verification)" id="verifyInput" style="flex:1 1 260px;padding:8px;border-radius:6px;border:1px solid #444;background:#111;color:#fff;" />
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <button class="btn" onclick="closeCard()">Cancel</button>
+          <button class="btn primary" onclick="completePayment()">Confirm Purchase</button>
+        </div>
+        <div class="tiny" style="margin-top:6px;">Disclaimer: This is a simulated verification – no real payments are processed.</div>
+      </div>
+    </div>
+
+    <div class="footer" style="text-align:center;margin-top:18px;">
+      © MedorCoin Miners - All rights reserved.
+    </div>
+  </main>
+
+  <script>
+    // Simple helpers
+    function copyText(elId){
+      const el = document.getElementById(elId);
+      const text = el.textContent || el.value;
+      navigator.clipboard.writeText(text).then(()=>{ alert('Copied: ' + text); }).catch(()=>{});
+    }
+
+    // Plan selection flow (simulated)
+    function selectPlan(key){
+      // Ensure quizzes and verification are checked
+      const quizOk = document.getElementById('quiz1')?.checked;
+      const verifyOk = document.getElementById('verify')?.checked;
+      // For demo, just show the two-step verify modal
+      if(!quizOk){
+        alert('Please complete the awareness quiz first.');
+        openVerify();
+        return;
+      }
+      if(!verifyOk){
+        alert('Please acknowledge verification before subscribing.');
+        openVerify();
+        return;
+      }
+      // Start simulated flow
+      if(key === 'free'){
+        alert('Starting Free Plan: 4 GH/s for 12 hours. You can renew every 12 hours.');
+        // open verification to proceed
+      } else {
+        alert('Selected plan: ' + key + '. You will be guided to the card/crypto bridge to complete payment.');
+      }
+      // Open verification modal
+      openVerify();
+    }
+
+    // Modals handling
+    function openVerify(){
+      const m = document.getElementById('verifyModal');
+      m.classList.add('open');
+      m.setAttribute('aria-hidden','false');
+    }
+    function closeVerify(){
+      const m = document.getElementById('verifyModal');
+      m.classList.remove('open');
+      m.setAttribute('aria-hidden','true');
+    }
+
+    function openCardVerify(){
+      closeVerify();
+      const m = document.getElementById('cardModal');
+      m.classList.add('open');
+      m.setAttribute('aria-hidden','false');
+    }
+    function closeCard(){
+      const m = document.getElementById('cardModal');
+      m.classList.remove('open');
+      m.setAttribute('aria-hidden','true');
+    }
+
+    function completePayment(){
+      // Simulated payment completion
+      closeCard();
+      alert('Payment flow simulated. Your mining contract is now active. You can monitor progress in the dashboard.');
+    }
+
+    // Initialize (no external data or API calls)
+    // Ensure modals are hidden on load
+    window.addEventListener('load', ()=>{
+      document.getElementById('verifyModal').classList.remove('open');
+      document.getElementById('cardModal').classList.remove('open');
+    });
+
+    // Keyboard accessibility: close modals with escape
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape'){
+        document.querySelectorAll('.modal.open').forEach(m => {
+          m.classList.remove('open');
+          m.setAttribute('aria-hidden','true');
+        });
+      }
+    });
+  </script>
+</body>
+</html>
