@@ -1,96 +1,67 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>MedorCoin — Learners Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="Learn Mining Crypto, Spot Trading, Futures Trading, and Options. Verify crypto payments, unlock levels, and issue certificates."/>
+  <meta name="description" content="MedorCoin Learners Portal: Course access, certificates, and progress tracking."/>
   <style>
     :root{
-      --blue: #2b5cff;
-      --blue-dark: #1a3a94;
-      --bg: #0e0f12;
-      --card: #12141a;
-      --text: #eaecef;
-      --muted: #98a2b3;
+      --blue:#2b5cff;
+      --bg:#0e0f12;
+      --card:#141923;
+      --text:#eaecef;
+      --muted:#98a2b3;
       --success:#4ade80;
       --warn:#f59e0b;
       --error:#ef4444;
     }
-     { box-sizing: border-box; }
-    body { font-family: system-ui, Arial, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
-    header, footer { padding: 16px; background: #12141a; border-bottom: 1px solid #252833; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
-    h1, h2, h3 { margin: 12px 0; }
-    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-    .col { flex: 1; min-width: 240px; }
-    .card { background: #141923; border: 1px solid #252833; border-radius: 10px; padding: 16px; }
-    / Shared button style to ensure all header actions have same blue size /
-    .btn {
-      padding: 12px 20px;
-      background: var(--blue);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .btn.secondary { background: #2a2f3a; }
-    .badge { padding: 4px 8px; background: #1b1f2a; border: 1px solid #2a2f3a; border-radius: 999px; font-size: 12px; }
-    .muted { color: var(--muted); }
-    .success { color: var(--success); }
-    .warn { color: var(--warn); }
-    .error { color: var(--error); }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 12px; }
-    .level { padding: 8px; border-radius: 8px; border: 1px dashed #2a2f3a; text-align: left; }
-    input, select { width: 100%; padding: 10px; background: #161a22; color: #eaecef; border: 1px solid #2a2f3a; border-radius: 6px; }
-    a { color: #7aa2ff; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    code { background:#0f1320; padding:2px 4px; border-radius:4px; }
-    / Header layout for Login-like experience /
-    .login-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; }
-    .brand { display: flex; align-items: center; gap: 10px; }
-    .brand .logo{ width:28px; height:28px; border-radius:50%; background:#fff; }
-    .hamburger { font-size: 26px; cursor: pointer; display: none; }
-    .dropdown { position: relative; display: inline-block; }
-    .dropdown-content { display: none; position: absolute; right: 0; background: #1a2038; min-width: 180px; box-shadow: 0 8px 16px rgba(0,0,0,.3); border-radius: 6px; overflow: hidden; }
-    .dropdown-content a { color: #fff; padding: 12px 14px; text-decoration: none; display: block; }
-    .dropdown:hover .dropdown-content { display: block; }
-    .page-content { padding: 20px 0; }
-    footer { text-align: center; padding: 12px; font-size: 12px; color: #888; }
-    .section { margin-top: 16px; }
-    / Responsive tweaks */
+    {box-sizing:border-box}
+    body{font-family:system-ui, Arial, sans-serif; margin:0; padding:0; background:var(--bg); color:var(--text);}
+    header, footer{padding:16px; background:#12141a; border-bottom:1px solid #252833;}
+    .container{max-width:1100px; margin:0 auto; padding:0 16px;}
+    .row{display:flex; flex-wrap:wrap; gap:12px; align-items:center;}
+    .btn{padding:12px 20px; background:var(--blue); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700; text-decoration:none; display:inline-block;}
+    .btn.secondary{background:#2a2f3a}
+    .badge{padding:4px 8px; background:#1b1f2a; border:1px solid #2a2f3a; border-radius:999px; font-size:12px}
+    .muted{color:var(--muted)}
+    .grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:12px}
+    .card{background:#141923; border:1px solid #252833; border-radius:10px; padding:16px}
+    input, select{width:100%; padding:10px; background:#161a22; color:#eaecef; border:1px solid #2a2f3a; border-radius:6px;}
+    section{margin-top:16px}
+    .level{padding:8px; border:1px dashed #2a2f3a; border-radius:8px; text-align:left;}
+    .level .title{font-weight:700}
+    .level .percent{float:right}
+    .certificate{border:1px solid #2a2f3a; border-radius:8px; padding:12px; background:#1b2130;}
+    / Hamburger for small screens (not fully implemented; placeholder) */
+    .hamburger{ display:none; }
+    footer{margin-top:20px; font-size:12px; color:#888; text-align:center;}
+    .divider{height:1px; background:#333; margin:12px 0;}
+    a{color:#9bd0ff; text-decoration:none}
     @media (max-width: 800px){
-      .hamburger { display: block; }
+      .hamburger{display:block}
     }
   </style>
 </head>
 <body>
 <header>
-  <div class="container row" style="justify-content: space-between; align-items: center;">
-    <!-- Left: brand for learn.html (kept simple) -->
-    <div class="brand">
-      <div class="logo" aria-label="MedorCoin logo"></div>
-      <div>
-        <div style="font-weight:700; letter-spacing:.5px;">MedorCoin Learners Portal</div>
-        <div style="font-size:12px; color:#9fb3d9;">MedorCoin</div>
-      </div>
+  <div class="container row" style="justify-content:space-between;">
+    <div>
+      <h1 style="margin:0 0 6px; font-size:20px;">MedorCoin Learners Portal</h1>
+      <small class="muted">MedorCoin</small>
     </div>
-
-    <!-- Right: uniform blue blocks for Home, Sign up, Log in, Log out, plus Contact and Language -->
-    <div class="row" style="gap:10px; align-items: center;">
-      <a class="btn" href="index.html" style="min-width: 170px; text-align:center; text-decoration:none;">Home</a>
-      <a class="btn" href="signup.html" style="min-width: 170px; text-align:center; text-decoration:none;">Sign up</a>
-      <a class="btn" href="login.html" style="min-width: 170px; text-align:center; text-decoration:none;">Log in</a>
-      <button class="btn secondary" onclick="logout()" style="min-width: 170px; text-align:center;">Log out</button>
-      <div class="dropdown" aria-label="Language selector" style="margin-left:8px;">
-        <button class="btn" style="min-width: 140px; text-align:center;">Language</button>
-        <div class="dropdown-content" id="langMenu">
+    <div class="row" aria-label="header actions">
+      <a class="btn" href="home.html" style="min-width:150px; text-align:center;">Home</a>
+      <a class="btn" href="signup.html" style="min-width:150px; text-align:center;">Sign up</a>
+      <a class="btn" href="login.html" style="min-width:150px; text-align:center;">Log in</a>
+      <button class="btn secondary" onclick="logout()" style="min-width:150px; text-align:center;">Log out</button>
+      <div class="dropdown" style="display:inline-block;">
+        <button class="btn" style="min-width:120px;">Language</button>
+        <div class="dropdown-content" id="langMenu" style="position:absolute; right:0; display:none; background:#1a2038; min-width:180px; border-radius:6px; overflow:hidden;">
           <a href="#" onclick="setLanguage('en')">English</a>
           <a href="#" onclick="setLanguage('es')">Español</a>
           <a href="#" onclick="setLanguage('fr')">Français</a>
           <a href="#" onclick="setLanguage('de')">Deutsch</a>
-          <!-- World languages can be appended here -->
           <a href="#" onclick="setLanguage('world')">Global</a>
         </div>
       </div>
@@ -98,17 +69,21 @@
   </div>
 </header>
 
-<main class="container page-content" id="learnMain">
-  <section class="card" id="demoCard">
+<main class="container" id="learnMain">
+  <!-- Demo previews (kept generic; not on home)
+       Ensure this area is part of the per-user course page when integrated with real routing -->
+  <section class="card" id="demoCard" aria-label="Free previews (per-user content)">
     <h2>Free Previews</h2>
     <div class="grid" id="demoGrid">
-      <div class="level"><b>Spot L1:</b> Market vs. Limit orders — basics and slippage.</div>
-      <div class="level"><b>Futures L1:</b> Intro to leverage — liquidation risks.</div>
-      <div class="level"><b>Options L1:</b> Calls and Puts — payoff intuition.</div>
+      <div class="level"><span class="title">Spot L1:</span> Market vs. Limit orders — basics and slippage.</div>
+      <div class="level"><span class="title">Futures L1:</span> Intro to leverage — liquidation risks.</div>
+      <div class="level"><span class="title">Options L1:</span> Calls and Puts — payoff intuition.</div>
     </div>
     <p class="muted">To access quizzes and higher levels, log in and purchase below.</p>
   </section>
 
+  <!-- UNLOCK ACCESS: This block lives on the per-user course page; not on home.
+       It stays here as part of the course page flow. -->
   <section class="card section" id="unlockCard" aria-label="Unlock Access">
     <h2>Unlock Access</h2>
     <p>Did you enjoy the demo? If you’re ready to go further, simply sign up or log in and unlock full access.</p>
@@ -129,7 +104,7 @@
           <option value="options">Options Trading</option>
         </select>
       </div>
-      <div class="col" style="min-width:260px; align-self:end;">
+      <div class="col" style="min-width:260px;">
         <label>Purchase Type</label>
         <div>
           <label><input type="radio" name="itemType" value="level" checked /> Single Level Courses</label>
@@ -153,7 +128,7 @@
         <label>Insert Your Transaction Hash Below</label>
         <p>A transaction hash is a unique code created when you send crypto. It acts as your digital receipt and proves your payment was successfully sent on the blockchain.</p>
         <input id="txHash" placeholder="Paste your on-chain tx hash here" />
-        <small class="muted">
+        <small class="muted" style="display:block;">
           Send payment to:
           ETH/BNB (EVM): <code>0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0</code> — BTC: <code>bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv</code>
         </small>
@@ -165,48 +140,77 @@
     <p id="payOut" class="muted"></p>
   </section>
 
-  <section class="card section" id="accessCard" aria-label="Your Access">
-    <h2>My Access</h2>
-    <div id="accessGrid" class="grid"></div>
-    <div class="row" style="margin-top:8px;">
-      <button class="btn" onclick="refreshAccess()">Refresh Access</button>
-      <a class="btn secondary" href="site/my-classroom.html" target="_blank">Go to My Classroom</a>
+  <!-- USER'S COURSES: Level 1..5 with per-level section and progressive content.
+       Certificate block is placed inside Level 5 content as requested. -->
+  <section class="card section" id="accessCard" aria-label="User Courses">
+    <h2>Your Courses</h2>
+    <div id="courseList" class="grid"></div>
+  </section>
+
+  <!-- Level content (repeated for each topic; simplified) -->
+  <section class="card section" id="levelContent" aria-label="Level content">
+    <h2>Level 1 – Topic 1</h2>
+    <div class="level" style="margin-bottom:8px;">
+      <span>Topic 1: Introduction to Crypto Markets</span>
+      <span class="percent" style="float:right;">Progress 0%</span>
+    </div>
+    <div class="level" style="margin-bottom:8px;">
+      <span>Topic 2: Order Types</span>
+      <span class="percent" style="float:right;">Progress 0%</span>
+    </div>
+    <div class="level" style="margin-bottom:8px;">
+      <span>Topic 3: Risk Management</span>
+      <span class="percent" style="float:right;">Progress 0%</span>
+    </div>
+
+    <button class="btn" onclick="openClassroom()">Enter Class</button>
+  </section>
+
+  <section class="card section" id="level5Section" aria-label="Level 5 with Certificate" style="display:block;">
+    <h2>Level 5: Certificate Path</h2>
+    <!-- Certificate block moved here (not on home) -->
+    <div class="certificate" aria-label="Certificate block">
+      <h3 style="margin:0 0 6px;">Certificate (Requires Level 5)</h3>
+      <div class="row" style="gap:12px; align-items:flex-end;">
+        <div class="col" style="min-width:260px;">
+          <label>Your Full Name</label>
+          <input id="certName" placeholder="Enter your full name" />
+        </div>
+        <div class="col" style="min-width:260px;">
+          <label>Certificate Track</label>
+          <select id="certTrack">
+            <option value="spot">Spot</option>
+            <option value="futures">Futures</option>
+            <option value="options">Options</option>
+          </select>
+        </div>
+        <div class="col" style="align-self:flex-end;">
+          <button class="btn" onclick="issueCert()">Issue Certificate</button>
+        </div>
+      </div>
+      <p id="certOut" class="muted" style="margin-top:8px;"></p>
+      <div class="divider"></div>
+      <div class="row" style="align-items:center;">
+        <div class="col" style="min-width:260px;">
+          <label>Course Details</label>
+          <div class="muted" style="font-size:14px;">
+            Course Level: Professional Certification<br/>
+            Duration: [Insert Hours / Weeks]<br/>
+            Completion Date: [Insert Date]<br/>
+            Certificate ID: MC-[Unique Code]
+          </div>
+          <p class="muted" style="margin-top:6px;">
+            This history is retained for 5 years. Your progress is saved locally for this demo; implement your server-side persistence for production.
+          </p>
+        </div>
+        <div class="col" style="min-width:260px;">
+          <img src="certificate-placeholder.png" alt="Certificate preview" style="max-width:100%; height:auto; border:1px solid #333; border-radius:6px;">
+        </div>
+      </div>
     </div>
   </section>
 
-  <section class="card section" id="certificateCard" aria-label="Certificate">
-    <h2>Certificate (Requires Level 5)</h2>
-    <div class="row">
-      <div class="col">
-        <input id="certName" placeholder="Your full name" />
-      </div>
-      <div class="col">
-        <select id="certTrack">
-          <option value="spot">Spot</option>
-          <option value="futures">Futures</option>
-          <option value="options">Options</option>
-        </select>
-      </div>
-      <div class="col" style="align-self:end;">
-        <button class="btn" onclick="issueCert()">Issue Certificate</button>
-      </div>
-    </div>
-    <p id="certOut" class="muted"></p>
-  </section>
-
-  <!-- Course Details / History / Certificate Design placeholders per your spec -->
-  <section class="card section" id="courseDetails" aria-label="Course Details">
-    <h2>Course Details</h2>
-    <p>Course Level: Professional Certification</p>
-    <p>Duration: [Insert Hours / Weeks]</p>
-    <p>Completion Date: [Insert Date]</p>
-    <p>Certificate ID: MC-[Unique Code]</p>
-    <p class="muted" style="margin-top:8px;">
-      This history is retained for 5 years. Your progress is saved locally for this demo; implement your server-side persistence for production.
-    </p>
-  </section>
-
-  <!-- FAQ (toggle per question) -->
+  <!-- FAQ (expanded, single block) -->
   <section class="card section" id="faq" aria-label="FAQ">
     <h2>MedorCoin Course FAQ – Crypto Spot, Futures & Options</h2>
     <div class="faq-item" style="margin:6px 0;">
@@ -216,13 +220,14 @@
         <p>A: It’s a structured training programme that teaches you how to trade crypto spot markets, futures, and options, step-by-step. Successful completion leads to a verified certificate.</p>
       </div>
     </div>
+
     <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
 
     <div class="faq-item" style="margin:6px 0;">
       <button onclick="toggleAnswer('qa2')">🔍 COURSE PREVIEW & ACCESS</button>
       <div id="qa2" style="display:none; padding-left:12px;">
         <p>Q: How does the course preview work?</p>
-        <p>A: You can explore a limited sample of lessons before signing up. Preview includes intro videos, module titles, and a skills outline. Full lessons unlock after enrollment.</p>
+        <p>A: You can explore a limited sample of lessons before signing up. Preview includes intro videos, module titles, and a skills outline. Full lessons and downloadable materials are locked until you enroll and pay.</p>
       </div>
     </div>
 
@@ -236,7 +241,27 @@
       </div>
     </div>
 
-    <!-- More questions can be added similarly -->
+    <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
+
+    <div class="faq-item" style="margin:6px 0;">
+      <button onclick="toggleAnswer('qa4')">📚 CHOOSING A COURSE</button>
+      <div id="qa4" style="display:none; padding-left:12px;">
+        <p>Q: How do I choose which course to take?</p>
+        <p>A: Navigate to Course Catalog or All Courses. You’ll see Spot, Futures, and Options categories. Each course lists difficulty level, estimated hours, and prerequisites. Click View Details to see module breakdown before adding to cart.</p>
+      </div>
+    </div>
+
+    <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
+
+    <div class="faq-item" style="margin:6px 0;">
+      <button onclick="toggleAnswer('qa5')">🛒 PURCHASE TYPES</button>
+      <div id="qa5" style="display:none; padding-left:12px;">
+        <p>Q: What does “Purchase Type” mean?</p>
+        <p>A: There are typically three options: Single Access, Bulk Course (Bundle), and possibly Subscription. Level designations map to the progression (e.g., Level 1–5).</p>
+      </div>
+    </div>
+
+    <!-- Add any additional questions here in the same pattern -->
   </section>
 </main>
 
@@ -252,102 +277,56 @@
 <script>
   // Simple in-page translations (demo)
   const translations = {
-    en: {
-      welcome: "MedorCoin Learners Portal",
-      login: "Log in",
-      signup: "Sign up",
-      logout: "Log out",
-      contact: "Contact Us",
-      language: "Language",
-      freePreviews: "Free Previews",
-      unlockAccess: "Unlock Access",
-      myAccess: "My Access",
-      certificate: "Certificate (Requires Level 5)",
-      courseDetails: "Course Details",
-      faq: "FAQ"
-    },
-    es: {
-      welcome: "Portal de Aprendices de MedorCoin",
-      login: "Iniciar sesión",
-      signup: "Regístrate",
-      logout: "Cerrar sesión",
-      contact: "Contáctenos",
-      language: "Idioma",
-      freePreviews: "Previsualización",
-      unlockAccess: "Desbloquear Acceso",
-      myAccess: "Mi Acceso",
-      certificate: "Certificado (Requiere Nivel 5)",
-      courseDetails: "Detalles del Curso",
-      faq: "Preguntas Frecuentes"
-    },
-    world: { // minimal fallback
-      welcome: "MedorCoin Learners Portal",
-      login: "Log in",
-      signup: "Sign up",
-      logout: "Log out",
-      contact: "Contact Us",
-      language: "Language",
-      freePreviews: "Free Previews",
-      unlockAccess: "Unlock Access",
-      myAccess: "My Access",
-      certificate: "Certificate",
-      courseDetails: "Course Details",
-      faq: "FAQ"
-    }
+    en: { welcome: "MedorCoin Learners Portal" },
+    es: { welcome: "Portal de Aprendices de MedorCoin" },
+    world: { welcome: "MedorCoin Learners Portal" }
   };
-
   let currentLang = 'en';
   function setLanguage(lang){
     currentLang = lang;
-    translateAll();
+    // In a full app, update all text nodes; here we keep it minimal
+    // Close the language menu after selecting
+    document.getElementById('langMenu').parentElement.querySelector('.btn')?.click?.();
   }
-  function translateAll(){
-    // For demo: only top labels; the rest remains as is for brevity
-    // You can expand this function to localize all text content.
-  }
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    const t = translations[currentLang] && translations[currentLang][key] ? translations[currentLang][key] : key;
-    el.textContent = t;
-  });
-
-  // Status helpers
-  function logout(){
-    // Clear token-like state if you have one
-    alert('Logged out');
-  }
-
+  function logout(){ alert('Logged out'); }
   function toggleAnswer(id){
     const el = document.getElementById(id);
     if(!el) return;
-    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    el.style.display = (el.style.display === 'block') ? 'none' : 'block';
   }
 
-  // Payment / access mockups (no real backend here)
+  // Per-level content: mimic 5 levels; certificate appears after level 5
+  function openClassroom(){
+    alert('Entering class (demo). This would load my-classroom.html content.');
+  }
+
   function verifyPayment(){
     const txHash = document.getElementById('txHash').value.trim();
     if(!txHash){ alert('Enter your transaction hash.'); return; }
-    document.getElementById('payOut').textContent = 'Payment verification placeholder - integrated backend required.';
-    document.getElementById('payOut').className = 'muted';
+    document.getElementById('payOut').textContent = 'Payment verification pending backend integration.';
   }
 
   function refreshAccess(){
-    const grid = document.getElementById('accessGrid');
+    const grid = document.getElementById('courseList');
     grid.innerHTML = '';
-    // Demo placeholders: topic progress bars
     const topics = [
-      {title:'Spot Trading', progress: 20},
-      {title:'Futures Trading', progress: 60},
-      {title:'Options Trading', progress: 40},
+      {title:'Topic 1: Introduction', progress: 20},
+      {title:'Topic 2: Market Orders', progress: 40},
+      {title:'Topic 3: Stop Loss & Risk', progress: 60},
+      {title:'Topic 4: Leverage & Margin', progress: 80},
+      {title:'Topic 5: Strategy & Quizzes', progress: 100}
     ];
     topics.forEach(t=>{
-      const d = document.createElement('div');
-      d.className = 'level';
-      d.innerHTML = `<strong>${t.title}</strong> <span style="float:right">${t.progress}%</span>
+      const el = document.createElement('div');
+      el.className = 'level';
+      el.innerHTML = `<span class="title">${t.title}</span> <span class="percent" style="float:right;">${t.progress}%</span>
         <div style="width:100%; height:10px; background:#2a2f54; border-radius:6px; overflow:hidden;">
           <div style="width:${t.progress}%; height:100%; background:var(--blue);"></div>
         </div>`;
-      grid.appendChild(d);
+      // Link to per-topic class content
+      el.querySelector('.title').style.cursor='pointer';
+      el.querySelector('.title').onclick = ()=> location.hash = '#level'+ (topics.indexOf(t)+1);
+      grid.appendChild(el);
     });
   }
 
@@ -355,22 +334,22 @@
     const name = document.getElementById('certName').value.trim();
     const track = document.getElementById('certTrack').value;
     const out = document.getElementById('certOut');
-    if(!name){ out.textContent = 'Enter your name.'; out.className = 'error'; return; }
+    if(!name){ out.textContent = 'Enter your name.'; out.style.color = '#f87171'; return; }
     out.textContent = 'Certificate generated (demo).';
-    out.className = 'success';
+    out.style.color = '#4ade80';
   }
 
-  // Sign-up flow: redirect to a signup page or render signup blocks
-  // For this standalone demo, write a lightweight sign-up block into a modal-like section
-  // You can replace with real navigation to signup.html as previously provided.
-
-  // Footer dynamic year
+  // Init
   document.getElementById('footerYear').textContent = '© ' + new Date().getFullYear() + ' MedorCoin. All rights reserved.';
-
-  // Initial progress render
   refreshAccess();
-  // Minimal: language change triggers (expand as needed)
-  setLanguage('en');
+  // Seed a minimal hash-based navigation for level detail
+  if(location.hash.startsWith('#level')){
+    const lvl = location.hash.replace('#level','');
+    alert('Load Level ' + (lvl || '1') + ' details from my-classroom.html (demo).');
+  }
+
+  // Simple keyboard-friendly toggle for FAQ (optional)
+  document.querySelectorAll('[aria-label="FAQ"]').forEach(()=>{});
 </script>
 </body>
 </html>
