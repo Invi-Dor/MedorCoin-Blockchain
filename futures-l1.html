@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📊 Futures L1: Trading gh Basics and Terms</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .quiz { margin-top: 30px; }
+    .question { display: none; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>📊 Futures Level One: Trading gh Basics and Terms</h1>
+
+  <p><strong>The Trade That Started It All</strong></p>
+  <p>Date of Flip: Wednesday, April 16, 2025 at 10:41am...</p>
+  <!-- (Insert rest of futures content here) -->
+
+  <div class="quiz">
+    <button onclick="showQuizFut()">Take Futures Quiz</button>
+
+    <div id="futQ1" class="question">
+      <p>1) What platform was used for the first trade?</p>
+      <input type="text" id="futA1">
+      <button onclick="checkFutQ1()">Submit</button>
+    </div>
+
+    <div id="futQ2" class="question">
+      <p>2) If you set a stop loss at $0.90 when buying at $1, the trade will close if price reaches?</p>
+      <input type="text" id="futA2">
+      <button onclick="checkFutQ2()">Submit</button>
+    </div>
+
+    <div id="futResult"></div>
+  </div>
+
+<script>
+function showQuizFut() {
+  document.getElementById("futQ1").style.display = "block";
+}
+function checkFutQ1() {
+  let ans = document.getElementById("futA1").value.toLowerCase();
+  if(ans.includes("binance")) {
+    document.getElementById("futQ2").style.display = "block";
+    document.getElementById("futQ1").style.display = "none";
+  }
+}
+function checkFutQ2() {
+  let ans = document.getElementById("futA2").value.includes("0.90");
+  if(ans) {
+    document.getElementById("futResult").innerHTML =
+      "Wow congratulations! Do you fancy to learn more? <a href='#'>Click here</a>";
+  }
+}
+</script>
+
+</body>
+</html>
