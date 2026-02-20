@@ -2,109 +2,155 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Bidotcoin Learning Portal - Sign Up</title>
+<title>Bidotcoin Learning Portal Sign Up</title>
 <link rel="icon" href="medorcoin-logo.png">
 <style>
-body{
-font-family:Arial, sans-serif;
-background:#0f172a;
-color:white;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-}
-.container{
-background:#1e293b;
-padding:40px;
-border-radius:8px;
-width:400px;
-}
-input{
-width:100%;
-padding:10px;
-margin-top:8px;
-margin-bottom:20px;
-border-radius:5px;
-border:none;
-}
-button{
-width:100%;
-padding:12px;
-background:#2563eb;
-color:white;
-border:none;
-border-radius:5px;
-cursor:pointer;
-}
-button:hover{
-background:#1d4ed8;
-}
-.error{
-color:#f87171;
-font-size:14px;
-}
+  body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: top;
+    padding-top: 50px;
+  }
+  .container {
+    background: #1e293b;
+    padding: 40px;
+    border-radius: 8px;
+    width: 380px;
+  }
+  input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    margin-bottom: 18px;
+    border-radius: 5px;
+    border: none;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  button:hover {
+    background: #1d4ed8;
+  }
+  .error {
+    color: #f87171;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .social-btn {
+    background:#fff;
+    color:#000;
+    text-align:center;
+    margin: 8px 0;
+    display:block;
+    border-radius:6px;
+    text-decoration:none;
+    padding:10px;
+    font-weight:bold;
+  }
+  .social-btn img {
+    vertical-align:middle;
+    margin-right:8px;
+    width:20px;
+    height:20px;
+  }
 </style>
 </head>
 <body>
 
 <div class="container">
-<h2>Welcome to Bidotcoin Learning Portal</h2>
 
-<form id="signupForm">
-<label>Email</label>
-<input type="email" id="email" required>
+  <h2>Welcome to Bidotcoin Learning Portal</h2>
 
-<label>Username</label>
-<input type="text" id="username" required>
+  <!-- Social Sign-up Options -->
+  <a class="social-btn" href="#" onclick="googleSignUp()">
+    <img src="google-icon.png" alt="Google"> Sign up with Google
+  </a>
 
-<label>Choose a Password</label>
-<input type="password" id="password" required>
+  <a class="social-btn" href="#" onclick="appleSignUp()">
+    <img src="apple-icon.png" alt="Apple"> Sign up with Apple
+  </a>
 
-<label>Confirm Password</label>
-<input type="password" id="confirmPassword" required>
+  <hr style="border:1px solid #334155; margin:15px 0;">
 
-<div id="errorMsg" class="error"></div>
+  <!-- Regular Email Form -->
+  <form id="signupForm">
+    <label>Email</label>
+    <input type="email" id="email" required placeholder="your@domain.com">
 
-<div style="margin-bottom:20px;">
-<input type="checkbox" id="captcha" required>
-<label for="captcha">I am not a robot</label>
-</div>
+    <label>Username</label>
+    <input type="text" id="username" required placeholder="Create a username">
 
-<button type="submit">Proceed to Sign Up</button>
-</form>
+    <label>Choose Password</label>
+    <input type="password" id="password" required placeholder="Create password">
+
+    <label>Confirm Password</label>
+    <input type="password" id="confirmPassword" required placeholder="Retype password">
+
+    <div id="errorMsg" class="error"></div>
+
+    <div style="margin-bottom:20px;">
+      <input type="checkbox" id="captcha" required>
+      <label for="captcha">I am not a robot</label>
+    </div>
+
+    <button type="submit">Proceed to Sign Up</button>
+  </form>
+
 </div>
 
 <script>
-document.getElementById("signupForm").addEventListener("submit", async function(e){
-e.preventDefault();
+document.getElementById("signupForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
 
-let password = document.getElementById("password").value;
-let confirmPassword = document.getElementById("confirmPassword").value;
-let errorMsg = document.getElementById("errorMsg");
+  let pwd = document.getElementById("password").value;
+  let confirm = document.getElementById("confirmPassword").value;
+  let errorMsg = document.getElementById("errorMsg");
 
-if(password !== confirmPassword){
-errorMsg.innerText = "Passwords do not match.";
-return;
-}
+  // Password match validation
+  if(pwd !== confirm){
+    errorMsg.innerText = "Passwords do not match.";
+    return;
+  }
 
-if(!document.getElementById("captcha").checked){
-errorMsg.innerText = "Please verify you are not a robot.";
-return;
-}
+  if(!document.getElementById("captcha").checked){
+    errorMsg.innerText = "Please verify you are not a robot.";
+    return;
+  }
 
-let response = await fetch("/send-code",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-email:document.getElementById("email").value
-})
+  // Send email to backend to send verification code
+  let res = await fetch("/send-code", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ email: document.getElementById("email").value })
+  });
+
+  if(res.ok){
+    window.location.href = "verify.html";
+  } else {
+    errorMsg.innerText = "Error sending code. Try again.";
+  }
 });
 
-if(response.ok){
-window.location.href="verify.html";
+// Social sign-up stubs
+function googleSignUp(){
+  alert("Google sign up will open OAuth flow."); 
+  // Implementation requires Google Identity Services setup (client ID + redirect) [oai_citation:1‡Google for Developers](https://developers.google.com/identity/gsi/web/guides/display-button?utm_source=chatgpt.com)
 }
-});
+
+function appleSignUp(){
+  alert("Apple sign up will open OAuth flow.");
+  // Implementation requires Apple web OAuth configuration [oai_citation:2‡Apple Developer](https://developer.apple.com/help/account/capabilities/configure-sign-in-with-apple-for-the-web/?utm_source=chatgpt.com)
+}
 </script>
 
 </body>
