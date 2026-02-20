@@ -1,37 +1,21 @@
+require("dotenv").config();
 const express = require("express");
-const nodemailer = require("nodemailer");
+const mongoose = require("mongoose");
+const cors = require("cors");
+
+const authRoutes = require("./routes/auth");
+
 const app = express();
+
+app.use(cors());
 app.use(express.json());
 
-let generatedCode = "";
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log(err));
 
-app.post("/send-code", async (req,res)=>{
-generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
+app.use("/api/auth", authRoutes);
 
-let transporter = nodemailer.createTransport({
-service:"gmail",
-auth:{
-user:"YOUR_EMAIL@gmail.com",
-pass:"APP_PASSWORD"
-}
+app.listen(process.env.PORT, () => {
+  console.log(`Server running on port ${process.env.PORT}`);
 });
-
-await transporter.sendMail({
-from:"YOUR_EMAIL@gmail.com",
-to:req.body.email,
-subject:"Your Verification Code",
-text:"Your verification code is " + generatedCode
-});
-
-res.sendStatus(200);
-});
-
-app.post("/verify-code",(req,res)=>{
-if(req.body.code === generatedCode){
-res.sendStatus(200);
-}else{
-res.sendStatus(400);
-}
-});
-
-app.listen(3000);
