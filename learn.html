@@ -66,51 +66,164 @@
       </div>
     </div>
   </div>
+</header>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedorCoin Learn</title>
 
-<!-- ===== MedorCoin Learn Carousel ===== -->
-<div class="carousel-container">
-  <div class="carousel-track">
+<style>
+
+/* ===== Reset ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ===== Carousel Container ===== */
+.live-carousel {
+  position: relative;
+  width: 100%;
+  max-width: 1400px;
+  margin: auto;
+  overflow: hidden;
+  border-radius: 15px;
+}
+
+/* ===== Slides Wrapper ===== */
+.slides {
+  display: flex;
+  transition: transform 0.8s ease-in-out;
+}
+
+/* ===== Each Slide ===== */
+.slide {
+  min-width: 100%;
+  position: relative;
+}
+
+/* ===== Slide Image ===== */
+.slide img {
+  width: 100%;
+  height: 65vh;
+  object-fit: cover;
+  display: block;
+}
+
+/* ===== Overlay Caption ===== */
+.caption {
+  position: absolute;
+  bottom: 40px;
+  left: 50px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 20px 30px;
+  border-radius: 12px;
+}
+
+.caption h2 {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+
+  .slide img {
+    height: 45vh;
+  }
+
+  .caption {
+    left: 20px;
+    bottom: 20px;
+    padding: 15px;
+  }
+
+  .caption h2 {
+    font-size: 1.2rem;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ===== MedorCoin Carousel ===== -->
+
+<div class="live-carousel">
+  <div class="slides">
 
     <!-- Slide 1 -->
-    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1600&q=80');">
-      <div class="overlay">
-        <h2>Crypto Market News & Live Trade Charts</h2>
+    <div class="slide">
+      <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1600&q=80">
+      <div class="caption">
+        <h2>Live Crypto Market News & Trade Charts</h2>
       </div>
     </div>
 
     <!-- Slide 2 -->
-    <div class="slide" style="background-image: url('06B6911A-4888-4475-87CC-74376ED183A9.jpeg');">
-      <div class="overlay">
+    <div class="slide">
+      <!-- Make sure this image is in same folder as learn.html -->
+      <img src="6B9C31D6-7FD3-4355-BE5B-B2A9ED90B7BE.png">
+      <div class="caption">
         <h2>MedorCoin’s Current Price</h2>
       </div>
     </div>
 
     <!-- Slide 3 -->
-    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1621504450181-5fdb1c8b0b5c?auto=format&fit=crop&w=1600&q=80');">
-      <div class="overlay">
-        <h2>Crypto Mining – Learn How To Mine</h2>
+    <div class="slide">
+      <img src="https://images.unsplash.com/photo-1621504450181-5fdb1c8b0b5c?auto=format&fit=crop&w=1600&q=80">
+      <div class="caption">
+        <h2>Mining – Learn How To Mine</h2>
       </div>
     </div>
 
     <!-- Slide 4 -->
-    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1600&q=80');">
-      <div class="overlay">
+    <div class="slide">
+      <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1600&q=80">
+      <div class="caption">
         <h2>Acknowledge True Power</h2>
       </div>
     </div>
 
     <!-- Slide 5 -->
-    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80');">
-      <div class="overlay">
+    <div class="slide">
+      <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80">
+      <div class="caption">
         <h2>Explore MedorCoin’s Blockchain</h2>
       </div>
     </div>
 
   </div>
 </div>
-	
-</header>
 
+<script>
+
+let index = 0;
+const slides = document.querySelector('.slides');
+const totalSlides = document.querySelectorAll('.slide').length;
+
+function nextSlide() {
+  index++;
+  if (index >= totalSlides) {
+    index = 0;
+  }
+  slides.style.transform = `translateX(-${index * 100}%)`;
+}
+
+setInterval(nextSlide, 5000); // 5 seconds
+
+</script>
+
+</body>
+</html>
+	
 <main class="container" id="learnMain">
   <!-- Demo previews (kept generic; not on home)
        Ensure this area is part of the per-user course page when integrated with real routing -->
