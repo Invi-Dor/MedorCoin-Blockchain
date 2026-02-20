@@ -284,14 +284,64 @@ setInterval(nextSlide, 5000); // 5 seconds
         <p>A transaction hash is a unique code created when you send crypto. It acts as your digital receipt and proves your payment was successfully sent on the blockchain.</p>
         <input id="txHash" placeholder="Paste your on-chain tx hash here" />
         <small class="muted" style="display:block;">
-          Send payment to:
-          ETH/BNB (EVM): <code>0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0</code> — BTC: <code>bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv</code>
-        </small>
-      </div>
-      <div class="col" style="align-self:end;">
-        <button class="btn" onclick="verifyPayment()">Verify Payment</button>
-      </div>
-    </div>
+          <div class="payment-options">
+  <h3>Select Payment Method</h3>
+
+  <div class="payment-grid">
+
+    <a href="btc-payment.html" class="pay-block">
+      <h4>Pay with BTC</h4>
+      <p>Bitcoin Network</p>
+    </a>
+
+    <a href="bnb-payment.html" class="pay-block">
+      <h4>Pay with BNB</h4>
+      <p>BNB Smart Chain (BEP20)</p>
+    </a>
+
+    <a href="eth-payment.html" class="pay-block">
+      <h4>Pay with ETH</h4>
+      <p>Ethereum Network (ERC20)</p>
+    </a>
+
+  </div>
+</div>
+
+<style>
+.payment-options {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.payment-grid {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.pay-block {
+  background: #16a34a;
+  color: white;
+  padding: 25px;
+  width: 220px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s ease;
+}
+
+.pay-block:hover {
+  background: #15803d;
+  transform: scale(1.05);
+}
+
+.pay-block p {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: normal;
+}
+</style>
     <p id="payOut" class="muted"></p>
   </section>
 
