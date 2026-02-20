@@ -7,10 +7,10 @@
   <meta name="description" content="MedorCoin Learners Portal: Course access, certificates, and progress tracking."/>
   <style>
     :root{
-      --blue:#2b5cff;
-      --bg:#0e0f12;
-      --card:#141923;
-      --text:#eaecef;
+      --blue:#2b5cff; 
+	  --bg:#0e0f12; 
+	  --card:#141923;
+	  --text:#eaecef;
       --muted:#98a2b3;
       --success:#4ade80;
       --warn:#f59e0b;
@@ -55,7 +55,7 @@
       <a class="btn" href="signup.html" style="min-width:150px; text-align:center;">Sign up</a>
       <a class="btn" href="login.html" style="min-width:150px; text-align:center;">Log in</a>
       <div class="dropdown" style="display:inline-block;">
-        <button class="btn" style="min-width:120px;">Language</button>
+        <button class="btn" style="min-width:120px;">Lang🌏</button>
         <div class="dropdown-content" id="langMenu" style="position:absolute; right:0; display:none; background:#1a2038; min-width:180px; border-radius:6px; overflow:hidden;">
           <a href="#" onclick="setLanguage('en')">English</a>
           <a href="#" onclick="setLanguage('es')">Español</a>
@@ -66,13 +66,56 @@
       </div>
     </div>
   </div>
+
+<!-- ===== MedorCoin Learn Carousel ===== -->
+<div class="carousel-container">
+  <div class="carousel-track">
+
+    <!-- Slide 1 -->
+    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1600&q=80');">
+      <div class="overlay">
+        <h2>Crypto Market News & Live Trade Charts</h2>
+      </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="slide" style="background-image: url('06B6911A-4888-4475-87CC-74376ED183A9.jpeg');">
+      <div class="overlay">
+        <h2>MedorCoin’s Current Price</h2>
+      </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1621504450181-5fdb1c8b0b5c?auto=format&fit=crop&w=1600&q=80');">
+      <div class="overlay">
+        <h2>Crypto Mining – Learn How To Mine</h2>
+      </div>
+    </div>
+
+    <!-- Slide 4 -->
+    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1600&q=80');">
+      <div class="overlay">
+        <h2>Acknowledge True Power</h2>
+      </div>
+    </div>
+
+    <!-- Slide 5 -->
+    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80');">
+      <div class="overlay">
+        <h2>Explore MedorCoin’s Blockchain</h2>
+      </div>
+    </div>
+
+  </div>
+</div>
+	
 </header>
 
 <main class="container" id="learnMain">
   <!-- Demo previews (kept generic; not on home)
        Ensure this area is part of the per-user course page when integrated with real routing -->
   <section class="card" id="demoCard" aria-label="Free previews (per-user content)">
-    <h2>Free Previews</h2>
+    <h2>Free Demo</h2>
     <div class="grid" id="demoGrid">
       <div class="level"><span class="title">Spot L1:</span> Market vs. Limit orders — basics and slippage.</div>
       <div class="level"><span class="title">Futures L1:</span> Intro to leverage — liquidation risks.</div>
@@ -139,20 +182,6 @@
     <p id="payOut" class="muted"></p>
   </section>
 
-  <!-- USER'S COURSES: Level 1..5 with per-level section and progressive content.
-       Certificate block is placed inside Level 5 content as requested. -->
-  <section class="card section" id="accessCard" aria-label="User Courses">
-    <h2>Your Courses</h2>
-    <div id="courseList" class="grid"></div>
-  </section>
-
-  <!-- Level content (repeated for each topic; simplified) -->
-  <section class="card section" id="levelContent" aria-label="Level content">
-    <h2>Level 1 – Topic 1</h2>
-    <div class="level" style="margin-bottom:8px;">
-      <span>Topic 1: Introduction to Crypto Markets</span>
-      <span class="percent" style="float:right;">Progress 0%</span>
-    </div>
     <div class="level" style="margin-bottom:8px;">
       <span>Topic 2: Order Types</span>
       <span class="percent" style="float:right;">Progress 0%</span>
@@ -358,8 +387,18 @@ Getting the bundle gives you all levels in one purchase..</p>
     <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
 
     <div class="faq-item" style="margin:6px 0;">
-      <button onclick="toggleAnswer('qa4')">📚 CHOOSING A COURSE</button>
+      <button onclick="toggleAnswer('qa4')">📚 COURSE CERTIFICATION</button>
       <div id="qa4" style="display:none; padding-left:12px;">
+        <p>Q: Is there a verification system?</p>
+        <p>A: Yes — it’s a PDF you can download, print, or share on LinkedIn and portfolios.</p>
+      </div>
+    </div>
+	<div id="qa4" style="display:none; padding-left:12px;">
+        <p>Q: Can I obtain a certificate if I complete a course without taking the final quizz?</p>
+        <p>A: No — You are encouraged to complete quizzes before obtaining the certification page. We encourage you to take related quizzes. Aside obtaining knowledge, it would be easier to keep your milestone on track.</p>
+      </div>
+    </div>
+	<div id="qa4" style="display:none; padding-left:12px;">
         <p>Q: Is there a verification system?</p>
         <p>A: Yes — it’s a PDF you can download, print, or share on LinkedIn and portfolios.</p>
       </div>
@@ -368,7 +407,7 @@ Getting the bundle gives you all levels in one purchase..</p>
     <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
 
     <div class="faq-item" style="margin:6px 0;">
-      <button onclick="toggleAnswer('qa4')">📚 CHOOSING A COURSE</button>
+      <button onclick="toggleAnswer('qa4')">📚 ACCOUNT ISSUES</button>
       <div id="qa4" style="display:none; padding-left:12px;">
         <p>Q: What if I don’t see my unlocked courses?</p>
         <p>A: Refresh your dashboard.
@@ -380,7 +419,7 @@ Getting the bundle gives you all levels in one purchase..</p>
     <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
 
     <div class="faq-item" style="margin:6px 0;">
-      <button onclick="toggleAnswer('qa4')">📚 CHOOSING A COURSE</button>
+      <button onclick="toggleAnswer('qa4')">📚 UNCONFIRMED PAYMENTS</button>
       <div id="qa4" style="display:none; padding-left:12px;">
         <p>Q: What if my crypto payment isn’t confirmed?</p>
         <p>A: Network congestion can delay it.
@@ -391,7 +430,7 @@ Check the transaction hash on a blockchain explorer.</p>
     <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
 
     <div class="faq-item" style="margin:6px 0;">
-      <button onclick="toggleAnswer('qa4')">📚 CHOOSING A COURSE</button>
+      <button onclick="toggleAnswer('qa4')">📚 ABOUT REFUNDS</button>
       <div id="qa4" style="display:none; padding-left:12px;">
         <p>Q: Can I get refunds after payments?</p>
         <p>A: No. all payments are final. once your wallets pay in crypto, you cannot retrieve the amount you sent.</p>
