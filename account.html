@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>My Account</title>
+<link rel="icon" href="favicon.ico">
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:#111827;
+color:white;
+}
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#1f2937;
+padding:10px 20px;
+}
+.nav-right{
+display:flex;
+align-items:center;
+gap:20px;
+}
+.dropdown{
+position:relative;
+display:inline-block;
+cursor:pointer;
+}
+.dropdown-content{
+display:none;
+position:absolute;
+background:#1e293b;
+min-width:180px;
+right:0;
+border-radius:6px;
+}
+.dropdown-content a{
+display:block;
+padding:10px;
+color:white;
+text-decoration:none;
+}
+.dropdown-content a:hover{
+background:#374151;
+}
+.dropdown:hover .dropdown-content{
+display:block;
+}
+</style>
+</head>
+<body>
+
+<header>
+<div>Home</div>
+
+<div class="nav-right">
+
+<div>Logout</div>
+
+<div class="dropdown">
+<img src="user-icon.png" width="25">
+<div class="dropdown-content">
+<a href="#">My Dashboard</a>
+<a href="#">My Progress</a>
+<a href="#" onclick="toggleTheme()">Theme</a>
+<a href="#">Settings</a>
+<a href="#" onclick="deleteAccount()">Delete Account</a>
+</div>
+</div>
+
+<div class="dropdown">
+<div style="font-size:22px;">☰</div>
+<div class="dropdown-content">
+<a href="#">About MedorCoin</a>
+<a href="#">Developers</a>
+<a href="#">Miners</a>
+<a href="#">Investors</a>
+</div>
+</div>
+
+</div>
+</header>
+
+<script>
+function deleteAccount(){
+if(confirm("Are you sure you want to delete your account?")){
+alert("Account deleted.");
+}
+}
+
+function toggleTheme(){
+document.body.style.background =
+document.body.style.background === "white" ? "#111827" : "white";
+}
+</script>
+
+</body>
+</html>
