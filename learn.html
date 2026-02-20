@@ -229,12 +229,32 @@ setInterval(nextSlide, 5000); // 5 seconds
        Ensure this area is part of the per-user course page when integrated with real routing -->
   <section class="card" id="demoCard" aria-label="Free previews (per-user content)">
     <h2>Free Demo</h2>
-    <div class="grid" id="demoGrid">
-      <div class="level"><span class="title">Spot L1:</span> Trading Level One.</div>
-      <div class="level"><span class="title">Futures L1:</span> Futures Level One: Trading gh Basics and Terms</div>
-      <div class="level"><span class="title">Options L1:</span> What are Call and Put?.</div>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Free Demo | Course Previews</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .card { border: 1px solid #ccc; padding: 20px; border-radius: 6px; }
+    .grid { display: grid; gap: 10px; margin-top: 10px; }
+    .grid a { text-decoration: none; color: #0077cc; }
+  </style>
+</head>
+<body>
+
+  <section class="card" aria-label="Free previews (demo)">
+    <h2>Free Demo</h2>
+    <div class="grid">
+      <div class="level"><a href="spot-l1.html">📈 Spot L1: Trading Level One</a></div>
+      <div class="level"><a href="futures-l1.html">📊 Futures L1: Trading gh Basics and Terms</a></div>
+      <div class="level"><a href="options-l1.html">⚡ Options L1: Crypto Options Trading Level One</a></div>
     </div>
     <p class="muted">To access quizzes and higher levels, log in and purchase below.</p>
+  </section>
+
+</body>
+</html>
   </section>
 
   <!-- UNLOCK ACCESS: This block lives on the per-user course page; not on home.
