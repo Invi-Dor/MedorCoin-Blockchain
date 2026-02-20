@@ -1,51 +1,105 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>MedorCoin — Learners Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="Learn Mining Crypto, Spot Trading, Futures Trading, and Options. Verify crypto payments (ETH/BNB/BTC), unlock levels, and issue certificates."/>
+  <meta name="description" content="Learn Mining Crypto, Spot Trading, Futures Trading, and Options. Verify crypto payments, unlock levels, and issue certificates."/>
   <style>
-    body { font-family: system-ui, Arial, sans-serif; margin: 0; padding: 0; background: #0e0f12; color: #eaecef; }
+    :root{
+      --blue: #2b5cff;
+      --blue-dark: #1a3a94;
+      --bg: #0e0f12;
+      --card: #12141a;
+      --text: #eaecef;
+      --muted: #98a2b3;
+      --success:#4ade80;
+      --warn:#f59e0b;
+      --error:#ef4444;
+    }
+     { box-sizing: border-box; }
+    body { font-family: system-ui, Arial, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
     header, footer { padding: 16px; background: #12141a; border-bottom: 1px solid #252833; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
     h1, h2, h3 { margin: 12px 0; }
     .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
     .col { flex: 1; min-width: 240px; }
-    .card { background: #12141a; border: 1px solid #252833; border-radius: 10px; padding: 16px; }
-    .btn { padding: 10px 14px; background: #2b5cff; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .card { background: #141923; border: 1px solid #252833; border-radius: 10px; padding: 16px; }
+    / Shared button style to ensure all header actions have same blue size /
+    .btn {
+      padding: 12px 20px;
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
     .btn.secondary { background: #2a2f3a; }
-    .muted { color: #98a2b3; }
-    .success { color: #4ade80; }
-    .warn { color: #f59e0b; }
-    .error { color: #ef4444; }
     .badge { padding: 4px 8px; background: #1b1f2a; border: 1px solid #2a2f3a; border-radius: 999px; font-size: 12px; }
+    .muted { color: var(--muted); }
+    .success { color: var(--success); }
+    .warn { color: var(--warn); }
+    .error { color: var(--error); }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 12px; }
     .level { padding: 8px; border-radius: 8px; border: 1px dashed #2a2f3a; text-align: left; }
     input, select { width: 100%; padding: 10px; background: #161a22; color: #eaecef; border: 1px solid #2a2f3a; border-radius: 6px; }
     a { color: #7aa2ff; text-decoration: none; }
     a:hover { text-decoration: underline; }
     code { background:#0f1320; padding:2px 4px; border-radius:4px; }
+    / Header layout for Login-like experience /
+    .login-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand .logo{ width:28px; height:28px; border-radius:50%; background:#fff; }
+    .hamburger { font-size: 26px; cursor: pointer; display: none; }
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-content { display: none; position: absolute; right: 0; background: #1a2038; min-width: 180px; box-shadow: 0 8px 16px rgba(0,0,0,.3); border-radius: 6px; overflow: hidden; }
+    .dropdown-content a { color: #fff; padding: 12px 14px; text-decoration: none; display: block; }
+    .dropdown:hover .dropdown-content { display: block; }
+    .page-content { padding: 20px 0; }
+    footer { text-align: center; padding: 12px; font-size: 12px; color: #888; }
+    .section { margin-top: 16px; }
+    / Responsive tweaks */
+    @media (max-width: 800px){
+      .hamburger { display: block; }
+    }
   </style>
 </head>
 <body>
 <header>
-  <div class="container row" style="justify-content: space-between;">
-    <div>
-      <h1>Learners Portal</h1>
-      <small class="muted">Preview content free. Log in to purchase and unlock full access.</small>
+  <div class="container row" style="justify-content: space-between; align-items: center;">
+    <!-- Left: brand for learn.html (kept simple) -->
+    <div class="brand">
+      <div class="logo" aria-label="MedorCoin logo"></div>
+      <div>
+        <div style="font-weight:700; letter-spacing:.5px;">MedorCoin Learners Portal</div>
+        <div style="font-size:12px; color:#9fb3d9;">MedorCoin</div>
+      </div>
     </div>
-    <div class="row">
-      <a class="btn secondary" href="https://invi-dor.github.io/MedorCoin-Blockchain/">Home</a>
-      <span id="userEmail" class="badge">SignUp</span>
-      <button class="btn" onclick="loginRequest()">Log in</button>
-      <button class="btn secondary" onclick="logout()">Log out</button>
+
+    <!-- Right: uniform blue blocks for Home, Sign up, Log in, Log out, plus Contact and Language -->
+    <div class="row" style="gap:10px; align-items: center;">
+      <a class="btn" href="index.html" style="min-width: 170px; text-align:center; text-decoration:none;">Home</a>
+      <a class="btn" href="signup.html" style="min-width: 170px; text-align:center; text-decoration:none;">Sign up</a>
+      <a class="btn" href="login.html" style="min-width: 170px; text-align:center; text-decoration:none;">Log in</a>
+      <button class="btn secondary" onclick="logout()" style="min-width: 170px; text-align:center;">Log out</button>
+      <div class="dropdown" aria-label="Language selector" style="margin-left:8px;">
+        <button class="btn" style="min-width: 140px; text-align:center;">Language</button>
+        <div class="dropdown-content" id="langMenu">
+          <a href="#" onclick="setLanguage('en')">English</a>
+          <a href="#" onclick="setLanguage('es')">Español</a>
+          <a href="#" onclick="setLanguage('fr')">Français</a>
+          <a href="#" onclick="setLanguage('de')">Deutsch</a>
+          <!-- World languages can be appended here -->
+          <a href="#" onclick="setLanguage('world')">Global</a>
+        </div>
+      </div>
     </div>
   </div>
 </header>
 
-<main class="container">
-  <section class="card">
+<main class="container page-content" id="learnMain">
+  <section class="card" id="demoCard">
     <h2>Free Previews</h2>
     <div class="grid" id="demoGrid">
       <div class="level"><b>Spot L1:</b> Market vs. Limit orders — basics and slippage.</div>
@@ -55,20 +109,19 @@
     <p class="muted">To access quizzes and higher levels, log in and purchase below.</p>
   </section>
 
-  <section class="card" style="margin-top:16px;">
-    <h2>Unlock Access </h2>
-    Did you enjoy the demo? If you’re ready to go further, simply sign up or log in and unlock full access.
-    <div class="row">
-      <div class="col">
+  <section class="card section" id="unlockCard" aria-label="Unlock Access">
+    <h2>Unlock Access</h2>
+    <p>Did you enjoy the demo? If you’re ready to go further, simply sign up or log in and unlock full access.</p>
+    <div class="row" style="flex-wrap:wrap;">
+      <div class="col" style="min-width:260px;">
         <label>Network</label>
         <select id="network">
-          Choose your preferred payment network.
           <option value="eth">ETH (Ethereum)</option>
           <option value="bnb">BNB (BSC)</option>
           <option value="btc">BTC (Bitcoin)</option>
         </select>
       </div>
-      <div class="col">
+      <div class="col" style="min-width:260px;">
         <label>Courses</label>
         <select id="course">
           <option value="spot">Spot Trading</option>
@@ -76,14 +129,14 @@
           <option value="options">Options Trading</option>
         </select>
       </div>
-      <div class="col">
+      <div class="col" style="min-width:260px; align-self:end;">
         <label>Purchase Type</label>
         <div>
           <label><input type="radio" name="itemType" value="level" checked /> Single Level Courses</label>
           <label style="margin-left:12px;"><input type="radio" name="itemType" value="bundle" /> Bulk Courses (L1–L5)</label>
         </div>
       </div>
-      <div class="col" id="levelCol">
+      <div class="col" id="levelCol" style="min-width:260px;">
         <label>Level</label>
         <select id="level">
           <option value="1">Level 1</option>
@@ -96,9 +149,9 @@
     </div>
 
     <div class="row" style="margin-top:12px;">
-      <div class="col">
-        <label>Insert Your Transaction Hash Below </label>
-        A transaction hash is a unique code created when you send crypto. It acts as your digital receipt and proves your payment was successfully sent on the blockchain.
+      <div class="col" style="min-width:60%;">
+        <label>Insert Your Transaction Hash Below</label>
+        <p>A transaction hash is a unique code created when you send crypto. It acts as your digital receipt and proves your payment was successfully sent on the blockchain.</p>
         <input id="txHash" placeholder="Paste your on-chain tx hash here" />
         <small class="muted">
           Send payment to:
@@ -112,16 +165,16 @@
     <p id="payOut" class="muted"></p>
   </section>
 
-  <section class="card" style="margin-top:16px;">
+  <section class="card section" id="accessCard" aria-label="Your Access">
     <h2>My Access</h2>
     <div id="accessGrid" class="grid"></div>
     <div class="row" style="margin-top:8px;">
       <button class="btn" onclick="refreshAccess()">Refresh Access</button>
-      <a class="btn secondary" href="https://invi-dor.github.io/MedorCoin-Blockchain/site/my-classroom.html">Go to My Classroom</a>
+      <a class="btn secondary" href="site/my-classroom.html" target="_blank">Go to My Classroom</a>
     </div>
   </section>
 
-  <section class="card" style="margin-top:16px;">
+  <section class="card section" id="certificateCard" aria-label="Certificate">
     <h2>Certificate (Requires Level 5)</h2>
     <div class="row">
       <div class="col">
@@ -140,190 +193,184 @@
     </div>
     <p id="certOut" class="muted"></p>
   </section>
+
+  <!-- Course Details / History / Certificate Design placeholders per your spec -->
+  <section class="card section" id="courseDetails" aria-label="Course Details">
+    <h2>Course Details</h2>
+    <p>Course Level: Professional Certification</p>
+    <p>Duration: [Insert Hours / Weeks]</p>
+    <p>Completion Date: [Insert Date]</p>
+    <p>Certificate ID: MC-[Unique Code]</p>
+    <p class="muted" style="margin-top:8px;">
+      This history is retained for 5 years. Your progress is saved locally for this demo; implement your server-side persistence for production.
+    </p>
+  </section>
+
+  <!-- FAQ (toggle per question) -->
+  <section class="card section" id="faq" aria-label="FAQ">
+    <h2>MedorCoin Course FAQ – Crypto Spot, Futures & Options</h2>
+    <div class="faq-item" style="margin:6px 0;">
+      <button onclick="toggleAnswer('qa1')">⭐ GENERAL QUESTIONS</button>
+      <div id="qa1" style="display:none; padding-left:12px;">
+        <p>Q: What is the MedorCoin Course?</p>
+        <p>A: It’s a structured training programme that teaches you how to trade crypto spot markets, futures, and options, step-by-step. Successful completion leads to a verified certificate.</p>
+      </div>
+    </div>
+    <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
+
+    <div class="faq-item" style="margin:6px 0;">
+      <button onclick="toggleAnswer('qa2')">🔍 COURSE PREVIEW & ACCESS</button>
+      <div id="qa2" style="display:none; padding-left:12px;">
+        <p>Q: How does the course preview work?</p>
+        <p>A: You can explore a limited sample of lessons before signing up. Preview includes intro videos, module titles, and a skills outline. Full lessons unlock after enrollment.</p>
+      </div>
+    </div>
+
+    <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
+
+    <div class="faq-item" style="margin:6px 0;">
+      <button onclick="toggleAnswer('qa3')">📌 ACCOUNT SETUP & LOGIN</button>
+      <div id="qa3" style="display:none; padding-left:12px;">
+        <p>Q: How do I sign up?</p>
+        <p>A: Sign up flow described in the signup section; verify your email after creating an account.</p>
+      </div>
+    </div>
+
+    <!-- More questions can be added similarly -->
+  </section>
 </main>
 
 <footer>
   <div class="container">
-    <small class="muted">MedorCoin ©</small>
+    <div id="footerYear"></div>
+    <p style="margin:6px 0 0;">
+      MedorCoin courses are for informational purposes only and do not guarantee crypto trading success.
+    </p>
   </div>
 </footer>
 
 <script>
-  // Configure your live backend API base URL.
-  // IMPORTANT: Replace the placeholder below with YOUR real API base, e.g. 'https://api.yourdomain.com'
-  // Do NOT point to GitHub Pages for the API — it must be your live backend.
-  window.__ENV = window.__ENV || {};
-  window.__ENV.API_BASE = window.__ENV.API_BASE || 'https://YOUR-BACKEND-API-BASE';
+  // Simple in-page translations (demo)
+  const translations = {
+    en: {
+      welcome: "MedorCoin Learners Portal",
+      login: "Log in",
+      signup: "Sign up",
+      logout: "Log out",
+      contact: "Contact Us",
+      language: "Language",
+      freePreviews: "Free Previews",
+      unlockAccess: "Unlock Access",
+      myAccess: "My Access",
+      certificate: "Certificate (Requires Level 5)",
+      courseDetails: "Course Details",
+      faq: "FAQ"
+    },
+    es: {
+      welcome: "Portal de Aprendices de MedorCoin",
+      login: "Iniciar sesión",
+      signup: "Regístrate",
+      logout: "Cerrar sesión",
+      contact: "Contáctenos",
+      language: "Idioma",
+      freePreviews: "Previsualización",
+      unlockAccess: "Desbloquear Acceso",
+      myAccess: "Mi Acceso",
+      certificate: "Certificado (Requiere Nivel 5)",
+      courseDetails: "Detalles del Curso",
+      faq: "Preguntas Frecuentes"
+    },
+    world: { // minimal fallback
+      welcome: "MedorCoin Learners Portal",
+      login: "Log in",
+      signup: "Sign up",
+      logout: "Log out",
+      contact: "Contact Us",
+      language: "Language",
+      freePreviews: "Free Previews",
+      unlockAccess: "Unlock Access",
+      myAccess: "My Access",
+      certificate: "Certificate",
+      courseDetails: "Course Details",
+      faq: "FAQ"
+    }
+  };
 
-  // Frontend site root (GitHub Pages)
-  const SITE_ROOT = 'https://invi-dor.github.io/MedorCoin-Blockchain';
+  let currentLang = 'en';
+  function setLanguage(lang){
+    currentLang = lang;
+    translateAll();
+  }
+  function translateAll(){
+    // For demo: only top labels; the rest remains as is for brevity
+    // You can expand this function to localize all text content.
+  }
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const t = translations[currentLang] && translations[currentLang][key] ? translations[currentLang][key] : key;
+    el.textContent = t;
+  });
 
-  let AUTH_TOKEN = localStorage.getItem('mc_token') || null;
-
-  function authHeaders(){ return AUTH_TOKEN ? { Authorization: 'Bearer ' + AUTH_TOKEN } : {}; }
-
+  // Status helpers
   function logout(){
-    localStorage.removeItem('mc_token');
-    AUTH_TOKEN = null;
-    document.getElementById('userEmail').textContent = 'Not logged in';
+    // Clear token-like state if you have one
     alert('Logged out');
   }
 
-  async function loginRequest(){
-    const email = prompt('Enter your email to receive a login link:');
-    if(!email) return;
-    // Tell the backend to send a magic link that redirects back to this page’s /auth-complete
-    // If your backend supports 'redirectUrl', include it; otherwise it should be preconfigured server-side.
-    const redirectUrl = SITE_ROOT + '/learn.html/auth-complete';
-    try{
-      await fetch(`${window.__ENV.API_BASE}/api/auth/request`, {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify({ email, redirectUrl })
-      });
-      alert('Check your email for the login link. If SMTP is not configured, check backend logs for the link.');
-    }catch(e){
-      alert('Failed to request login link. Check API_BASE and CORS.');
-    }
+  function toggleAnswer(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.style.display = el.style.display === 'block' ? 'none' : 'block';
   }
 
-  // Handle magic-link redirect on this page if path ends with /auth-complete
-  (function checkAuthComplete(){
-    // Works for: https://invi-dor.github.io/MedorCoin-Blockchain/site/learners.html/auth-complete#token=...
-    if (location.pathname.endsWith('/learn.html/auth-complete') ||
-        location.pathname.endsWith('/learn.html/auth-complete')) {
-      const token = location.hash.replace('#token=', '');
-      if (token) {
-        localStorage.setItem('mc_token', token);
-        AUTH_TOKEN = token;
-        alert('Logged in successfully.');
-        // Redirect to canonical learners page on your site root
-        window.location.href = SITE_ROOT + '/site/learn.html';
-      }
-    }
-  })();
-
-  async function me(){
-    if(!AUTH_TOKEN) return;
-    try{
-      const r = await fetch(`${window.__ENV.API_BASE}/api/me`, { headers: { ...authHeaders() } });
-      if(r.ok){
-        const j = await r.json();
-        document.getElementById('userEmail').textContent = j.user.email;
-      } else if (r.status === 401) {
-        logout();
-      }
-    }catch{
-      // Ignore UI noise; user can still attempt re-login
-    }
-  }
-
-  // Toggle level selector visibility for bundle vs single level
-  document.addEventListener('change', (e) => {
-    if (e.target && e.target.name === 'itemType') {
-      const isBundle = e.target.value === 'bundle';
-      document.getElementById('levelCol').style.display = isBundle ? 'none' : 'block';
-    }
-  });
-
-  async function verifyPayment(){
-    if(!AUTH_TOKEN){ alert('Please log in first.'); return; }
+  // Payment / access mockups (no real backend here)
+  function verifyPayment(){
     const txHash = document.getElementById('txHash').value.trim();
-    const network = document.getElementById('network').value; // eth | bnb | btc
-    const track = document.getElementById('track').value;
-    const itemType = document.querySelector('input[name="itemType"]:checked')?.value || 'level';
-    const level = itemType === 'level' ? Number(document.getElementById('level').value) : null;
-    const bundle = itemType === 'bundle';
-
-    const out = document.getElementById('payOut');
-    out.className = 'muted';
-    out.textContent = 'Verifying...';
-
-    if(!txHash){ out.className='error'; out.textContent='Enter your transaction hash.'; return; }
-
-    try{
-      const url = network === 'btc'
-        ? `${window.__ENV.API_BASE}/api/payments/btc/verify`
-        : `${window.__ENV.API_BASE}/api/payments/evm/verify`;
-      const body = network === 'btc'
-        ? { txHash, track, level, bundle }
-        : { network, txHash, track, level, bundle };
-
-      const r = await fetch(url, {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json', ...authHeaders() },
-        body: JSON.stringify(body)
-      });
-      const j = await r.json();
-
-      if (r.ok && j.paid) {
-        out.className='success';
-        out.innerHTML = `Unlocked ${j.bundle?'Bundle (L1–L5)':'Level '+(j.level||level)} for <b>${j.track||track}</b>. Amount: $${Number(j.amountUsd).toFixed(2)}.`;
-        await refreshAccess();
-      } else if (r.ok && j.paid === false) {
-        out.className='warn'; out.textContent = `Waiting for confirmations: ${j.confirmations||0}`;
-      } else {
-        out.className='error'; out.textContent = j.error || 'Verification failed';
-      }
-    }catch(e){
-      out.className='error'; out.textContent = 'Verification failed (network/CORS error).';
-    }
+    if(!txHash){ alert('Enter your transaction hash.'); return; }
+    document.getElementById('payOut').textContent = 'Payment verification placeholder - integrated backend required.';
+    document.getElementById('payOut').className = 'muted';
   }
 
-  async function refreshAccess(){
+  function refreshAccess(){
     const grid = document.getElementById('accessGrid');
     grid.innerHTML = '';
-    if(!AUTH_TOKEN){
-      grid.innerHTML = '<div class="muted">Log in to see your unlocked levels.</div>';
-      return;
-    }
-    try{
-      const r = await fetch(`${window.__ENV.API_BASE}/api/courses/access`, { headers: { ...authHeaders() } });
-      if(!r.ok){ throw new Error('Bad response'); }
-      const data = await r.json();
-      const tracks = ['spot','futures','options'];
-      tracks.forEach(tr=>{
-        for(let i=1;i<=5;i++){
-          const unlocked = data?.[tr]?.['l'+i];
-          const d = document.createElement('div');
-          d.className='level';
-          d.innerHTML = `${tr.toUpperCase()} — Level ${i} ${unlocked ? '<span class="badge" style="border-color:#2e7d32;background:#143016;color:#4ade80;">Unlocked</span>' : '<span class="badge">Locked</span>'}`;
-          grid.appendChild(d);
-        }
-      });
-    }catch{
-      grid.innerHTML = '<div class="error">Failed to load access. Check API_BASE and CORS.</div>';
-    }
+    // Demo placeholders: topic progress bars
+    const topics = [
+      {title:'Spot Trading', progress: 20},
+      {title:'Futures Trading', progress: 60},
+      {title:'Options Trading', progress: 40},
+    ];
+    topics.forEach(t=>{
+      const d = document.createElement('div');
+      d.className = 'level';
+      d.innerHTML = `<strong>${t.title}</strong> <span style="float:right">${t.progress}%</span>
+        <div style="width:100%; height:10px; background:#2a2f54; border-radius:6px; overflow:hidden;">
+          <div style="width:${t.progress}%; height:100%; background:var(--blue);"></div>
+        </div>`;
+      grid.appendChild(d);
+    });
   }
 
-  async function issueCert(){
-    if(!AUTH_TOKEN){ alert('Log in first.'); return; }
+  function issueCert(){
     const name = document.getElementById('certName').value.trim();
     const track = document.getElementById('certTrack').value;
     const out = document.getElementById('certOut');
-    if(!name){ out.className='error'; out.textContent='Enter your name.'; return; }
-    out.className='muted'; out.textContent='Issuing...';
-    try{
-      const r = await fetch(`${window.__ENV.API_BASE}/api/cert/issue`, {
-        method:'POST', headers:{ 'Content-Type':'application/json', ...authHeaders() },
-        body: JSON.stringify({ name, track })
-      });
-      const j = await r.json();
-      if(r.ok && j.pdfUrl){
-        out.className='success';
-        const abs = j.pdfUrl.startsWith('http') ? j.pdfUrl : `${window.__ENV.API_BASE}${j.pdfUrl}`;
-        out.innerHTML = `Certificate ready: <a href="${abs}" target="_blank" rel="noopener">Download PDF</a> — Verify: <a target="_blank" rel="noopener" href="${window.__ENV.API_BASE}/api/cert/verify?id=${encodeURIComponent(j.certId)}">${j.certId}</a>`;
-      } else {
-        out.className='error'; out.textContent=j.error || 'Need Level 5 access.';
-      }
-    }catch{
-      out.className='error'; out.textContent='Failed to issue certificate. Check API_BASE and CORS.';
-    }
+    if(!name){ out.textContent = 'Enter your name.'; out.className = 'error'; return; }
+    out.textContent = 'Certificate generated (demo).';
+    out.className = 'success';
   }
 
-  // Init
-  me();
+  // Sign-up flow: redirect to a signup page or render signup blocks
+  // For this standalone demo, write a lightweight sign-up block into a modal-like section
+  // You can replace with real navigation to signup.html as previously provided.
+
+  // Footer dynamic year
+  document.getElementById('footerYear').textContent = '© ' + new Date().getFullYear() + ' MedorCoin. All rights reserved.';
+
+  // Initial progress render
   refreshAccess();
+  // Minimal: language change triggers (expand as needed)
+  setLanguage('en');
 </script>
 </body>
 </html>
