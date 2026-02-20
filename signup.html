@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bidotcoin Learning Portal - Sign Up</title>
+<link rel="icon" href="medorcoin-logo.png">
+<style>
+body{
+font-family:Arial, sans-serif;
+background:#0f172a;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+.container{
+background:#1e293b;
+padding:40px;
+border-radius:8px;
+width:400px;
+}
+input{
+width:100%;
+padding:10px;
+margin-top:8px;
+margin-bottom:20px;
+border-radius:5px;
+border:none;
+}
+button{
+width:100%;
+padding:12px;
+background:#2563eb;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+button:hover{
+background:#1d4ed8;
+}
+.error{
+color:#f87171;
+font-size:14px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>Welcome to Bidotcoin Learning Portal</h2>
+
+<form id="signupForm">
+<label>Email</label>
+<input type="email" id="email" required>
+
+<label>Username</label>
+<input type="text" id="username" required>
+
+<label>Choose a Password</label>
+<input type="password" id="password" required>
+
+<label>Confirm Password</label>
+<input type="password" id="confirmPassword" required>
+
+<div id="errorMsg" class="error"></div>
+
+<div style="margin-bottom:20px;">
+<input type="checkbox" id="captcha" required>
+<label for="captcha">I am not a robot</label>
+</div>
+
+<button type="submit">Proceed to Sign Up</button>
+</form>
+</div>
+
+<script>
+document.getElementById("signupForm").addEventListener("submit", async function(e){
+e.preventDefault();
+
+let password = document.getElementById("password").value;
+let confirmPassword = document.getElementById("confirmPassword").value;
+let errorMsg = document.getElementById("errorMsg");
+
+if(password !== confirmPassword){
+errorMsg.innerText = "Passwords do not match.";
+return;
+}
+
+if(!document.getElementById("captcha").checked){
+errorMsg.innerText = "Please verify you are not a robot.";
+return;
+}
+
+let response = await fetch("/send-code",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+email:document.getElementById("email").value
+})
+});
+
+if(response.ok){
+window.location.href="verify.html";
+}
+});
+</script>
+
+</body>
+</html>
