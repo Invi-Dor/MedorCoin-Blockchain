@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.19)
+
 project(MedorcoinSrc
   VERSION 0.1.0
   DESCRIPTION "Medorcoin core sources"
