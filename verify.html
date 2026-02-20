@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Email Verification</title>
+</head>
+<body style="font-family:Arial;background:#0f172a;color:white;text-align:center;padding-top:100px;">
+
+<h2>A verification code has been sent to your email.</h2>
+<p>Please enter the code below to verify your account.</p>
+
+<input type="text" id="code" placeholder="Enter verification code">
+<br><br>
+<button onclick="verifyCode()">Verify</button>
+
+<script>
+async function verifyCode(){
+let response = await fetch("/verify-code",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+code:document.getElementById("code").value
+})
+});
+
+if(response.ok){
+window.location.href="account.html";
+}else{
+alert("Invalid code.");
+}
+}
+</script>
+
+</body>
+</html>
