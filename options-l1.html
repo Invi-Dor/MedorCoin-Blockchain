@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>⚡ Crypto Options Trading Level One</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .quiz { margin-top: 30px; }
+    .question { display: none; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>⚡ Crypto Options Trading Level One</h1>
+
+  <p><strong>What Are Options?</strong></p>
+  <p>An option is a contract that gives you the right but not the obligation...</p>
+  <!-- (Insert rest of options training content here) -->
+
+  <div class="quiz">
+    <button onclick="showQuizOpt()">Take Options Quiz</button>
+
+    <div id="optQ1" class="question">
+      <p>1) A call option gives you the right to __________?</p>
+      <input type="text" id="optA1">
+      <button onclick="checkOptQ1()">Submit</button>
+    </div>
+
+    <div id="optQ2" class="question">
+      <p>2) The price you pay for an option contract is called?</p>
+      <input type="text" id="optA2">
+      <button onclick="checkOptQ2()">Submit</button>
+    </div>
+
+    <div id="optResult"></div>
+  </div>
+
+<script>
+function showQuizOpt() {
+  document.getElementById("optQ1").style.display = "block";
+}
+function checkOptQ1() {
+  let ans = document.getElementById("optA1").value.toLowerCase();
+  if(ans.includes("buy")) {
+    document.getElementById("optQ2").style.display = "block";
+    document.getElementById("optQ1").style.display = "none";
+  }
+}
+function checkOptQ2() {
+  let ans = document.getElementById("optA2").value.toLowerCase();
+  if(ans.includes("premium")) {
+    document.getElementById("optResult").innerHTML =
+      "Wow congratulations! Do you fancy to learn more? <a href='#'>Click here</a>";
+  }
+}
+</script>
+
+</body>
+</html>
