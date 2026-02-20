@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📈 Spot Trading Level One: Trading Fundamentals</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .quiz { margin-top: 30px; }
+    .question { display: none; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>📈 Spot Trading Level One: Trading Fundamentals</h1>
+
+  <p><strong>What Is Trading</strong></p>
+  <p>Trading means buying and selling an asset to profit from price changes...</p>
+
+  <h2>📊 Five Essential Trading Terms</h2>
+  <p><strong>Market Order:</strong> A market order is an instruction to buy or sell immediately...</p>
+  <!-- (Continue rest of content here, same as provided) -->
+
+  <div class="quiz">
+    <button onclick="showQuizSpot()">Take Spot Trading Quiz</button>
+
+    <div id="spotQ1" class="question">
+      <p>1) A market order prioritizes __________ over price control?</p>
+      <input type="text" id="spotA1">
+      <button onclick="checkSpotQ1()">Submit</button>
+    </div>
+
+    <div id="spotQ2" class="question">
+      <p>2) Bid is the __________ price a buyer is willing to pay?</p>
+      <input type="text" id="spotA2">
+      <button onclick="checkSpotQ2()">Submit</button>
+    </div>
+
+    <div id="spotResult"></div>
+  </div>
+
+<script>
+function showQuizSpot() {
+  document.getElementById("spotQ1").style.display = "block";
+}
+function checkSpotQ1() {
+  let ans = document.getElementById("spotA1").value.toLowerCase();
+  if(ans.includes("execution")) {
+    document.getElementById("spotQ2").style.display = "block";
+    document.getElementById("spotQ1").style.display = "none";
+  }
+}
+function checkSpotQ2() {
+  let ans = document.getElementById("spotA2").value.toLowerCase();
+  if(ans.includes("highest")) {
+    document.getElementById("spotResult").innerHTML =
+      "Wow congratulations! Do you fancy to learn more? <a href='#'>Click here</a>";
+  }
+}
+</script>
+
+</body>
+</html>
