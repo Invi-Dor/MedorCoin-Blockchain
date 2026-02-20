@@ -57,28 +57,30 @@
 
   <section class="card" style="margin-top:16px;">
     <h2>Unlock Access </h2>
+    Did you enjoy the demo? If you’re ready to go further, simply sign up or log in and unlock full access.
     <div class="row">
       <div class="col">
         <label>Network</label>
         <select id="network">
+          Choose your preferred payment network.
           <option value="eth">ETH (Ethereum)</option>
           <option value="bnb">BNB (BSC)</option>
           <option value="btc">BTC (Bitcoin)</option>
         </select>
       </div>
       <div class="col">
-        <label>Track</label>
-        <select id="track">
-          <option value="spot">Spot</option>
-          <option value="futures">Futures</option>
-          <option value="options">Options</option>
+        <label>Courses</label>
+        <select id="course">
+          <option value="spot">Spot Trading</option>
+          <option value="futures">Futures Trading</option>
+          <option value="options">Options Trading</option>
         </select>
       </div>
       <div class="col">
         <label>Purchase Type</label>
         <div>
-          <label><input type="radio" name="itemType" value="level" checked /> Single Level</label>
-          <label style="margin-left:12px;"><input type="radio" name="itemType" value="bundle" /> Bundle (L1–L5)</label>
+          <label><input type="radio" name="itemType" value="level" checked /> Single Level Courses</label>
+          <label style="margin-left:12px;"><input type="radio" name="itemType" value="bundle" /> Bulk Courses (L1–L5)</label>
         </div>
       </div>
       <div class="col" id="levelCol">
@@ -95,7 +97,8 @@
 
     <div class="row" style="margin-top:12px;">
       <div class="col">
-        <label>Transaction Hash</label>
+        <label>Insert Your Transaction Hash Below </label>
+        A transaction hash is a unique code created when you send crypto. It acts as your digital receipt and proves your payment was successfully sent on the blockchain.
         <input id="txHash" placeholder="Paste your on-chain tx hash here" />
         <small class="muted">
           Send payment to:
