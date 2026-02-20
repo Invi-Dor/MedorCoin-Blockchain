@@ -1,9 +1,10 @@
+cmake_minimum_required(VERSION 3.19)
+
 project(Medorcoin
   VERSION 0.1.0
   DESCRIPTION "Medorcoin node and tools"
   LANGUAGES C CXX
 )
-
 ---------------- Global options ----------------
 option(ENABLE_WARNINGS "Enable extra compiler warnings" ON)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
