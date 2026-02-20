@@ -1,59 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>⚡ Crypto Options Trading Level One</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>🚀 Options L1: Crypto Options Trading Fundamentals</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .quiz { margin-top: 30px; }
-    .question { display: none; margin-bottom: 10px; }
+    body { font-family: sans-serif; line-height:1.6; padding:20px; max-width:800px; margin:auto;}
+    h1,h2,h3 { margin-top:1.2em; }
+    hr { margin: 2em 0; }
+    .quiz { margin-top:2em; padding:10px; border:1px solid #ccc; border-radius:8px;}
+    .question { margin-bottom:12px; }
+    button { padding:6px 12px; margin-top:4px; cursor:pointer; }
   </style>
 </head>
 <body>
 
-  <h1>⚡ Crypto Options Trading Level One</h1>
+  <h1>🚀 Options L1: Crypto Options Trading Fundamentals</h1>
 
-  <p><strong>What Are Options?</strong></p>
-  <p>An option is a contract that gives you the right but not the obligation...</p>
-  <!-- (Insert rest of options training content here) -->
+  <h2>What Are Options</h2>
+  <p>An option is a contract that gives you the right but not the obligation to buy or sell an asset at a specific price before a certain date. Options are not stocks; they are contracts whose value comes from the underlying asset.</p>
+  <p>Trading options means buying and selling these contracts so you can profit from price movements or protect other positions.</p>
 
+  <hr>
+
+  <h2>📘 Five Basic Terms for New Traders</h2>
+
+  <h3>Call Option</h3>
+  <p>A call option gives you the right to buy an underlying asset at a fixed price before the expiry date. You would buy calls when you think the price of the asset will go up.</p>
+  <p><strong>Example:</strong> If you expect the price of MedorCoin to rise, you might buy a call option so you have the right to buy at a set price before the date expires.</p>
+
+  <h3>Put Option</h3>
+  <p>A put option gives you the right to sell an underlying asset at a set price before the option expires. You would buy puts when you think the price of the asset will go down.</p>
+  <p>This lets you profit if prices fall without owning the asset itself.</p>
+
+  <h3>Strike Price</h3>
+  <p>This is the fixed price at which you can buy (call) or sell (put) the underlying asset according to your option contract. This price determines whether your option has value relative to the current market price.</p>
+
+  <h3>Expiration Date</h3>
+  <p>This is the last day your option contract is valid. After this date the contract ceases to exist. If your option is profitable before this date you must act (sell or exercise it) or risk losing the value.</p>
+
+  <h3>Premium</h3>
+  <p>This is the price you pay to buy the option contract. It is like an entry fee for the option. The premium is influenced by the current price, strike price, time until expiration, and volatility.</p>
+
+  <hr>
+
+  <h2>⚙️ How a Simple Trade Works</h2>
+  <ol>
+    <li><strong>Choose a view on price movement:</strong> Decide if you think the price of the underlying asset will go up or down before an expiration date.</li>
+    <li><strong>Select an option type:</strong> If price is expected to rise, buy a call option; if it is expected to fall, buy a put option.</li>
+    <li><strong>Pay the premium:</strong> You pay the current market price for the option contract, your cost and maximum loss if the trade fails.</li>
+    <li><strong>Watch until expiration:</strong> The value of your option changes as the price of the underlying asset changes and as expiration approaches. Options lose value over time if price does not move in your favour (time decay).</li>
+  </ol>
+
+  <hr>
+
+  <h2>💡 Three Beginner Rules</h2>
+  <ul>
+    <li>Always practice with a demo account before trading real money because options involve complexity and risk.</li>
+    <li>Only trade options you understand and start with small amounts.</li>
+    <li>Learn how the value of options changes with price, time, and volatility to make better-informed decisions.</li>
+  </ul>
+
+  <hr>
+
+  <!-- Quiz Section -->
   <div class="quiz">
-    <button onclick="showQuizOpt()">Take Options Quiz</button>
+    <h3>📋 Quick Quiz</h3>
 
-    <div id="optQ1" class="question">
-      <p>1) A call option gives you the right to __________?</p>
-      <input type="text" id="optA1">
-      <button onclick="checkOptQ1()">Submit</button>
+    <div class="question">
+      <p>1. What does a call option allow you to do?</p>
+      <button onclick="alert('Wow, congratulations! Do you fancy to learn more? Click here');">Buy an asset at a fixed price before expiry</button>
+      <button onclick="alert('Try again!');">Sell an asset at market price immediately</button>
     </div>
 
-    <div id="optQ2" class="question">
-      <p>2) The price you pay for an option contract is called?</p>
-      <input type="text" id="optA2">
-      <button onclick="checkOptQ2()">Submit</button>
+    <div class="question">
+      <p>2. What is the maximum loss when buying an option?</p>
+      <button onclick="alert('Wow, congratulations! Do you fancy to learn more? Click here');">The premium paid for the option</button>
+      <button onclick="alert('Try again!');">The full value of the underlying asset</button>
     </div>
-
-    <div id="optResult"></div>
   </div>
 
-<script>
-function showQuizOpt() {
-  document.getElementById("optQ1").style.display = "block";
-}
-function checkOptQ1() {
-  let ans = document.getElementById("optA1").value.toLowerCase();
-  if(ans.includes("buy")) {
-    document.getElementById("optQ2").style.display = "block";
-    document.getElementById("optQ1").style.display = "none";
-  }
-}
-function checkOptQ2() {
-  let ans = document.getElementById("optA2").value.toLowerCase();
-  if(ans.includes("premium")) {
-    document.getElementById("optResult").innerHTML =
-      "Wow congratulations! Do you fancy to learn more? <a href='#'>Click here</a>";
-  }
-}
-</script>
+  <p><em>Disclaimer: The information provided is educational only and not financial advice. Trading cryptocurrencies involves risk. Always research and consult a licensed advisor. Past performance does not guarantee future results.</em></p>
 
 </body>
 </html>
