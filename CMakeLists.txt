@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.19)
 
+# Auto-find all common blockchain dependencies
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SECP256K1 REQUIRED libsecp256k1)
+pkg_check_modules(ROCKSDB REQUIRED rocksdb)
+find_package(OpenSSL REQUIRED)
+find_package(Threads REQUIRED)
+
 project(Medorcoin
   VERSION 0.1.0
   DESCRIPTION "Medorcoin node and tools"
