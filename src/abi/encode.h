@@ -8,6 +8,9 @@ public:
     static std::vector<uint8_t> encodeAddress(const std::string &addr);
     static std::vector<uint8_t> encodeUint256(const std::string &value);
     static std::vector<uint8_t> encodeBool(bool v);
+    static std::vector<uint8_t> encodeCall(const int& selector, const std::vector<std::vector<uint8_t>>& args);
+};
+
 
     // Build full calldata: selector + encoded args
     static std::vector<uint8_t> encodeCall(
