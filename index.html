@@ -4,125 +4,161 @@
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>MedorCoin — Home</title>
 <meta name="description" content="MedorCoin home portal."/>
+
 <style>
-:root {
-  --bg:#faf9f6;
-  --ink:#1f2937;
-  --muted:#6b7280;
-  --border:#e5e7eb;
-}
+  :root {
+    --bg:#faf9f6;
+    --ink:#1f2937;
+    --muted:#6b7280;
+    --border:#e5e7eb;
+  }
+  *, *::before, *::after { box-sizing:border-box; }
+  body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  a{color:inherit;text-decoration:none}
 
-/* RESET */
-*, *::before, *::after { box-sizing:border-box; }
-body { margin:0; font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); }
-a { color:inherit; text-decoration:none; }
+  .container{max-width:980px;margin:0 auto;padding:12px}
 
-/* CONTAINER */
-.container { max-width:980px; margin:0 auto; padding:12px; }
+  /* HEADER FLEX CONTAINER */
+  .header-flex {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+    background:#f5f9c6; /* light lemon yellow */
+    padding:10px 12px;
+    border-radius:6px;
+  }
 
-/* HEADER SECTION */
-.header-section {
-  background:#f5f9c6; /* light yellow background */
-  padding:10px 14px 16px 14px;
-  border-radius:6px;
-}
+  /* LOGO + BRAND */
+  .logo {display:flex;align-items:center;gap:8px;}
+  .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7;}
+  .brand{font-weight:800;font-size:16px;color:#2b2b2b;white-space:nowrap;}
 
-/* ROW 1: BRAND + SIGNUP/LOGIN */
-.header-row1 {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:8px;
-}
-.logo { display:flex; align-items:center; gap:10px; }
-.logo img { height:36px; width:36px; border-radius:10px; object-fit:cover; border:1px solid #e8e1c7; }
-.brand { font-size:18px; font-weight:600; color:#2b2b2b; }
+  /* HEADER BUTTONS */
+  .header-flex a {
+    font-size:12px;
+    padding:6px 10px;
+    border:1.5px solid #2b2b2b;
+    border-radius:6px;
+    color:#2b2b2b;
+    font-weight:500;
+    white-space:nowrap;
+    transition:0.2s ease;
+  }
+  .header-flex a:hover {background:#2b2b2b;color:#fff;}
 
-/* SIGN UP + LOGIN */
-.top-buttons {
-  display:flex;
-  gap:10px;
-}
-.top-buttons a {
-  font-size:12px; padding:6px 10px;
-  border:1.5px solid #2b2b2b; border-radius:6px;
-  color:#2b2b2b; font-weight:500; white-space:nowrap;
-  transition:0.2s ease;
-}
-.top-buttons a:hover { background:#2b2b2b; color:#fff; }
-
-/* ROW 2: WALLET + SEARCH */
-.header-row2 {
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:8px;
-}
-
-.header-row2 a {
-  font-size:11px; padding:6px 10px;
-  border:1.5px solid #2b2b2b; border-radius:6px;
-  color:#2b2b2b; font-weight:500; white-space:nowrap;
-  transition:0.2s ease;
-}
-.header-row2 a:hover { background:#2b2b2b; color:#fff; }
-
-/* SEARCH BOX */
-.searchbar { position:relative; display:inline-block; }
-.searchbar input {
-  font-size:11px; padding:6px 26px 6px 8px;
-  border:2px solid #2b2b2b; border-radius:6px;
-  outline:none; width:180px; max-width:100%;
-  color:#2b2b2b; background:#fff;
-}
-.searchbar .icon-search {
-  position:absolute; right:6px; top:50%;
-  transform:translateY(-50%);
-  font-size:13px; color:#2b2b2b;
-}
-
-/* All other existing styles below (body, grid, tiles, etc.) remain unchanged */
+  /* SEARCH */
+  .header-search {
+    position:relative;
+  }
+  .header-search input {
+    font-size:11px;
+    padding:6px 24px 6px 8px;
+    border:2px solid #2b2b2b;
+    border-radius:6px;
+    outline:none;
+    width:150px;
+    background:#fff;
+    color:#2b2b2b;
+  }
+  .header-search input:focus {border-color:#000;}
+  .header-search .icon-search {
+    position:absolute; right:6px; top:50%;
+    transform:translateY(-50%);
+    font-size:13px;color:#2b2b2b;
+  }
 </style>
 </head>
 <body>
 
-<div class="container">
+  <div class="container">
 
-  <!-- HEADER -->
-  <div class="header-section">
+    <!-- HEADER (ALL ON ONE LINE) -->
+    <div class="header-flex">
 
-    <!-- ROW 1: BRAND + SIGNUP/LOGIN -->
-    <div class="header-row1">
+      <!-- Logo + Brand -->
       <div class="logo">
-        <img src="assets/logo.png" alt="MedorCoin Logo">
+        <img src="assets/logo.png" alt="MedorCoin Logo"/>
         <div class="brand">MedorCoin</div>
       </div>
 
-      <div class="top-buttons">
-        <a href="signUp.html">Sign Up</a>
-        <a href="login.html">Login</a>
-      </div>
-    </div>
-
-    <!-- ROW 2: WALLET + SEARCH -->
-    <div class="header-row2">
+      <!-- Create Wallet -->
       <a href="createWallet.html">Create Wallet</a>
+
+      <!-- Connect Wallet -->
       <a href="connectWallet.html">Connect Wallet</a>
 
-      <div class="searchbar">
-        <input id="q" placeholder="Search...">
+      <!-- SEARCH BAR -->
+      <div class="header-search">
+        <input id="q" placeholder="Search..."/>
         <span class="icon-search">🔍</span>
       </div>
+
+      <!-- Sign Up -->
+      <a href="signUp.html">Sign Up</a>
+
+      <!-- Login -->
+      <a href="login.html">Login</a>
+
     </div>
 
+    <!-- KEEP EVERYTHING BELOW *EXACTLY* AS ORIGINAL -->
+    <div class="searchbar">
+      <span style="opacity:.7">🔎</span>
+      <input id="q" placeholder="Search"/>
+      <span class="pill">AI</span>
+    </div>
+
+    <div class="tabs">
+      <a class="tab" href="index.html">🏠 HomePage</a>
+      <a class="tab" href="miners.html">⛏️ Miners</a>
+      <a class="tab" href="developers.html">👩‍💻 Developers</a>
+      <a class="tab" href="trading.html">📈 Crypto Trading</a>
+    </div>
+
+    <div class="grid">
+      <!-- Blockchain (lowercase file path) -->
+      <a class="tile" href="/blockchain.html">
+        <div class="icon ic-slate" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#B5943F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="5" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <circle cx="19" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <circle cx="5" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <circle cx="19" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+            <path d="M7.2 6h9.6"/><path d="M5 8.6v6.8"/><path d="M19 8.6v6.8"/><path d="M6.6 16.8L10.8 12h-2.2l4.8-4.8M12.8 12l4.6 4.6"/>
+          </svg>
+        </div>
+        <b>Blockchain</b>
+        <span class="muted">On-chain tools & explorer</span>
+      <a class="tile" href="miners.html"><div class="icon ic-slate">⛏️</div><b>Miners</b><span class="muted">Start mining</span></a>
+      <a class="tile" href="developers.html"><div class="icon ic-slate">👩‍💻</div><b>Developers</b><span class="muted">Docs & SDKs</span></a>
+      <a class="tile" href="trading.html"><div class="icon ic-slate">📈</div><b>Crypto Trading</b><span class="muted">Markets & tools</span></a>
+      <a class="tile" href="learn.html"><div class="icon ic-slate">📚</div><b>Learn</b><span class="muted">Guides</span></a>
+      <a class="tile" href="Chatroom.html"><div class="icon ic-slate">💬</div><b>Chatroom</b><span class="muted">Chat & support</span></a>
+      <a class="tile" href="crypto-whales.html"><div class="icon ic-slate">🐋</div><b>Crypto Whales</b><span class="muted">Large flows</span></a>
+      <a class="tile" href="my-account.html"><div class="icon ic-slate">👤</div><b>My Account</b><span class="muted">Profile</span></a>
+      <a class="tile" href="new-listing.html"><div class="icon ic-slate">🆕</div><b>New Listing</b><span class="muted">List a token</span></a>
+
+      <!-- Locks -->
+      <a class="tile" href="locks.html">
+        <div class="icon ic-gold" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M7.5 10V8.5a4.5 4.5 0 1 1 9 0V10" stroke="#A3AAB5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="5.5" y="10" width="13" height="10" rx="2" fill="#D7BF77" stroke="#B5943F" stroke-width="1.4"/>
+            <path d="M6.8 11.4h10.4c.3 0 .5.2.5.5v.2c-1.8.6-3.7.9-5.5.9s-3.7-.3-5.5-.9v-.2c0-.3.2-.5.5-.5z" fill="#F7EFD4" opacity=".55"/>
+            <circle cx="12" cy="15" r="1.2" fill="#8C6A2C"/>
+            <rect x="11.4" y="15.9" width="1.2" height="2.3" rx=".6" fill="#8C6A2C"/>
+          </svg>
+        </div>
+        <b>Locks</b>
+        <span class="muted">Lock-ups & vesting</span>
+      </a>
+    </div>
+
+    <footer style="margin:14px 0;color:var(--muted);font-size:12px">MedorCoin ©</footer>
+
   </div>
-
-  <!-- EVERYTHING BELOW THIS POINT REMAINS EXACTLY AS ORIGINAL -->
-  <!-- body content, grids, transaction tables, blockchain tiles, etc. stay untouched -->
-
-</div>
 
 </body>
 </html>
