@@ -9,74 +9,67 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
+    background-color: #ffffff;
 }
 
 /* Header Section */
 .header-section {
     background-color: #f5f9c6; /* light lemon yellow */
-    padding-bottom: 25px;
+    padding: 30px 20px 40px 20px;
+    text-align: center;
 }
 
-/* Top Bar */
-.top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 40px;
-}
-
-/* Button Group */
-.button-group {
-    display: flex;
-    gap: 15px;
-}
-
-/* Buttons */
-.button-group a {
-    text-decoration: none;
-    padding: 10px 22px;
-    background-color: transparent;
+/* Title */
+.site-title {
     color: #2b2b2b; /* dark pencil gray */
-    border: 1.5px solid #2b2b2b;
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 25px;
+}
+
+/* Buttons Row */
+.button-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.button-row a {
+    text-decoration: none;
+    padding: 12px 26px;
+    border: 2px solid #2b2b2b;
     border-radius: 6px;
-    font-size: 14px;
+    color: #2b2b2b;
     font-weight: 600;
     white-space: nowrap;
     transition: 0.3s ease;
 }
 
-.button-group a:hover {
+.button-row a:hover {
     background-color: #2b2b2b;
     color: white;
 }
 
 /* Search Bar */
 .search-box {
-    position: relative;
+    display: flex;
+    justify-content: center;
 }
 
 .search-box input {
-    padding: 10px 15px;
-    width: 220px;
-    border: 2px solid #2b2b2b; /* strong visible outline */
+    width: 320px;
+    padding: 12px 15px;
+    border: 2px solid #2b2b2b; /* strong outline */
     border-radius: 6px;
-    outline: none;
     font-size: 14px;
     color: #2b2b2b;
-    background-color: #ffffff;
+    outline: none;
 }
 
 .search-box input:focus {
     border-color: #000000;
-}
-
-/* Title */
-.site-title {
-    text-align: center;
-    color: #2b2b2b;
-    margin-top: 15px;
-    font-size: 32px;
-    font-weight: bold;
 }
 </style>
 </head>
@@ -85,22 +78,18 @@ body {
 
 <div class="header-section">
 
-    <div class="top-bar">
+    <h1 class="site-title">MedorCoin</h1>
 
-        <div class="search-box">
-            <input type="text" placeholder="Search...">
-        </div>
-
-        <div class="button-group">
-            <a href="#">Sign Up</a>
-            <a href="#">Login</a>
-            <a href="#">Create Wallet</a>
-            <a href="#">Connect Wallet</a>
-        </div>
-
+    <div class="button-row">
+        <a href="#">Sign Up</a>
+        <a href="#">Login</a>
+        <a href="#">Create Wallet</a>
+        <a href="#">Connect Wallet</a>
     </div>
 
-    <h1 class="site-title">MedorCoin</h1>
+    <div class="search-box">
+        <input type="text" placeholder="Search...">
+    </div>
 
 </div>
 
