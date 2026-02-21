@@ -6,14 +6,14 @@
 <meta name="description" content="MedorCoin home portal."/>
 <style>
   :root{--bg:#faf9f6;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb}
-  *{box-sizing:border-box}
+  {box-sizing:border-box}
   body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
   a{color:inherit;text-decoration:none}
   .container{max-width:980px;margin:0 auto;padding:12px}
   .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.space{justify-content:space-between}
   .logo{display:flex;align-items:center;gap:10px}
   .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7}
-  .brand{font-weight:800;font-size:24px}
+  .brand{font-weight:800;font-size:18px}
   .searchbar{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:10px 12px;margin-top:10px}
   .searchbar input{border:0;outline:0;flex:1;font-size:14px;color:var(--ink);background:transparent}
   .pill{font-size:12px;background:#fff7e6;color:#333333;border:1px solid #f2e6bf;border-radius:999px;padding:4px 8px}
@@ -26,35 +26,23 @@
   .icon svg{width:22px;height:22px;display:block}
   .ic-gold{background:#fff7e6;border:1px solid #f2e6bf}
   .ic-slate{background:#eef1f5;border:1px solid #e2e8f0}
-  .wallet-nav{display:flex;gap:6px;background:linear-gradient(90deg,#f9f7d8,#f0f8e0);border:1px solid #e8e6c0;border-radius:12px;padding:6px 12px;font-family:'Arial Narrow',Arial,sans-serif;font-size:11px;align-self:center}
-  .wallet-nav a{color:#374151;text-decoration:none;padding:4px 10px;border-radius:6px;background:white;border:1px solid #d1d5db;font-weight:500;white-space:nowrap}
-  .wallet-nav a:hover{background:#f3f4f6}
 </style>
 </head>
 <body>
   <div class="container">
-    <!-- PERFECT HEADER WITH WALLET BUTTONS -->
     <div class="row space">
       <div class="logo">
         <img src="assets/logo.png" alt="MedorCoin Logo"/>
         <div class="brand">MedorCoin</div>
       </div>
-      <div class="wallet-nav">
-        <a href="create-wallet.html" target="_blank">🆕 Create Wallet</a>
-        <a href="connect-wallet.html" target="_blank">🔗 Connect Wallet</a>
-        <a href="signup.html">📝 SignUp</a>
-        <a href="login.html">🔐 Login</a>
-      </div>
     </div>
 
-    <!-- Searchbar -->
     <div class="searchbar">
       <span style="opacity:.7">🔎</span>
       <input id="q" placeholder="Search"/>
       <span class="pill">AI</span>
     </div>
 
-    <!-- SINGLE TABS SECTION - NO DUPLICATES -->
     <div class="tabs">
       <a class="tab" href="index.html">🏠 HomePage</a>
       <a class="tab" href="miners.html">⛏️ Miners</a>
@@ -62,8 +50,8 @@
       <a class="tab" href="trading.html">📈 Crypto Trading</a>
     </div>
 
-    <!-- ALL YOUR ORIGINAL TILES -->
     <div class="grid">
+      <!-- Blockchain (lowercase file path) -->
       <a class="tile" href="/blockchain.html">
         <div class="icon ic-slate" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="#B5943F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -71,4 +59,185 @@
             <circle cx="19" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
             <circle cx="5" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
             <circle cx="19" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-            <path d="M7.2 6h9.6"/><path d="M5 8.6v6.8"/><path d="M19 8.6v6.8"/><path d="M6.6 16.8L10.8 12h-2.2l4.8
+            <path d="M7.2 6h9.6"/><path d="M5 8.6v6.8"/><path d="M19 8.6v6.8"/><path d="M6.6 16.8L10.8 12h-2.2l4.8-4.8M12.8 12l4.6 4.6"/>
+          </svg>
+        </div>
+        <b>Blockchain</b>
+        <span class="muted">On-chain tools & explorer</span>
+      <a class="tile" href="miners.html"><div class="icon ic-slate">⛏️</div><b>Miners</b><span class="muted">Start mining</span></a>
+      <a class="tile" href="developers.html"><div class="icon ic-slate">👩‍💻</div><b>Developers</b><span class="muted">Docs & SDKs</span></a>
+      <a class="tile" href="trading.html"><div class="icon ic-slate">📈</div><b>Crypto Trading</b><span class="muted">Markets & tools</span></a>
+      <a class="tile" href="learn.html"><div class="icon ic-slate">📚</div><b>Learn</b><span class="muted">Guides</span></a>
+      <a class="tile" href="Chatroom.html"><div class="icon ic-slate">💬</div><b>Chatroom</b><span class="muted">Chat & support</span></a>
+      <a class="tile" href="crypto-whales.html"><div class="icon ic-slate">🐋</div><b>Crypto Whales</b><span class="muted">Large flows</span></a>
+      <a class="tile" href="my-account.html"><div class="icon ic-slate">👤</div><b>My Account</b><span class="muted">Profile</span></a>
+      <a class="tile" href="new-listing.html"><div class="icon ic-slate">🆕</div><b>New Listing</b><span class="muted">List a token</span></a>
+
+      <!-- Locks -->
+      <a class="tile" href="locks.html">
+        <div class="icon ic-gold" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M7.5 10V8.5a4.5 4.5 0 1 1 9 0V10" stroke="#A3AAB5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="5.5" y="10" width="13" height="10" rx="2" fill="#D7BF77" stroke="#B5943F" stroke-width="1.4"/>
+            <path d="M6.8 11.4h10.4c.3 0 .5.2.5.5v.2c-1.8.6-3.7.9-5.5.9s-3.7-.3-5.5-.9v-.2c0-.3.2-.5.5-.5z" fill="#F7EFD4" opacity=".55"/>
+            <circle cx="12" cy="15" r="1.2" fill="#8C6A2C"/>
+            <rect x="11.4" y="15.9" width="1.2" height="2.3" rx=".6" fill="#8C6A2C"/>
+          </svg>
+        </div>
+        <b>Locks</b>
+        <span class="muted">Lock-ups & vesting</span>
+      </a>
+    </div>
+
+    <footer style="margin:14px 0;color:var(--muted);font-size:12px">MedorCoin ©</footer>
+  </div>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>MedorCoin Live Transactions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: Sans, sans-serif; padding: 20px; }
+    h1 { font-size: 1.4rem; }
+blockInfo { margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f2f2f2; }
+    .loading { color: #888; }
+  </style>
+</head>
+<body>
+  <h1>MedorCoin — Live Transactions</h1>
+  <div id="blockInfo">
+    <span class="loading" id="loadingNote">Loading latest block and transactions...</span>
+  </div>
+  <table id="txTable" aria-label="Transactions table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Tx Hash</th>
+        <th>From</th>
+        <th>To</th>
+        <th>Value</th>
+        <th>Gas Used</th>
+        <th>Block</th>
+      </tr>
+    </thead>
+    <tbody id="txBody">
+      <!-- rows inserted here -->
+    </tbody>
+  </table>
+
+  <script>
+    // Configuration: replace with your MedorCoin API URL
+    const MEDORCOIN_RPC_URL = "https://api.medorcoin.org"; // e.g., base URL
+    // If your API requires a specific path for latest block, adjust endpoints below.
+
+    // How many transactions to show
+    const TARGET_TX_COUNT = 10;
+    // Poll interval in ms
+    const POLL_MS = 15000;
+
+    async function fetchLatestBlock() {
+      // This function should return the latest block including its transactions
+      // Adjust the endpoint and structure to your API.
+      // Example for Ethereum-like API:
+      // GET /block/latest => { number, hash, timestamp, transactions: [ ... ] }
+
+      const blockEndpoint = `${MEDORCOIN_RPC_URL}/block/latest`; // customize if needed
+      const resp = await fetch(blockEndpoint, { cache: "no-store" });
+      if (!resp.ok) throw new Error(`Block fetch failed: ${resp.status}`);
+      const data = await resp.json();
+      // If your API returns differently, map fields here.
+      // Normalize to: { number, hash, timestamp, transactions: [] }
+      return data;
+    }
+
+    function shorten(addr) {
+      if (!addr) return "";
+      if (addr.length <= 10) return addr;
+      return addr.slice(0, 6) + "..." + addr.slice(-4);
+    }
+
+    function formatValueWeiToEth(valueWei) {
+      // If value is in wei and you want ETH, convert accordingly.
+      // Adjust if your blockchain uses a different unit.
+      const wei = BigInt(valueWei ?? 0);
+      // Assuming 1 ETH = 1e18 wei
+      const eth = Number(wei) / 1e18;
+      // Keep 6 decimal places
+      return eth.toLocaleString(undefined, { minimumFractionDigits: 6, maximumFractionDigits: 6 });
+    }
+
+    function renderTxRows(transactions, blockNumber) {
+      const tbody = document.getElementById("txBody");
+      tbody.innerHTML = ""; // clear
+      const max = Math.min(transactions.length, TARGET_TX_COUNT);
+      for (let i = 0; i < max; i++) {
+        const tx = transactions[i];
+        const tr = document.createElement("tr");
+
+        const idxTd = document.createElement("td");
+        idxTd.textContent = (i + 1);
+        tr.appendChild(idxTd);
+
+        const hashTd = document.createElement("td");
+        hashTd.textContent = tx.hash || "";
+        hashTd.title = tx.hash || "";
+        tr.appendChild(hashTd);
+
+        const fromTd = document.createElement("td");
+        fromTd.textContent = shorten(tx.from);
+        tr.appendChild(fromTd);
+
+        const toTd = document.createElement("td");
+        toTd.textContent = shorten(tx.to);
+
+This is my current index.HTML and you know it’s already configured on the website so make sure it does not tamper with accessing those web links that are already put in place on the website. OK so check it and then rewrite an update everything including the instructions, I’ve given you about the creation do
+        tr.appendChild(toTd);
+
+        const valueTd = document.createElement("td");
+        // If value is provided in wei
+        valueTd.textContent = tx.value ? formatValueWeiToEth(tx.value) + " ETH" : "";
+        tr.appendChild(valueTd);
+
+        const gasTd = document.createElement("td");
+        gasTd.textContent = tx.gasUsed ?? "";
+        tr.appendChild(gasTd);
+
+        const blockTd = document.createElement("td");
+        blockTd.textContent = blockNumber ?? "";
+        tr.appendChild(blockTd);
+
+        tbody.appendChild(tr);
+      }
+
+      // Update info
+      const loadingNote = document.getElementById("loadingNote");
+      loadingNote.textContent = `Showing first ${max} transaction(s) from block ${blockNumber ?? ""}`;
+    }
+
+    async function updateLive() {
+      try {
+        const block = await fetchLatestBlock();
+        // Validate
+        const transactions = Array.isArray(block.transactions) ? block.transactions : [];
+        renderTxRows(transactions.slice(0, TARGET_TX_COUNT), block.number ?? "");
+      } catch (err) {
+        console.error(err);
+        const loadingNote = document.getElementById("loadingNote");
+        loadingNote.textContent = `Error loading data: ${err.message}`;
+      }
+    }
+
+    // Initial load
+    updateLive();
+    // Periodic updates
+    setInterval(updateLive, POLL_MS);
+  </script>
+</body>
+</html>
