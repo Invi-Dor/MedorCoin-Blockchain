@@ -26,6 +26,57 @@ input:focus,textarea:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3p
 </style>
 </head>
 <body>
+<!-- TERMS AGREEMENT MODAL - REQUIRED FOR ALL FORMS -->
+<div id="termsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999;">
+    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:30px; border-radius:20px; max-width:90%; max-height:90%; overflow-y:auto; font-family:Arial;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <div style="font-size:24px; font-weight:bold;">🪙 Terms Required</div>
+            <button onclick="acceptTerms()" style="background:#ff6b6b; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-size:16px;">✓ Accept</button>
+        </div>
+        <div style="font-size:14px; line-height:1.5; max-height:400px; overflow-y:auto;">
+            <p><strong>⚠️ You must agree to Terms before proceeding:</strong></p>
+            <ul style="margin:15px 0; padding-left:20px;">
+                <li>I am 18+ years old</li>
+                <li>Crypto is HIGHLY VOLATILE - I accept ALL risks</li>
+                <li>NO refunds on courses/payments</li>
+                <li>MedorCoin provides NO financial advice</li>
+                <li>Terms may change without notice</li>
+                <li>I am responsible for my security</li>
+            </ul>
+            <p><a href="terms.html" target="_blank" style="color:#fff; text-decoration:underline;">Read Full Terms</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+// BLOCK ALL FORMS UNTIL TERMS ACCEPTED
+let termsAccepted = localStorage.getItem('medorcoin_terms') === 'accepted';
+
+function showTermsModal() {
+    if (!termsAccepted) document.getElementById('termsModal').style.display = 'block';
+}
+
+function acceptTerms() {
+    localStorage.setItem('medorcoin_terms', 'accepted');
+    termsAccepted = true;
+    document.getElementById('termsModal').style.display = 'none';
+    // UNBLOCK FORMS HERE - remove disabled from buttons/inputs
+}
+
+// AUTO-SHOW ON FORM SUBMITS
+document.addEventListener('DOMContentLoaded', function() {
+    // Add to ALL your signup/wallet/course buttons:
+    const buttons = document.querySelectorAll('button[type="submit"], .signup-btn, .wallet-btn, .course-buy');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            if (!termsAccepted) {
+                e.preventDefault();
+                showTermsModal();
+            }
+        });
+    });
+});
+</script>
 <a href="index.html" class="back-link">← Back to Home</a>
 
 <div class="container">
