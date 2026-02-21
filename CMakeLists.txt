@@ -5,23 +5,24 @@ project(Medorcoin
   DESCRIPTION "Medorcoin node and tools"
   LANGUAGES C CXX
 )
----------------- Global options ----------------
+
+# ---------------- Global options ----------------
 option(ENABLE_WARNINGS "Enable extra compiler warnings" ON)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(ENABLE_UBSAN "Enable UBSanitizer" OFF)
 option(ENABLE_COVERAGE "Enable coverage instrumentation (GCC/Clang)" OFF)
 
-Default build type
+# Default build type
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel)
 endif()
 
-Useful generator output
+# Useful generator output
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-Language standards
+# Language standards
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
@@ -29,14 +30,14 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-Platform tweaks
+# Platform tweaks
 if(MSVC)
   add_compile_options(/bigobj)
 else()
   add_compile_options(-fPIC)
 endif()
 
-Sanitizers / coverage (non-MSVC)
+# Sanitizers / coverage (non-MSVC)
 if(NOT MSVC)
   if(ENABLE_ASAN)
     add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
@@ -52,40 +53,40 @@ if(NOT MSVC)
   endif()
 endif()
 
-Public headers path
+# Public headers path
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-Dependencies discovered at root (linking done in subdirs)
+# Dependencies discovered at root (linking done in subdirs)
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(PkgConfig QUIET)
 
 include(GNUInstallDirs)
 
----------------- Subdirectories ----------------
+# ---------------- Subdirectories ----------------
 add_subdirectory(src)
 
----------------- Optional tests ----------------
+# ---------------- Optional tests ----------------
 if(EXISTS "${CMAKE_SOURCE_DIR}/tests/CMakeLists.txt")
   enable_testing()
   add_subdirectory(tests)
 endif()
 
----------------- Install headers ----------------
+# ---------------- Install headers ----------------
 if(EXISTS "${CMAKE_SOURCE_DIR}/include")
   install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif()
 
----------------- Self-update FOREVER ----------------
-WARNING: This runs an endless loop that periodically fetches, reconfigures, and rebuilds.
-Invoke explicitly: cmake --build build --target self_update_forever
-Stop with Ctrl+C or by killing the process in your supervisor.
+# ---------------- Self-update FOREVER ----------------
+# WARNING: This runs an endless loop that periodically fetches, reconfigures, and rebuilds.
+# Invoke explicitly: cmake --build build --target self_update_forever
+# Stop with Ctrl+C or by killing the process in your supervisor.
 find_program(GIT_EXECUTABLE git)
 if(GIT_EXECUTABLE)
   set(SELF_UPDATE_BRANCH "main" CACHE STRING "Git branch to pull during self_update")
   set(SELF_UPDATE_INTERVAL_SECONDS "300" CACHE STRING "Seconds to wait between update cycles")
 
-Script that loops forever
+  # Script that loops forever
   set(SELF_UPDATE_SCRIPT "${CMAKE_BINARY_DIR}/self_update_forever.sh")
   file(WRITE "${SELF_UPDATE_SCRIPT}" "#!/usr/bin/env bash
 set -euo pipefail
@@ -113,11 +114,13 @@ while true; do
 done
 ")
 
-Ensure script is executable
-  file(COPY "${SELF_UPDATE_SCRIPT}" DESTINATION "${CMAKE_BINARY_DIR}" FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ WORLD_READ)
+  # Ensure script is executable
+  file(COPY "${SELF_UPDATE_SCRIPT}" DESTINATION "${CMAKE_BINARY_DIR}"
+       FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ WORLD_READ)
 
   add_custom_target(self_update_forever
-    COMMAND ${CMAKE_COMMAND} -E echo "Launching self-update loop (branch=${SELF_UPDATE_BRANCH}, interval=${SELF_UPDATE_INTERVAL_SECONDS}s)..."
+    COMMAND ${CMAKE_COMMAND} -E echo
+            "Launching self-update loop (branch=${SELF_UPDATE_BRANCH}, interval=${SELF_UPDATE_INTERVAL_SECONDS}s)..."
     COMMAND "${SELF_UPDATE_SCRIPT}"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     USES_TERMINAL
@@ -127,7 +130,7 @@ else()
   message(STATUS "git not found; self_update_forever target will not be available.")
 endif()
 
----------------- Packaging (basic) ----------------
+# ---------------- Packaging (basic) ----------------
 set(CPACK_PACKAGE_NAME "medorcoin")
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
 include(CPack)
