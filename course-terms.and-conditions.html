@@ -1,51 +1,154 @@
-<!-- TERMS AGREEMENT MODAL - REQUIRED FOR ALL FORMS -->
-<div id="termsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999;">
-    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:30px; border-radius:20px; max-width:90%; max-height:90%; overflow-y:auto; font-family:Arial;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <div style="font-size:24px; font-weight:bold;">🪙 Terms Required</div>
-            <button onclick="acceptTerms()" style="background:#ff6b6b; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-size:16px;">✓ Accept</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedorCoin Course Terms & No Refund Policy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+        .header { 
+            background: rgba(255,255,255,0.95); 
+            padding: 30px; 
+            border-radius: 20px; 
+            margin-bottom: 30px; 
+            text-align: center;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .coin-logo { font-size: 45px; margin-bottom: 15px; }
+        h1 { color: #764ba2; font-size: 32px; margin-bottom: 10px; }
+        .last-updated { color: #666; font-size: 14px; margin-bottom: 20px; }
+        .content { 
+            background: rgba(255,255,255,0.95); 
+            padding: 40px; 
+            border-radius: 20px; 
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        h2 { color: #667eea; font-size: 26px; margin: 35px 0 20px; border-left: 5px solid #ff6b6b; padding-left: 20px; }
+        h3 { color: #764ba2; font-size: 22px; margin: 25px 0 15px; }
+        .no-refund { background: linear-gradient(135deg, #ffebee, #ffcdd2); border-left: 6px solid #f44336; padding: 30px; margin: 30px 0; border-radius: 15px; }
+        .warning { background: #fff3cd; border: 2px solid #ffeaa7; padding: 25px; border-radius: 12px; margin: 25px 0; }
+        ul { padding-left: 35px; margin: 15px 0; }
+        li { margin-bottom: 10px; }
+        p { margin-bottom: 18px; }
+        .section-divider { border-top: 2px dashed #764ba2; margin: 40px 0; padding-top: 20px; opacity: 0.7; }
+        @media (max-width: 768px) { .container { padding: 0 15px; } .content { padding: 30px 25px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="coin-logo">🪙</div>
+            <h1>MedorCoin Course Access – Terms, No Refund Policy, Data Retention & Liability Disclaimer</h1>
+            <p class="last-updated">Last Updated: <span id="currentDate"></span></p>
+            <div class="warning">
+                <strong>⚠️ LEGALLY BINDING:</strong> By enrolling, you agree to ALL terms below. No exceptions.
+            </div>
         </div>
-        <div style="font-size:14px; line-height:1.5; max-height:400px; overflow-y:auto;">
-            <p><strong>⚠️ You must agree to Terms before proceeding:</strong></p>
-            <ul style="margin:15px 0; padding-left:20px;">
-                <li>I am 18+ years old</li>
-                <li>Crypto is HIGHLY VOLATILE - I accept ALL risks</li>
-                <li>NO refunds on courses/payments</li>
-                <li>MedorCoin provides NO financial advice</li>
-                <li>Terms may change without notice</li>
-                <li>I am responsible for my security</li>
+
+        <div class="content">
+            <h2>MedorCoin Learn – Terms and Conditions</h2>
+            <p>By enrolling in, accessing, or paying for any course within the MedorCoin Learn section, you agree to the following terms:</p>
+
+            <p>All courses and educational materials provided are strictly for <strong>informational and educational purposes only</strong>. Nothing within any course, lesson, guide, AI explanation, strategy discussion, example, or training material constitutes financial advice, investment advice, trading advice, legal advice, tax advice, or professional consultation of any kind.</p>
+
+            <p>MedorCoin does not provide financial consultation or investment management services. Any decision you make after taking a course is entirely your own responsibility.</p>
+
+            <p>You must be at least <strong>18 years old</strong>, or the legal age of majority in your jurisdiction, and legally capable of making independent financial decisions before enrolling in any course. By signing up, you confirm that you meet these requirements.</p>
+
+            <p>Cryptocurrency markets are highly volatile and speculative. There is a real risk of losing part or all of your money. MedorCoin does not guarantee profits, success, returns, certification value, or financial growth of any kind.</p>
+
+            <p>Any examples, demonstrations, or case studies used in courses are for illustration purposes only and do not guarantee similar outcomes.</p>
+
+            <div class="section-divider"></div>
+
+            <div class="no-refund">
+                <h2>No Refund Policy</h2>
+                <p><strong>All payments made for courses are final and non-refundable.</strong></p>
+                <p>All monies sent to any cryptocurrency address provided by MedorCoin are <strong>irreversible and cannot be retrieved</strong>. Blockchain transactions cannot be reversed, cancelled, or refunded once confirmed.</p>
+
+                <p>By making payment, you acknowledge and agree that:</p>
+                <ul>
+                    <li>You understand cryptocurrency transactions are <strong>permanent</strong>.</li>
+                    <li>You accept <strong>full responsibility</strong> for the transaction.</li>
+                    <li>You <strong>waive any right</strong> to request a refund.</li>
+                    <li>You will <strong>not hold MedorCoin liable</strong> for mistaken or incorrect payments.</li>
+                </ul>
+
+                <p><strong>There are no refunds under any circumstances</strong>, including dissatisfaction, change of mind, incomplete courses, misunderstanding of content, or personal financial issues.</p>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h2>Course Data, Progress, and Certificate Retention</h2>
+            <p>MedorCoin will store user course information including enrollment history, learning progress, completion status, and issued certificates for a period of <strong>five (5) years</strong>.</p>
+
+            <p>Users have up to five (5) years from the date of enrollment or completion to:</p>
+            <ul>
+                <li>Access their course history</li>
+                <li>Download their certificates</li>
+                <li>Retrieve their learning records</li>
             </ul>
-            <p><a href="terms.html" target="_blank" style="color:#fff; text-decoration:underline;">Read Full Terms</a></p>
+
+            <p>After five (5) years, MedorCoin reserves the right to <strong>permanently delete, archive, or remove</strong> all course records, certificates, and user progress data <strong>without further notice</strong>.</p>
+
+            <p>If a user fails to download their certificate within the five-year period, they agree that:</p>
+            <ul>
+                <li>MedorCoin is <strong>not obligated</strong> to reproduce or reissue certificates.</li>
+                <li>MedorCoin is <strong>not responsible</strong> for lost or deleted records after five years.</li>
+                <li>They <strong>cannot hold MedorCoin liable</strong> for unavailable certificates or deleted data after the retention period expires.</li>
+            </ul>
+
+            <p><strong>It is solely the user's responsibility</strong> to download and safely store their certificates within the five-year timeframe.</p>
+
+            <div class="section-divider"></div>
+
+            <div class="no-refund">
+                <h2>Limitation of Liability</h2>
+                <p>To the fullest extent permitted by law, MedorCoin, its owners, team members, affiliates, partners, and stakeholders shall not be liable for:</p>
+                <ul>
+                    <li>Any financial losses resulting from decisions made after taking a course.</li>
+                    <li>Any trading, mining, or investment losses.</li>
+                    <li>Any misunderstanding or misuse of course content.</li>
+                    <li>Any technical interruptions or data loss.</li>
+                    <li>Any deletion of records after the five-year retention period.</li>
+                </ul>
+
+                <p>All educational content is provided "<strong>as is</strong>" without warranties of any kind.</p>
+
+                <p>By enrolling in any course, you acknowledge that you assume <strong>full responsibility</strong> for your decisions and agree that MedorCoin shall not be held liable for any outcome resulting from your participation.</p>
+
+                <p><strong>If you do not agree to these terms, do not enroll in any course within the Learn section.</strong></p>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-// BLOCK ALL FORMS UNTIL TERMS ACCEPTED
-let termsAccepted = localStorage.getItem('medorcoin_terms') === 'accepted';
+    <!-- COURSE FOOTER -->
+    <footer style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; text-align: center; padding: 25px 20px; font-size: 13px; font-family: Arial;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div style="margin-bottom: 15px;">
+                <span style="font-size: 16px; font-weight: bold; margin-right: 10px;">🪙</span>
+                <span>MedorCoin Courses Copyright © <span id="footerYear"></span> - No Refunds</span>
+            </div>
+            <div style="max-width: 800px; margin: 0 auto 10px; line-height: 1.5; opacity: 0.9;">
+                ⚠️ <strong>18+ ONLY | NO REFUNDS | Crypto is HIGHLY VOLATILE - DYOR</strong>
+            </div>
+        </div>
+    </footer>
 
-function showTermsModal() {
-    if (!termsAccepted) document.getElementById('termsModal').style.display = 'block';
-}
-
-function acceptTerms() {
-    localStorage.setItem('medorcoin_terms', 'accepted');
-    termsAccepted = true;
-    document.getElementById('termsModal').style.display = 'none';
-    // UNBLOCK FORMS HERE - remove disabled from buttons/inputs
-}
-
-// AUTO-SHOW ON FORM SUBMITS
-document.addEventListener('DOMContentLoaded', function() {
-    // Add to ALL your signup/wallet/course buttons:
-    const buttons = document.querySelectorAll('button[type="submit"], .signup-btn, .wallet-btn, .course-buy');
-    buttons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            if (!termsAccepted) {
-                e.preventDefault();
-                showTermsModal();
-            }
-        });
-    });
-});
-</script>
+    <script>
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+        document.getElementById('footerYear').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>
