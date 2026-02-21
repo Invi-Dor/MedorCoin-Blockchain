@@ -1,1 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedorCoin - Terms & Conditions</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+        .header { 
+            background: rgba(255,255,255,0.95); 
+            padding: 25px; 
+            border-radius: 20px; 
+            margin-bottom: 30px; 
+            text-align: center;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .coin-logo { font-size: 40px; margin-bottom: 15px; }
+        h1 { color: #764ba2; font-size: 32px; margin-bottom: 10px; }
+        .last-updated { color: #666; font-size: 14px; }
+        .content { 
+            background: rgba(255,255,255,0.95); 
+            padding: 35px; 
+            border-radius: 20px; 
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        h2 { color: #667eea; font-size: 24px; margin: 25px 0 15px; border-left: 4px solid #764ba2; padding-left: 15px; }
+        h3 { color: #764ba2; font-size: 20px; margin: 20px 0 10px; }
+        p, li { margin-bottom: 12px; }
+        ul { padding-left: 25px; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 10px; margin: 20px 0; }
+        .risk-box { background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; padding: 20px; border-radius: 15px; margin: 25px 0; }
+        .no-refund { background: #ffebee; border-left: 5px solid #f44336; padding: 20px; margin: 20px 0; }
+        footer { text-align: center; padding: 25px; color: #fff; }
+        @media (max-width: 768px) { .container { padding: 0 15px; } .content { padding: 25px 20px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="coin-logo">🪙</div>
+            <h1>MedorCoin Terms & Conditions</h1>
+            <p class="last-updated">Last Updated: <span id="currentDate"></span></p>
+        </div>
 
+        <div class="content">
+            <div class="warning">
+                <strong>⚠️ IMPORTANT:</strong> These terms are subject to change without prior notice. 
+                Always review before proceeding. Continued use = acceptance.
+            </div>
+
+            <h2>1. Acceptance of Terms</h2>
+            <p>By accessing or using MedorCoin services (account creation, wallet connection, trading, mining, courses, etc.), you agree to these Terms. You must be 18+ and legally capable. Continued use after changes = acceptance.</p>
+
+            <h2>2. Services Provided</h2>
+            <ul>
+                <li>Blockchain explorer tools</li>
+                <li>Mining documentation</li>
+                <li>Crypto trading info (not advice)</li>
+                <li>Developer resources</li>
+                <li>Educational content</li>
+                <li>Community features</li>
+            </ul>
+
+            <div class="risk-box">
+                <strong>🚨 CRYPTO IS HIGHLY VOLATILE 🚨</strong><br>
+                Prices can crash 90%+. We provide NO financial advice. DYOR always.
+            </div>
+
+            <h2>3. User Accounts & Security</h2>
+            <p>You are FULLY responsible for your account security. We never ask for passwords/keys. Use 2FA, strong passwords, antivirus.</p>
+
+            <h2>4. No Refund Policy (Courses)</h2>
+            <div class="no-refund">
+                <strong>ALL payments are FINAL.</strong> Crypto transactions are irreversible. 
+                No refunds for any reason - change of mind, dissatisfaction, or technical issues.
+            </div>
+
+            <h2>5. Risk Disclosure</h2>
+            <p>You accept ALL crypto risks. Past performance ≠ future results. Consult financial advisors.</p>
+
+            <h2>6. Limitation of Liability</h2>
+            <p>We are NOT liable for losses, trading decisions, or site interruptions. Services "AS IS".</p>
+
+            <h2>7. Data Retention (Courses)</h2>
+            <p>Course records kept 5 years. Download certificates within this period - no reissues after.</p>
+
+            <h2>8. Governing Law</h2>
+            <p>These Terms governed by laws of your jurisdiction. Disputes resolved through binding arbitration.</p>
+
+            <div class="warning">
+                <strong>By continuing, you confirm:</strong> 18+ years old • Accept all risks • No financial advice expected • Agree to NO refunds
+            </div>
+        </div>
+    </div>
+
+    <!-- YOUR REGULAR FOOTER HERE -->
+    <footer style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; text-align: center; padding: 25px 20px; font-size: 13px; font-family: Arial, sans-serif; border-top: 2px solid rgba(255,255,255,0.1);">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div style="margin-bottom: 15px;">
+                <span style="font-size: 16px; font-weight: bold; margin-right: 10px;">🪙</span>
+                <span>MedorCoin Copyright © <span id="footerYear"></span></span>
+            </div>
+            <div style="max-width: 800px; margin: 0 auto 10px; line-height: 1.5; opacity: 0.9;">
+                ⚠️ <strong>18+ ONLY:</strong> Cryptocurrency is highly volatile - ALWAYS DYOR. No financial advice.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Auto-update dates
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+        document.getElementById('footerYear').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>
