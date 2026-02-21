@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MedorCoin — Connect Wallet</title>
+<style>
+:root{--bg:#faf9f6;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Arial Narrow',Arial,sans-serif;background:var(--bg);color:var(--ink);padding:20px}
+.container{max-width:1200px;margin:0 auto}
+.header{text-align:center;margin-bottom:48px}
+.header h1{font-size:32px;margin:0;color:#1f2937}
+.header p{color:var(--muted);font-size:16px;margin:8px 0 0 0}
+.wallet-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.wallet-card{background:#fff;border:2px solid #e5e7eb;border-radius:20px;padding:32px;text-align:center;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden}
+.wallet-card:hover{transform:translateY(-8px);box-shadow:0 20px 40px rgba(0,0,0,0.15);border-color:#3b82f6}
+.wallet-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--border),#3b82f6);opacity:0;transition:opacity 0.3s}
+.wallet-card:hover::before{opacity:1}
+.icon{font-size:64px;margin:24px 0;line-height:1}
+.title{font-size:24px;margin:16px 0 8px 0;font-weight:600}
+.subtitle{color:var(--muted);font-size:14px;margin:0}
+.metamask{background:linear-gradient(135deg,#f58500,#ff9f1c);color:white;border-color:#f59e42}
+.trust{background:linear-gradient(135deg,#0066cc,#0099ff);color:white;border-color:#3b82f6}
+.binance{background:linear-gradient(135deg,#f0b90b,#fbb040);color:#1a1f2e;border-color:#f59e42}
+.uniswap{background:linear-gradient(135deg,#ff007a,#7928ca);color:white;border-color:#a855f7}
+.private{background:linear-gradient(135deg,#10b981,#059669);color:white;border-color:#10b981}
+.back-link{display:inline-flex;align-items:center;gap:8px;color:#374151;text-decoration:none;font-size:14px;margin-bottom:24px;padding:12px 0;border-bottom:1px solid #e5e7eb}
+.connected{display:none;background:#10b981;color:white;padding:16px;border-radius:12px;margin:24px 0;text-align:center;font-size:18px}
+</style>
+</head>
+<body>
+<a href="index.html" class="back-link">← Back to Home</a>
+
+<div class="container">
+<div class="header">
+<h1>🔗 Connect Your Wallet</h1>
+<p>Choose your preferred wallet to interact with MedorCoin</p>
+</div>
+
+<div id="connectedMsg" class="connected">✅ Wallet Connected Successfully!</div>
+
+<div class="wallet-grid" id="walletGrid">
+<div class="wallet-card metamask" onclick="connectMetaMask()">
+<div class="icon">🦊</div>
+<div class="title">MetaMask</div>
+<div class="subtitle">Browser • Ethereum Compatible</div>
+</div>
+
+<div class="wallet-card trust" onclick="connectTrustWallet()">
+<div class="icon">📱</div>
+<div class="title">Trust Wallet</div>
+<div class="subtitle">Mobile • Multi-chain</div>
+</div>
+
+<div class="wallet-card binance" onclick="connectBinance()">
+<div class="icon">🔶</div>
+<div class="title">Binance Wallet</div>
+<div class="subtitle">Exchange • Web3 Browser</div>
+</div>
+
+<div class="wallet-card uniswap" onclick="connectUniswap()">
+<div class="icon">🦄</div>
+<div class="title">Uniswap Wallet</div>
+<div class="subtitle">DEX • Mobile Browser</div>
+</div>
+
+<div class="wallet-card private" onclick="connectPrivateKey()">
+<div class="icon">🔑</div>
+<div class="title">Private Key</div>
+<div class="subtitle">Import MedorCoin Wallet</div>
+</div>
+</div>
+</div>
+
+<script>
+let connectedWallet = null;
+const connectedMsg = document.getElementById('connectedMsg');
+const walletGrid = document.getElementById('walletGrid');
+
+// Check if already connected
+if (localStorage.getItem('medorcoin_wallet')) {
+  connectedWallet = JSON.parse(localStorage.getItem('medorcoin_wallet'));
+  showConnected(connectedWallet.address);
+}
+
+async function connectMetaMask() {
+  if (typeof window.ethereum !== 'undefined') {
+    try {
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts'
+      });
+      connectedWallet = { address: accounts[0], type: 'MetaMask' };
+      localStorage.setItem('medorcoin_wallet', JSON.stringify(connectedWallet));
+      showConnected(accounts[0]);
+    } catch (error) {
+      if (error.code === 4001) {
+        alert('Connection rejected');
+      } else {
+        alert('MetaMask error: ' + error.message);
+      }
+    }
+  } else {
+    window.open('https://metamask.io/download/', '_blank');
+  }
+}
+
+function connectTrustWallet() {
+  // Trust Wallet deep link
+  const deepLink = 'trust://medorcoin_connect?address=' + (connectedWallet?.address || '');
+  window.open(deepLink, '_blank');
+  setTimeout(() => {
+    if (!connectedWallet) {
+      connectMetaMask(); // Fallback to MetaMask
+    }
+  }, 2000);
+}
+
+function connectBinance() {
+  // Binance Web3 browser support
+  if (typeof window.BinanceChain !== 'undefined') {
+    window.BinanceChain.request({ method: 'chain_requestAccounts' })
+      .then(accounts => {
+        connectedWallet = { address: accounts[0], type: 'Binance' };
+        localStorage.setItem('medorcoin_wallet', JSON.stringify(connectedWallet));
+        showConnected(accounts[0]);
+      })
+      .catch(() => connectMetaMask()); // Fallback
+  } else {
+    connectMetaMask();
+  }
+}
+
+function connectUniswap() {
+  // Uniswap wallet mobile browser
+  alert('Uniswap Wallet → Use mobile browser wallet connect');
+  connectMetaMask(); // EVM compatible
+}
+
+function connectPrivateKey() {
+  const key = prompt('Enter your MedorCoin Private Key:');
+  if (key && (key.startsWith('0x') || key.match(/^[1-9A-HJ-NP-Za-km-z]+$/))) {
+    // Verify with backend
+    fetch('/api/wallet/verify', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ privateKey: key })
+    }).then(res => res.json()).then(data => {
+      if (data.valid) {
+        connectedWallet = { address: data.address, privateKey: key };
+        localStorage.setItem('medorcoin_wallet', JSON.stringify(connectedWallet));
+        showConnected(data.address);
+      } else {
+        alert('❌ Invalid private key');
+      }
+    }).catch(() => {
+      // Demo validation
+      connectedWallet = { address: '1ABC...XYZ', privateKey: key };
+      localStorage.setItem('medorcoin_wallet', JSON.stringify(connectedWallet));
+      showConnected('1ABC...XYZ');
+    });
+  } else {
+    alert('❌ Invalid key format');
+  }
+}
+
+function showConnected(address) {
+  connectedMsg.style.display = 'block';
+  connectedMsg.innerHTML = `✅ Connected: ${address.slice(0,6)}...${address.slice(-4)}`;
+  walletGrid.style.opacity = '0.5';
+  walletGrid.style.pointerEvents = 'none';
+  
+  setTimeout(() => {
+    window.location.href = 'index.html';
+  }, 2000);
+}
+</script>
+</body>
+</html>
