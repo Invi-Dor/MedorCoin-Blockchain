@@ -19,31 +19,66 @@
   .container { max-width:980px; margin:0 auto; padding:12px; }
 
   /* HEADER */
-  .header-section { background:#f5f9c6; padding:12px 16px; border-radius:6px; }
-  .header-top { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+  .header-section { background:#f5f9c6; padding:10px 16px 18px 16px; border-radius:6px; }
+  .header-top { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
   .logo { display:flex; align-items:center; gap:10px; }
   .logo img { height:36px; width:36px; border-radius:10px; object-fit:cover; border:1px solid #e8e1c7; }
   .brand { font-weight:600; font-size:16px; color:#2b2b2b; }
-  .top-buttons { display:flex; gap:10px; }
-  .top-buttons a { padding:6px 14px; font-size:12px; border:1.5px solid #2b2b2b; border-radius:6px; color:#2b2b2b; font-weight:500; white-space:nowrap; transition:0.3s ease; }
+
+  .top-buttons { display:flex; gap:8px; }
+  .top-buttons a {
+    padding:6px 12px;
+    font-size:12px;
+    border:1.5px solid #2b2b2b;
+    border-radius:6px;
+    color:#2b2b2b;
+    font-weight:500;
+    white-space:nowrap;
+    transition:0.2s ease;
+  }
   .top-buttons a:hover { background:#2b2b2b; color:#fff; }
 
-  /* SECOND ROW BUTTONS */
-  .second-row { display:flex; gap:10px; margin-top:8px; flex-wrap:wrap; }
-  .second-row a { padding:6px 14px; font-size:12px; border:1.5px solid #2b2b2b; border-radius:6px; color:#2b2b2b; font-weight:500; white-space:nowrap; transition:0.3s ease; }
+  /* SECOND ROW */
+  .second-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:6px; }
+  .second-row a {
+    padding:6px 12px;
+    font-size:12px;
+    border:1.5px solid #2b2b2b;
+    border-radius:6px;
+    color:#2b2b2b;
+    font-weight:500;
+    white-space:nowrap;
+    transition:0.2s ease;
+  }
   .second-row a:hover { background:#2b2b2b; color:#fff; }
 
-  /* SEARCH BAR */
-  .searchbar { margin-top:10px; display:flex; justify-content:flex-start; }
-  .searchbar input { padding:8px 12px; border:2px solid #2b2b2b; border-radius:6px; outline:none; font-size:12px; width:250px; max-width:100%; color:#2b2b2b; background:#fff; }
+  /* SEARCH */
+  .searchbar { position:relative; }
+  .searchbar input {
+    padding:6px 28px 6px 10px; 
+    border:2px solid #2b2b2b;
+    border-radius:6px;
+    outline:none;
+    font-size:12px;
+    width:180px;
+    color:#2b2b2b;
+    background:#fff;
+  }
   .searchbar input:focus { border-color:#000; }
+  .searchbar .icon-search {
+    position:absolute;
+    right:6px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:14px;
+    color:#2b2b2b;
+  }
 
-  /* EXISTING STYLES */
-  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.space{justify-content:space-between}
+  /* ORIGINAL GRID + TABS */
   .tabs{display:flex;gap:10px;overflow:auto;padding:10px 0;margin-top:8px}
   .tab{display:flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid var(--border);color:var(--ink);border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
-  .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+  .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;align-items:center;text-align:center}
   .muted{color:var(--muted);font-size:12px}
   .icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center}
   .icon svg{width:22px;height:22px;display:block}
@@ -51,39 +86,36 @@
   .ic-slate{background:#eef1f5;border:1px solid #e2e8f0}
 </style>
 </head>
-<body>
 
+<body>
 <div class="container">
 
-  <!-- HEADER SECTION -->
+  <!-- HEADER -->
   <div class="header-section">
     <div class="header-top">
-      <!-- LOGO + BRAND -->
       <div class="logo">
-        <img src="assets/logo.png" alt="MedorCoin Logo"/>
+        <img src="assets/logo.png" alt="MedorCoin Logo">
         <div class="brand">MedorCoin</div>
       </div>
 
-      <!-- SIGN UP + LOGIN on far right -->
       <div class="top-buttons">
         <a href="signUp.html">Sign Up</a>
         <a href="login.html">Login</a>
       </div>
     </div>
 
-    <!-- SECOND ROW: CREATE / CONNECT WALLET -->
     <div class="second-row">
       <a href="createWallet.html">Create Wallet</a>
-      <a href="#">Connect Wallet</a>
-    </div>
+      <a href="connectWallet.html">Connect Wallet</a>
 
-    <!-- SEARCH BAR -->
-    <div class="searchbar">
-      <input id="q" placeholder="Search...">
+      <div class="searchbar">
+        <input id="q" placeholder="Search...">
+        <span class="icon-search">🔍</span>
+      </div>
     </div>
   </div>
 
-  <!-- TABS -->
+  <!-- ORIGINAL TABS -->
   <div class="tabs">
     <a class="tab" href="index.html">🏠 HomePage</a>
     <a class="tab" href="miners.html">⛏️ Miners</a>
@@ -91,7 +123,7 @@
     <a class="tab" href="trading.html">📈 Crypto Trading</a>
   </div>
 
-  <!-- GRID -->
+  <!-- ORIGINAL GRID -->
   <div class="grid">
     <a class="tile" href="blockchain.html">
       <div class="icon ic-slate">🔗</div>
@@ -107,21 +139,15 @@
     <a class="tile" href="my-account.html"><div class="icon ic-slate">👤</div><b>My Account</b><span class="muted">Profile</span></a>
     <a class="tile" href="new-listing.html"><div class="icon ic-slate">🆕</div><b>New Listing</b><span class="muted">List a token</span></a>
     <a class="tile" href="locks.html">
-      <div class="icon ic-gold" aria-hidden="true">
+      <div class="icon ic-gold">
         <svg viewBox="0 0 24 24" fill="none">
-          <path d="M7.5 10V8.5a4.5 4.5 0 1 1 9 0V10" stroke="#A3AAB5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="5.5" y="10" width="13" height="10" rx="2" fill="#D7BF77" stroke="#B5943F" stroke-width="1.4"/>
-          <path d="M6.8 11.4h10.4c.3 0 .5.2.5.5v.2c-1.8.6-3.7.9-5.5.9s-3.7-.3-5.5-.9v-.2c0-.3.2-.5.5-.5z" fill="#F7EFD4" opacity=".55"/>
-          <circle cx="12" cy="15" r="1.2" fill="#8C6A2C"/>
-          <rect x="11.4" y="15.9" width="1.2" height="2.3" rx=".6" fill="#8C6A2C"/>
+          ...existing svg...
         </svg>
       </div>
       <b>Locks</b>
       <span class="muted">Lock-ups & vesting</span>
     </a>
   </div>
-
-  <footer style="margin:14px 0;color:var(--muted);font-size:12px">MedorCoin ©</footer>
 
 </div>
 </body>
