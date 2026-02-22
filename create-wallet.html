@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
 <title>MedorCoin — Create Wallet (Mobile 2026)</title>
 
 <style>
@@ -12,49 +12,45 @@ body{font-family:system-ui,-apple-system,sans-serif;margin:0;padding:1rem;backgr
 .container{max-width:600px;margin:0 auto;background:#fff;border-radius:1.5rem;border:1px solid var(--border);padding:2rem;box-shadow:0 1rem 3rem rgba(0,0,0,0.1)}
 @media (max-width:480px){.container{padding:1.5rem;border-radius:1rem}}
 .security-warning{background:linear-gradient(135deg,#fee2e2,#fecaca);border:2px solid var(--danger);border-radius:1rem;padding:1.5rem;margin:1.5rem 0;color:#991b1b}
-.security-warning h3{font-size:1.2rem;margin:0 0 1rem 0}
-.security-warning ul{margin:1rem 0;padding-left:1.5rem;font-size:.9rem}
-.security-warning li{margin:.5rem 0}
-.multi-chain-info{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:1rem;padding:1.5rem;margin:1.5rem 0}
 .nft-support{display:grid;grid-template-columns:repeat(auto-fit,minmax(4rem,1fr));gap:.75rem;margin-top:1rem}
 .nft-token{padding:1rem;background:#f0fdf4;border-radius:.75rem;font-size:.8rem;text-align:center;border:1px solid var(--success)}
 label{display:block;font-weight:700;margin:1rem 0 .5rem 0;font-size:.9rem}
 input,textarea{width:100%;padding:1rem;border:2px solid #e5e7eb;border-radius:1rem;font-family:monospace;font-size:.9rem}
 input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.1)}
 .phrase-field{min-height:8rem;resize:vertical;font-size:1rem;letter-spacing:.05em}
-.btn{width:100%;padding:1.25rem;margin:.75rem 0;border:none;border-radius:1rem;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all .2s}
-.create-btn{background:linear-gradient(135deg,var(--success),#059669);color:white;font-size:1.25rem}
-.backup-btn{background:linear-gradient(135deg,var(--purple),#7c3aed);color:white;font-size:1.1rem}
-.verify-btn{background:linear-gradient(135deg,var(--warning),#d97706);color:white;font-size:1.1rem}
+.btn{width:100%;padding:1.5rem;margin:.75rem 0;border:none;border-radius:1rem;font-size:1.25rem;font-weight:700;cursor:pointer;transition:all .2s}
+.create-btn{background:linear-gradient(135deg,var(--success),#059669);color:white}
+.backup-btn{background:linear-gradient(135deg,var(--purple),#7c3aed);color:white;font-size:1rem}
+.verify-btn{background:linear-gradient(135deg,var(--warning),#d97706);color:white;font-size:1rem}
 .back-link{display:inline-flex;align-items:center;gap:.5rem;color:var(--ink);text-decoration:none;font-weight:600;margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:2px solid var(--border)}
 #termsModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:9999}
 .modal-content{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,var(--purple),#1e40af);color:white;padding:2rem;border-radius:1.5rem;max-width:95%;max-height:90vh;overflow-y:auto}
-@media (max-width:480px){.modal-content{padding:1.5rem}}
 #termsModal button{background:var(--success);color:white;border:none;padding:1rem 2rem;border-radius:1rem;font-weight:700}
 #walletInfo{display:none}
-.spinner{display:none;text-align:center;margin-top:15px}
-.loader{border:4px solid #ddd;border-top:4px solid var(--purple);border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:auto}
-@keyframes spin{100%{transform:rotate(360deg)}}
+.spinner{display:none;margin-top:1rem;text-align:center}
+.loader{border:4px solid #ddd;border-top:4px solid var(--purple);border-radius:50%;width:32px;height:32px;animation:spin 1s linear infinite;margin:auto}
+@keyframes spin { 100% { transform:rotate(360deg) }}
 </style>
 </head>
 
 <body>
 
+<!-- Terms Modal -->
 <div id="termsModal">
   <div class="modal-content">
     <h2>🪙 MedorCoin Terms 2026</h2>
-    <p style="font-size:.9rem;line-height:1.6">
-      <strong>⚠️ REQUIRED:</strong>
-      <ul>
-        <li>✅ I am 18+</li>
-        <li>✅ Accept crypto risks</li>
-        <li>✅ No refunds</li>
-        <li>✅ Multi-chain enabled</li>
-        <li>✅ I control my keys = ALL risks</li>
+    <div style="font-size:.9rem;line-height:1.6;max-height:50vh;overflow:auto">
+      <p><strong>⚠️ REQUIRED:</strong></p>
+      <ul style="padding-left:1.5rem">
+        <li>✅ You are 18+</li>
+        <li>✅ Aware of crypto risks</li>
+        <li>✅ All sales final</li>
+        <li>✅ Multi-chain support</li>
+        <li>✅ Only you control your keys</li>
       </ul>
-    </p>
+    </div>
     <div style="text-align:right;margin-top:1rem">
-      <button onclick="acceptTerms()">Accept</button>
+      <button onclick="acceptTerms()">Accept Terms</button>
     </div>
   </div>
 </div>
@@ -62,50 +58,50 @@ input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 
 <a href="index.html" class="back-link">← Back to Home</a>
 
 <div class="container">
-<h1 style="font-size:1.9rem;text-align:center;margin:0 0 1.5rem;background:linear-gradient(135deg,var(--purple),var(--success));-webkit-background-clip:text;-webkit-text-fill-color:transparent">🆕 Create Wallet</h1>
+  <h1 style="text-align:center;margin-bottom:1.5rem;color:var(--purple)">🆕 Create Wallet</h1>
 
-<div class="security-warning">
-<h3>🚨 CRITICAL SECURITY</h3>
-<p><strong>12-WORD PHRASE = TOTAL CONTROL</strong></p>
-<ul>
-  <li>✍️ Write on METAL (not paper)</li>
-  <li>🔥 Fireproof safe + bank vault</li>
-  <li>🚫 NEVER digital storage</li>
-  <li>🤐 NEVER share with anyone</li>
-  <li>❌ Lose = PERMANENT $0</li>
-</ul>
-</div>
+  <div class="security-warning">
+    <h3>🚨 CRITICAL SECURITY</h3>
+    <p><strong>12‑WORD RECOVERY PHRASE = TOTAL CONTROL</strong></p>
+    <ul>
+      <li>Write it on METAL (not digital)</li>
+      <li>Store in fireproof safe + vault</li>
+      <li>Never share it</li>
+      <li>If lost = NO RECOVERY</li>
+    </ul>
+  </div>
 
-<div class="multi-chain-info">
-<h4>🌐 Multi-Chain Ready</h4>
-<p><strong>BTC • ETH • SOL • BNB + 2000+ tokens</strong></p>
-<div class="nft-support">
-  <div class="nft-token">🪙 BTC</div>
-  <div class="nft-token">⛓️ ETH</div>
-  <div class="nft-token">☀️ SOL</div>
-  <div class="nft-token">🐼 BNB</div>
-  <div class="nft-token">🎨 NFT</div>
-</div>
-</div>
+  <div class="multi-chain-info">
+    <h4>🌐 Multi‑Chain Ready</h4>
+    <p><strong>BTC • ETH • SOL • BNB + 2000+ tokens</strong></p>
+    <div class="nft-support">
+      <div class="nft-token">BTC</div>
+      <div class="nft-token">ETH</div>
+      <div class="nft-token">SOL</div>
+      <div class="nft-token">BNB</div>
+      <div class="nft-token">NFT</div>
+    </div>
+  </div>
 
-<div id="walletInfo">
-<label>🌐 Wallet Address:</label><input id="address" readonly>
-<label>🔐 Private Key (Encrypted):</label><input id="privateKey" readonly>
-<label>🗝️ Recovery Phrase:</label><textarea id="recoveryPhrase" class="phrase-field" readonly></textarea>
+  <!-- Wallet Info (hidden until generation) -->
+  <div id="walletInfo">
+    <label>🌐 Wallet Address:</label><input id="address" readonly>
+    <label>🔑 Private Key:</label><input id="privateKey" readonly>
+    <label>🗝️ Recovery Phrase:</label><textarea id="recoveryPhrase" class="phrase-field" readonly></textarea>
+    <div style="text-align:center">
+      <button onclick="downloadBackup()" class="backup-btn">📥 Download Backup</button>
+      <button onclick="verifySaved()" class="verify-btn">✅ Secured → Dashboard</button>
+    </div>
+  </div>
 
-<div style="text-align:center">
-  <button onclick="downloadBackup()" class="backup-btn">📥 Download Backup</button>
-  <button onclick="verifySaved()" class="verify-btn">✅ Secured → Dashboard</button>
-</div>
-</div>
+  <!-- Generate Button -->
+  <button id="generateBtn" class="btn create-btn">🚀 Generate Wallet</button>
 
-<button id="generateBtn" class="btn create-btn">🚀 Generate Wallet</button>
-
-<div class="spinner" id="loading">
-  <div class="loader"></div>
-  <p>Generating wallet securely...</p>
-</div>
-
+  <!-- Spinner -->
+  <div class="spinner" id="loadingSpinner">
+    <div class="loader"></div>
+    <p>Generating wallet…</p>
+  </div>
 </div>
 
 <script>
@@ -113,125 +109,61 @@ input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 
 let walletData = null;
 let termsAccepted = localStorage.getItem('medorcoin_terms') === 'accepted';
 
-// Terms modal
-function showTerms(){
-  if(!termsAccepted){
-    document.body.style.overflow = 'hidden';
-    document.getElementById('termsModal').style.display = 'block';
-  }
-}
-function acceptTerms(){
-  localStorage.setItem('medorcoin_terms','accepted');
-  termsAccepted=true;
-  document.body.style.overflow='auto';
-  document.getElementById('termsModal').style.display='none';
-}
+// Show Terms if needed
+function showTerms(){ if(!termsAccepted){ document.body.style.overflow='hidden';document.getElementById('termsModal').style.display='block'; }}
+function acceptTerms(){ localStorage.setItem('medorcoin_terms','accepted');termsAccepted=true;document.body.style.overflow='auto';document.getElementById('termsModal').style.display='none'; }
 
-// Generate Wallet Logic
+// Wallet Creation
 async function generateWallet(){
-  if(!termsAccepted){
-    showTerms();
-    return;
-  }
+  if(!termsAccepted){ showTerms(); return; }
   const btn = document.getElementById('generateBtn');
-  const spinner = document.getElementById('loading');
+  const spinner = document.getElementById('loadingSpinner');
   btn.style.display='none';
   spinner.style.display='block';
 
   try {
     // generate 12-word phrase
-    const bip39words = [..."abandon ability able about above absent absorb abstract absurd abuse access accident".split(" ")]; // sample
-    const phrase = Array(12).fill(0).map(()=>bip39words[Math.floor(Math.random()*bip39words.length)]).join(' ');
+    const words = 'abandon ability able about above absent absorb abstract absurd abuse access accident'.split(' ');
+    const phrase = Array(12).fill().map(()=>words[Math.floor(Math.random()*words.length)]).join(' ');
 
-    // random private key
-    const privKey = '0x'+Array(64).fill(0).map(()=>Math.floor(Math.random()*16).toString(16)).join('');
-    const address = 'mc1'+Array(34).fill(0).map(()=>Math.floor(Math.random()*58).toString(58)).join('');
+    // random key + address
+    const privKey = '0x'+Array(64).fill().map(()=>Math.floor(Math.random()*16).toString(16)).join('');
+    const address = 'mc1'+Array(34).fill().map(()=>Math.floor(Math.random()*58).toString(58)).join('');
 
-    // prompt passphrase
-    let pass = prompt("Enter passphrase (min 8 chars)");
-    if(!pass || pass.length<8){
-      alert("Passphrase too short");
-      btn.style.display='block';
-      spinner.style.display='none';
-      return;
-    }
+    walletData = { address, privateKey: privKey, phrase };
+    document.getElementById('address').value = address;
+    document.getElementById('privateKey').value = privKey;
+    document.getElementById('recoveryPhrase').value = phrase;
 
-    // encrypt private key
-    const encrypted = await encryptPrivateKey(privKey, pass);
-
-    walletData={address,privateKey:encrypted,phrase,chains:['BTC','ETH','SOL','BNB']};
-
-    document.getElementById('address').value=address;
-    document.getElementById('privateKey').value='[ENCRYPTED]';
-    document.getElementById('recoveryPhrase').value=phrase;
     document.getElementById('walletInfo').style.display='block';
-
-  } catch(e){
-    alert("Wallet generation failed");
+  } catch(e) {
+    alert("Wallet generation failed!");
   } finally {
     spinner.style.display='none';
   }
 }
 
-async function encryptPrivateKey(privKey, passphrase){
-  const enc = new TextEncoder();
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(passphrase),
-    "PBKDF2",
-    false,
-    ["deriveKey"]
-  );
-
-  const key = await crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt: salt,
-      iterations: 100000,
-      hash: "SHA-256"
-    },
-    keyMaterial,
-    {name: "AES-GCM", length:256},
-    false,
-    ["encrypt"]
-  );
-
-  const encrypted = await crypto.subtle.encrypt(
-    {name:"AES-GCM",iv},
-    key,
-    enc.encode(privKey)
-  );
-
-  return {
-    ciphertext:btoa(String.fromCharCode(...new Uint8Array(encrypted))),
-    iv:btoa(String.fromCharCode(...iv)),
-    salt:btoa(String.fromCharCode(...salt))
-  };
-}
-
+// Backup to file
 function downloadBackup(){
-  if(!walletData) return alert("No wallet to backup.");
-  const data=`MedorCoin Wallet Backup\nAddress: ${walletData.address}\nEncryptedKey: ${walletData.privateKey.ciphertext}\nPhrase: ${walletData.phrase}`;
-  const blob=new Blob([data],{type:'text/plain'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url; a.download=`medorcoin-${walletData.address.slice(0,8)}.txt`;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
+  if(!walletData) return;
+  const data=`MedorCoin Wallet Backup\nAddress: ${walletData.address}\nPrivate Key: ${walletData.privateKey}\nPhrase: ${walletData.phrase}`;
+  const blob = new Blob([data],{type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`medorcoin-${walletData.address.slice(0,8)}.txt`;
+  a.click(); URL.revokeObjectURL(url);
 }
 
+// Save & go to dashboard
 function verifySaved(){
   if(!walletData) return;
-  if(confirm("Confirm that you saved your phrase offline")){
-    localStorage.setItem('medorcoin_wallet',JSON.stringify(walletData));
-    window.location.href='wallet.html';
+  if(confirm("Confirm phrase backed up?")) {
+    localStorage.setItem('medorcoin_wallet', JSON.stringify(walletData));
+    window.location.href = 'wallet.html';
   }
 }
 
-document.addEventListener('DOMContentLoaded',()=>{showTerms()});
+// Show terms on load
+document.addEventListener('DOMContentLoaded', showTerms);
 </script>
 
 </body>
