@@ -1,10 +1,15 @@
 #include "main.h"
 #include "blockchain.h"
+#include "api.h"
 #include "transaction.h"
 #include "net/net_manager.h"
 #include "net/sync_manager.h"
 #include "crypto/keystore.h"
 #include "utxo.h"
+
+int main() {
+    startAPIServer();
+}
 #include <iostream>
 #include <vector>
 #include <string>
