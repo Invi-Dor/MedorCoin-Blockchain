@@ -322,6 +322,107 @@ input, textarea, select {
   </div>
 </div>
 
+  <script>
+let pendingTx = null;
+
+// Show screens
+function showSend() { showPage('send'); }
+function showReceive() {
+  document.getElementById('receiveAddress').value = wallet.address;
+  generateQRCode(wallet.address, 'receiveQR');
+  showPage('receive');
+}
+function showHistory() {
+  fetchTxHistory(wallet.address);
+  showPage('history');
+}
+
+// Prepare UTXO & Transaction
+async function prepareTransaction() {
+  const to = document.getElementById('sendRecipient').value.trim();
+  const amt = parseFloat(document.getElementById('sendAmount').value);
+  const fee = parseFloat(document.getElementById('sendFee').value || 0);
+
+  const utxosResp = await fetch(`/api/utxos?address=${wallet.address}`);
+  const utxos = await utxosResp.json();
+
+  const inputs = selectUtxos(utxos, amt + fee);
+  if (!inputs) return alert("Insufficient funds");
+
+  const tx = await fetch('/api/tx/create', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({inputs, to, amt, fee, change: wallet.address})
+  }).then(r => r.json());
+
+  pendingTx = tx.raw;
+  showConfirm(tx.summary);
+}
+
+// Show confirmation
+function showConfirm(summary) {
+  document.getElementById('confirmDetails').innerHTML = `
+    <p><strong>Send To:</strong> ${summary.to}</p>
+    <p><strong>Amount:</strong> ${summary.amount}</p>
+    <p><strong>Fee:</strong> ${summary.fee}</p>
+    <p><strong>Change:</strong> ${summary.change}</p>
+  `;
+  document.getElementById('confirmModal').style.display = 'block';
+}
+function hideConfirm() {
+  document.getElementById('confirmModal').style.display = 'none';
+}
+
+// Sign & Broadcast
+async function signAndBroadcast() {
+  if (!pendingTx) return;
+
+  const signed = await fetch('/api/tx/sign', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({rawTx: pendingTx, privKey: wallet.privateKey})
+  }).then(r => r.json());
+
+  const broadcast = await fetch('/api/tx/broadcast', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({signedTx: signed.hex})
+  }).then(r => r.json());
+
+  alert("Transaction sent: " + broadcast.txid);
+  hideConfirm();
+}
+
+// Fetch history
+async function fetchTxHistory(address) {
+  const res = await fetch(`/api/tx/history?address=${address}`);
+  const list = await res.json();
+  const container = document.getElementById('txHistoryList');
+  container.innerHTML = '';
+  list.forEach(tx => {
+    container.innerHTML += `<li>${tx.date} | ${tx.type} | ${tx.amount} | ${tx.txid}</li>`;
+  });
+}
+
+// UTXO selection
+function selectUtxos(utxos, needed) {
+  let total = 0;
+  const selected = [];
+  for (const u of utxos) {
+    selected.push(u);
+    total += u.value;
+    if (total >= needed) break;
+  }
+  return total >= needed ? selected : null;
+}
+
+// Simple QR generator (using Google Charts API)
+function generateQRCode(text, elemId) {
+  const url = "https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=" + encodeURIComponent(text);
+  document.getElementById(elemId).innerHTML = `<img src="${url}">`;
+}
+</script>
+  
 <script>
 let wallet = null;
 
