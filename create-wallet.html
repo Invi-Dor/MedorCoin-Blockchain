@@ -3,110 +3,131 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>MedorCoin — Create Wallet (Mobile)</title>
+<title>MedorCoin — Create Wallet</title>
 <style>
-:root{--bg:#faf9f6;--ink:#1f2937;--border:#e5e7eb;--success:#10b981;--purple:#8b5cf6}
-body{font-family:system-ui,-apple-system,sans-serif;margin:0;padding:1rem;background:var(--bg);color:var(--ink);overflow-x:hidden}
-.container{max-width:600px;margin:0 auto;background:#fff;border:1px solid var(--border);border-radius:1rem;padding:2rem;box-shadow:0 1rem 3rem rgba(0,0,0,.1)}
-h2{text-align:center;color:var(--purple)}
-label{display:block;font-weight:700;margin:1rem 0 .5rem 0}
-input,textarea{width:100%;padding:1rem;border:2px solid var(--border);border-radius:1rem;font-family:monospace;font-size:.9rem}
-.btn{width:100%;padding:1.5rem;margin:.75rem 0;border:none;border-radius:1rem;font-size:1.1rem;font-weight:700;cursor:pointer}
-.generate-btn{background:linear-gradient(135deg,var(--success),#059669);color:white}
-.spinner{display:none;text-align:center;margin-top:1rem}
-.loader{border:4px solid #ddd;border-top:4px solid var(--purple);border-radius:50%;width:32px;height:32px;animation:spin 1s linear infinite;margin:auto}
-@keyframes spin{100%{transform:rotate(360deg)}}
+:root {
+  --bg:#faf9f6;--ink:#1f2937;--border:#e5e7eb;--success:#10b981;--purple:#8b5cf6
+}
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0; padding: 1rem;
+  background: var(--bg); color: var(--ink);
+}
+.container {
+  max-width: 600px; margin: 0 auto;
+  background:#fff; border:1px solid var(--border);
+  border-radius:1rem; padding:2rem;
+}
+label {display:block; font-weight:700; margin:1rem 0 .5rem 0;}
+input, textarea {
+  width:100%; padding:1rem; border:2px solid var(--border);
+  border-radius:1rem; font-family:monospace; font-size:.9rem;
+}
+.btn {
+  width:100%; padding:1.25rem; margin:.75rem 0;
+  border:none; border-radius:1rem; font-size:1.1rem;
+  font-weight:700; cursor:pointer;
+}
+.generate-btn {
+  background:linear-gradient(135deg,var(--success),#059669);
+  color:white;
+}
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>🆕 Create Wallet</h2>
+  <h2 style="text-align:center;color:var(--purple)">🆕 Create Wallet</h2>
 
-  <div id="walletOutput" style="display:none">
-    <label>🌐 Address:</label><input id="outAddress" readonly>
-    <label>🗝️ Encrypted Private Key:</label><textarea id="outEncrypted" readonly></textarea>
-    <label>🔐 Save Your Passphrase:</label><textarea id="outPassphrase" readonly></textarea>
+  <div id="walletInfo" style="display:none;">
+    <label>🌐 Address:</label>
+    <input id="address" readonly>
+    <label>🔑 Private Key (Encrypted):</label>
+    <textarea id="encryptedKey" readonly></textarea>
+    <label>🗝️ Recovery Phrase:</label>
+    <textarea id="phrase" readonly></textarea>
+    <p style="margin-top:1rem;color:#555">Redirecting in <span id="countdown">5</span>...</p>
   </div>
 
-  <button class="btn generate-btn" id="generateBtn">🚀 Generate Wallet</button>
-
-  <div class="spinner" id="loadingSpinner">
-    <div class="loader"></div>
-    <p>Generating and encrypting securely…</p>
-  </div>
+  <button id="generateBtn" class="btn generate-btn">🚀 Generate Wallet</button>
 </div>
 
 <script>
-// AES‑GCM encryption helper (Web Crypto API)
-async function deriveKey(passphrase, salt) {
+// Simplified mnemonic generator (just for UI demo)
+function randomMnemonic() {
+  const words = ["abandon","ability","able","about","above","absent","absorb","abstract","absurd","abuse","access","accident"];
+  return Array(12).fill().map(()=> words[Math.floor(Math.random()*words.length)]).join(" ");
+}
+
+// Derive AES key (Web Crypto API)
+async function deriveKey(pass, salt) {
   const enc = new TextEncoder();
-  const baseKey = await crypto.subtle.importKey("raw", enc.encode(passphrase), "PBKDF2", false, ["deriveKey"]);
+  const baseKey = await crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]);
   return crypto.subtle.deriveKey(
-    {name:"PBKDF2", salt, iterations:100000, hash:"SHA-256"},
+    {name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256"},
     baseKey,
-    {name:"AES-GCM", length:256},
+    {name: "AES-GCM", length: 256},
     false,
-    ["encrypt", "decrypt"]
+    ["encrypt"]
   );
 }
 
-async function encryptAES(text, passphrase) {
+// Encrypt private key
+async function encryptKey(privateKey, passphrase) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv   = crypto.getRandomValues(new Uint8Array(12));
-  const key  = await deriveKey(passphrase, salt);
-  const enc  = new TextEncoder().encode(text);
-  const ciphertext = await crypto.subtle.encrypt({name:"AES-GCM", iv}, key, enc);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(passphrase, salt);
+  const data = new TextEncoder().encode(privateKey);
+  const encrypted = await crypto.subtle.encrypt({name:"AES-GCM", iv}, key, data);
 
   return {
     salt: btoa(String.fromCharCode(...salt)),
-    iv:   btoa(String.fromCharCode(...iv)),
-    data: btoa(String.fromCharCode(...new Uint8Array(ciphertext)))
+    iv: btoa(String.fromCharCode(...iv)),
+    ciphertext: btoa(String.fromCharCode(...new Uint8Array(encrypted)))
   };
 }
 
-// Simple mnemonic generator (placeholder)
-function simpleMnemonic() {
-  const words = ["abandon","ability","able","about","above","absent","absorb","abstract","absurd","abuse","access","accident"];
-  return Array(12).fill().map(()=>words[Math.floor(Math.random()*words.length)]).join(" ");
-}
+document.getElementById("generateBtn").addEventListener("click", async function() {
+  const btn = this;
+  btn.disabled = true;
+  btn.textContent = "Generating...";
 
-document.getElementById("generateBtn").addEventListener("click", async () => {
-  const btn     = document.getElementById("generateBtn");
-  const spinner = document.getElementById("loadingSpinner");
-  btn.style.display='none';
-  spinner.style.display='block';
+  // generate wallet values
+  const phrase = randomMnemonic();
+  const privateKey = "0x" + Array(64).fill().map(_=>Math.floor(Math.random()*16).toString(16)).join("");
+  const address = "mc1" + Array(34).fill().map(_=>Math.floor(Math.random()*58).toString(58)).join("");
 
-  try {
-    const phrase = simpleMnemonic();
-    const privKey = "0x"+Array(64).fill().map(()=>Math.floor(Math.random()*16).toString(16)).join("");
-    const address = "mc1"+Array(34).fill().map(()=>Math.floor(Math.random()*58).toString(58)).join("");
-
-    const pass = prompt("Enter a strong passphrase to encrypt your key (store it safely!)");
-    if(!pass || pass.length < 8) {
-      alert("Passphrase must be at least 8 characters");
-      btn.style.display='block';
-      spinner.style.display='none';
-      return;
-    }
-
-    const encrypted = await encryptAES(privKey, pass);
-
-    const wallet = {
-      address,
-      encryptedPrivateKey: encrypted,
-      mnemonic: phrase
-    };
-
-    localStorage.setItem("medorcoin_wallet", JSON.stringify(wallet));
-    localStorage.setItem("wallet_active", "true");
-
-    window.location.href = "wallet.html";
-  } catch(e) {
-    alert("Failed to generate, try again");
-    btn.style.display='block';
-    console.error(e);
+  // ask for encryption passphrase
+  const pass = prompt("Enter passphrase to encrypt your private key (must remember this!)");
+  if(!pass || pass.length < 8) {
+    alert("Passphrase must be at least 8 characters.");
+    btn.disabled = false;
+    btn.textContent = "🚀 Generate Wallet";
+    return;
   }
+
+  // encrypt and save
+  const encrypted = await encryptKey(privateKey, pass);
+  const wallet = {address, encrypted, phrase};
+  localStorage.setItem("medorcoin_wallet", JSON.stringify(wallet));
+  localStorage.setItem("wallet_active","true");
+
+  // show wallet info on page first
+  document.getElementById("address").value = address;
+  document.getElementById("encryptedKey").value = JSON.stringify(encrypted, null,2);
+  document.getElementById("phrase").value = phrase;
+  document.getElementById("walletInfo").style.display = "block";
+
+  // countdown then redirect
+  let count = 5;
+  const interval = setInterval(() => {
+    count--;
+    document.getElementById("countdown").textContent = count;
+    if(count <= 0) {
+      clearInterval(interval);
+      window.location.href = "wallet.html";  // redirect after short delay  [oai_citation:1‡encodedna.com](https://www.encodedna.com/javascript/redirect-page-after-a-delay-using-javascript.htm?utm_source=chatgpt.com)
+    }
+  }, 1000);
 });
 </script>
 
