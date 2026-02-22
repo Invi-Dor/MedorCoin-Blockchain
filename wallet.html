@@ -220,6 +220,48 @@ input, textarea, select {
       </div>
     </div>
 
+    <!-- SEND Funds Screen -->
+<div id="send" class="page" style="display:none;">
+  <div class="card">
+    <h3>Send MedorCoin</h3>
+    <label>Recipient Address</label>
+    <input type="text" id="sendRecipient">
+    <label>Amount</label>
+    <input type="text" id="sendAmount">
+    <label>Fee</label>
+    <input type="text" id="sendFee" placeholder="e.g. 0.0001" />
+    <button class="button" onclick="prepareTransaction()">Preview Transaction</button>
+  </div>
+</div>
+
+<!-- Transaction Confirmation Modal -->
+<div id="confirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
+  <div style="max-width:400px; margin:auto; padding:24px; background:var(--panel-bg); border-radius:12px;">
+    <h3>Confirm Transaction</h3>
+    <div id="confirmDetails"></div>
+    <button class="button" onclick="signAndBroadcast()">Sign & Send</button>
+    <button class="button" onclick="hideConfirm()">Cancel</button>
+  </div>
+</div>
+
+<!-- RECEIVE Screen -->
+<div id="receive" class="page" style="display:none;">
+  <div class="card">
+    <h3>Receive MedorCoin</h3>
+    <p>Your Address:</p>
+    <input type="text" id="receiveAddress" readonly>
+    <div id="receiveQR"></div>
+  </div>
+</div>
+
+<!-- HISTORY Screen -->
+<div id="history" class="page" style="display:none;">
+  <div class="card">
+    <h3>Transaction History</h3>
+    <ul id="txHistoryList"></ul>
+  </div>
+</div>
+
     <!-- Create Wallet -->
     <div id="create" class="page" style="display:none;">
       <div class="warning">
