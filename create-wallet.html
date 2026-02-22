@@ -6,8 +6,7 @@
 <title>MedorCoin — Create Wallet (Mobile 2026)</title>
 <style>
 :root{--bg:#faf9f6;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--purple:#8b5cf6}
-*{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-body{font-family:system-ui,-apple-system,sans-serif;margin:0;padding:1rem;background:var(--bg);color:var(--ink);line-height:1.5;overflow-x:hidden}
+body{font-family:system-ui,-apple-system,sans-serif;margin:0;padding:1rem;background:var(--bg);color:var(--ink);overflow-x:hidden}
 .container{max-width:600px;margin:0 auto;background:#fff;border-radius:1.5rem;border:1px solid var(--border);padding:2rem;box-shadow:0 1rem 3rem rgba(0,0,0,0.1)}
 @media (max-width:480px){.container{padding:1.5rem;border-radius:1rem}}
 .security-warning{background:linear-gradient(135deg,#fee2e2,#fecaca);border:2px solid var(--danger);border-radius:1rem;padding:1.5rem;margin:1.5rem 0;color:#991b1b}
@@ -26,27 +25,24 @@ input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 
 .backup-btn{background:linear-gradient(135deg,var(--purple),#7c3aed);color:white}
 .verify-btn{background:linear-gradient(135deg,var(--warning),#d97706);color:white}
 .back-link{display:inline-flex;align-items:center;gap:.5rem;color:var(--ink);text-decoration:none;font-weight:600;margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:2px solid var(--border)}
-#termsModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:9999}
-.modal-content{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,var(--purple),#1e40af);color:white;padding:2rem;border-radius:1.5rem;max-width:95%;max-height:90vh;overflow-y:auto}
-@media (max-width:480px){.modal-content{padding:1.5rem}}
-#termsModal button{background:var(--success);color:white;border:none;padding:1rem 2rem;border-radius:1rem;font-weight:700}
+.spinner{display:none;text-align:center;margin-top:20px}
+.loader{border:4px solid #e5e7eb;border-top:4px solid #2563eb;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:auto}
+@keyframes spin{100%{transform:rotate(360deg)}}
 #walletInfo{display:none}
 </style>
 </head>
 <body>
+
 <div id="termsModal">
-    <div class="modal-content">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,var(--purple),#1e40af);color:white;padding:2rem;border-radius:1.5rem;max-width:95%;max-height:90vh;overflow-y:auto">
         <h2 style="margin:0 0 1.5rem 0">🪙 MedorCoin Terms 2026</h2>
-        <div style="font-size:.9rem;line-height:1.6;max-height:50vh;overflow:auto">
-            <p><strong>⚠️ REQUIRED:</strong></p>
-            <ul style="padding-left:1.5rem">
-                <li>✅ I am 18+ years old</li>
-                <li>✅ Accept crypto volatility risks</li>
-                <li>✅ NO refunds - all sales final</li>
-                <li>✅ Multi-chain support enabled</li>
-                <li>✅ I control my keys = ALL risks</li>
-            </ul>
-        </div>
+        <ul style="font-size:.9rem;line-height:1.6;padding-left:1.5rem">
+            <li>✅ I am 18+ years old</li>
+            <li>✅ Accept crypto volatility risks</li>
+            <li>✅ NO refunds - all sales final</li>
+            <li>✅ Multi-chain support enabled</li>
+            <li>✅ I control my keys = ALL risks</li>
+        </ul>
         <div style="margin-top:1.5rem;text-align:right">
             <button onclick="acceptTerms()">✓ Accept All Terms</button>
         </div>
@@ -54,6 +50,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 
 </div>
 
 <a href="index.html" class="back-link">← Back to Home</a>
+
 <div class="container">
 <h1 style="font-size:2rem;text-align:center;margin:0 0 1.5rem;background:linear-gradient(135deg,var(--purple),var(--success));-webkit-background-clip:text;-webkit-text-fill-color:transparent">🆕 Create Wallet</h1>
 
@@ -73,8 +70,11 @@ input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 
 <h4>🌐 Multi-Chain Ready</h4>
 <p><strong>BTC • ETH • SOL • BNB + 2000+ tokens</strong></p>
 <div class="nft-support">
-<div class="nft-token">🪙 BTC</div><div class="nft-token">⛓️ ETH</div><div class="nft-token">☀️ SOL</div>
-<div class="nft-token">🐼 BNB</div><div class="nft-token">🎨 NFT</div>
+<div class="nft-token">🪙 BTC</div>
+<div class="nft-token">⛓️ ETH</div>
+<div class="nft-token">☀️ SOL</div>
+<div class="nft-token">🐼 BNB</div>
+<div class="nft-token">🎨 NFT</div>
 </div>
 </div>
 
@@ -89,18 +89,79 @@ input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 
 </div>
 
 <button onclick="generateWallet()" class="create-btn" id="generateBtn">🚀 Generate Wallet</button>
+
+<div class="spinner" id="loading">
+<div class="loader"></div>
+<p>Generating wallet securely...</p>
+</div>
+
 </div>
 
 <script>
-let walletData=null;let termsAccepted=localStorage.getItem('medorcoin_terms')==='accepted';
-const bip39words=['abandon','ability','able','about','above','absent','absorb','abstract','absurd','abuse','access','accident','account','accuse','achieve','acid','acoustic','acquire','across','act','action','actor','actress','adapt','add','addict','adult','advance','advice','aerobic','affair','afraid','again','age','agent','agree','ahead','aim','air','airport','aisle','alarm','album','alcohol','alert','alien','all','alley','alliance','allied','allow','almost','alone','alpha','already','also','alter','always','amateur','amazing','among','amount','amused','analyst','anchor','ancient','anger','angle','angry','animal','ankle','announce','annual','another','answer','antenna','antique','anxiety','any','apart','apology','appear','apple','approve','april','arch','arctic','area','arena','argue','arm','armed','armor','army','around','arrange','art','artefact','artist','artwork','ask','aspect','assault','asset','assist','assume','asthma','athlete','atom','attack','attend','attitude','attract','auction','audit','august','aunt','author','auto','autumn','average','avocado','avoid','awake','aware','away','awesome','awful','awkward','axis','baby','bachelor','bacon','badge','bag','balance','balcony','ball','bamboo','banana','banner','bar','barely','bargain','barrel','base','basic','basket','battle','beach','bean','beauty','because','become','beef','before','begin','behave','behind','believe','below','belt','bench','benefit','best','betray','better','between','beyond','bicycle','bid','bike','bind','biology','bird','birth','bitter','black','blade','blame','blanket','blast','bleak','bless','blind','blood','blossom','blouse','blue','blur','blush','board','boat','body','boil','bomb','bone','bonus','book','boost','border','boring','borrow','boss','bottom','bounce','box','boy','bracket','brain','brand','brass','brave','bread','breeze','brick','bridge','brief','bright','bring','brisk','broccoli','broken','bronze','broom','brother','brown','brush','bubble','buddy','budget','buffalo','build','bulb','bulk','bullet','bundle','bunker','burden','burger','burst','bus','business','busy','butter','buyer','buzz','cabbage','cabin','cable','cactus','cage','cake','call','calm','camera','camp','can','canal','cancel','candy','cannon','canoe','canvas','canyon','capable','capital','captain','car','carbon','card','cargo','carpet','carry','cart','case','cash','casino','castle','casual','cat','catalog','catch','category','cattle','caught','cause','caution','cave','ceiling','celery','cement','census','century','cereal','certain','chair','chalk','champion','change','chaos','chapter','charge','chase','chat','cheap','check','cheese','chef','cherry','chest','chicken','chief','child','chimney','choice','choose','chronic','chuckle','chunk','churn','cigar','cinnamon','circle','citizen','city','civil','claim','clap','clarify','claw','clay','clean','clerk','clever','click','client','cliff','climb','clinic','clip','clock','clog','close','cloth','cloud','clown','club','clump','cluster','clutch','coach','coast','coconut','code','coffee','coil','coin','collect','color','column','combine','come','comfort','comic','common','company','concert','conduct','confirm','congress','connect','consider','control','convince','cook','cool','copper','copy','coral','core','corn','correct','cost','cotton','couch','country','couple','course','cousin','cover','coyote','crack','cradle','craft','cram','crane','crash','crater','crawl','crazy','cream','credit','creek','crew','cricket','crime','crisp','critic','crop','cross','crouch','crowd','crucial','cruel','cruise','crumble','crunch','crush','cry','crystal','cube','culture','cup','cupboard','curious','current','curtain','curve','cushion','custom','cute','cycle','dad','damage','damp','dance','danger','daring','dash','daughter','dawn','day','deal','debate','debris','decade','december','decide','decline','decorate','decrease','deer','defense','define','defy','degree','delay','deliver','demand','demise','denial','dentist','deny','depart','depend','deposit','depth','deputy','derive','describe','desert','design','desk','despair','destroy','detail','detect','develop','device','devote','diagram','dial','diamond','diary','dice','diesel','diet','differ','digital','dignity','dilemma','dinner','dinosaur','direct','dirt','disagree','discover','disease','dish','dismiss','disorder','display','distance','divert','divide','divorce','dizzy','doctor','document','dog','doll','dolphin','domain','donate','donkey','donor','door','dose','double','dove','draft','dragon','drama','drastic','draw','dream','dress','drift','drill','drink','drip','drive','drop','drum','dry','duck','dumb','dune','during','dust','dutch','duty','dwarf','dynamic','eager','eagle','early','earn','earth','easily','east','easy','echo','ecology','economy','edge','edit','educate','effort','egg','eight','either','elbow','elder','electric','elegant','element','elephant','elevator','elite','else','embark','embody','embrace','emerge','emotion','employ','empower','empty','enable','enact','end','endless','endorse','enemy','energy','enforce','engage','engine','enhance','enjoy','enlist','enough','enrich','enroll','ensure','enter','entire','entry','envelope','episode','equal','equip','era','erase','erode','erosion','error','erupt','escape','essay','essence','estate','eternal','ethics','evidence','evil','evoke','evolve','exact','example','excess','exchange','excite','exclude','excuse','execute','exercise','exhaust','exhibit','exile','exist','exit','exotic','expand','expect','expire','explain','expose','express','extend','extra','eye','eyebrow','fabric','face','faculty','fade','faint','faith','fall','false','fame','family','famous','fan','fancy','fantasy','farm','fashion','fat','fatal','father','fatigue','fault','favor','favorite','feature','february','federal','fee','feed','feel','female','fence','festival','fetch','fever','few','fiber','fiction','field','figure','file','film','filter','final','find','fine','finger','finish','fire','firm','first','fiscal','fish','fit','fitness','fix','flag','flame','flash','flat','flavor','flee','flight','flip','float','flock','floor','flower','fluid','flush','fly','foam','focus','fog','foil','fold','follow','food','foot','force','forest','forget','fork','fortune','forum','forward','fox','fragile','frame','frequent','fresh','friend','fringe','frog','front','frost','frown','frozen','fruit','fuel','fun','funny','furnace','fury','future','gadget','gain','galaxy','gallery','game','gap','garage','garbage','garden','garlic','garment','gas','gasp','gate','gather','gauge','gaze','general','genius','genre','gentle','genuine','gesture','ghost','giant','gift','giggle','ginger','giraffe','girl','give','glad','glance','glare','glass','glide','glimpse','globe','gloom','glory','glove','glow','glue','goat','goddess','gold','good','goose','gorilla','gospel','gossip','govern','gown','grab','grace','grain','grant','grape','grass','gravity','great','green','grid','grief','grit','grocery','group','grow','grunt','guard','guess','guide','guilt','guitar','gun','gym','habit','hair','half','hammer','hamster','hand','happy','harbor','hard','harsh','harvest','hat','have','hawk','hazard','head','health','heart','heavy','hedgehog','height','hello','helmet','help','hen','hero','hidden','high','hill','hint','hip','hire','history','hobby','hockey','hold','hole','holiday','hollow','home','honey','hood','hope','horn','horror','horse','hospital','host','hotel','hour','hover','hub','huge','human','humble','humor','hundred','hungry','hunt','hurdle','hurry','hurt','husband','hybrid','ice','icon','idea','identify','idle','ignore','ill','illegal','illness','image','imitate','immense','immune','impact','impose','improve','impulse','inch','include','income','increase','index','indicate','indoor','industry','infant','inflict','inform','inhale','inherit','initial','inject','injury','inmate','inner','innocent','input','inquiry','insane','insect','inside','inspire','install','intact','interest','into','invest','invite','involve','iron','island','isolate','issue','item','ivory','jacket','jaguar','jar','jazz','jealous','jeans','jelly','jewel','job','join','joke','journey','joy','judge','juice','jump','jungle','junior','junk','just','kangaroo','keen','keep','ketchup','key','kick','kid','kidney','kind','kingdom','kiss','kit','kitchen','kite','kitten','kiwi','knee','knife','knock','know'];
+let walletData=null;
+let termsAccepted=localStorage.getItem('medorcoin_terms')==='accepted';
 
 function showTerms(){if(!termsAccepted){document.body.style.overflow='hidden';document.getElementById('termsModal').style.display='block'}}
 function acceptTerms(){localStorage.setItem('medorcoin_terms','accepted');termsAccepted=true;document.getElementById('termsModal').style.display='none';document.body.style.overflow='auto'}
-async function generateWallet(){if(!termsAccepted){showTerms();return}const btn=document.getElementById('generateBtn');btn.disabled=true;btn.textContent='Generating...';try{const phrase=Array(12).fill(0).map(()=>bip39words[Math.floor(Math.random()*bip39words.length)]).join(' ');const privKey='0x'+Array(64).fill(0).map(()=>Math.floor(Math.random()*16).toString(16)).join('');const address='mc1'+Array(34).fill(0).map(()=>Math.floor(Math.random()*58).toString(58)).join('');walletData={address,privateKey:privKey,phrase,chains:['BTC','ETH','SOL','BNB']};document.getElementById('address').value=address;document.getElementById('privateKey').value=privKey;document.getElementById('recoveryPhrase').value=phrase;document.getElementById('walletInfo').style.display='block';document.getElementById('generateBtn').style.display='none'}catch(e){console.error(e)}finally{btn.disabled=false;btn.textContent='🚀 Generate Wallet'}}
-function downloadBackup(){const data=`MedorCoin Wallet Backup\nAddress: ${walletData.address}\nPrivate Key: ${walletData.privateKey}\nPhrase: ${walletData.phrase}\n\n⚠️ KEEP OFFLINE FOREVER`;const blob=new Blob([data],{type:'text/plain'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`medorcoin-${walletData.address.slice(0,8)}.txt`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url)}
-function verifySaved(){if(confirm('✅ CONFIRM: Phrase backed up on METAL in 2+ safe locations?')){localStorage.setItem('medorcoin_wallet',JSON.stringify(walletData));localStorage.setItem('wallet_active','true');window.location.href='index.html?wallet=created&address='+encodeURIComponent(walletData.address.slice(0,12));}}
-document.addEventListener('DOMContentLoaded',()=>{if(!termsAccepted)showTerms();document.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',e=>{if(!termsAccepted){e.preventDefault();showTerms()}}))});
+
+async function generateWallet(){
+    if(!termsAccepted){showTerms();return}
+    const btn=document.getElementById('generateBtn');
+    const spinner=document.getElementById('loading');
+    btn.disabled=true; spinner.style.display='block'; btn.style.display='none';
+    try{
+        // Generate BIP39-like 12-word phrase
+        const phrase=Array(12).fill(0).map(()=>bip39words[Math.floor(Math.random()*bip39words.length)]).join(' ');
+
+        // Generate pseudo-private key and address
+        const privKey='0x'+Array(64).fill(0).map(()=>Math.floor(Math.random()*16).toString(16)).join('');
+        const address='mc1'+Array(34).fill(0).map(()=>Math.floor(Math.random()*58).toString(58)).join('');
+
+        // Encrypt private key with passphrase prompt
+        const passphrase=prompt("Enter a secure passphrase to encrypt your wallet:");
+        if(!passphrase || passphrase.length<8){alert("Passphrase must be at least 8 chars.");btn.disabled=false;spinner.style.display='none';btn.style.display='block';return}
+        const encryptedPrivKey=await encryptPrivateKey(privKey,passphrase);
+
+        walletData={address,privateKey:encryptedPrivKey,phrase,chains:['BTC','ETH','SOL','BNB']};
+
+        document.getElementById('address').value=address;
+        document.getElementById('privateKey').value='[ENCRYPTED]';
+        document.getElementById('recoveryPhrase').value=phrase;
+        document.getElementById('walletInfo').style.display='block';
+
+    }catch(e){console.error(e);alert("Wallet generation failed")}finally{btn.disabled=false;spinner.style.display='none'}
+}
+
+async function encryptPrivateKey(privKey,passphrase){
+    const enc=new TextEncoder();
+    const salt=crypto.getRandomValues(new Uint8Array(16));
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const keyMaterial=await crypto.subtle.importKey("raw",enc.encode(passphrase),"PBKDF2",false,["deriveKey"]);
+    const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:100000,hash:"SHA-256"},keyMaterial,{name:"AES-GCM",length:256},false,["encrypt"]);
+    const encrypted=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,enc.encode(privKey));
+    return {ciphertext:btoa(String.fromCharCode(...new Uint8Array(encrypted))),iv:btoa(String.fromCharCode(...iv)),salt:btoa(String.fromCharCode(...salt))}
+}
+
+function downloadBackup(){
+    const data=`MedorCoin Wallet Backup\nAddress: ${walletData.address}\nPrivate Key: ${walletData.privateKey.ciphertext}\nPhrase: ${walletData.phrase}\n\n⚠️ KEEP OFFLINE FOREVER`;
+    const blob=new Blob([data],{type:'text/plain'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=`medorcoin-${walletData.address.slice(0,8)}.txt`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+function verifySaved(){
+    if(confirm('✅ CONFIRM: Phrase backed up on METAL in 2+ safe locations?')){
+        localStorage.setItem('medorcoin_wallet',JSON.stringify(walletData));
+        localStorage.setItem('wallet_active','true');
+        const params=new URLSearchParams(window.location.search);
+        const redirect=params.get('redirect');
+        if(redirect){window.location.href=redirect+"?address="+encodeURIComponent(walletData.address)}else{window.location.href='wallet.html'}
+    }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{if(!termsAccepted)showTerms()});
 </script>
 </body>
 </html>
