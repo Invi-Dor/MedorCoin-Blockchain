@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedorCoin Wallet</title>
+
+<style>
+:root {
+  --bg-dark: #0b0f1a;
+  --panel-bg: #12182a;
+  --neon-blue: #00eaff;
+  --neon-blue-strong: #00cfff;
+  --text-light: #e8faff;
+  --text-muted: #9bb3c9;
+  --danger: #ff4d4f;
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: var(--bg-dark);
+  color: var(--text-light);
+  overflow-x: hidden;
+}
+
+/* Layout */
+#wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+#sidebar {
+  width: 240px;
+  background: var(--panel-bg);
+  border-right: 1px solid rgba(0, 234, 255, 0.1);
+  padding: 20px;
+  transition: transform 0.3s ease;
+}
+
+#sidebar h2 {
+  color: var(--neon-blue);
+  margin-bottom: 30px;
+  font-size: 22px;
+}
+
+#sidebar a {
+  display: block;
+  padding: 12px;
+  border-radius: 8px;
+  color: var(--text-light);
+  text-decoration: none;
+  margin-bottom: 8px;
+  transition: 0.2s;
+}
+
+#sidebar a:hover {
+  background: rgba(0,234,255,0.1);
+  color: var(--neon-blue);
+}
+
+/* Mobile Sidebar Hidden */
+#sidebar.mobile-hidden {
+  transform: translateX(-100%);
+  position: fixed;
+  height: 100%;
+  z-index: 1000;
+}
+
+/* Main Content */
+#content {
+  flex: 1;
+  padding: 24px;
+}
+
+/* Top Bar */
+.topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.hamburger {
+  font-size: 26px;
+  cursor: pointer;
+  color: var(--neon-blue);
+}
+
+/* Cards */
+.card {
+  background: var(--panel-bg);
+  padding: 20px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(0,234,255,0.2);
+  box-shadow: 0 0 10px rgba(0,234,255,0.1);
+}
+
+.card h3 {
+  margin-bottom: 12px;
+  color: var(--neon-blue);
+}
+
+/* Balance */
+.balance {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+/* Inputs */
+input, textarea, select {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  margin-bottom: 14px;
+  background: #0e1422;
+  border: 1px solid rgba(0,234,255,0.2);
+  border-radius: 10px;
+  color: var(--text-light);
+  font-size: 15px;
+}
+
+/* Buttons */
+.button {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-blue-strong));
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  color: #001018;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: 0.3s;
+  font-size: 15px;
+}
+
+.button:hover {
+  box-shadow: 0 0 18px rgba(0,234,255,0.5);
+}
+
+/* Warning */
+.warning {
+  background: #2a0f0f;
+  border-left: 4px solid var(--danger);
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  color: #ff8080;
+  font-size: 14px;
+}
+
+/* Hidden Phrase */
+.hidden {
+  filter: blur(8px);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  #sidebar {
+    position: fixed;
+    height: 100%;
+    z-index: 1000;
+  }
+
+  #content {
+    width: 100%;
+  }
+
+  .topbar {
+    display: flex;
+  }
+
+  #wrapper {
+    flex-direction: column;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="wrapper">
+
+  <div id="sidebar" class="mobile-hidden">
+    <h2>MedorCoin</h2>
+    <a href="#" onclick="showPage('dashboard')">Dashboard</a>
+    <a href="#" onclick="showPage('create')">Create Wallet</a>
+    <a href="#" onclick="showPage('security')">Security</a>
+    <a href="#" onclick="showPage('backup')">Backup</a>
+    <a href="#" onclick="showPage('advanced')">Advanced</a>
+  </div>
+
+  <div id="content">
+
+    <div class="topbar">
+      <span class="hamburger" onclick="toggleSidebar()">☰</span>
+      <span style="color: var(--neon-blue); font-weight: bold;">MedorCoin</span>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="page">
+      <div class="card">
+        <h3>Wallet Balance</h3>
+        <div class="balance" id="balanceDisplay">0.000 MED</div>
+      </div>
+      <div class="card">
+        <h3>Address</h3>
+        <input type="text" id="dashboardAddress" readonly>
+      </div>
+    </div>
+
+    <!-- Create Wallet -->
+    <div id="create" class="page" style="display:none;">
+      <div class="warning">
+        ⚠ Your recovery phrase is your only backup. Store it offline securely.
+      </div>
+
+      <div class="card">
+        <h3>New Wallet</h3>
+
+        <label>Address</label>
+        <input type="text" id="address" readonly>
+
+        <label>Private Key</label>
+        <input type="text" id="privateKey" readonly>
+
+        <label>Recovery Phrase</label>
+        <textarea id="recoveryPhrase" class="hidden" readonly></textarea>
+
+        <button class="button" onclick="revealPhrase()">Reveal Recovery Phrase</button>
+        <button class="button" onclick="generateWallet()">Generate Wallet</button>
+      </div>
+    </div>
+
+    <!-- Security -->
+    <div id="security" class="page" style="display:none;">
+      <div class="card">
+        <h3>Security Settings</h3>
+        <label>Password</label>
+        <input type="password" placeholder="Set wallet password">
+        <label>Auto Lock</label>
+        <select>
+          <option>Never</option>
+          <option>1 minute</option>
+          <option>5 minutes</option>
+        </select>
+        <button class="button">Save Settings</button>
+      </div>
+    </div>
+
+    <!-- Backup -->
+    <div id="backup" class="page" style="display:none;">
+      <div class="card">
+        <h3>Backup Wallet</h3>
+        <button class="button" onclick="downloadBackup()">Download Backup</button>
+      </div>
+    </div>
+
+    <!-- Advanced -->
+    <div id="advanced" class="page" style="display:none;">
+      <div class="card">
+        <h3>Advanced</h3>
+        <label><input type="checkbox"> Developer Mode</label>
+        <label><input type="checkbox"> Show Hex Data</label>
+        <button class="button">Update</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let wallet = null;
+
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("mobile-hidden");
+}
+
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+  document.getElementById(id).style.display = "block";
+  if (window.innerWidth < 900) toggleSidebar();
+}
+
+function generateWallet() {
+  const phrase = Array(12).fill("word").map(() =>
+    Math.random().toString(36).substring(2,5)
+  ).join(" ");
+
+  const priv = "0x" + Array(64).fill().map(() =>
+    Math.floor(Math.random()*16).toString(16)
+  ).join("");
+
+  const addr = "Mdc" + Math.random().toString(36).substring(2,34);
+
+  wallet = {phrase, priv, addr};
+
+  document.getElementById("address").value = addr;
+  document.getElementById("privateKey").value = priv;
+  document.getElementById("recoveryPhrase").value = phrase;
+  document.getElementById("dashboardAddress").value = addr;
+}
+
+function revealPhrase() {
+  document.getElementById("recoveryPhrase").classList.remove("hidden");
+}
+
+function downloadBackup() {
+  if (!wallet) return alert("Generate wallet first.");
+  const blob = new Blob(
+    [`Address: ${wallet.addr}\nPrivate Key: ${wallet.priv}\nPhrase: ${wallet.phrase}`],
+    {type:"text/plain"}
+  );
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "MedorCoin_Backup.txt";
+  link.click();
+}
+</script>
+
+</body>
+</html>
