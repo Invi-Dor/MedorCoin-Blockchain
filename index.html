@@ -1,270 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MedorCoin — Home</title>
-    <meta name="description" content="MedorCoin home portal."/>
     <style>
         :root {
             --bg: #faf9f6;
             --ink: #1f2937;
             --muted: #6b7280;
             --border: #e5e7eb;
-            --success: #10b981
-        }
-        *, *::before, *::after {
-            box-sizing: border-box
+            --success: #10b981;
         }
         body {
             margin: 0;
             font-family: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
             background: var(--bg);
-            color: var(--ink)
-        }
-        a {
-            color: inherit;
-            text-decoration: none
-        }
-        .container {
-            max-width: 980px;
-            margin: 0 auto;
-            padding: 12px
-        }
-        .row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .space {
-            justify-content: space-between
-        }
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px
-        }
-        .logo img {
-            height: 36px;
-            width: 36px;
-            border-radius: 10px;
-            object-fit: cover;
-            border: 1px solid #e8e1c7
-        }
-        .brand {
-            font-weight: 800;
-            font-size: 18px
-        }
-        .wallet-status {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: var(--success);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-            display: none
-        }
-        .searchbar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            padding: 10px 12px;
-            margin-top: 10px
-        }
-        .searchbar input {
-            border: 0;
-            outline: 0;
-            flex: 1;
-            font-size: 14px;
             color: var(--ink);
-            background: transparent
         }
-        .pill {
-            font-size: 12px;
-            background: #fff7e6;
-            color: #333333;
-            border: 1px solid #f2e6bf;
-            border-radius: 999px;
-            padding: 4px 8px
-        }
-        .tabs {
+        header {
             display: flex;
-            gap: 10px;
-            overflow: auto;
-            padding: 10px 0;
-            margin-top: 8px
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
         }
-        .tab {
+        nav button {
+            margin: 0 5px;
+        }
+        .language-dropdown {
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: #f3f4f6;
-            border: 1px solid var(--border);
-            color: var(--ink);
-            border-radius: 999px;
-            padding: 8px 12px;
-            font-size: 13px;
-            white-space: nowrap
         }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px;
-            margin-top: 10px
+        .live-transactions, .support-section, .info-columns {
+            margin-top: 20px;
         }
-        .tile {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 12px;
-            min-height: 96px;
+        .info-columns {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-            justify-content: center
+            justify-content: space-between;
         }
-        .muted {
+        footer {
+            margin-top: 20px;
+            text-align: center;
             color: var(--muted);
-            font-size: 12px
-        }
-        .icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center
-        }
-        .icon svg {
-            width: 22px;
-            height: 22px;
-            display: block
-        }
-        .ic-gold {
-            background: #fff7e6;
-            border: 1px solid #f2e6bf
-        }
-        .ic-slate {
-            background: #eef1f5;
-            border: 1px solid #e2e8f0
-        }
-        .lang-dropdown {
-            margin-left: auto;
-            margin-right: 20px;
-        }
-        .large-font {
-            font-size: 16px; /* Increase font size */
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
-    <!-- WALLET STATUS -->
-    <div id="walletStatus" class="wallet-status"></div>
-
-    <div class="container">
-        <div class="row space" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:12px 16px;border-radius:14px;margin-bottom:16px">
-            <div class="logo">
-                <img src="assets/logo.png" alt="MedorCoin Logo"/>
-                <div class="brand">MedorCoin</div>
-            </div>
-            <div class="lang-dropdown">
-                <select onchange="translateLanguage(this.value)">
-                    <option value="">Select Language</option>
-                    <option value="en">English</option>
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                    <option value="de">German</option>
-                    <option value="zh">Chinese</option>
-                    <!-- Add more languages as needed -->
-                </select>
-            </div>
-        </div>
-
-        <div class="searchbar">
-            <span style="opacity:.7">🔎</span>
-            <input id="q" placeholder="Search"/>
-            <span class="pill">AI</span>
-        </div>
-
-        <div class="tabs">
-            <a class="tab" href="index.html">🏠 HomePage</a>
-            <a class="tab" href="miners.html">⛏️ Miners</a>
-            <a class="tab" href="developers.html">👩‍💻 Developers</a>
-            <a class="tab" href="trading.html">📈 Crypto Trading</a>
-        </div>
-
-        <div class="grid">
-            <a class="tile" href="/blockchain.html">
-                <div class="icon ic-slate" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#B5943F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="5" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-                        <circle cx="19" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-                        <circle cx="5" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-                        <circle cx="19" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-                        <path d="M7.2 6h9.6"/><path d="M5 8.6v6.8"/><path d="M19 8.6v6.8"/><path d="M6.6 16.8L10.8 12h-2.2l4.8-4.8M12.8 12l4.6 4.6"/>
-                    </svg>
-                </div>
-                <b>Blockchain</b>
-                <span class="muted">On-chain tools & explorer</span>
-            </a>
-            <a class="tile" href="miners.html"><div class="icon ic-slate">⛏️</div><b>Miners</b><span class="muted">Start mining</span></a>
-            <a class="tile" href="developers.html"><div class="icon ic-slate">👩‍💻</div><b>Developers</b><span class="muted">Docs & SDKs</span></a>
-            <a class="tile" href="trading.html"><div class="icon ic-slate">📈</div><b>Crypto Trading</b><span class="muted">Markets & tools</span></a>
-            <a class="tile" href="learn.html"><div class="icon ic-slate">📚</div><b>Learn</b><span class="muted">Guides</span></a>
-            <a class="tile" href="Chatroom.html"><div class="icon ic-slate">💬</div><b>Chatroom</b><span class="muted">Chat & support</span></a>
-            <a class="tile" href="crypto-whales.html"><div class="icon ic-slate">🐋</div><b>Crypto Whales</b><span class="muted">Large flows</span></a>
-            <a class="tile" href="my-account.html"><div class="icon ic-slate">👤</div><b>My Account</b><span class="muted">Profile</span></a>
-            <a class="tile" href="new-listing.html"><div class="icon ic-slate">🆕</div><b>New Listing</b><span class="muted">List a token</span></a>
-            <a class="tile" href="locks.html">
-                <div class="icon ic-gold" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M7.5 10V8.5a4.5 4.5 0 1 1 9 0V10" stroke="#A3AAB5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                        <rect x="5.5" y="10" width="13" height="10" rx="2" fill="#D7BF77" stroke="#B5943F" stroke-width="1.4"/>
-                        <path d="M6.8 11.4h10.4c.3 0 .5.2.5.5v.2c-1.8.6-3.7.9-5.5.9s-3.7-.3-5.5-.9v-.2c0-.3.2-.5.5-.5z" fill="#F7EFD4" opacity=".55"/>
-                        <circle cx="12" cy="15" r="1.2" fill="#8C6A2C"/>
-                        <rect x="11.4" y="15.9" width="1.2" height="2.3" rx=".6" fill="#8C6A2C"/>
-                    </svg>
-                </div>
-                <b>Locks</b>
-                <span class="muted">Lock-ups & vesting</span>
-            </a>
-        </div>
-
-        <footer style="margin:14px 0;color:var(--muted);font-size:12px">MedorCoin ©</footer>
+<header>
+    <h1 style="font-size: 2em;">MedorCoin</h1>
+    <div class="language-dropdown">
+        <label for="language">LANG 🇺🇳</label>
+        <select id="language">
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <!-- Add more languages as needed -->
+        </select>
     </div>
+    <nav>
+        <button style="font-size: 1.2em;">Create Wallet</button>
+        <button style="font-size: 1.2em;">Connect Wallet</button>
+        <button style="font-size: 1.2em;">Sign Up</button>
+        <button style="font-size: 1.2em;">Login</button>
+    </nav>
+</header>
 
-    <script>
-        // 🚀 WALLET DETECTION - ADDED (12 LINES TOTAL)
-        const urlParams = new URLSearchParams(window.location.search);
-        const walletStorage = localStorage.getItem('medorcoin_wallet_v2');
-        if (urlParams.get('wallet') === 'created' || walletStorage) {
-            const walletData = walletStorage ? JSON.parse(walletStorage) : {};
-            const statusEl = document.getElementById('walletStatus');
-            statusEl.style.display = 'block';
-            statusEl.innerHTML = `✅ Wallet Active: ${walletData.address?.slice(0, 12) || 'Connected'}...`;
+<!-- Existing block content -->
+<div class="more-block">
+    <h2>More</h2>
+    <!-- Add content for the "More" block -->
+</div>
 
-            // Update Create Wallet link to show "Wallet Created"
-            const createLink = document.querySelector('a[href="create-wallet.html"]');
-            if (createLink) createLink.textContent = '✅ Wallet Created';
-        }
+<div class="live-transactions">
+    <h2>Live Transactions</h2>
+    <table class="transactions-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th>Transaction Hash</th>
+                <th>Method</th>
+                <th>Block</th>
+                <th>Age</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Amount</th>
+                <th>Txn Fee</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>0xf3a2562a84e294993120d2ecbdf05d174120baf8b327915a6f807636dea89adb</td>
+                <td>Transfer</td>
+                <td>24520448</td>
+                <td>20 secs ago</td>
+                <td>Titan Builder</td>
+                <td>Lido: Execution Layer Rewards Vault</td>
+                <td>0.015554296 ETH</td>
+                <td>0.0000032</td>
+            </tr>
+            <tr>
+                <td>0x86cb9759da848541852f704473e11046b9eed90690e8d56d0b79ee65b0deb4cd</td>
+                <td>Transfer</td>
+                <td>24520448</td>
+                <td>20 secs ago</td>
+                <td>0x4e4cAb89...9dD5c8CA1</td>
+                <td>ChangeNOW</td>
+                <td>0.01957009 ETH</td>
+                <td>0.000021</td>
+            </tr>
+        </tbody>
+    </table>
+    <button onclick="window.location='#supportUs'" style="margin-top: 10px;">Support Us</button>
+</div>
 
-        // Translation function (placeholder)
-        function translateLanguage(lang) {
-            console.log(`Translating to ${lang}`);
-            // Implement translation logic here
-        }
+<div id="supportUs" class="support-section">
+    <h2>Support Us</h2>
+    <p>Donate to help us grow:</p>
+    <ul>
+        <li><strong>Ethereum:</strong> Follow these steps to donate:
+            <ol>
+                <li>Open your wallet app.</li>
+                <li>Select 'Send' and paste the address: <strong>0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0</strong></li>
+                <li>Enter the amount and confirm the transaction.</li>
+            </ol>
+        </li>
+        <li><strong>Bitcoin:</strong> Follow these steps to donate:
+            <ol>
+                <li>Open your wallet app.</li>
+                <li>Select 'Send' and paste the address: <strong>bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv</strong></li>
+                <li>Enter the amount and confirm the transaction.</li>
+            </ol>
+        </li>
+        <li><strong>Binance Smart Chain:</strong> Follow these steps to donate:
+            <ol>
+                <li>Open your wallet app.</li>
+                <li>Select 'Send' and paste the address: <strong>0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0</strong></li>
+                <li>Enter the amount and confirm the transaction.</li>
+            </ol>
+        </li>
+        <!-- Add more cryptocurrencies as needed -->
+    </ul>
+</div>
 
-        // ORIGINAL COPYRIGHT SCRIPT
-        document.getElementById('currentYear') ? document.getElementById('currentYear').textContent = new Date().getFullYear() : null;
-    </script>
+<div class="info-columns">
+    <div class="info-column">
+        <h3>Introduction:</h3>
+        <ul>
+            <li>Individuals</li>
+            <li>Businesses</li>
+            <li>Developers</li>
+            <li>Getting started</li>
+            <li>How it works</li>
+            <li>You need to know</li>
+            <li>White paper</li>
+        </ul>
+    </div>
+    <div class="info-column">
+        <h3>Resources:</h3>
+        <ul>
+            <li>Exchanges</li>
+            <li>Community</li>
+            <li>Vocabulary</li>
+            <li>Events</li>
+            <li>Bitcoin Core</li>
+        </ul>
+    </div>
+</div>
+
+<footer>
+    <p>MedorCoin © <span id="currentYear"></span>. Crypto trading is highly volatile. Users should conduct their own research.</p>
+</footer>
+
+<script>
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+</script>
 </body>
 </html>
