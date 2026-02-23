@@ -9,13 +9,16 @@ using json = nlohmann::json;
 // Starts the server (your HTTP engine code here)
 void startAPIServer() {
     // Initialize HTTP server and attach routes
+
+    // ➤ NEW: API key generation route
     app.route("/api/apikey/new", "POST", [](const crow::request& req, crow::response& res) {
-        APIKey k = registerNewKey();                         // ➤ NEW
+        APIKey k = registerNewKey();                         
         res.code = 200;
-        res.write(json({{"apiKey", k.key}}).dump());         // ➤ NEW
+        res.write(json({{"apiKey", k.key}}).dump());         
         res.end();
     });
 
+    // Transaction routes
     app.route("/api/tx/create", "POST", createTransactionHandler);
     app.route("/api/tx/sign", "POST", signTransactionHandler);
     app.route("/api/tx/broadcast", "POST", broadcastTransactionHandler);
