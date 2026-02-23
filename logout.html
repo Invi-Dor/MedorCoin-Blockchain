@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Logout</title>
+</head>
+<body>
+
+<script>
+  if (confirm("Are you sure you want to log out?")) {
+    // Clear session and redirect to homepage
+    document.cookie = "session=; Max-Age=0; path=/;";
+    window.location.href = "get-api.html";
+  } else {
+    // If user cancels, go back to previous page
+    window.history.back();
+  }
+</script>
+
+<p>Processing logout...</p>
+
+</body>
+</html>
