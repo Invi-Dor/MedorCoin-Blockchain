@@ -17,6 +17,11 @@ Transaction createTransaction(const std::string& from, const std::string& to, ui
 Transaction signTransaction(const Transaction& tx, const std::string& privKeyHex);
 bool broadcastTransaction(const Transaction& tx);
 
+// Additional transaction handlers
+void createTransactionHandler(const crow::request& req, crow::response& res);
+void signTransactionHandler(const crow::request& req, crow::response& res);
+void broadcastTransactionHandler(const crow::request& req, crow::response& res);
+
 // History
 std::vector<Transaction> getTransactionHistory(const std::string& address);
 
