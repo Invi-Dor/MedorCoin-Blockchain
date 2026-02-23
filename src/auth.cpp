@@ -2,17 +2,10 @@
 #include <unordered_map>
 #include <random>
 
-// Structure to hold each API key and its usage
-struct APIKey {
-    std::string key;
-    int usageCount = 0;
-    bool paid = false;
-};
-
-// Store all keys in memory (replace with DB later if needed)
+// In‑memory store for API keys — replace with DB if needed
 static std::unordered_map<std::string, APIKey> apiKeyStore;
 
-// Generates a random 32-character key
+// Generates a 32‑character random key
 std::string generateRandomKey() {
     static const char alphanum[] =
         "0123456789"
@@ -30,9 +23,10 @@ std::string generateRandomKey() {
     return key;
 }
 
-// Middleware to check API key validity & enforce free key limits
+// Checks header X-API-Key, enforces 2 free uses before payment
 bool checkApiKey(const crow::request& req, crow::response& res) {
     auto it = req.headers.find("X-API-Key");
+
     if (it == req.headers.end()) {
         res.code = 401;
         res.write("{\"error\":\"API key missing\"}");
@@ -41,32 +35,33 @@ bool checkApiKey(const crow::request& req, crow::response& res) {
     }
 
     std::string key = it->second;
-    if (!apiKeyStore.count(key)) {
+    auto found = apiKeyStore.find(key);
+
+    if (found == apiKeyStore.end()) {
         res.code = 403;
         res.write("{\"error\":\"Invalid API key\"}");
         res.end();
         return false;
     }
 
-    auto &k = apiKeyStore[key];
+    APIKey &entry = found->second;
 
-    // Free limit: only 2 uses allowed for free keys
-    if (!k.paid && k.usageCount >= 2) {
+    // Limit: 2 free uses then block with 429
+    if (!entry.paid && entry.usageCount >= 2) {
         res.code = 429;
-        res.write("{\"error\":\"Free API limit reached. Upgrade for more.\"}");
+        res.write("{\"error\":\"Free API limit reached. Upgrade needed.\"}");
         res.end();
         return false;
     }
 
-    k.usageCount++; // Increment usage
+    entry.usageCount++;
     return true;
 }
 
-// Optional helper to register a new key (used by /api/apikey/new)
+// Creates a new API key and stores it
 APIKey registerNewKey() {
-    std::string key = generateRandomKey();
     APIKey k;
-    k.key = key;
-    apiKeyStore[key] = k;
+    k.key = generateRandomKey();
+    apiKeyStore[k.key] = k;
     return k;
 }
