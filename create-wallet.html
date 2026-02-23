@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MedorCoin Wallet - PRODUCTION READY</title>
+<title>Wallet Address</title>
 <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
 <script src="https://unpkg.com/@metamask/detect-provider@2.0.0/dist/detect-provider.min.js"></script>
 <style>
@@ -39,30 +39,30 @@ h2 { color: #00eaff; font-size: 22px; margin-bottom: 15px; }
 }
 
 .security-warning h3 { color: #ff4d4f; margin-bottom: 15px; font-size: 20px; }
-.security-warning p { font-weight: bold; font-size: 16px; margin-bottom: 15px; }
-.security-warning ul { padding-left: 25px; }
+.security-warning p { font-weight: bold; font-size: 14px; margin-bottom: 15px; }
+.security-warning ul { padding-left: 23px; }
 .security-warning li { margin: 10px 0; font-size: 15px; }
 
 input, textarea, select {
-  width: 100%;
-  padding: 15px;
+  width: 80%;
+  padding: 14px;
   background: rgba(14,20,34,0.8);
   border: 2px solid rgba(0,234,255,0.3);
   border-radius: 12px;
   color: #e8faff;
-  font-size: 15px;
+  font-size: 14px;
   font-family: monospace;
   margin: 10px 0;
-  min-height: 50px;
+  min-height: 48px;
 }
 
 .btn {
-  width: 100%;
-  padding: 18px;
+  width: 80%;
+  padding: 16px;
   border: none;
   border-radius: 12px;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
   margin: 15px 0;
   transition: all 0.3s;
@@ -80,23 +80,23 @@ input, textarea, select {
 
 .lang-selector {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 10px;
+  right: 100px;
   background: rgba(18,24,42,0.95);
   border: 1px solid rgba(0,234,255,0.3);
-  border-radius: 10px;
+  border-radius: 9px;
   padding: 5px;
 }
 
 .balance-real { 
-  font-size: 36px; 
+  font-size: 25px; 
   font-weight: bold; 
   color: #00eaff; 
   text-align: center;
-  padding: 20px;
+  padding: 15px;
   background: rgba(0,234,255,0.1);
   border-radius: 12px;
-  margin: 20px 0;
+  margin: 15px 0;
 }
 
 .status-connecting { color: #f59e0b !important; }
@@ -117,12 +117,12 @@ input, textarea, select {
   
   <div class="security-warning">
     <h3>🚨 PRODUCTION SECURITY WARNING</h3>
-    <p><strong>ENCRYPTED WITH ETHEREUM STANDARDS</strong></p>
+    <p><strong>ENCRYPTED STANDARDS</strong></p>
     <ul>
-      <li>🔒 Uses ethers.js + BIP39 real crypto</li>
-      <li>✅ Hierarchical Deterministic (HD) wallet</li>
-      <li>🔐 Encrypted private key storage</li>
-      <li>🌐 Ethereum + EVM chain compatible</li>
+      <li>🔒 Keep your key and recovery phrase safe</li>
+      <li>✅ You have 100% control ove[r your wallet. losing your key recovery phrase can make you lose your funds in space. no one including this platform can have access</li>
+      <li>🔐 You're 18+ years</li>
+      <li>🌐 Do your own research</li>
       <li>⚠️ Backup your 12-word phrase OFFLINE</li>
     </ul>
   </div>
@@ -136,7 +136,7 @@ input, textarea, select {
 <!-- PAGE 2: SUCCESS - KEYS & PHRASE -->
 <div id="page2" class="page container">
   <h1>✅ Wallet Created Successfully</h1>
-  <h2>Production Wallet Details</h2>
+  <h2></h2>Wallet Details</h2>
   
   <label>🌐 Wallet Address:</label>
   <input id="walletAddress" type="text" readonly>
@@ -147,13 +147,13 @@ input, textarea, select {
   <label>🗝️ BIP39 Recovery Phrase:</label>
   <textarea id="recoveryPhrase" rows="4" readonly></textarea>
   
-  <button class="btn download-btn" id="downloadBackup">📥 Download Encrypted Backup</button>
+  <button class="btn download-btn" id="downloadBackup">📥 Download and Backup</button>
   <button class="btn continue-btn" id="continueToWallet">➤ Open Wallet Dashboard</button>
 </div>
 
 <!-- PAGE 3: PRODUCTION WALLET DASHBOARD -->
 <div id="page3" class="page container">
-  <h1>💼 MedorCoin Production Wallet</h1>
+  <h1>💼 Your Wallet</h1>
   
   <div class="balance-real" id="balanceDisplay">Connecting...</div>
   
