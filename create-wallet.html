@@ -23,7 +23,25 @@ input,textarea{width:100%;padding:1rem;border:2px solid #e5e7eb;border-radius:1r
 input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.1)}
 .phrase-field{min-height:8rem;resize:vertical;font-size:1rem;letter-spacing:.05em;user-select:text;-webkit-user-select:text;-moz-user-select:text}
 .btn{width:100%;padding:1.25rem;margin:.75rem 0;border:none;border-radius:1rem;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all .2s;-webkit-appearance:none;-moz-appearance:none;appearance:none}
-.create-btn{background:linear-gradient(135deg,var(--success),#059669);color:white}
+.create-btn{
+    width:100%;
+    padding:1.75rem 2rem;  /* Bigger padding */
+    margin:2rem 0;
+    border:none;
+    border-radius:1.5rem;
+    font-size:1.4rem;      /* Larger font */
+    font-weight:800;
+    cursor:pointer;
+    transition:all .3s ease;
+    min-height:4rem;       /* Minimum height guarantee */
+    background:linear-gradient(135deg,var(--success),#059669);
+    color:white;
+    box-shadow:0 0.5rem 1.5rem rgba(16,185,129,0.4);
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+}
+.create-btn:hover,.create-btn:active{background:linear-gradient(135deg,#059669,#047857);transform:translateY(-2px);box-shadow:0 0.75rem 2rem rgba(16,185,129,0.6)}
+.create-btn:disabled{opacity:0.7;transform:none}
 .backup-btn{background:linear-gradient(135deg,var(--purple),#7c3aed);color:white}
 .verify-btn{background:linear-gradient(135deg,var(--warning),#d97706);color:white}
 .back-link{display:inline-flex;align-items:center;gap:.5rem;color:var(--ink);text-decoration:none;font-weight:600;margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:2px solid var(--border)}
@@ -34,6 +52,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 
 #walletInfo{display:none}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
 @media (hover: none){.btn:active{transform:scale(.98)}}
+@media (max-width:480px){.create-btn{padding:2rem 1.5rem;font-size:1.5rem;min-height:4.5rem}}
 </style>
 </head>
 <body>
@@ -45,7 +64,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 
             <ul style="padding-left:1.5rem">
                 <li>✅ I am 18+ years old</li>
                 <li>✅ Accept crypto volatility risks</li>
-                <li>✅ NO refunds - all sales final</li>
+                <li>✅ Aware that send and receiving on wrong adress will lead to loss of funds</li>
                 <li>✅ Multi-chain support enabled</li>
                 <li>✅ I control my keys = ALL risks</li>
             </ul>
@@ -62,11 +81,11 @@ input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 
 
 <div class="security-warning" role="alert">
 <h3>🚨 CRITICAL SECURITY</h3>
-<p><strong>12-WORD PHRASE = TOTAL CONTROL</strong></p>
+<p><strong>12-WORD PHRASE = YOUR TOTAL CONTROL</strong></p>
 <ul>
-<li>✍️ Write on METAL (not paper)</li>
+<li>✍️ save on well and don't lose it</li>
 <li>🔥 Fireproof safe + bank vault</li>
-<li>🚫 NEVER digital storage</li>
+<li>🚫 NEVER store on digital storage</li>
 <li>🤐 NEVER share with anyone</li>
 <li>❌ Lose = PERMANENT $0</li>
 </ul>
@@ -127,14 +146,14 @@ function acceptTerms() {
     document.body.style.overflow = '';
 }
 
-function generateWallet() {
+async function generateWallet() {
     if (!termsAccepted) {
         showTerms();
         return;
     }
     
     generateBtn.disabled = true;
-    generateBtn.textContent = 'Generating...';
+    generateBtn.textContent = '🔐 Securing Your Wallet...';
     
     try {
         // Generate secure random values
@@ -150,15 +169,17 @@ function generateWallet() {
         walletInfo.style.display = 'block';
         generateBtn.style.display = 'none';
         
-        // Copy to clipboard support
-        phraseField.addEventListener('click', () => {
-            navigator.clipboard.writeText(phrase).catch(() => {});
-        });
+        // Auto-redirect after 2 seconds
+        setTimeout(() => {
+            localStorage.setItem('medorcoin_wallet', JSON.stringify(walletData));
+            localStorage.setItem('wallet_active', 'true');
+            const params = new URLSearchParams({wallet: 'created', address: walletData.address.slice(0,12)});
+            window.location.href = `wallet.html?${params}`;
+        }, 2000);
         
     } catch (e) {
         console.error(e);
         generateBtn.textContent = '🚀 Generate Wallet';
-    } finally {
         generateBtn.disabled = false;
     }
 }
@@ -179,11 +200,13 @@ function downloadBackup() {
 }
 
 function verifySaved() {
+    if (!walletData) return;
+    
     if (confirm('✅ CONFIRM: Phrase backed up on METAL in 2+ safe locations?')) {
         localStorage.setItem('medorcoin_wallet', JSON.stringify(walletData));
         localStorage.setItem('wallet_active', 'true');
         const params = new URLSearchParams({wallet: 'created', address: walletData.address.slice(0,12)});
-        window.location.href = `index.html?${params}`;
+        window.location.href = `wallet.html?${params}`;
     }
 }
 
@@ -214,19 +237,12 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Initialize
-if (typeof window !== 'undefined') {
-    if (!termsAccepted) showTerms();
-    
-    // Prevent zoom on iOS
-    document.addEventListener('gesturestart', function (e) {
-        e.preventDefault();
-    });
-    
-    // Service worker support (optional)
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
-    }
-}
+if (!termsAccepted) showTerms();
+
+// Prevent zoom on iOS
+document.addEventListener('gesturestart', function (e) {
+    e.preventDefault();
+});
 })();
 </script>
 </body>
