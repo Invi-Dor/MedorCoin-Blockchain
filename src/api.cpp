@@ -1,5 +1,5 @@
 #include "api.h"
-#include "auth.h"
+#include "auth.h"                        // ➤ ADDED
 #include "blockchain.h"
 #include "crypto/keystore.h"
 #include <nlohmann/json.hpp> // For JSON handling; include your JSON library header
@@ -9,6 +9,13 @@ using json = nlohmann::json;
 // Starts the server (your HTTP engine code here)
 void startAPIServer() {
     // Initialize HTTP server and attach routes
+    app.route("/api/apikey/new", "POST", [](const crow::request& req, crow::response& res) {
+        APIKey k = registerNewKey();                         // ➤ NEW
+        res.code = 200;
+        res.write(json({{"apiKey", k.key}}).dump());         // ➤ NEW
+        res.end();
+    });
+
     app.route("/api/tx/create", "POST", createTransactionHandler);
     app.route("/api/tx/sign", "POST", signTransactionHandler);
     app.route("/api/tx/broadcast", "POST", broadcastTransactionHandler);
@@ -16,6 +23,8 @@ void startAPIServer() {
 
 // POST /api/tx/create
 void createTransactionHandler(const crow::request& req, crow::response& res) {
+    if (!checkApiKey(req, res)) return;                     // ➤ ADDED
+
     auto jsonBody = json::parse(req.body);
     std::string from = jsonBody["from"];
     std::string to = jsonBody["to"];
@@ -30,6 +39,8 @@ void createTransactionHandler(const crow::request& req, crow::response& res) {
 
 // POST /api/tx/sign
 void signTransactionHandler(const crow::request& req, crow::response& res) {
+    if (!checkApiKey(req, res)) return;                     // ➤ ADDED
+
     auto jsonBody = json::parse(req.body);
     Transaction tx = Transaction::fromJson(jsonBody["transaction"]); // Assuming fromJson exists
     std::string privKeyHex = jsonBody["privKeyHex"];
@@ -42,6 +53,8 @@ void signTransactionHandler(const crow::request& req, crow::response& res) {
 
 // POST /api/tx/broadcast
 void broadcastTransactionHandler(const crow::request& req, crow::response& res) {
+    if (!checkApiKey(req, res)) return;                     // ➤ ADDED
+
     auto jsonBody = json::parse(req.body);
     Transaction tx = Transaction::fromJson(jsonBody); // Assuming fromJson exists
 
