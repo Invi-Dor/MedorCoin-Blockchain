@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My APIs</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="header">
+  <h1>My APIs</h1>
+  <nav>
+    <a href="logout.html">Logout</a>
+  </nav>
+</header>
+
+<main class="api-list-section">
+  <h2>Your API Keys</h2>
+  <div id="apiList"></div>
+  <button id="buyMoreBtn">Buy More APIs</button>
+</main>
+
+<script>
+async function loadAPIs() {
+  // Fetch your user's stored APIs from your backend
+  const response = await fetch("/api/user/apis", { credentials: "include" });
+  const apis = await response.json();
+
+  const list = document.getElementById("apiList");
+  list.innerHTML = "";
+
+  apis.forEach((key, i) => {
+    const div = document.createElement("div");
+    div.innerText = `API ${i+1}: ${key}`;
+    list.appendChild(div);
+  });
+}
+
+document.getElementById("buyMoreBtn").addEventListener("click", () => {
+  window.location.href = "ETH-payment.html"; // or BTC / BNB depending
+});
+
+loadAPIs();
+</script>
+
+</body>
+</html>
