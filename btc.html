@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sponsor via Bitcoin</title>
+<style>
+body { font-family: Arial; text-align: center; padding: 40px; background:#f4f4f4; }
+.wallet { font-size:18px; font-weight:bold; word-break: break-all; margin:20px 0; }
+button { padding:12px 25px; background:#f7931a; color:white; border:none; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<h1>Sponsor with Bitcoin (BTC)</h1>
+<p>Send BTC to the address below:</p>
+
+<div class="wallet">
+bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv
+</div>
+
+<button onclick="copyWallet()">Copy Address</button>
+
+<script>
+function copyWallet() {
+navigator.clipboard.writeText("bc1qlw9h0nnde9yewacdkfetcym96l24ucu5ld9atv");
+alert("Bitcoin address copied!");
+}
+</script>
+
+</body>
+</html>
