@@ -82,7 +82,7 @@ bool broadcastTransaction(const Transaction& tx) {
 }
 
 std::vector<Transaction> getTransactionHistory(const std::string& address) {
-    std::vector<Transaction> history;
+    std::vector<Transaction in> history;
     for (const auto& tx : blockchain.chain) {
         if (tx.involvesAddress(address)) {
             history.push_back(tx);
