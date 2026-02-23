@@ -5,6 +5,7 @@
 #include <vector>
 #include "utxo.h"
 #include "transaction.h"
+#include "auth.h"  // ➤ ADDED for API key support
 
 // Starts the HTTP API server
 void startAPIServer();
@@ -21,6 +22,11 @@ bool broadcastTransaction(const Transaction& tx);
 void createTransactionHandler(const crow::request& req, crow::response& res);
 void signTransactionHandler(const crow::request& req, crow::response& res);
 void broadcastTransactionHandler(const crow::request& req, crow::response& res);
+
+// API key route support (functions from auth.h)
+bool checkApiKey(const crow::request& req, crow::response& res);
+struct APIKey;
+APIKey registerNewKey();
 
 // History
 std::vector<Transaction> getTransactionHistory(const std::string& address);
