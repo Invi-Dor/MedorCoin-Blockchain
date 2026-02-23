@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>API Portal — Get API</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="header">
+  <h1>API</h1>
+  <nav>
+    <a href="signup.html">Sign Up</a> |
+    <a href="login.html">Login</a>
+  </nav>
+</header>
+
+<main class="api-portal">
+  <h2>Welcome to the API Portal</h2>
+  <p>The API Portal is your login for everything you do with API including Webstore, ICP Portal, myCerts, and Developer tools.</p>
+
+  <div class="free-api-section">
+    <button id="generateApiBtn">Get Your Free API</button>
+    <p id="freeApiStatus">You have 2 free APIs available</p>
+  </div>
+
+  <div id="message"></div>
+
+  <hr>
+
+  <section class="faq">
+    <h3>FAQ</h3>
+    <div class="faq-item">
+      <button class="faq-question">What is this API used for?</button>
+      <div class="faq-answer">It lets you interact with MedorCoin features programmatically.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question">How many free APIs can I get?</button>
+      <div class="faq-answer">You can generate up to 2 free API keys per device/network.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question">Do I have to sign up?</button>
+      <div class="faq-answer">Only if you want more than 2 APIs, or want to manage them in your account.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question">Is this secure?</button>
+      <div class="faq-answer">Yes — powered with Cloudflare verification.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question">How do I upgrade?</button>
+      <div class="faq-answer">Login and purchase more APIs in your account page.</div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  Privacy • Help • <a href="login.html">Login/Register</a> • Forgot Email?
+</footer>
+
+<script>
+// FAQ Accordion behavior
+document.querySelectorAll(".faq-question").forEach(btn => {
+  btn.addEventListener("click", () => {
+    btn.nextElementSibling.classList.toggle("show");
+  });
+});
+
+// Free API generation
+let freeCounter = 2;
+document.getElementById("generateApiBtn").addEventListener("click", async () => {
+  if (freeCounter <= 0) {
+    document.getElementById("message").innerText = "Free API limit reached. Please sign up or login to purchase more.";
+    return;
+  }
+
+  const response = await fetch("/api/apikey/new", { method: "POST" });
+  const data = await response.json();
+
+  freeCounter--;
+  document.getElementById("freeApiStatus").innerText =
+    `You have ${freeCounter} free API${freeCounter !== 1 ? "s" : ""} left`;
+
+  document.getElementById("message").innerText =
+    "Here is your free API: " + data.apiKey;
+});
+</script>
+
+<style>
+  .faq-answer { display: none; }
+  .faq-answer.show { display: block; }
+</style>
+
+</body>
+</html>
