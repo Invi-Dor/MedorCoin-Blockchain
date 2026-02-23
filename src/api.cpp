@@ -1,4 +1,5 @@
 #include "api.h"
+#include "auth.h"
 #include "blockchain.h"
 #include "crypto/keystore.h"
 #include <nlohmann/json.hpp> // For JSON handling; include your JSON library header
