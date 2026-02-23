@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sponsor via Solana</title>
+<style>
+body { font-family: Arial; text-align: center; padding: 40px; background:#f4f4f4; }
+.wallet { font-size:18px; font-weight:bold; word-break: break-all; margin:20px 0; }
+button { padding:12px 25px; background:#14F195; color:black; border:none; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<h1>Sponsor with Solana (SOL)</h1>
+<p>Send SOL to the address below:</p>
+
+<div class="wallet">
+Hy2sTujvdnSE6r1K1tigfjVLbf666RkHQQMRcLc24HBE
+</div>
+
+<button onclick="copyWallet()">Copy Address</button>
+
+<script>
+function copyWallet() {
+navigator.clipboard.writeText("Hy2sTujvdnSE6r1K1tigfjVLbf666RkHQQMRcLc24HBE");
+alert("Solana address copied!");
+}
+</script>
+
+</body>
+</html>
