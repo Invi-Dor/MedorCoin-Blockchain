@@ -8,7 +8,6 @@ using json = nlohmann::json;
 // Starts the server (your HTTP engine code here)
 void startAPIServer() {
     // Initialize HTTP server and attach routes
-    // Your server library code (cpp-httplib, crow, civetweb, etc.)
     app.route("/api/tx/create", "POST", createTransactionHandler);
     app.route("/api/tx/sign", "POST", signTransactionHandler);
     app.route("/api/tx/broadcast", "POST", broadcastTransactionHandler);
@@ -24,7 +23,7 @@ void createTransactionHandler(const crow::request& req, crow::response& res) {
 
     Transaction tx = createTransaction(from, to, amount, fee);
     res.code = 200;
-    res.write(tx.toJson()); // Assuming your Transaction has a method to convert to JSON
+    res.write(tx.toJson()); // Converting transaction to JSON for the response
     res.end();
 }
 
@@ -55,7 +54,7 @@ void broadcastTransactionHandler(const crow::request& req, crow::response& res) 
     res.end();
 }
 
-// Helper functions already provided in your previous API
+// Existing UTXO, transaction, and history handling functions
 std::vector<UTXO> getUTXOs(const std::string& address) {
     return blockchain.utxoSet.getUTXOsForAddress(address);
 }
@@ -64,7 +63,7 @@ Transaction createTransaction(const std::string& from, const std::string& to, ui
     Transaction tx;
     tx.addInputsForAmount(blockchain.utxoSet.getUTXOsForAddress(from), amount + fee);
     tx.addOutput(to, amount);
-    tx.addOutput(from, tx.getChange()); // change back
+    tx.addOutput(from, tx.getChange()); // Return any change back to sender
     return tx;
 }
 
@@ -82,7 +81,7 @@ bool broadcastTransaction(const Transaction& tx) {
 }
 
 std::vector<Transaction> getTransactionHistory(const std::string& address) {
-    std::vector<Transaction in> history;
+    std::vector<Transaction> history;
     for (const auto& tx : blockchain.chain) {
         if (tx.involvesAddress(address)) {
             history.push_back(tx);
