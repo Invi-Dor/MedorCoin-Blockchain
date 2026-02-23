@@ -21,3 +21,5 @@ std::string rpc_eth_getTransactionReceipt(const nlohmann::json &params, int id);
 std::string rpc_eth_getCode(const nlohmann::json &params, int id);
 std::string rpc_eth_call(const nlohmann::json &params, int id);
 std::string rpc_eth_estimateGas(const nlohmann::json &params, int id);
+
+// --- additional methods can be added here as needed ---
