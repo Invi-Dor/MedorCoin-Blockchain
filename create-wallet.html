@@ -3,12 +3,63 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval'  blob:;">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="format-detection" content="telephone=no">
 <title>MedorCoin — Create Wallet (Mobile 2026)</title>
 <style>
+/* BYPASS ALL BROWSER BLOCKERS */
+*,::before,::after{
+    -webkit-tap-highlight-color:transparent !important;
+    -webkit-touch-callout:none !important;
+    -webkit-user-select:none !important;
+    -khtml-user-select:none !important;
+    -moz-user-select:none !important;
+    -ms-user-select:none !important;
+    user-select:none !important;
+    touch-action:manipulation !important;
+    box-sizing:border-box !important;
+    -webkit-text-size-adjust:100% !important;
+    -moz-text-size-adjust:100% !important;
+    text-size-adjust:100% !important;
+}
+html{
+    font-size:16px !important;
+    height:100% !important;
+    -webkit-text-size-adjust:100% !important;
+    -moz-text-size-adjust:100% !important;
+    text-size-adjust:100% !important;
+    overflow-x:hidden !important;
+    -ms-touch-action:manipulation !important;
+    touch-action:manipulation !important;
+}
+body{
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif !important;
+    font-size:1rem !important;
+    line-height:1.5 !important;
+    margin:0 !important;
+    padding:1rem !important;
+    background:var(--bg,#faf9f6) !important;
+    color:var(--ink,#1f2937) !important;
+    min-height:100vh !important;
+    overflow-x:hidden !important;
+    -webkit-font-smoothing:antialiased !important;
+    -moz-osx-font-smoothing:grayscale !important;
+}
+input,textarea{
+    -webkit-appearance:none !important;
+    -moz-appearance:textfield !important;
+    appearance:none !important;
+    user-select:text !important;
+    -webkit-user-select:text !important;
+    -moz-user-select:text !important;
+}
+button{
+    -webkit-appearance:none !important;
+    -moz-appearance:none !important;
+    appearance:none !important;
+}
 :root{--bg:#faf9f6;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--purple:#8b5cf6}
-*,::before,::after{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;touch-action:manipulation;box-sizing:border-box}
-html{font-size:16px;height:100%;-webkit-text-size-adjust:100%;-moz-text-size-adjust:100%;text-size-adjust:100%}
-body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;font-size:1rem;line-height:1.5;margin:0;padding:1rem;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
 .container{max-width:600px;margin:0 auto;background:#fff;border-radius:1.5rem;border:1px solid var(--border);padding:2rem;box-shadow:0 1rem 3rem rgba(0,0,0,0.1)}
 @media (max-width:480px){.container{padding:1.5rem;border-radius:1rem}}
 .security-warning{background:linear-gradient(135deg,#fee2e2,#fecaca);border:2px solid var(--danger);border-radius:1rem;padding:1.5rem;margin:1.5rem 0;color:#991b1b}
@@ -19,52 +70,59 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Ox
 .nft-support{display:grid;grid-template-columns:repeat(auto-fit,minmax(4rem,1fr));gap:.75rem;margin-top:1rem}
 .nft-token{padding:1rem;background:#f0fdf4;border-radius:.75rem;font-size:.8rem;text-align:center;border:1px solid var(--success)}
 label{display:block;font-weight:700;margin:1rem 0 .5rem 0;font-size:.9rem}
-input,textarea{width:100%;padding:1rem;border:2px solid #e5e7eb;border-radius:1rem;font-family:monospace;font-size:.9rem;-webkit-appearance:none;-moz-appearance:textfield}
-input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.1)}
-.phrase-field{min-height:8rem;resize:vertical;font-size:1rem;letter-spacing:.05em;user-select:text;-webkit-user-select:text;-moz-user-select:text}
-.btn{width:100%;padding:1.25rem;margin:.75rem 0;border:none;border-radius:1rem;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all .2s;-webkit-appearance:none;-moz-appearance:none;appearance:none}
+input,textarea{width:100%;padding:1rem;border:2px solid #e5e7eb;border-radius:1rem;font-family:monospace;font-size:.9rem}
+input:focus,textarea:focus{outline:none !important;border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.1)}
+.phrase-field{min-height:8rem;resize:vertical;font-size:1rem;letter-spacing:.05em}
+.btn{width:100%;padding:1.25rem;margin:.75rem 0;border:none;border-radius:1rem;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all .2s}
 .create-btn{
-    width:100%;
-    padding:1.75rem 2rem;  /* Bigger padding */
-    margin:2rem 0;
-    border:none;
-    border-radius:1.5rem;
-    font-size:1.4rem;      /* Larger font */
-    font-weight:800;
-    cursor:pointer;
-    transition:all .3s ease;
-    min-height:4rem;       /* Minimum height guarantee */
-    background:linear-gradient(135deg,var(--success),#059669);
-    color:white;
-    box-shadow:0 0.5rem 1.5rem rgba(16,185,129,0.4);
-    letter-spacing:0.5px;
-    text-transform:uppercase;
+    width:100% !important;
+    padding:1.75rem 2rem !important;
+    margin:2rem 0 !important;
+    border:none !important;
+    border-radius:1.5rem !important;
+    font-size:1.4rem !important;
+    font-weight:800 !important;
+    cursor:pointer !important;
+    transition:all .3s ease !important;
+    min-height:4rem !important;
+    background:linear-gradient(135deg,var(--success),#059669) !important;
+    color:white !important;
+    box-shadow:0 0.5rem 1.5rem rgba(16,185,129,0.4) !important;
+    letter-spacing:0.5px !important;
+    text-transform:uppercase !important;
+    position:relative !important;
+    z-index:10 !important;
 }
-.create-btn:hover,.create-btn:active{background:linear-gradient(135deg,#059669,#047857);transform:translateY(-2px);box-shadow:0 0.75rem 2rem rgba(16,185,129,0.6)}
-.create-btn:disabled{opacity:0.7;transform:none}
+.create-btn:hover,.create-btn:active{background:linear-gradient(135deg,#059669,#047857) !important;transform:translateY(-2px) !important;box-shadow:0 0.75rem 2rem rgba(16,185,129,0.6) !important}
+.create-btn:disabled{opacity:0.7 !important;transform:none !important}
 .backup-btn{background:linear-gradient(135deg,var(--purple),#7c3aed);color:white}
 .verify-btn{background:linear-gradient(135deg,var(--warning),#d97706);color:white}
 .back-link{display:inline-flex;align-items:center;gap:.5rem;color:var(--ink);text-decoration:none;font-weight:600;margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:2px solid var(--border)}
-#termsModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:9999}
+#termsModal{display:none !important;position:fixed !important;top:0 !important;left:0 !important;width:100% !important;height:100% !important;background:rgba(0,0,0,.9) !important;z-index:9999 !important}
 .modal-content{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,var(--purple),#1e40af);color:white;padding:2rem;border-radius:1.5rem;max-width:95%;max-height:90vh;overflow-y:auto}
 @media (max-width:480px){.modal-content{padding:1.5rem}}
-#termsModal button{background:var(--success);color:white;border:none;padding:1rem 2rem;border-radius:1rem;font-weight:700;-webkit-appearance:none;-moz-appearance:none;appearance:none}
+#termsModal button{background:var(--success);color:white;border:none;padding:1rem 2rem;border-radius:1rem;font-weight:700}
 #walletInfo{display:none}
-@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
-@media (hover: none){.btn:active{transform:scale(.98)}}
-@media (max-width:480px){.create-btn{padding:2rem 1.5rem;font-size:1.5rem;min-height:4.5rem}}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+@media (hover: none){.btn:active{transform:scale(.98) !important}}
+@media (max-width:480px){.create-btn{padding:2rem 1.5rem !important;font-size:1.5rem !important;min-height:4.5rem !important}}
+/* BYPASS ZOOM BLOCKERS */
+@media screen and (-webkit-min-device-pixel-ratio:0){
+    select, input[type="date"], input[type="time"]{font-size:16px}
+}
 </style>
 </head>
 <body>
 <div id="termsModal" role="dialog" aria-labelledby="termsTitle" aria-modal="true">
     <div class="modal-content">
-        <h2 id="termsTitle" style="margin:0 0 1.5rem 0">🪙 MedorCoin Terms 2026</h2>
+        <h2 id="termsTitle">🪙 MedorCoin Terms 2026</h2>
         <div style="font-size:.9rem;line-height:1.6;max-height:50vh;overflow:auto">
             <p><strong>⚠️ REQUIRED:</strong></p>
             <ul style="padding-left:1.5rem">
                 <li>✅ I am 18+ years old</li>
                 <li>✅ Accept crypto volatility risks</li>
-                <li>✅ Aware that send and receiving on wrong adress will lead to loss of funds</li>
+                <li>✅ NO refunds - all sales final</li>
                 <li>✅ Multi-chain support enabled</li>
                 <li>✅ I control my keys = ALL risks</li>
             </ul>
@@ -81,11 +139,11 @@ input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 
 
 <div class="security-warning" role="alert">
 <h3>🚨 CRITICAL SECURITY</h3>
-<p><strong>12-WORD PHRASE = YOUR TOTAL CONTROL</strong></p>
+<p><strong>12-WORD PHRASE = TOTAL CONTROL</strong></p>
 <ul>
-<li>✍️ save on well and don't lose it</li>
+<li>✍️ Write on METAL (not paper)</li>
 <li>🔥 Fireproof safe + bank vault</li>
-<li>🚫 NEVER store on digital storage</li>
+<li>🚫 NEVER digital storage</li>
 <li>🤐 NEVER share with anyone</li>
 <li>❌ Lose = PERMANENT $0</li>
 </ul>
@@ -117,133 +175,19 @@ input:focus,textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 
 </div>
 
 <script>
-(() => {
+(function(){
 'use strict';
-let walletData = null;
-let termsAccepted = localStorage.getItem('medorcoin_terms') === 'accepted';
-const bip39words = ['abandon','ability','able','about','above','absent','absorb','abstract','absurd','abuse','access','accident','account','accuse','achieve','acid','acoustic','acquire','across','act','action','actor','actress','adapt','add','addict','adult','advance','advice','aerobic','affair','afraid','again','age','agent','agree','ahead','aim','air','airport','aisle','alarm','album','alcohol','alert','alien','all','alley','alliance','allied','allow','almost','alone','alpha','already','also','alter','always','amateur','amazing','among','amount','amused','analyst','anchor','ancient','anger','angle','angry','animal','ankle','announce','annual','another','answer','antenna','antique','anxiety','any','apart','apology','appear','apple','approve','april','arch','arctic','area','arena','argue','arm','armed','armor','army','around','arrange','art','artefact','artist','artwork','ask','aspect','assault','asset','assist','assume','asthma','athlete','atom','attack','attend','attitude','attract','auction','audit','august','aunt','author','auto','autumn','average','avocado','avoid','awake','aware','away','awesome','awful','awkward','axis','baby','bachelor','bacon','badge','bag','balance','balcony','ball','bamboo','banana','banner','bar','barely','bargain','barrel','base','basic','basket','battle','beach','bean','beauty','because','become','beef','before','begin','behave','behind','believe','below','belt','bench','benefit','best','betray','better','between','beyond','bicycle','bid','bike','bind','biology','bird','birth','bitter','black','blade','blame','blanket','blast','bleak','bless','blind','blood','blossom','blouse','blue','blur','blush','board','boat','body','boil','bomb','bone','bonus','book','boost','border','boring','borrow','boss','bottom','bounce','box','boy','bracket','brain','brand','brass','brave','bread','breeze','brick','bridge','brief','bright','bring','brisk','broccoli','broken','bronze','broom','brother','brown','brush','bubble','buddy','budget','buffalo','build','bulb','bulk','bullet','bundle','bunker','burden','burger','burst','bus','business','busy','butter','buyer','buzz','cabbage','cabin','cable','cactus','cage','cake','call','calm','camera','camp','can','canal','cancel','candy','cannon','canoe','canvas','canyon','capable','capital','captain','car','carbon','card','cargo','carpet','carry','cart','case','cash','casino','castle','casual','cat','catalog','catch','category','cattle','caught','cause','caution','cave','ceiling','celery','cement','census','century','cereal','certain','chair','chalk','champion','change','chaos','chapter','charge','chase','chat','cheap','check','cheese','chef','cherry','chest','chicken','chief','child','chimney','choice','choose','chronic','chuckle','chunk','churn','cigar','cinnamon','circle','citizen','city','civil','claim','clap','clarify','claw','clay','clean','clerk','clever','click','client','cliff','climb','clinic','clip','clock','clog','close','cloth','cloud','clown','club','clump','cluster','clutch','coach','coast','coconut','code','coffee','coil','coin','collect','color','column','combine','come','comfort','comic','common','company','concert','conduct','confirm','congress','connect','consider','control','convince','cook','cool','copper','copy','coral','core','corn','correct','cost','cotton','couch','country','couple','course','cousin','cover','coyote','crack','cradle','craft','cram','crane','crash','crater','crawl','crazy','cream','credit','creek','crew','cricket','crime','crisp','critic','crop','cross','crouch','crowd','crucial','cruel','cruise','crumble','crunch','crush','cry','crystal','cube','culture','cup','cupboard','curious','current','curtain','curve','cushion','custom','cute','cycle','dad','damage','damp','dance','danger','daring','dash','daughter','dawn','day','deal','debate','debris','decade','december','decide','decline','decorate','decrease','deer','defense','define','defy','degree','delay','deliver','demand','demise','denial','dentist','deny','depart','depend','deposit','depth','deputy','derive','describe','desert','design','desk','despair','destroy','detail','detect','develop','device','devote','diagram','dial','diamond','diary','dice','diesel','diet','differ','digital','dignity','dilemma','dinner','dinosaur','direct','dirt','disagree','discover','disease','dish','dismiss','disorder','display','distance','divert','divide','divorce','dizzy','doctor','document','dog','doll','dolphin','domain','donate','donkey','donor','door','dose','double','dove','draft','dragon','drama','drastic','draw','dream','dress','drift','drill','drink','drip','drive','drop','drum','dry','duck','dumb','dune','during','dust','dutch','duty','dwarf','dynamic','eager','eagle','early','earn','earth','easily','east','easy','echo','ecology','economy','edge','edit','educate','effort','egg','eight','either','elbow','elder','electric','elegant','element','elephant','elevator','elite','else','embark','embody','embrace','emerge','emotion','employ','empower','empty','enable','enact','end','endless','endorse','enemy','energy','enforce','engage','engine','enhance','enjoy','enlist','enough','enrich','enroll','ensure','enter','entire','entry','envelope','episode','equal','equip','era','erase','erode','erosion','error','erupt','escape','essay','essence','estate','eternal','ethics','evidence','evil','evoke','evolve','exact','example','excess','exchange','excite','exclude','excuse','execute','exercise','exhaust','exhibit','exile','exist','exit','exotic','expand','expect','expire','explain','expose','express','extend','extra','eye','eyebrow','fabric','face','faculty','fade','faint','faith','fall','false','fame','family','famous','fan','fancy','fantasy','farm','fashion','fat','fatal','father','fatigue','fault','favor','favorite','feature','february','federal','fee','feed','feel','female','fence','festival','fetch','fever','few','fiber','fiction','field','figure','file','film','filter','final','find','fine','finger','finish','fire','firm','first','fiscal','fish','fit','fitness','fix','flag','flame','flash','flat','flavor','flee','flight','flip','float','flock','floor','flower','fluid','flush','fly','foam','focus','fog','foil','fold','follow','food','foot','force','forest','forget','fork','fortune','forum','forward','fox','fragile','frame','frequent','fresh','friend','fringe','frog','front','frost','frown','frozen','fruit','fuel','fun','funny','furnace','fury','future','gadget','gain','galaxy','gallery','game','gap','garage','garbage','garden','garlic','garment','gas','gasp','gate','gather','gauge','gaze','general','genius','genre','gentle','genuine','gesture','ghost','giant','gift','giggle','ginger','giraffe','girl','give','glad','glance','glare','glass','glide','glimpse','globe','gloom','glory','glove','glow','glue','goat','goddess','gold','good','goose','gorilla','gospel','gossip','govern','gown','grab','grace','grain','grant','grape','grass','gravity','great','green','grid','grief','grit','grocery','group','grow','grunt','guard','guess','guide','guilt','guitar','gun','gym','habit','hair','half','hammer','hamster','hand','happy','harbor','hard','harsh','harvest','hat','have','hawk','hazard','head','health','heart','heavy','hedgehog','height','hello','helmet','help','hen','hero','hidden','high','hill','hint','hip','hire','history','hobby','hockey','hold','hole','holiday','hollow','home','honey','hood','hope','horn','horror','horse','hospital','host','hotel','hour','hover','hub','huge','human','humble','humor','hundred','hungry','hunt','hurdle','hurry','hurt','husband','hybrid','ice','icon','idea','identify','idle','ignore','ill','illegal','illness','image','imitate','immense','immune','impact','impose','improve','impulse','inch','include','income','increase','index','indicate','indoor','industry','infant','inflict','inform','inhale','inherit','initial','inject','injury','inmate','inner','innocent','input','inquiry','insane','insect','inside','inspire','install','intact','interest','into','invest','invite','involve','iron','island','isolate','issue','item','ivory','jacket','jaguar','jar','jazz','jealous','jeans','jelly','jewel','job','join','joke','journey','joy','judge','juice','jump','jungle','junior','junk','just','kangaroo','keen','keep','ketchup','key','kick','kid','kidney','kind','kingdom','kiss','kit','kitchen','kite','kitten','kiwi','knee','knife','knock','know'];
-
-const modal = document.getElementById('termsModal');
-const acceptBtn = modal.querySelector('button');
-const generateBtn = document.getElementById('generateBtn');
-const walletInfo = document.getElementById('walletInfo');
-const addressField = document.getElementById('address');
-const privateKeyField = document.getElementById('privateKey');
-const phraseField = document.getElementById('recoveryPhrase');
-const backupBtn = document.querySelector('.backup-btn');
-const verifyBtn = document.querySelector('.verify-btn');
-
-function showTerms() {
-    document.body.style.overflow = 'hidden';
-    modal.style.display = 'block';
-    modal.querySelector('button').focus();
+// BYPASS ALL BROWSER SECURITY CHECKS
+if(typeof window!=='undefined'&&window.navigator&&window.navigator.userAgent){
+    // Force enable all features
+    Object.defineProperty(document,'visibilityState',{value:'visible',writable:false});
+    Object.defineProperty(document,'hidden',{value:false,writable:false});
 }
+let walletData=null;
+let termsAccepted=localStorage.getItem('medorcoin_terms')==='accepted';
+const bip39words=['abandon','ability','able','about','above','absent','absorb','abstract','absurd','abuse','access','accident','account','accuse','achieve','acid','acoustic','acquire','across','act','action','actor','actress','adapt','add','addict','adult','advance','advice','aerobic','affair','afraid','again','age','agent','agree','ahead','aim','air','airport','aisle','alarm','album','alcohol','alert','alien','all','alley','alliance','allied','allow','almost','alone','alpha','already','also','alter','always','amateur','amazing','among','amount','amused','analyst','anchor','ancient','anger','angle','angry','animal','ankle','announce','annual','another','answer','antenna','antique','anxiety','any','apart','apology','appear','apple','approve','april','arch','arctic','area','arena','argue','arm','armed','armor','army','around','arrange','art','artefact','artist','artwork','ask','aspect','assault','asset','assist','assume','asthma','athlete','atom','attack','attend','attitude','attract','auction','audit','august','aunt','author','auto','autumn','average','avocado','avoid','awake','aware','away','awesome','awful','awkward','axis','baby','bachelor','bacon','badge','bag','balance','balcony','ball','bamboo','banana','banner','bar','barely','bargain','barrel','base','basic','basket','battle','beach','bean','beauty','because','become','beef','before','begin','behave','behind','believe','below','belt','bench','benefit','best','betray','better','between','beyond','bicycle','bid','bike','bind','biology','bird','birth','bitter','black','blade','blame','blanket','blast','bleak','bless','blind','blood','blossom','blouse','blue','blur','blush','board','boat','body','boil','bomb','bone','bonus','book','boost','border','boring','borrow','boss','bottom','bounce','box','boy','bracket','brain','brand','brass','brave','bread','breeze','brick','bridge','brief','bright','bring','brisk','broccoli','broken','bronze','broom','brother','brown','brush','bubble','buddy','budget','buffalo','build','bulb','bulk','bullet','bundle','bunker','burden','burger','burst','bus','business','busy','butter','buyer','buzz','cabbage','cabin','cable','cactus','cage','cake','call','calm','camera','camp','can','canal','cancel','candy','cannon','canoe','canvas','canyon','capable','capital','captain','car','carbon','card','cargo','carpet','carry','cart','case','cash','casino','castle','casual','cat','catalog','catch','category','cattle','caught','cause','caution','cave','ceiling','celery','cement','census','century','cereal','certain','chair','chalk','champion','change','chaos','chapter','charge','chase','chat','cheap','check','cheese','chef','cherry','chest','chicken','chief','child','chimney','choice','choose','chronic','chuckle','chunk','churn','cigar','cinnamon','circle','citizen','city','civil','claim','clap','clarify','claw','clay','clean','clerk','clever','click','client','cliff','climb','clinic','clip','clock','clog','close','cloth','cloud','clown','club','clump','cluster','clutch','coach','coast','coconut','code','coffee','coil','coin','collect','color','column','combine','come','comfort','comic','common','company','concert','conduct','confirm','congress','connect','consider','control','convince','cook','cool','copper','copy','coral','core','corn','correct','cost','cotton','couch','country','couple','course','cousin','cover','coyote','crack','cradle','craft','cram','crane','crash','crater','crawl','crazy','cream','credit','creek','crew','cricket','crime','crisp','critic','crop','cross','crouch','crowd','crucial','cruel','cruise','crumble','crunch','crush','cry','crystal','cube','culture','cup','cupboard','curious','current','curtain','curve','cushion','custom','cute','cycle','dad','damage','damp','dance','danger','daring','dash','daughter','dawn','day','deal','debate','debris','decade','december','decide','decline','decorate','decrease','deer','defense','define','defy','degree','delay','deliver','demand','demise','denial','dentist','deny','depart','depend','deposit','depth','deputy','derive','describe','desert','design','desk','despair','destroy','detail','detect','develop','device','devote','diagram','dial','diamond','diary','dice','diesel','diet','differ','digital','dignity','dilemma','dinner','dinosaur','direct','dirt','disagree','discover','disease','dish','dismiss','disorder','display','distance','divert','divide','divorce','dizzy','doctor','document','dog','doll','dolphin','domain','donate','donkey','donor','door','dose','double','dove','draft','dragon','drama','drastic','draw','dream','dress','drift','drill','drink','drip','drive','drop','drum','dry','duck','dumb','dune','during','dust','dutch','duty','dwarf','dynamic','eager','eagle','early','earn','earth','easily','east','easy','echo','ecology','economy','edge','edit','educate','effort','egg','eight','either','elbow','elder','electric','elegant','element','elephant','elevator','elite','else','embark','embody','embrace','emerge','emotion','employ','empower','empty','enable','enact','end','endless','endorse','enemy','energy','enforce','engage','engine','enhance','enjoy','enlist','enough','enrich','enroll','ensure','enter','entire','entry','envelope','episode','equal','equip','era','erase','erode','erosion','error','erupt','escape','essay','essence','estate','eternal','ethics','evidence','evil','evoke','evolve','exact','example','excess','exchange','excite','exclude','excuse','execute','exercise','exhaust','exhibit','exile','exist','exit','exotic','expand','expect','expire','explain','expose','express','extend','extra','eye','eyebrow','fabric','face','faculty','fade','faint','faith','fall','false','fame','family','famous','fan','fancy','fantasy','farm','fashion','fat','fatal','father','fatigue','fault','favor','favorite','feature','february','federal','fee','feed','feel','female','fence','festival','fetch','fever','few','fiber','fiction','field','figure','file','film','filter','final','find','fine','finger','finish','fire','firm','first','fiscal','fish','fit','fitness','fix','flag','flame','flash','flat','flavor','flee','flight','flip','float','flock','floor','flower','fluid','flush','fly','foam','focus','fog','foil','fold','follow','food','foot','force','forest','forget','fork','fortune','forum','forward','fox','fragile','frame','frequent','fresh','friend','fringe','frog','front','frost','frown','frozen','fruit','fuel','fun','funny','furnace','fury','future','gadget','gain','galaxy','gallery','game','gap','garage','garbage','garden','garlic','garment','gas','gasp','gate','gather','gauge','gaze','general','genius','genre','gentle','genuine','gesture','ghost','giant','gift','giggle','ginger','giraffe','girl','give','glad','glance','glare','glass','glide','glimpse','globe','gloom','glory','glove','glow','glue','goat','goddess','gold','good','goose','gorilla','gospel','gossip','govern','gown','grab','grace','grain','grant','grape','grass','gravity','great','green','grid','grief','grit','grocery','group','grow','grunt','guard','guess','guide','guilt','guitar','gun','gym','habit','hair','half','hammer','hamster','hand','happy','harbor','hard','harsh','harvest','hat','have','hawk','hazard','head','health','heart','heavy','hedgehog','height','hello','helmet','help','hen','hero','hidden','high','hill','hint','hip','hire','history','hobby','hockey','hold','hole','holiday','hollow','home','honey','hood','hope','horn','horror','horse','hospital','host','hotel','hour','hover','hub','huge','human','humble','humor','hundred','hungry','hunt','hurdle','hurry','hurt','husband','hybrid','ice','icon','idea','identify','idle','ignore','ill','illegal','illness','image','imitate','immense','immune','impact','impose','improve','impulse','inch','include','income','increase','index','indicate','indoor','industry','infant','inflict','inform','inhale','inherit','initial','inject','injury','inmate','inner','innocent','input','inquiry','insane','insect','inside','inspire','install','intact','interest','into','invest','invite','involve','iron','island','isolate','issue','item','ivory','jacket','jaguar','jar','jazz','jealous','jeans','jelly','jewel','job','join','joke','journey','joy','judge','juice','jump','jungle','junior','junk','just','kangaroo','keen','keep','ketchup','key','kick','kid','kidney','kind','kingdom','kiss','kit','kitchen','kite','kitten','kiwi','knee','knife','knock','know'];
 
-function acceptTerms() {
-    localStorage.setItem('medorcoin_terms', 'accepted');
-    termsAccepted = true;
-    modal.style.display = 'none';
-    document.body.style.overflow = '';
-}
-
-async function generateWallet() {
-    if (!termsAccepted) {
-        showTerms();
-        return;
-    }
-    
-    generateBtn.disabled = true;
-    generateBtn.textContent = '🔐 Securing Your Wallet...';
-    
-    try {
-        // Generate secure random values
-        const phrase = Array(12).fill(0).map(() => bip39words[Math.floor(Math.random() * bip39words.length)]).join(' ');
-        const privKey = '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('');
-        const address = 'mc1' + Array(34).fill(0).map(() => Math.floor(Math.random() * 58).toString(58)).join('');
-        
-        walletData = {address, privateKey: privKey, phrase, chains: ['BTC','ETH','SOL','BNB']};
-        
-        addressField.value = address;
-        privateKeyField.value = privKey;
-        phraseField.value = phrase;
-        walletInfo.style.display = 'block';
-        generateBtn.style.display = 'none';
-        
-        // Auto-redirect after 2 seconds
-        setTimeout(() => {
-            localStorage.setItem('medorcoin_wallet', JSON.stringify(walletData));
-            localStorage.setItem('wallet_active', 'true');
-            const params = new URLSearchParams({wallet: 'created', address: walletData.address.slice(0,12)});
-            window.location.href = `wallet.html?${params}`;
-        }, 2000);
-        
-    } catch (e) {
-        console.error(e);
-        generateBtn.textContent = '🚀 Generate Wallet';
-        generateBtn.disabled = false;
-    }
-}
-
-function downloadBackup() {
-    if (!walletData) return;
-    
-    const data = `MedorCoin Wallet Backup\nAddress: ${walletData.address}\nPrivate Key: ${walletData.privateKey}\nPhrase: ${walletData.phrase}\n\n⚠️ KEEP OFFLINE FOREVER`;
-    const blob = new Blob([data], {type: 'text/plain;charset=utf-8'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `medorcoin-${walletData.address.slice(0,8)}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-function verifySaved() {
-    if (!walletData) return;
-    
-    if (confirm('✅ CONFIRM: Phrase backed up on METAL in 2+ safe locations?')) {
-        localStorage.setItem('medorcoin_wallet', JSON.stringify(walletData));
-        localStorage.setItem('wallet_active', 'true');
-        const params = new URLSearchParams({wallet: 'created', address: walletData.address.slice(0,12)});
-        window.location.href = `wallet.html?${params}`;
-    }
-}
-
-// Event listeners
-acceptBtn.addEventListener('click', acceptTerms);
-generateBtn.addEventListener('click', generateWallet);
-backupBtn.addEventListener('click', downloadBackup);
-verifyBtn.addEventListener('click', verifySaved);
-
-// Block all buttons if terms not accepted
-document.querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        if (!termsAccepted && btn !== acceptBtn) {
-            e.preventDefault();
-            showTerms();
-        }
-    });
-});
-
-// Modal escape key
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.style.display === 'block') {
-        if (termsAccepted) {
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-        }
-    }
-});
-
-// Initialize
-if (!termsAccepted) showTerms();
-
-// Prevent zoom on iOS
-document.addEventListener('gesturestart', function (e) {
-    e.preventDefault();
-});
-})();
-</script>
-</body>
-</html>
+const modal=document.getElementById('termsModal');
+const acceptBtn=modal.querySelector('button');
+const generateBtn=document.getElementById('generateBtn');
+const wa
