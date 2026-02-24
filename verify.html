@@ -1,33 +1,148 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Email Verification</title>
+<meta charset="UTF-8">
+<title>Verify Your MedorCoin Account</title>
+<link rel="icon" href="medorcoin-logo.png">
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f8fafc;
+    margin: 0;
+    padding: 30px;
+    display: flex;
+    justify-content: center;
+  }
+  .verify-container {
+    width: 420px;
+    background: #f5fddf; /* light lemon green */
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    color: #333333; /* dark pencil gray */
+  }
+  .verify-container h2 {
+    margin-top: 0;
+    font-size: 26px;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 25px;
+  }
+  .input-group {
+    margin-bottom: 20px;
+  }
+  .input-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  .input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #999;
+    border-radius: 6px;
+    font-size: 16px;
+  }
+  .error {
+    color: #d60000;
+    font-size: 14px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .verify-btn {
+    width: 100%;
+    padding: 14px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  .verify-btn:hover {
+    background: #1d4ed8;
+  }
+  .resend-link {
+    font-size: 14px;
+    margin-top: 15px;
+    text-align: center;
+  }
+  .resend-link a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .resend-link a:hover {
+    text-decoration: underline;
+  }
+</style>
 </head>
-<body style="font-family:Arial;background:#0f172a;color:white;text-align:center;padding-top:100px;">
+<body>
 
-<h2>A verification code has been sent to your email.</h2>
-<p>Please enter the code below to verify your account.</p>
+<div class="verify-container">
 
-<input type="text" id="code" placeholder="Enter verification code">
-<br><br>
-<button onclick="verifyCode()">Verify</button>
+  <h2>Email Verification</h2>
+
+  <div id="errorMsg" class="error"></div>
+
+  <div class="input-group">
+    <label for="code">Enter Verification Code</label>
+    <input type="text" id="code" placeholder="6-digit code" maxlength="6" required>
+  </div>
+
+  <button class="verify-btn" id="verifyBtn">Verify</button>
+
+  <p class="resend-link">
+    Didn’t receive a code? <a href="#" id="resendLink">Resend</a>
+  </p>
+</div>
 
 <script>
-async function verifyCode(){
-let response = await fetch("/verify-code",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-code:document.getElementById("code").value
-})
+document.getElementById("verifyBtn").addEventListener("click", function(e) {
+  e.preventDefault();
+
+  let code  = document.getElementById("code").value.trim();
+  let error = document.getElementById("errorMsg");
+
+  error.textContent = "";
+
+  if (!code || code.length < 6) {
+    error.textContent = "Please enter the 6-digit verification code.";
+    return;
+  }
+
+  fetch("/api/verify", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ code })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      window.location.href = "account.html";
+    } else {
+      error.textContent = data.message || "Verification failed. Please try again.";
+    }
+  })
+  .catch(() => {
+    error.textContent = "Network error. Try again later.";
+  });
 });
 
-if(response.ok){
-window.location.href="account.html";
-}else{
-alert("Invalid code.");
-}
-}
+document.getElementById("resendLink").addEventListener("click", function(e) {
+  e.preventDefault();
+
+  fetch("/api/resend-code", { method: "POST" })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message || "Verification code resent!");
+    })
+    .catch(() => {
+      alert("Unable to resend right now.");
+    });
+});
 </script>
 
 </body>
