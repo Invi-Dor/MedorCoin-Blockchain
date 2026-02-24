@@ -13,7 +13,7 @@ polar: # Replace with a single Polar username
 buy_me_a_coffee: # Replace with a single Buy Me a Coffee username
 thanks_dev: # Replace with a single thanks.dev username
 custom: 
-  - https://medorcoin.invisible-m.com/ETH-payment.html
-  - https://medorcoin.invisible-m.com/BTC-payment.html
-  - https://medorcoin.invisible-m.com/BNB-payment.html
-  - https://medorcoin.invisible-m.com/SOL-payment.html
+  - https://medorcoin.invisible-m.com/ethereum.html
+  - https://medorcoin.invisible-m.com/btc.html
+  - https://medorcoin.invisible-m.com/bnb.html
+  - https://medorcoin.invisible-m.com/solana.html
