@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MedorCoin Blockchain Explorer</title>
+<link rel="icon" href="medorcoin-logo.png">
+<style>
+  body { font-family: Arial, sans-serif; margin:0; background:#f9f9f9; color:#333; }
+  header { background: #f7fcb9; padding: 20px; text-align: center; color: #2c2c2c; }
+  header h1 { margin: 0; font-size: 28px; }
+  .search-bar { text-align:center; margin:20px 0; }
+  .search-bar input { width: 60%; padding:10px; font-size:16px; border-radius:5px; border:1px solid #ccc; }
+  .section { max-width:1200px; margin:20px auto; padding:0 20px; }
+  table { width:100%; border-collapse: collapse; margin-bottom: 20px; background:#fff; border-radius:6px; overflow:hidden; }
+  th, td { text-align:left; padding:12px; border-bottom:1px solid #ddd; font-size:14px; }
+  th { background:#e2e8f0; color:#2c2c2c; }
+  tr:hover { background:#f1f5f9; }
+  .pagination { text-align:right; margin-bottom:20px; }
+  .pagination button { padding:6px 12px; margin-left:4px; border:none; border-radius:4px; cursor:pointer; background:#2563eb; color:#fff; }
+  .pagination button:disabled { background:#94a3b8; cursor:not-allowed; }
+  h2 { color:#2c2c2c; margin-bottom:10px; }
+  .footer { background:#1e293b; color:#fff; padding:30px 20px; display:flex; flex-wrap:wrap; justify-content:space-between; font-size:14px; }
+  .footer-column { width:45%; margin-bottom:20px; }
+  .footer-column h3 { margin-bottom:12px; font-size:16px; color:#f7fcb9; }
+  .footer-column ul { list-style:none; padding:0; margin:0; }
+  .footer-column li { margin-bottom:6px; }
+  .footer-column a { color:#fff; text-decoration:none; }
+  .footer-column a:hover { text-decoration:underline; }
+  .footer-bottom { text-align:center; font-size:12px; color:#94a3b8; margin-top:10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>MedorCoin Blockchain Explorer</h1>
+</header>
+
+<div class="search-bar">
+  <input type="text" id="searchInput" placeholder="Search by transaction hash, address, block, or token">
+  <button onclick="performSearch()">Search</button>
+</div>
+
+<div class="section">
+  <h2>Latest Transactions</h2>
+  <table id="txTable">
+    <thead>
+      <tr>
+        <th>Tx Hash</th>
+        <th>From</th>
+        <th>To</th>
+        <th>Amount</th>
+        <th>Fee</th>
+        <th>Block</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div class="pagination" id="txPagination">
+    <button id="txPrev" onclick="changeTxPage(-1)">Previous</button>
+    <button id="txNext" onclick="changeTxPage(1)">Next</button>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Latest Blocks</h2>
+  <table id="blocksTable">
+    <thead>
+      <tr>
+        <th>Block #</th>
+        <th>Timestamp</th>
+        <th>Transactions</th>
+        <th>Miner</th>
+        <th>Gas Used</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div class="pagination" id="blockPagination">
+    <button id="blockPrev" onclick="changeBlockPage(-1)">Previous</button>
+    <button id="blockNext" onclick="changeBlockPage(1)">Next</button>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Newly Created Tokens</h2>
+  <table id="tokensTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Creator</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="footer-column">
+    <h3>Column 1 Row 1</h3>
+    <ul>
+      <li><a href="beware-of-scams.html">Beware of Scams</a></li>
+      <li><a href="buy-sell-medorcoin.html">Buy / Sell MedorCoin</a></li>
+      <li><a href="invisible-m-blog.html">Blog</a></li>
+      <li><a href="legal.html">Legal</a></li>
+      <li><a href="run-full-node.html">Run Full Node</a></li>
+      <li><a href="sponsor-us.html">Sponsor Us</a></li>
+    </ul>
+  </div>
+  <div class="footer-column">
+    <h3>Column 2 Row 1</h3>
+    <ul>
+      <li><a href="about-medorcoin.html">About MedorCoin</a></li>
+      <li><a href="how-it-works.html">How It Works</a></li>
+      <li><a href="important-to-know.html">Important to Know</a></li>
+      <li><a href="introduction.html">Introduction</a></li>
+      <li><a href="white-paper.html">White Paper</a></li>
+    </ul>
+  </div>
+  <div class="footer-column">
+    <h3>Column 1 Row 2</h3>
+    <ul>
+      <li><a href="community.html">Community</a></li>
+      <li><a href="latest-news.html">Latest News</a></li>
+      <li><a href="resources.html">Resources</a></li>
+      <li><a href="terms-and-conditions.html">Terms & Conditions</a></li>
+    </ul>
+  </div>
+  <div class="footer-column">
+    <h3>Column 2 Row 2</h3>
+    <ul>
+      <li>Services</li>
+      <li>Contact Us</li>
+      <li>Careers</li>
+      <li>Documentation</li>
+    </ul>
+  </div>
+  <div class="footer-bottom">
+    &copy; <span id="year"></span> MedorCoin. All rights reserved. Users must do their own research. Cryptocurrency is volatile.
+  </div>
+</div>
+
+<script>
+const API_BASE = "/api";
+let txPage = 1;
+let blockPage = 1;
+
+// Auto-refresh interval (ms)
+const REFRESH_INTERVAL = 15000;
+
+// --- Transactions ---
+async function loadTransactions() {
+  const res = await fetch(`${API_BASE}/txs?page=${txPage}&limit=10`);
+  const data = await res.json();
+  const tbody = document.querySelector("#txTable tbody");
+  tbody.innerHTML = "";
+  data.transactions.forEach(tx => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${tx.hash}</td>
+      <td>${tx.from}</td>
+      <td>${tx.to}</td>
+      <td>${tx.amount}</td>
+      <td>${tx.fee}</td>
+      <td>${tx.block}</td>
+      <td>${new Date(tx.timestamp).toLocaleString()}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById("txPrev").disabled = txPage === 1;
+  document.getElementById("txNext").disabled = data.transactions.length < 10;
+}
+
+// --- Blocks ---
+async function loadBlocks() {
+  const res = await fetch(`${API_BASE}/blocks?page=${blockPage}&limit=10`);
+  const data = await res.json();
+  const tbody = document.querySelector("#blocksTable tbody");
+  tbody.innerHTML = "";
+  data.blocks.forEach(block => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${block.number}</td>
+      <td>${new Date(block.timestamp).toLocaleString()}</td>
+      <td>${block.txn_count}</td>
+      <td>${block.miner}</td>
+      <td>${block.gas_used}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById("blockPrev").disabled = blockPage === 1;
+  document.getElementById("blockNext").disabled = data.blocks.length < 10;
+}
+
+// --- Tokens ---
+async function loadTokens() {
+  const res = await fetch(`${API_BASE}/tokens/new?limit=10`);
+  const tokens = await res.json();
+  const tbody = document.querySelector("#tokensTable tbody");
+  tbody.innerHTML = "";
+  tokens.forEach(token => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${token.name}</td>
+      <td>${token.address}</td>
+      <td>${token.creator}</td>
+      <td>${new Date(token.date).toLocaleDateString()}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// --- Pagination ---
+function changeTxPage(dir) { txPage += dir; loadTransactions(); }
+function changeBlockPage(dir) { blockPage += dir; loadBlocks(); }
+
+// --- Search ---
+async function performSearch() {
+  const query = document.getElementById("searchInput").value.trim();
+  if(!query) return;
+  window.location.href = `/search.html?q=${encodeURIComponent(query)}`;
+}
+
+// --- Initial Load ---
+function init() {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  loadTransactions();
+  loadBlocks();
+  loadTokens();
+  setInterval(() => { loadTransactions(); loadBlocks(); loadTokens(); }, REFRESH_INTERVAL);
+}
+
+window.onload = init;
+</script>
+
+</body>
+</html>
