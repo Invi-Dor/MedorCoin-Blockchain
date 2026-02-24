@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MedorCoin Platform Sign Up</title>
+<link rel="icon" href="medorcoin-logo.png">
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f8fafc;
+    margin: 0;
+    padding: 30px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .signup-container {
+    width: 420px;
+    background: #f5fddf; /* light lemon green */
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    color: #333333; /* dark pencil gray */
+  }
+
+  .signup-container h2 {
+    margin-top: 0;
+    font-size: 26px;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 25px;
+  }
+
+  .input-group {
+    margin-bottom: 18px;
+  }
+
+  .input-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+  }
+
+  .input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #999;
+    border-radius: 6px;
+    font-size: 16px;
+  }
+
+  .error {
+    color: #d60000;
+    font-size: 14px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .terms-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .terms-container input {
+    margin-right: 8px;
+  }
+
+  .signup-btn {
+    width: 100%;
+    padding: 14px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+
+  .signup-btn:hover {
+    background: #1d4ed8;
+  }
+
+  .terms-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  .terms-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Icon styling */
+  .input-group img {
+    vertical-align: middle;
+    margin-right: 8px;
+    width: 20px;
+    height: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="signup-container">
+  <h2>Create Your MedorCoin Account</h2>
+
+  <div id="errorMsg" class="error"></div>
+
+  <div class="input-group">
+    <label for="email"><img src="icon-email.png" alt="Email Icon">Email Address</label>
+    <input type="email" id="email" placeholder="you@example.com" required>
+  </div>
+
+  <div class="input-group">
+    <label for="username"><img src="icon-user.png" alt="User Icon">Username</label>
+    <input type="text" id="username" placeholder="Choose a username" required>
+  </div>
+
+  <div class="input-group">
+    <label for="password"><img src="icon-lock.png" alt="Lock Icon">Password</label>
+    <input type="password" id="password" placeholder="Create a strong password" required>
+  </div>
+
+  <div class="input-group">
+    <label for="confirmPassword"><img src="icon-lock-check.png" alt="Confirm Icon">Confirm Password</label>
+    <input type="password" id="confirmPassword" placeholder="Re-type your password" required>
+  </div>
+
+  <div class="terms-container">
+    <input type="checkbox" id="agreeTerms" required>
+    <label for="agreeTerms">I agree to the <a href="terms.html" class="terms-link" target="_blank">Terms & Conditions</a></label>
+  </div>
+
+  <button class="signup-btn" id="signupBtn">Create Account</button>
+</div>
+
+<script>
+document.getElementById("signupBtn").addEventListener("click", function(e) {
+  e.preventDefault();
+
+  let email  = document.getElementById("email").value.trim();
+  let user   = document.getElementById("username").value.trim();
+  let pwd    = document.getElementById("password").value;
+  let conf   = document.getElementById("confirmPassword").value;
+  let agree  = document.getElementById("agreeTerms").checked;
+  let error  = document.getElementById("errorMsg");
+
+  error.textContent = "";
+
+  if (!email || !user || !pwd || !conf) {
+    error.textContent = "All fields are required.";
+    return;
+  }
+  if (pwd !== conf) {
+    error.textContent = "Passwords do not match.";
+    return;
+  }
+  if (!agree) {
+    error.textContent = "You must agree to the Terms & Conditions.";
+    return;
+  }
+
+  // Send data to backend API
+  fetch("/api/signup", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ email, user, pwd })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      window.location.href = "verify.html";
+    } else {
+      error.textContent = data.message || "Signup failed. Try again.";
+    }
+  })
+  .catch(() => {
+    error.textContent = "Network error. Try again later.";
+  });
+});
+</script>
+
+</body>
+</html>
