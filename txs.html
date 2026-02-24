@@ -151,89 +151,108 @@ let blockPage = 1;
 // Auto-refresh interval (ms)
 const REFRESH_INTERVAL = 15000;
 
-// --- Transactions ---
+// Get current year for footer
+document.getElementById("year").textContent = new Date().getFullYear();
+
+// --- Load Latest Transactions ---
 async function loadTransactions() {
-  const res = await fetch(`${API_BASE}/txs?page=${txPage}&limit=10`);
-  const data = await res.json();
-  const tbody = document.querySelector("#txTable tbody");
-  tbody.innerHTML = "";
-  data.transactions.forEach(tx => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${tx.hash}</td>
-      <td>${tx.from}</td>
-      <td>${tx.to}</td>
-      <td>${tx.amount}</td>
-      <td>${tx.fee}</td>
-      <td>${tx.block}</td>
-      <td>${new Date(tx.timestamp).toLocaleString()}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-  document.getElementById("txPrev").disabled = txPage === 1;
-  document.getElementById("txNext").disabled = data.transactions.length < 10;
+  try {
+    const res = await fetch(`${API_BASE}/txs?page=${txPage}&limit=10`);
+    const data = await res.json();
+    const tbody = document.querySelector("#txTable tbody");
+    tbody.innerHTML = "";
+    data.forEach(tx => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${tx.hash}</td>
+        <td>${tx.from}</td>
+        <td>${tx.to}</td>
+        <td>${tx.amount}</td>
+        <td>${tx.fee}</td>
+        <td>${tx.block}</td>
+        <td>${new Date(tx.timestamp).toLocaleString()}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    document.getElementById("txPrev").disabled = txPage === 1;
+    document.getElementById("txNext").disabled = data.length < 10;
+  } catch (e) {
+    console.error("Error loading transactions", e);
+  }
 }
 
-// --- Blocks ---
+// --- Load Latest Blocks ---
 async function loadBlocks() {
-  const res = await fetch(`${API_BASE}/blocks?page=${blockPage}&limit=10`);
-  const data = await res.json();
-  const tbody = document.querySelector("#blocksTable tbody");
-  tbody.innerHTML = "";
-  data.blocks.forEach(block => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${block.number}</td>
-      <td>${new Date(block.timestamp).toLocaleString()}</td>
-      <td>${block.txn_count}</td>
-      <td>${block.miner}</td>
-      <td>${block.gas_used}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-  document.getElementById("blockPrev").disabled = blockPage === 1;
-  document.getElementById("blockNext").disabled = data.blocks.length < 10;
+  try {
+    const res = await fetch(`${API_BASE}/blocks?page=${blockPage}&limit=10`);
+    const data = await res.json();
+    const tbody = document.querySelector("#blocksTable tbody");
+    tbody.innerHTML = "";
+    data.forEach(block => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${block.number}</td>
+        <td>${new Date(block.timestamp).toLocaleString()}</td>
+        <td>${block.txn_count}</td>
+        <td>${block.miner}</td>
+        <td>${block.gas_used}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    document.getElementById("blockPrev").disabled = blockPage === 1;
+    document.getElementById("blockNext").disabled = data.length < 10;
+  } catch (e) {
+    console.error("Error loading blocks", e);
+  }
 }
 
-// --- Tokens ---
+// --- Load Newly Created Tokens ---
 async function loadTokens() {
-  const res = await fetch(`${API_BASE}/tokens/new?limit=10`);
-  const tokens = await res.json();
-  const tbody = document.querySelector("#tokensTable tbody");
-  tbody.innerHTML = "";
-  tokens.forEach(token => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${token.name}</td>
-      <td>${token.address}</td>
-      <td>${token.creator}</td>
-      <td>${new Date(token.date).toLocaleDateString()}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+  try {
+    const res = await fetch(`${API_BASE}/tokens/new?limit=10`);
+    const data = await res.json();
+    const tbody = document.querySelector("#tokensTable tbody");
+    tbody.innerHTML = "";
+    data.forEach(token => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${token.name}</td>
+        <td>${token.address}</td>
+        <td>${token.creator}</td>
+        <td>${new Date(token.timestamp).toLocaleDateString()}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (e) {
+    console.error("Error loading tokens", e);
+  }
 }
 
-// --- Pagination ---
-function changeTxPage(dir) { txPage += dir; loadTransactions(); }
-function changeBlockPage(dir) { blockPage += dir; loadBlocks(); }
+// --- Pagination Helpers ---
+function changeTxPage(dir) {
+  txPage += dir;
+  loadTransactions();
+}
+
+function changeBlockPage(dir) {
+  blockPage += dir;
+  loadBlocks();
+}
 
 // --- Search ---
-async function performSearch() {
+function performSearch() {
   const query = document.getElementById("searchInput").value.trim();
-  if(!query) return;
+  if (!query) return;
   window.location.href = `/search.html?q=${encodeURIComponent(query)}`;
 }
 
-// --- Initial Load ---
-function init() {
-  document.getElementById("year").textContent = new Date().getFullYear();
+// --- Init ---
+window.onload = function() {
   loadTransactions();
   loadBlocks();
   loadTokens();
   setInterval(() => { loadTransactions(); loadBlocks(); loadTokens(); }, REFRESH_INTERVAL);
-}
-
-window.onload = init;
+};
 </script>
 
 </body>
