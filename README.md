@@ -1,101 +1,111 @@
-MedorCoin — A Minimal, Security-First, EVM-Inspired Blockchain with Simple Mining
+MedorCoin
+
+Security First Blockchain with Integrated Mining, Developer Infrastructure and Financial Ecosystem
 
 Overview
-MedorCoin (ticker: MEDUR) is a compact, EVM-inspired blockchain focused on clarity, security, and auditability. It features Ethereum-style transactions and fee mechanics (EIP-1559–like), a thread-safe mempool with fee-based selection, simple PoW-style mining, and a clean key–value storage model for smart contracts. Miner rewards are automatically split between the miner and the MedorCoin Protocol Treasury. Protocol fees also apply to staking/liquidity-locking operations. All value flows are on-chain and easy to audit.
 
-Key features
-- Ethereum-style transactions
-  - RLP-encoded, Keccak-256–hashed transactions with EIP-1559 fields: nonce, maxFeePerGas, maxPriorityFeePerGas, gasLimit, to, value, data, v, r, s.
-- Mempool with fee-aware selection
-  - Thread-safe pending pool keyed by txHash; sorts by effective gas price = min(maxFeePerGas, baseFee + priorityFee).
-- Simple mining
-  - Mine coinbase-only blocks or include validated mempool transactions. Rewards and tips are split automatically between the miner and the Protocol Treasury.
-- Clean state model
-  - Contract bytecode and key–value storage (e.g., code:<address>, storage:<address>:<key>) designed for EVM-like execution semantics.
-- Modular crypto utilities
-  - Double SHA-256 hashing and prototype key/signature functions for development (to be replaced with secp256k1 ECDSA).
+MedorCoin, ticker MEDUR, is a security focused blockchain built for clarity, auditability and long term sustainability. It combines simple proof of work mining, structured transaction processing, deterministic fee mechanics and transparent on chain accounting.
 
-Economic model (defaults)
-- Reward split (basis points)
-  - MINER_REWARD_BPS = 9000 (90%)
-  - PROTOCOL_REWARD_BPS = 1000 (10%)
-  - PROTOCOL_TREASURY_ADDRESS = 0x... (MedorCoin treasury)
-- Fees
-  - Base fee (EIP-1559–like): burn or route to treasury (configurable).
-  - Staking/liquidity-lock fees:
-    - STAKE_LOCK_FEE_BPS = 50 (0.50%)
-    - LIQ_LOCK_FEE_BPS = 50 (0.50%)
+What began as a compact and auditable blockchain protocol has now evolved into a complete ecosystem. MedorCoin is no longer only a network layer. It is a unified platform supporting miners, developers, investors, learners and liquidity participants.
 
-Security principles
-- Simplicity first to reduce attack surface; readable code for straightforward audits.
-- Deterministic, auditable accounting using basis-point math with overflow checks.
-- Strict validation path: signatures, nonce, balance, gas limits, and block rules.
-- Data integrity: namespaced keys with optional RocksDB persistence.
-- Roadmap hardening: replace prototype crypto with secp256k1 ECDSA; chain ID and replay protection; consensus/header integrity checks; extensive tests.
+All value flows, reward splits, treasury allocations and protocol fees remain fully on chain and verifiable.
 
-Core modules
-- Crypto
-  - doubleSHA256 (hex), generatePrivateKey (128-bit hex prototype), getPublicKey = SHA256(privateKey) [prototype], sign/verify [prototype; replace with secp256k1].
-- Transactions
-  - txHash = keccak256(RLP(nonce, maxFeePerGas, maxPriorityFeePerGas, gasLimit, to, value, data, v, r, s)).
-- Mempool
-  - Thread-safe; add/remove/has/get; getSortedByFee(baseFee) using effective gas price; optional RocksDB persistence (e.g., data/medorcoin_mempool).
-- Miner
-  - mineMedorCoin: coinbase-only block.
-  - mineWithMempool: selects txs, validates via processTransaction, attributes rewards/tips, prunes confirmed txs.
-- State/Storage
-  - Key–value layout: code:<address>, storage:<address>:<key>, balances:<address>, nonces:<address>.
+⸻
 
-Configuration
-- protocol.json
-  - protocolTreasuryAddress
-  - minerRewardBps: 9000
-  - protocolRewardBps: 1000
-  - stakeLockFeeBps: 50
-  - liqLockFeeBps: 50
-  - baseFeePolicy: burn | route_to_treasury
-  - chainId
-  - blockRewardSchedule
+Core Blockchain Foundation
 
-Reward and fee accounting (pseudocode)
-- On block assembly:
-  - totalPriorityFees = sum(tx.effectiveTipPaid)
-  - blockReward = currentBlockReward(...)
-  - minerPortion = (MINER_REWARD_BPS  (blockReward + totalPriorityFees)) / 10000
-  - protocolPortion = (PROTOCOL_REWARD_BPS  (blockReward + totalPriorityFees)) / 10000
-  - credit(minerAddress, minerPortion)
-  - credit(PROTOCOL_TREASURY_ADDRESS, protocolPortion)
-  - handle baseFee per policy (burn/route)
-- On staking/liquidity lock:
-  - fee = (BPS * amount) / 10000
-  - credit(PROTOCOL_TREASURY_ADDRESS, fee)
-  - lock(amount - fee)
+MedorCoin provides:
 
-Developer quickstart
-- Build
-  - Dependencies: keccak, RLP utilities, RocksDB (optional).
-  - Build with your C++ toolchain.
-- Configure
-  - Set treasury address and BPS parameters in protocol.json.
-- Run
-  - Start node; mine via mineMedorCoin or mineWithMempool.
-- Submit a transaction
-  - Construct EVM-style tx, RLP-encode, keccak256, attach v/r/s (prototype), broadcast.
+• Structured transaction validation with strict signature, nonce, balance and gas checks
+• Fee based transaction prioritisation inside a thread safe mempool
+• Deterministic reward distribution between miner and protocol treasury
+• Clean key value state model for contract code and storage
+• Configurable base fee and protocol fee policies
+• Simple and transparent mining logic designed for auditability
 
-Testing checklist
-- Mempool: duplicate rejection, fee ordering, thread safety.
-- Transactions: stable RLP and Keccak; signature path (upgrade to secp256k1).
-- Mining: valid tx inclusion; nonce/order; exact reward/tip splits.
-- Fees: priority/base fee correctness; rounding behavior.
-- Staking/lock flows: fee calculation, treasury credit, lock balances.
-- Security: fuzz serialization, arithmetic limits, consensus header checks.
+Mining rewards and transaction tips are automatically split between miners and the MedorCoin Protocol Treasury according to protocol configuration. Staking and liquidity locking operations apply basis point fees that are credited directly to the treasury.
 
-Automation note
-- Auto-update hooks can regenerate this README and other docs when configs (protocol.json) or code constants change. See scripts/auto_update for templates and CI integration.
+The design principle is simplicity for security. Readable code, deterministic accounting and controlled economic parameters reduce attack surface and improve audit transparency.
 
-Roadmap
-- RewardDistributor helper centralizing fee/reward logic with 128-bit intermediates.
-- JSON config loader with validation.
-- secp256k1 ECDSA sign/verify; public key derivation aligned with Ethereum.
-- Unit/property tests for fee splits, staking/lock fees, and mempool policies.
-- Lightweight explorer showing blocks, miner vs protocol earnings, treasury balance.
+⸻
+
+Developer Infrastructure and Unlimited API Access
+
+MedorCoin now includes expanded infrastructure for builders.
+
+Developers can access unlimited API endpoints to integrate wallets, analytics systems, trading interfaces, automation tools and external services directly with the chain.
+
+The platform supports:
+
+• Programmatic transaction submission
+• Balance and state queries
+• Mempool inspection
+• Treasury tracking
+• Reward accounting visibility
+• Configurable protocol parameters
+
+This enables businesses and independent developers to build applications, services and integrations without artificial limits.
+
+⸻
+
+Mining Participation
+
+Miners can participate through straightforward block assembly logic. Blocks may include validated transactions or operate in coinbase mode depending on configuration. Reward calculations follow strict basis point math with overflow checks.
+
+The protocol ensures:
+
+• Transparent reward distribution
+• On chain treasury accumulation
+• Deterministic accounting
+• Configurable block reward schedules
+
+Mining remains simple, verifiable and accessible.
+
+⸻
+
+Education and Trading Courses
+
+MedorCoin now integrates structured crypto education directly into its ecosystem.
+
+Users can enrol in:
+
+• Spot trading courses
+• Futures trading courses
+• Options trading courses
+• Sports trading courses
+
+These courses are designed to equip users with practical market knowledge alongside blockchain participation. Additional advanced courses are planned for future expansion.
+
+Education is part of the ecosystem, not an external add on.
+
+⸻
+
+Liquidity and Asset Locking
+
+MedorCoin includes value locking mechanisms allowing users to lock liquidity or assets securely for a small protocol fee.
+
+Locking features include:
+
+• Liquidity locking
+• Stake locking
+• Transparent fee allocation to the treasury
+
+Additional locking mechanisms and financial utilities are scheduled for future releases. All lock operations remain on chain and auditable.
+
+⸻
+
+The MedorCoin Ecosystem
+
+MedorCoin has evolved into a unified ecosystem where:
+
+• Blockchain infrastructure
+• Mining
+• Developer APIs
+• Financial utilities
+• Treasury economics
+• Education
+• Liquidity locking
+
+operate together in one integrated platform.
+
+It is built for clarity, security, expansion and long term sustainability.
