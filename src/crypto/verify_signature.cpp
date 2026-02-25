@@ -37,17 +37,16 @@ bool verifyEvmSignature(
     memcpy(compactSig, r.data(), 32);
     memcpy(compactSig + 32, s.data(), 32);
 
-    // Parse recoverable signature
     if (!secp256k1_ecdsa_recoverable_signature_parse_compact(ctx, &sig, compactSig, recid)) {
-        secp256k1_context_destroy(ctx);
-        return false;
-    }
+    secp256k1_context_destroy(ctx);
+    return false;
+}
 
-    secp256k1_pubkey recoveredPub;
-    if (!secp256k1_ecdsa_recover(ctx, &recoveredPub, &sig, hash.data())) {
-        secp256k1_context_destroy(ctx);
-        return false;
-    }
+secp256k1_pubkey recoveredPub;
+if (!secp256k1_ecdsa_recover(ctx, &recoveredPub, &sig, hash.data())) {
+    secp256k1_context_destroy(ctx);
+    return false;
+}
 
     secp256k1_context_destroy(ctx);
 
