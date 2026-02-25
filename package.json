@@ -1,0 +1,23 @@
+{
+  "name": "medorcoin-backend",
+  "version": "1.0.0",
+  "description": "MedorCoin backend server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Invi-Dor/MedorCoin-Blockchain.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "level": "^7.0.0",
+    "nodemailer": "^6.9.3",
+    "jsonwebtoken": "^9.0.0",
+    "bcryptjs": "^2.4.3"
+  }
+}
