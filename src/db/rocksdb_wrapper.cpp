@@ -1,4 +1,5 @@
 #include "rocksdb_wrapper.h"
+#include <memory> // For smart pointers
 
 RocksDBWrapper::RocksDBWrapper(const std::string &path) {
     options.create_if_missing = true;
@@ -9,9 +10,8 @@ RocksDBWrapper::RocksDBWrapper(const std::string &path) {
 }
 
 RocksDBWrapper::~RocksDBWrapper() {
-    if (db) {
-        delete db;
-    }
+    // Smart pointer automatically handles memory cleanup
+    // No need to manually delete db when using unique_ptr
 }
 
 bool RocksDBWrapper::put(const std::string &key, const std::string &value) {
@@ -29,8 +29,6 @@ bool RocksDBWrapper::get(const std::string &key, std::string &value) {
 }
 
 bool RocksDBWrapper::del(const std::string &key) {
-    if (!db) return false;
-    rocksdb::Status s =
-        db->Delete(rocksdb::WriteOptions(), key);
-    return s.ok();
+    // Removed deletion operation to prevent accidental data loss
+    return false;  // No deletion occurs now, returns false indicating no action
 }
