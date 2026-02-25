@@ -1,12 +1,37 @@
-const mongoose = require("mongoose");
+const level = require('level');
+const db = level('./userDB');  // Path to your LevelDB instance
 
-const UserSchema = new mongoose.Schema({
-  username: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  isVerified: { type: Boolean, default: false },
-  verificationCode: String,
-  createdAt: { type: Date, default: Date.now }
-});
+// Function to add a user to the LevelDB database
+function addUser(userId, userData) {
+  db.put(userId, JSON.stringify(userData), (err) => {
+    if (err) {
+      console.error('Error storing user in LevelDB:', err);
+      return;
+    }
+    console.log('User added successfully');
+  });
+}
 
-module.exports = mongoose.model("User", UserSchema);
+// Function to get a user by ID from the database
+function getUser(userId, callback) {
+  db.get(userId, (err, value) => {
+    if (err) {
+      console.error('Error fetching user from LevelDB:', err);
+      return;
+    }
+    callback(JSON.parse(value));  // Parse and return the stored user data
+  });
+}
+
+// Function to delete a user by ID from the database
+function deleteUser(userId) {
+  db.del(userId, (err) => {
+    if (err) {
+      console.error('Error deleting user from LevelDB:', err);
+      return;
+    }
+    console.log('User deleted successfully');
+  });
+}
+
+module.exports = { addUser, getUser, deleteUser };
