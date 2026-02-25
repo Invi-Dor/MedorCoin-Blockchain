@@ -1,103 +1,37 @@
-require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const { exec } = require("child_process");
-const fs = require("fs").promises;
-const path = require("path");
+const bodyParser = require("body-parser");
+const level = require("level");
+const jwt = require("jsonwebtoken");
 
-const authRoutes = require("./routes/auth");
+require("dotenv").config();
 
 const app = express();
+app.use(bodyParser.json());
 
-app.use(cors());
-app.use(express.json());
+// LevelDB setup
+const db = level("./medorcoin-db", { valueEncoding: "json" });
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.log("❌ MongoDB Error:", err));
+// Stripe
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-// ===== C++ BLOCKCHAIN WALLET API =====
-app.post('/api/wallet/generate', (req, res) => {
-  // Call your C++ MedorCoin binary to generate REAL wallet
-  exec('./MedorCoin --generate-wallet', { cwd: './src' }, (error, stdout, stderr) => {
-    if (error) {
-      console.error('C++ Wallet Error:', stderr);
-      return res.status(500).json({ error: 'Wallet generation failed' });
-    }
-    
-    try {
-      const wallet = JSON.parse(stdout);
-      res.json({
-        success: true,
-        address: wallet.address,
-        privateKey: wallet.privateKey,
-        publicKey: wallet.publicKey
-      });
-    } catch (e) {
-      res.status(500).json({ error: 'Invalid wallet response' });
-    }
-  });
+// Email
+const nodemailer = require("nodemailer");
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
 });
 
-app.post('/api/wallet/balance/:address', async (req, res) => {
-  const { address } = req.params;
-  exec(`./MedorCoin --balance ${address}`, { cwd: './src' }, (error, stdout) => {
-    if (error) return res.status(500).json({ balance: 0 });
-    res.json({ address, balance: parseFloat(stdout.trim()) });
-  });
-});
+// Import routes
+const authRoutes = require("./routes/auth")(db, jwt, transporter);
+const paymentRoutes = require("./routes/payments")(db, stripe);
+const miningRoutes = require("./routes/mining")(db);
 
-app.post('/api/wallet/send', (req, res) => {
-  const { from, to, amount } = req.body;
-  exec(`./MedorCoin --send ${from} ${to} ${amount}`, { cwd: './src' }, (error, stdout) => {
-    if (error) return res.status(500).json({ error: 'Transaction failed' });
-    res.json({ success: true, txid: stdout.trim() });
-  });
-});
-
-// ===== BLOCKCHAIN STATUS API =====
-app.get('/api/stats', async (req, res) => {
-  exec('./MedorCoin --stats', { cwd: './src' }, (error, stdout) => {
-    if (error) {
-      return res.json({
-        blockHeight: 0,
-        totalWallets: 0,
-        hashrate: '0 H/s',
-        transactions: 0
-      });
-    }
-    try {
-      const stats = JSON.parse(stdout);
-      res.json(stats);
-    } catch {
-      res.json({ blockHeight: 1, totalWallets: 0, hashrate: '1 H/s', transactions: 0 });
-    }
-  });
-});
-
-app.get('/api/blocks', (req, res) => {
-  exec('./MedorCoin --blocks', { cwd: './src' }, (error, stdout) => {
-    if (error) return res.json([]);
-    try {
-      res.json(JSON.parse(stdout));
-    } catch {
-      res.json([]);
-    }
-  });
-});
-
-// Existing routes
 app.use("/api/auth", authRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/mining", miningRoutes);
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'MedorCoin API running', timestamp: new Date().toISOString() });
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 MedorCoin Server running on port ${PORT}`);
-  console.log(`📱 API Endpoints: /api/wallet/generate, /api/stats, /api/blocks`);
-});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
