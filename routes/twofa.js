@@ -1,6 +1,9 @@
+// File: routes/twofa.js
+
 const express = require("express");
 const nodemailer = require("nodemailer");
 const User = require("../models/User");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
@@ -33,7 +36,8 @@ router.post("/2fa/send", async (req, res) => {
 
     res.json({ msg: "2FA sent" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ msg: "Internal server error" });
   }
 });
 
@@ -44,15 +48,19 @@ router.post("/2fa/confirm", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ msg: "User not found" });
 
-    if (user.twoFACode != code) return res.status(400).json({ msg: "Invalid 2FA code" });
+    if (user.twoFACode != code)
+      return res.status(400).json({ msg: "Invalid 2FA code" });
 
     user.twoFACode = null;
     await user.save();
 
-    const jwt = require("jsonwebtoken");
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
     res.json({ token });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ msg: "Internal server error" });
   }
+});
+
+module.exports = router;
