@@ -104,6 +104,7 @@
 
       <button onclick="checkResults()">Check Results</button>
     </div>
+
     <div id="finalMessage" class="hidden result"></div>
   </div>
 
@@ -140,13 +141,24 @@ function checkResults(){
       🎉 <strong>Wow, congratulations!</strong><br>
       You’re ready to level up and go deeper into Futures trading!<br><br>
       Are you ready to explore more?<br>
-      <button onclick="location.href='futures-course.html'">Click Here</button>
+      <button onclick="location.href='futures-course.html'" style="font-size:14px; padding:12px 22px; font-family:sans-serif; background:#2196F3; color:white; border:none; border-radius:6px; cursor:pointer; margin-top:12px;">
+        Click Here
+      </button>
     `;
   } else {
     msg.innerHTML = `
-      ❗ You need a little more practice.<br>
-      Review the sections above and try again
+      ❗ You need a little more practice.<br><br>
+      Correct answers:<br>
+      1️⃣ Leverage means: Using borrowed money to control a larger position<br>
+      2️⃣ First step before entering a trade: Analyze chart trends and market indicators<br><br>
     `;
+
+    const button = document.createElement('button');
+    button.textContent = "Access Level 1 Fully";
+    button.style.cssText = "font-size:14px; padding:12px 22px; font-family:sans-serif; background:#ff7f50; color:white; border:none; border-radius:6px; cursor:pointer; margin-top:12px;";
+    button.onclick = () => { window.location.href = "futures-L1.html"; };
+
+    msg.appendChild(button);
   }
 }
 
