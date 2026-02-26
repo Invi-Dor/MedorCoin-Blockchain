@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,111 +19,108 @@
       --lemon:#dfffa0;
     }
     * { box-sizing: border-box; }
+    html, body { height: 100%; }
     body{ font-family: system-ui, Arial, sans-serif; margin:0; padding:0; background:var(--bg); color:var(--text); font-size:14px; }
+
     /* Header: one-line brand bar (horizontal) */
     header {
-      padding: 10px 16px;
+      padding: 12px 16px;
       background: #12141a;
       border-bottom: 1px solid #252833;
       display:flex; align-items:center; justify-content:space-between; flex-wrap:nowrap;
+      position: sticky; top: 0; z-index: 50;
     }
     .brand{ display:flex; align-items:center; gap:10px; font-weight:800; color:white; white-space:nowrap; }
     .brand svg{ width:26px; height:26px; }
     .brand-name{ font-size:16px; white-space:nowrap; }
     #headerActions{ display:flex; align-items:center; gap:12px; white-space:nowrap; }
-    .btn{ padding:10px 16px; background:var(--blue); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700; text-decoration:none; display:inline-block; }
+
+    .btn{ padding:10px 14px; background:var(--blue); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700; text-decoration:none; display:inline-block; }
+    .btn.secondary { background:#374151; }
     .muted{ color:var(--muted); }
 
     /* Carousel (left intact) */
-    .live-carousel { position: relative; width: 100%; max-width: 1400px; margin: 20px auto; overflow: hidden; border-radius: 15px; }
+    .live-carousel { position: relative; width: 100%; max-width: 1200px; margin: 20px auto; overflow: hidden; border-radius: 14px; background:#111; }
     .slides { display:flex; transition: transform 0.8s ease-in-out; }
-    .slide { min-width: 100%; position: relative; }
-    .slide img { width:100%; height:65vh; object-fit:cover; display:block; }
-    .caption { position: absolute; bottom: 40px; left: 40px; background: rgba(0,0,0,0.6); padding: 16px 20px; border-radius: 12px; color:#fff; }
+    .slide { min-width: 100%; position:relative; }
+    .slide img { width:100%; height:48vh; object-fit:cover; display:block; }
+    .caption { position: absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.6); padding: 12px 16px; border-radius: 10px; color:#fff; }
+
     @media (max-width: 768px){
-      .slide img { height:45vh; }
-      .caption { left: 16px; bottom: 16px; padding: 12px; }
+      .slide img { height: 38vh; }
+      .caption { left: 12px; bottom: 12px; padding: 10px; }
     }
 
-    /* Content layout: two-column, three-row per category blocks
-       - 2-column grid ensures 6 slots per category (5 items + one empty slot) for perfect 3x2 layout. */
+    /* Content layout: two-column grid, six slots per category (5 items + 1 empty) for a neat 3x2 feel */
     .content{ padding: 18px 0 40px; }
     .section-title{ font-size:22px; font-weight:800; margin:14px 0 8px; color:#fff; }
     .grid{ display:grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 110px; gap:14px; }
-    .block{ border-radius:8px; text-align:center; display:flex; align-items:center; justify-content:center; text-decoration:none; font-weight:800; font-size:14px; border:1px solid rgba(0,0,0,.15); padding:12px; position:relative; }
+
+    .block{ border-radius:8px; display:flex; align-items:center; justify-content:center; text-decoration:none; font-weight:900; font-size:14px; border:1px solid rgba(0,0,0,.15); padding:12px; position:relative; color:inherit; text-align:center; }
+
     .block span{ line-height:1.2; display:block; }
     .block .label{ font-size:12px; opacity:.95; display:block; }
 
     /* Category color schemes
        - Sports Trading: shimmering gold on dark text
        - Futures: dark gray with shimmering gold text
-       - Options: light lemon green with dark text
+       - Options: lemony light green with dark text
        - Mining: dark blue with white text
     */
     .sports { background: linear-gradient(135deg, #fff2cc 0%, #ffd799 60%, #ffd24d 100%); color:#333; border-bottom:2px solid #e5c100; }
     .futures { background: #2b2b2b; color: #ffd700; border-bottom:2px solid #a48a00; }
     .options { background: var(--lemon); color:#333; border-bottom:2px solid #a6c60a; }
     .mining { background:#0b2a63; color:#fff; border-bottom:2px solid #3a66b3; }
+    .api { background:#d7ebff; color:#37474f; border-bottom:2px solid #7ab2f3; }
 
     .sep{ height:1px; background:#333; margin:14px 0; }
 
-    /* Cart drawer (basic) */
+    /* Promo: Add-to-cart button inside tiles will be positioned absolutely in each tile by script */
+
+    /* Cart Drawer (basic) */
     #cartDrawer { position: fixed; top:0; right:0; width:320px; height:100%; background:#1a1a1a; color:#fff; border-left:1px solid #333; padding:14px; display:none; z-index:9999; overflow:auto; }
     #cartDrawer.open { display:block; }
     .cart-item{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #333; }
     .cart-total{ font-weight:800; margin-top:8px; }
 
-    /* Photo area (copyright + disclaimer) */
+    /* Simple content footer area */
     .photo-block{ text-align:center; padding:18px 0 8px; }
     .photo-placeholder{ width:320px; height:180px; margin:0 auto; border-radius:6px; background:#444; display:flex; align-items:center; justify-content:center; color:#ddd; }
     .disclaimer{ font-size:12px; color:#bbb; padding:6px 16px 20px; }
 
-    /* Footer / (Discord banner removed per request) */
+    /* Footer */
     footer{ margin-top:20px; font-size:12px; color:#888; text-align:center; padding:20px 0; border-top:1px solid #333; }
 
-    /* FAQ: ensure vertical layout and phone-size rules
-       - On small screens: font-size 14px, sans-serif
-    */
-    #faq { padding-top:6px; }
-    #faq h2 { font-size: 18px; }
-
-    @media (max-width: 600px){
-      #faq { font-family: sans-serif; font-size: 14px; }
-      #faq h2 { font-size: 18px; }
-    }
-
-    /* Simple keyboard-friendly FAQ (optional) */
+    /* FAQ */
+    #faq { padding: 12px 0 40px; }
+    #faq h2 { font-size: 18px; margin:0 0 8px; }
     [aria-label="FAQ"] button {
-      width: 100%;
-      text-align:left;
-      background: transparent;
-      border: none;
-      color: #fff;
-      padding: 8px 0;
-      font-weight: 600;
-      cursor: pointer;
+      width: 100%; text-align:left; background: transparent; border: none; color: #fff;
+      padding: 8px 0; font-weight: 600; cursor: pointer;
     }
 
-    /* Responsive tweaks: keep two-column blocks on small screens too (still two columns but stack nicely) */
+    /* Minor responsive tweaks for two-column grid on small screens */
     @media (max-width: 900px){
       .grid{ grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 600px){
       .grid{ grid-template-columns: repeat(2, 1fr); grid-auto-rows: 120px; }
+      .slide { min-height: 200px; }
     }
   </style>
 </head>
 <body>
-<!-- TERMS AGREEMENT MODAL - REQUIRED FOR ALL FORMS (preserved) -->
-<div id="termsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999;">
-  <div class="modal-content" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:30px; border-radius:20px; max-width:90%; max-height:90%; overflow:auto;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-      <div style="font-size:24px; font-weight:bold;">🪙 Terms Required</div>
-      <button onclick="acceptTerms()" style="background:#4ade80; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-size:16px;">✓ Accept</button>
+
+<!-- TERMS AGREEMENT MODAL -->
+<div id="termsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+  <div class="modal-content" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:24px; border-radius:12px; max-width:90%; max-height:90%; overflow:auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="font-size:22px; font-weight:700;">🪙 Terms Required</div>
+      <button onclick="acceptTerms()" class="btn" style="background:#4ade80; border:none; padding:8px 16px; border-radius:8px; cursor:pointer;">Accept</button>
     </div>
     <div style="font-size:14px; line-height:1.6;">
       <p><strong>⚠️ You must agree to Terms before proceeding:</strong></p>
-      <ul style="margin:12px 0 16px; padding-left:20px;">
+      <ul style="margin:6px 0 12px; padding-left:20px;">
         <li>I am 18+ years old</li>
         <li>Crypto is HIGHLY VOLATILE - I accept ALL risks</li>
         <li>NO refunds on courses/payments</li>
@@ -129,14 +128,14 @@
         <li>Terms may change without notice</li>
         <li>I am responsible for my security</li>
       </ul>
-      <p><a href="terms.html" class="link" target="_blank" style="color:#fff; text-decoration:underline;">Read Full Terms</a></p>
+      <p><a href="terms.html" target="_blank" style="color:white; text-decoration:underline;">Read Full Terms</a></p>
     </div>
   </div>
 </div>
 
-<!-- SIGNUP / LOGIN MODALS (minimal frontend mocks) -->
+<!-- SIGNUP/LOGIN MODALS -->
 <div id="signupModal" aria-hidden="true" role="dialog" style="display:none; position:fixed; inset:0; background: rgba(0,0,0,.6); align-items:center; justify-content:center;">
-  <div style="background:#1f1f2b; color:white; padding:18px; border-radius:10px; width:min(500px,90%); box-shadow:0 6px 20px rgba(0,0,0,.5);">
+  <div style="background:#1f1f2b; color:white; padding:18px; border-radius:10px; width:min(520px,90%); box-shadow:0 6px 20px rgba(0,0,0,.5);">
     <h3 style="margin:0 0 8px;">Sign Up</h3>
     <form id="signupForm" onsubmit="handleSignup(event)">
       <div style="margin-bottom:8px;">
@@ -179,12 +178,15 @@
   </div>
 </div>
 
-<!-- Header (one-line brand bar) -->
+<!-- HEADER -->
 <header>
-  <div class="brand" style="display:flex; align-items:center; gap:10px;">
-    <!-- Simple inline logo -->
-    <svg width="26" height="26" viewBox="0 0 64 64" aria-label="MedorCoin Logo">
-      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd54f"/><stop offset="1" stop-color="#f2b300"/></linearGradient></defs>
+  <div class="brand" aria-label="MedorCoin Brand">
+    <svg width="26" height="26" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="MedorCoin Logo" style="flex:0 0 auto;">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop stop-color="#ffd54f"/><stop offset="1" stop-color="#f2b300"/>
+        </linearGradient>
+      </defs>
       <circle cx="32" cy="32" r="26" fill="url(#g)"/>
       <path d="M32 18 L26 46 L38 46 Z" fill="#1b1b1b" opacity=".9"/>
     </svg>
@@ -193,79 +195,60 @@
 
   <nav id="headerActions" aria-label="header actions">
     <a class="btn" href="home.html" style="min-width:120px; text-align:center;">Home</a>
+    <button class="btn" onclick="scrollToSection('intro')" style="min-width:120px;">Intro</button>
+    <button class="btn" onclick="scrollToSection('coursesSection')" style="min-width:120px;">Courses</button>
+    <a class="btn" href="home.html#courses" style="min-width:120px;">Catalog</a>
     <button class="btn" onclick="openSignup()" style="min-width:120px;">Sign up</button>
     <button class="btn" onclick="openLogin()" style="min-width:120px;">Log in</button>
-    <button class="btn" onclick="scrollToSection('coursesSection')" style="min-width:120px;">Courses</button>
     <button class="btn" onclick="toggleCart()" style="min-width:120px; position:relative;">
       Cart 🛒
-      <span id="cartCount" style="position:absolute; top:-6px; right:-8px; background:#f43f5e; color:white; border-radius:999px; padding:2px 6px; font-size:12px;">0</span>
+      <span id="cartCount" style="position:absolute; top:-6px; right:-12px; background:#f43f5e; color:white; border-radius:999px; padding:2px 6px; font-size:12px;">0</span>
     </button>
-  </nav>
 
-  <!-- Mock account area (hidden until login) -->
-  <div id="accountArea" class="row" style="display:none; align-items:center;">
-    <button class="btn" onclick="goDashboard()">Dashboard</button>
-    <div class="avatar" style="width:28px; height:28px; border-radius:50%; background:#666;" title="Account"></div>
-  </div>
+    <!-- Simple account area (hidden until login) -->
+    <div id="accountArea" class="row" style="display:none; align-items:center;">
+      <button class="btn" onclick="goDashboard()">Dashboard</button>
+      <div class="avatar" title="Account" style="width:28px; height:28px; border-radius:50%; background:#666;"></div>
+    </div>
+  </nav>
 </header>
 
-<!-- HERO / carousel area (left intact) -->
+<!-- HERO / Carousel (left intact) -->
 <section class="container content" id="intro" aria-label="Intro">
   <div class="live-carousel" aria-label="Promotional carousel">
-    <div class="slides">
-
-      <!-- Slide 1 -->
+    <div class="slides" id="slides">
       <div class="slide">
         <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1600&q=80" alt="Live Crypto Market News"/>
-        <div class="caption">
-          <h2>Live Crypto Market News & Trade Charts</h2>
-        </div>
+        <div class="caption"><h2>Live Crypto Market News & Trade Charts</h2></div>
       </div>
-
-      <!-- Slide 2 -->
       <div class="slide">
-        <img src="6B9C31D6-7FD3-4355-BE5B-B2A9ED90B7BE.png" alt="MedorCoin Price"/>
-        <div class="caption">
-          <h2>MedorCoin’s Current Price</h2>
-        </div>
+        <img src="https://images.unsplash.com/photo-1622260565710-5d1f2c1a0f1e?auto=format&fit=crop&w=1600&q=80" alt="MedorCoin Price"/>
+        <div class="caption"><h2>MedorCoin’s Current Price</h2></div>
       </div>
-
-      <!-- Slide 3 -->
       <div class="slide">
-        <img src="https://images.unsplash.com/photo-1621504450181-5fdb1c8b0b5c?auto=format&fit=crop&w=1600&q=80" alt="Mining"/>
-        <div class="caption">
-          <h2>Mining – Learn How To Mine</h2>
-        </div>
+        <img src="https://images.unsplash.com/photo-1610620201141-0d12b2a3f2b4?auto=format&fit=crop&w=1600&q=80" alt="Mining"/>
+        <div class="caption"><h2>Mining – Learn How To Mine</h2></div>
       </div>
-
-      <!-- Slide 4 -->
       <div class="slide">
-        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1600&q=80" alt="Acknowledge True Power"/>
-        <div class="caption">
-          <h2>Acknowledge True Power</h2>
-        </div>
+        <img src="https://images.unsplash.com/photo-1523419409540-3f1c6c7a1d0f?auto=format&fit=crop&w=1600&q=80" alt="Acknowledge True Power"/>
+        <div class="caption"><h2>Acknowledge True Power</h2></div>
       </div>
-
-      <!-- Slide 5 -->
       <div class="slide">
         <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80" alt="Blockchain"/>
-        <div class="caption">
-          <h2>Explore MedorCoin’s Blockchain</h2>
-        </div>
+        <div class="caption"><h2>Explore MedorCoin’s Blockchain</h2></div>
       </div>
-
     </div>
   </div>
 </section>
 
-<!-- MAIN CONTENT: Course catalog reworked to two-column pairs (horizontal pairing)
-     Collaboration: Spot Trading + Futures on the same two-column grid, followed by Options + Mining. -->
+<!-- MAIN CONTENT: Course catalog reworked to two-column pairs
+     - 2-column grid with 6 slots per category (5 items + 1 empty slot) for a neat 3x2 feel. -->
 <main class="container content" id="coursesSection" aria-label="Course catalog">
   <section class="card" id="catalogCard" aria-label="Course catalog blocks">
     <h2 class="section-title" style="color:#fff; margin:0 0 12px;">Course Catalog</h2>
 
-    <div class="grid" id="catalogGrid">
-      <!-- Pair header: Spot Trading | Futures Trad... -->
+    <div class="grid" id="catalogGrid" style="grid-template-columns:repeat(2, 1fr); gap:14px;">
+      <!-- Category headers (row 1) -->
       <div class="block" style="grid-column:1; text-align:left; background:transparent; border:none; color:#fff; font-weight:900;">
         Spot Trading
       </div>
@@ -273,39 +256,39 @@
         Futures Trad...
       </div>
 
-      <!-- Levels 1-5: paired left (Spot) / right (Futures) -->
-      <a href="spot-l1.html" class="block sports" data-category="sports" data-level="1" title="Spot Trading Level 1" style="grid-column:1;">
+      <!-- Level 1-5: Spot (left) + Futures (right) -->
+      <a href="spot-l1.html" class="block sports" data-category="sports" data-level="1" style="grid-column:1;">
         Spot Level 1
       </a>
-      <a href="futures-l1.html" class="block futures" data-category="futures" data-level="1" title="Futures Level 1" style="grid-column:2;">
+      <a href="futures-l1.html" class="block futures" data-category="futures" data-level="1" style="grid-column:2;">
         Futures Level 1
       </a>
 
-      <a href="spot-l2.html" class="block sports" data-category="sports" data-level="2" title="Spot Trading Level 2" style="grid-column:1;">
+      <a href="spot-l2.html" class="block sports" data-category="sports" data-level="2" style="grid-column:1;">
         Spot Level 2
       </a>
-      <a href="futures-l2.html" class="block futures" data-category="futures" data-level="2" title="Futures Level 2" style="grid-column:2;">
+      <a href="futures-l2.html" class="block futures" data-category="futures" data-level="2" style="grid-column:2;">
         Futures Level 2
       </a>
 
-      <a href="spot-l3.html" class="block sports" data-category="sports" data-level="3" title="Spot Trading Level 3" style="grid-column:1;">
+      <a href="spot-l3.html" class="block sports" data-category="sports" data-level="3" style="grid-column:1;">
         Spot Level 3
       </a>
-      <a href="futures-l3.html" class="block futures" data-category="futures" data-level="3" title="Futures Level 3" style="grid-column:2;">
+      <a href="futures-l3.html" class="block futures" data-category="futures" data-level="3" style="grid-column:2;">
         Futures Level 3
       </a>
 
-      <a href="spot-l4.html" class="block sports" data-category="sports" data-level="4" title="Spot Trading Level 4" style="grid-column:1;">
+      <a href="spot-l4.html" class="block sports" data-category="sports" data-level="4" style="grid-column:1;">
         Spot Level 4
       </a>
-      <a href="futures-l4.html" class="block futures" data-category="futures" data-level="4" title="Futures Level 4" style="grid-column:2;">
+      <a href="futures-l4.html" class="block futures" data-category="futures" data-level="4" style="grid-column:2;">
         Futures Level 4
       </a>
 
-      <a href="spot-l5.html" class="block sports" data-category="sports" data-level="5" title="Spot Trading Level 5" style="grid-column:1;">
+      <a href="spot-l5.html" class="block sports" data-category="sports" data-level="5" style="grid-column:1;">
         Spot Level 5
       </a>
-      <a href="futures-l5.html" class="block futures" data-category="futures" data-level="5" title="Futures Level 5" style="grid-column:2;">
+      <a href="futures-l5.html" class="block futures" data-category="futures" data-level="5" style="grid-column:2;">
         Futures Level 5
       </a>
 
@@ -317,45 +300,53 @@
         Mining Trad...
       </div>
 
-      <a href="options-l1.html" class="block options" data-category="options" data-level="1" title="Options Level 1" style="grid-column:1;">
+      <a href="options-l1.html" class="block options" data-category="options" data-level="1" style="grid-column:1;">
         Options Level 1
       </a>
-      <a href="mining-l1.html" class="block mining" data-category="mining" data-level="1" title="Mining Level 1" style="grid-column:2;">
+      <a href="mining-l1.html" class="block mining" data-category="mining" data-level="1" style="grid-column:2;">
         Mining Level 1
       </a>
 
-      <a href="options-l2.html" class="block options" data-category="options" data-level="2" title="Options Level 2" style="grid-column:1;">
+      <a href="options-l2.html" class="block options" data-category="options" data-level="2" style="grid-column:1;">
         Options Level 2
       </a>
-      <a href="mining-l2.html" class="block mining" data-category="mining" data-level="2" title="Mining Level 2" style="grid-column:2;">
+      <a href="mining-l2.html" class="block mining" data-category="mining" data-level="2" style="grid-column:2;">
         Mining Level 2
       </a>
 
-      <a href="options-l3.html" class="block options" data-category="options" data-level="3" title="Options Level 3" style="grid-column:1;">
+      <a href="options-l3.html" class="block options" data-category="options" data-level="3" style="grid-column:1;">
         Options Level 3
       </a>
-      <a href="mining-l3.html" class="block mining" data-category="mining" data-level="3" title="Mining Level 3" style="grid-column:2;">
+      <a href="mining-l3.html" class="block mining" data-category="mining" data-level="3" style="grid-column:2;">
         Mining Level 3
       </a>
 
-      <a href="options-l4.html" class="block options" data-category="options" data-level="4" title="Options Level 4" style="grid-column:1;">
+      <a href="options-l4.html" class="block options" data-category="options" data-level="4" style="grid-column:1;">
         Options Level 4
       </a>
-      <a href="mining-l4.html" class="block mining" data-category="mining" data-level="4" title="Mining Level 4" style="grid-column:2;">
+      <a href="mining-l4.html" class="block mining" data-category="mining" data-level="4" style="grid-column:2;">
         Mining Level 4
       </a>
 
-      <a href="options-l5.html" class="block options" data-category="options" data-level="5" title="Options Level 5" style="grid-column:1;">
+      <a href="options-l5.html" class="block options" data-category="options" data-level="5" style="grid-column:1;">
         Options Level 5
       </a>
-      <a href="mining-l5.html" class="block mining" data-category="mining" data-level="5" title="Mining Level 5" style="grid-column:2;">
+      <a href="mining-l5.html" class="block mining" data-category="mining" data-level="5" style="grid-column:2;">
         Mining Level 5
       </a>
+
+      <!-- API Block: spans both columns -->
+      <a href="get-api.html" class="block api" data-category="api" style="grid-column:1 / span 2; background:#d7ebff; color:#37474f; font-weight:800; text-align:center;">
+        Get an API Now
+      </a>
+
+      <!-- Optional empty slot to satisfy "5 items + 1 empty" visually (hidden) -->
+      <a class="block" href="#" aria-label="Empty Slot" style="grid-column:1; visibility:hidden; height:0; padding:0; border:0;"></a>
     </div>
   </section>
 
   <!-- CART / CHECKOUT FLOW PLACEHOLDER -->
-  <div id="cartInbox" class="card" style="margin-top:14px; display:none;">
+  <div id="cartInbox" class="card" style="margin:14px 0 0; display:none;">
     <h3 style="margin:0 0 8px;">Your Cart</h3>
     <div id="cartItems"></div>
     <div class="cart-total" id="cartSubtotal"></div>
@@ -365,7 +356,7 @@
     </div>
   </div>
 
-  <!-- Hidden checkout/receipt/dashboard sections to realize the flow -->
+  <!-- Checkout / Receipt / Dashboard sections (basic flow) -->
   <section id="checkoutView" class="card" aria-label="Checkout" style="display:none; margin-top:14px;">
     <h3>Checkout</h3>
     <div id="checkoutItems"></div>
@@ -392,11 +383,12 @@
     <p class="muted" id="dashboardNote" style="margin:6px 0 12px;"></p>
     <div id="enrolledCourses"></div>
   </section>
-</main>
+</section>
 
-<!-- FAQ (arranged vertically as requested) -->
+<!-- FAQ (vertical layout) -->
 <section class="container content" id="faq" aria-label="FAQ">
   <h2> FAQ </h2>
+
   <div class="faq-item" style="margin:6px 0;">
     <button onclick="toggleAnswer('qa1')">⭐ Q: What is the MedorCoin Course?</button>
     <div id="qa1" style="display:none; padding-left:12px;">
@@ -404,16 +396,16 @@
     </div>
   </div>
 
-  <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
+  <hr class="divider" style="border:none; height:1px; background:#333; margin:8px 0;" />
 
   <div class="faq-item" style="margin:6px 0;">
     <button onclick="toggleAnswer('qa2')">🔍 Q: How does the course preview work?</button>
     <div id="qa2" style="display:none; padding-left:12px;">
-      <p>A: You can explore a limited sample of lessons before signing up. Preview includes intro videos, module titles, and a skills outline. Full lessons and downloadable materials are locked until you enroll and pay.</p>
+      <p>A: You can explore a limited sample of lessons before signing up. Preview includes intro videos, module titles, and a skills outline.</p>
     </div>
   </div>
 
-  <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
+  <hr class="divider" style="border:none; height:1px; background:#333; margin:8px 0;" />
 
   <div class="faq-item" style="margin:6px 0;">
     <button onclick="toggleAnswer('qa3')">📌 Q: How do I sign up?</button>
@@ -422,7 +414,7 @@
     </div>
   </div>
 
-  <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
+  <hr class="divider" style="border:none; height:1px; background:#333; margin:8px 0;" />
 
   <div class="faq-item" style="margin:6px 0;">
     <button onclick="toggleAnswer('qa4')">📚 Q: How do I choose which course to take?</button>
@@ -431,7 +423,7 @@
     </div>
   </div>
 
-  <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
+  <hr class="divider" style="border:none; height:1px; background:#333; margin:8px 0;" />
 
   <div class="faq-item" style="margin:6px 0;">
     <button onclick="toggleAnswer('qa5')">🛒 Q: After purchasing, why is some content still locked?</button>
@@ -441,7 +433,7 @@
   </div>
 </section>
 
-<!-- Photo placeholder & copyright / disclaimer (self-updating year) -->
+<!-- Photo & copyright / disclaimer -->
 <section class="photo-block" aria-label="Photo and copyright">
   <div class="photo-placeholder" aria-label="Photo placeholder">
     <span>MedorCoin Photo © 2026</span>
@@ -461,32 +453,30 @@
 </footer>
 
 <script>
+  // Simple helper: scroll to a section
+  function scrollToSection(id){
+    const el = document.getElementById(id);
+    if(el){
+      el.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+  }
+
   // Footer year (self-updating)
   document.getElementById('footerYear').textContent = '© ' + new Date().getFullYear() + ' MedorCoin. All rights reserved.';
 
-  // FAQ toggle helper
+  // Terms gating (preserve)
+  let termsAccepted = localStorage.getItem('medorcoin_terms') === 'accepted';
+  function showTermsModal(){ document.getElementById('termsModal').style.display = 'flex'; }
+  function acceptTerms(){ localStorage.setItem('medorcoin_terms', 'accepted'); termsAccepted = true; document.getElementById('termsModal').style.display = 'none'; }
+
+  // FAQ toggle
   function toggleAnswer(id){
     const el = document.getElementById(id);
     if(!el) return;
     el.style.display = (el.style.display === 'block') ? 'none' : 'block';
   }
 
-  // Keyboard-friendly FAQ (optional)
-  document.querySelectorAll('[aria-label="FAQ"] button').forEach(btn => {
-    btn.addEventListener('keydown', (e) => {
-      if(e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        btn.click();
-      }
-    });
-  });
-
-  // Simple terms gating (preserve original gating idea)
-  let termsAccepted = localStorage.getItem('medorcoin_terms') === 'accepted';
-  function showTermsModal(){ document.getElementById('termsModal').style.display = 'flex'; }
-  function acceptTerms(){ localStorage.setItem('medorcoin_terms', 'accepted'); termsAccepted = true; document.getElementById('termsModal').style.display = 'none'; }
-
-  // CART logic (basic)
+  // CART: core structures
   const cart = [];
   const PRICING = {
     sports: {1: 29, 2: 39, 3: 49, 4: 59, 5: 69},
@@ -495,9 +485,8 @@
     mining: {1: 25, 2: 30, 3: 35, 4: 40, 5: 45}
   };
 
-  // Attach "Add to Cart" buttons to all blocks
+  // Create Add to Cart buttons on all tiles
   document.addEventListener('DOMContentLoaded', function(){
-    // Create Add to Cart button on each block
     document.querySelectorAll('.block').forEach(b => {
       if(b.querySelector('.addToCartBtn')) return;
       const btn = document.createElement('button');
@@ -511,7 +500,6 @@
       btn.style.borderRadius = '6px';
       btn.style.background = '#111';
       btn.style.border = '1px solid #333';
-      btn.style.color = '#fff';
       btn.classList.add('addToCartBtn');
       btn.onclick = function(e){
         e.preventDefault();
@@ -524,7 +512,7 @@
       b.appendChild(btn);
     });
 
-    // Simple cart drawer
+    // Cart Drawer
     const drawer = document.createElement('div');
     drawer.id = 'cartDrawer';
     drawer.className = 'cart-drawer';
@@ -539,7 +527,7 @@
     `;
     document.body.appendChild(drawer);
 
-    // Show cart badge
+    // Initial badge
     renderCartBadge();
   });
 
@@ -579,13 +567,13 @@
   function toggleCart(){
     const drawer = document.getElementById('cartDrawer');
     if(!drawer) return;
-    drawer.style.display = (drawer.style.display === 'block' || drawer.style.transform !== '') ? 'block' : 'block';
+    drawer.style.display = (drawer.style.display === 'block' || drawer.style.opacity === '1') ? 'block' : 'block';
   }
 
   function openCheckout(){
     document.getElementById('checkoutView').style.display = 'block';
     document.getElementById('dashboardView').style.display = 'none';
-    document.getElementById(' receiptView')?.style.display = 'none';
+    document.getElementById('receiptView').style.display = 'none';
     const cont = document.getElementById('checkoutItems');
     cont.innerHTML = '';
     let total = 0;
@@ -645,7 +633,7 @@
     document.getElementById('dashboardNote').textContent = 'You are now enrolled in the selected courses. Click a course to start learning.';
   }
 
-  // Sign up / login mocks (kept simple)
+  // Sign up / login mocks
   function openSignup(){ document.getElementById('signupModal').style.display = 'flex'; }
   function closeSignup(){ document.getElementById('signupModal').style.display = 'none'; }
   function openLogin(){ document.getElementById('loginModal').style.display = 'flex'; }
@@ -673,6 +661,7 @@
     localStorage.removeItem('medorcoin_user');
     renderHeaderState();
   }
+
   function renderHeaderState(){
     const acct = document.getElementById('accountArea');
     if(localStorage.getItem('medorcoin_user')){
@@ -682,24 +671,36 @@
     }
   }
 
-  // Init
+  // Simple header state on load
   document.addEventListener('DOMContentLoaded', function(){
     renderHeaderState();
-    // Seed cart count
-    renderCartBadge();
-
-    // Keyboard-friendly FAQ toggle (optional)
-    document.querySelectorAll('[aria-label="FAQ"] button').forEach(btn => {
-      btn.addEventListener('keydown', (e) => {
-        if(e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          btn.click();
-        }
-      });
-    });
+    // Show terms modal on first visit if not accepted
+    if(!localStorage.getItem('medorcoin_terms_accepted')){
+      showTermsModal = function(){ document.getElementById('termsModal').style.display = 'flex'; };
+      showTermsModal();
+    }
   });
+
+  // Helper: simple OTP-like focus behavior after modal accepts
+  function focusMain() {
+    document.querySelector('header')?.focus?.();
+  }
+
+  // Initialize a minimal auto-rotate for the hero carousel
+  (function initCarousel(){
+    const slidesWrap = document.getElementById('slides');
+    if(!slidesWrap) return;
+    const slides = slidesWrap.children;
+    let idx = 0;
+    const total = slides.length;
+    function next(){
+      idx = (idx + 1) % total;
+      slidesWrap.style.transform = `translateX(-${idx * 100}%)`;
+    }
+    slidesWrap.style.transform = 'translateX(0%)';
+    if (total > 1) setInterval(next, 5000);
+  })();
 </script>
 
 </body>
 </html>
-
