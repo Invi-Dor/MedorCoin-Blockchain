@@ -18,19 +18,20 @@
     }
     * { box-sizing: border-box; }
     body{ font-family: system-ui, Arial, sans-serif; margin:0; padding:0; background:var(--bg); color:var(--text); font-size:14px; }
-    /* Header: one-line brand bar */
+    /* Header: one-line brand bar (horizontal) */
     header {
       padding: 10px 16px;
       background: #12141a;
       border-bottom: 1px solid #252833;
-      display:flex; align-items:center; justify-content:space-between;
+      display:flex; align-items:center; justify-content:space-between; flex-wrap:nowrap;
     }
-    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; color:white; }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; color:white; white-space:nowrap; }
     .brand svg{ width:26px; height:26px; }
     .brand-name{ font-size:16px; white-space:nowrap; }
-    .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    #headerActions{ display:flex; align-items:center; gap:12px; white-space:nowrap; }
     .btn{ padding:10px 16px; background:var(--blue); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700; text-decoration:none; display:inline-block; }
     .muted{ color:var(--muted); }
+
     /* Carousel (left intact) */
     .live-carousel { position: relative; width: 100%; max-width: 1400px; margin: 20px auto; overflow: hidden; border-radius: 15px; }
     .slides { display:flex; transition: transform 0.8s ease-in-out; }
@@ -75,14 +76,31 @@
     .photo-placeholder{ width:320px; height:180px; margin:0 auto; border-radius:6px; background:#444; display:flex; align-items:center; justify-content:center; color:#ddd; }
     .disclaimer{ font-size:12px; color:#bbb; padding:6px 16px 20px; }
 
-    /* Footer / Discord banner at the bottom as requested */
-    .footer-discord{ background:#2a2a2a; color:#fff; padding:12px 16px; text-align:center; margin-top:40px; border-top:1px solid #333; }
-
+    /* Footer / (Discord banner removed per request) */
     footer{ margin-top:20px; font-size:12px; color:#888; text-align:center; padding:20px 0; border-top:1px solid #333; }
 
-    /* FAQ unchanged: keep original state; ensure font size remains 14px in FAQ area as requested */
+    /* FAQ: ensure vertical layout and phone-size rules
+       - On small screens: font-size 14px, sans-serif
+    */
     #faq { padding-top:6px; }
     #faq h2 { font-size: 18px; }
+
+    @media (max-width: 600px){
+      #faq { font-family: sans-serif; font-size: 14px; }
+      #faq h2 { font-size: 18px; }
+    }
+
+    /* Simple keyboard-friendly FAQ (optional) */
+    [aria-label="FAQ"] button {
+      width: 100%;
+      text-align:left;
+      background: transparent;
+      border: none;
+      color: #fff;
+      padding: 8px 0;
+      font-weight: 600;
+      cursor: pointer;
+    }
 
     /* Responsive tweaks: keep two-column blocks on small screens too (still two columns but stack nicely) */
     @media (max-width: 900px){
@@ -173,16 +191,16 @@
     <span class="brand-name" style="color:white;">MedorCoin Courses</span>
   </div>
 
-  <div class="row" id="headerActions" aria-label="header actions">
+  <nav id="headerActions" aria-label="header actions">
     <a class="btn" href="home.html" style="min-width:120px; text-align:center;">Home</a>
     <button class="btn" onclick="openSignup()" style="min-width:120px;">Sign up</button>
     <button class="btn" onclick="openLogin()" style="min-width:120px;">Log in</button>
     <button class="btn" onclick="scrollToSection('coursesSection')" style="min-width:120px;">Courses</button>
     <button class="btn" onclick="toggleCart()" style="min-width:120px; position:relative;">
-      Cart
+      Cart 🛒
       <span id="cartCount" style="position:absolute; top:-6px; right:-8px; background:#f43f5e; color:white; border-radius:999px; padding:2px 6px; font-size:12px;">0</span>
     </button>
-  </div>
+  </nav>
 
   <!-- Mock account area (hidden until login) -->
   <div id="accountArea" class="row" style="display:none; align-items:center;">
@@ -240,109 +258,99 @@
   </div>
 </section>
 
-<!-- MAIN CONTENT: Course catalog arranged in two-column grids (3x2 layout per category) -->
+<!-- MAIN CONTENT: Course catalog reworked to two-column pairs (horizontal pairing)
+     Collaboration: Spot Trading + Futures on the same two-column grid, followed by Options + Mining. -->
 <main class="container content" id="coursesSection" aria-label="Course catalog">
   <section class="card" id="catalogCard" aria-label="Course catalog blocks">
     <h2 class="section-title" style="color:#fff; margin:0 0 12px;">Course Catalog</h2>
 
-    <!-- Sports Trading: 5 levels, 2 columns x 3 rows (layout pads with a hidden slot) -->
-    <div class="sep" aria-hidden="true"></div>
-    <div class="section-title" style="color:#fff; border-bottom:1px solid #333; padding-bottom:6px; margin-bottom:6px;">
-      Sports Trading
-    </div>
-    <div class="grid" id="sportsGrid">
-      <a href="spot-l1.html" class="block sports" data-category="sports" data-level="1" title="Spot Trading Level 1">
-        <span>Spot Trading<br><span class="label">Level 1</span></span>
-      </a>
-      <a href="spot-l2.html" class="block sports" data-category="sports" data-level="2" title="Spot Trading Level 2">
-        <span>Spot Trading<br><span class="label">Level 2</span></span>
-      </a>
-      <a href="spot-l3.html" class="block sports" data-category="sports" data-level="3" title="Spot Trading Level 3">
-        <span>Spot Trading<br><span class="label">Level 3</span></span>
-      </a>
-      <a href="spot-l4.html" class="block sports" data-category="sports" data-level="4" title="Spot Trading Level 4">
-        <span>Spot Trading<br><span class="label">Level 4</span></span>
-      </a>
-      <a href="spot-l5.html" class="block sports" data-category="sports" data-level="5" title="Spot Trading Level 5">
-        <span>Spot Trading<br><span class="label">Level 5</span></span>
-      </a>
-      <!-- Empty slot to maintain 3x2 grid alignment -->
-      <div class="block" aria-hidden="true" style="visibility:hidden; pointer-events:none;"></div>
-    </div>
+    <div class="grid" id="catalogGrid">
+      <!-- Pair header: Spot Trading | Futures Trad... -->
+      <div class="block" style="grid-column:1; text-align:left; background:transparent; border:none; color:#fff; font-weight:900;">
+        Spot Trading
+      </div>
+      <div class="block" style="grid-column:2; text-align:left; background:transparent; border:none; color:#fff; font-weight:900;">
+        Futures Trad...
+      </div>
 
-    <div class="sep" aria-hidden="true"></div>
+      <!-- Levels 1-5: paired left (Spot) / right (Futures) -->
+      <a href="spot-l1.html" class="block sports" data-category="sports" data-level="1" title="Spot Trading Level 1" style="grid-column:1;">
+        Spot Level 1
+      </a>
+      <a href="futures-l1.html" class="block futures" data-category="futures" data-level="1" title="Futures Level 1" style="grid-column:2;">
+        Futures Level 1
+      </a>
 
-    <!-- Futures: 5 levels -->
-    <div class="section-title" style="color:gold; border-bottom:1px solid #333; padding-bottom:6px; margin-bottom:6px;">
-      Futures
-    </div>
-    <div class="grid" id="futuresGrid">
-      <a href="futures-l1.html" class="block futures" data-category="futures" data-level="1" title="Futures Level 1">
-        <span>Futures Level 1</span>
+      <a href="spot-l2.html" class="block sports" data-category="sports" data-level="2" title="Spot Trading Level 2" style="grid-column:1;">
+        Spot Level 2
       </a>
-      <a href="futures-l2.html" class="block futures" data-category="futures" data-level="2" title="Futures Level 2">
-        <span>Futures Level 2</span>
+      <a href="futures-l2.html" class="block futures" data-category="futures" data-level="2" title="Futures Level 2" style="grid-column:2;">
+        Futures Level 2
       </a>
-      <a href="futures-l3.html" class="block futures" data-category="futures" data-level="3" title="Futures Level 3">
-        <span>Futures Level 3</span>
-      </a>
-      <a href="futures-l4.html" class="block futures" data-category="futures" data-level="4" title="Futures Level 4">
-        <span>Futures Level 4</span>
-      </a>
-      <a href="futures-l5.html" class="block futures" data-category="futures" data-level="5" title="Futures Level 5">
-        <span>Futures Level 5</span>
-      </a>
-      <div class="block" aria-hidden="true" style="visibility:hidden; pointer-events:none;"></div>
-    </div>
 
-    <div class="sep" aria-hidden="true"></div>
+      <a href="spot-l3.html" class="block sports" data-category="sports" data-level="3" title="Spot Trading Level 3" style="grid-column:1;">
+        Spot Level 3
+      </a>
+      <a href="futures-l3.html" class="block futures" data-category="futures" data-level="3" title="Futures Level 3" style="grid-column:2;">
+        Futures Level 3
+      </a>
 
-    <!-- Options: 5 levels -->
-    <div class="section-title" style="color:#333; background:#f7f9a8; display:inline-block; padding:6px 12px; border-radius:6px; margin-bottom:6px;">
-      Options
-    </div>
-    <div class="grid" id="optionsGrid">
-      <a href="options-l1.html" class="block options" data-category="options" data-level="1" title="Options Level 1">
-        <span>Options Level 1</span>
+      <a href="spot-l4.html" class="block sports" data-category="sports" data-level="4" title="Spot Trading Level 4" style="grid-column:1;">
+        Spot Level 4
       </a>
-      <a href="options-l2.html" class="block options" data-category="options" data-level="2" title="Options Level 2">
-        <span>Options Level 2</span>
+      <a href="futures-l4.html" class="block futures" data-category="futures" data-level="4" title="Futures Level 4" style="grid-column:2;">
+        Futures Level 4
       </a>
-      <a href="options-l3.html" class="block options" data-category="options" data-level="3" title="Options Level 3">
-        <span>Options Level 3</span>
-      </a>
-      <a href="options-l4.html" class="block options" data-category="options" data-level="4" title="Options Level 4">
-        <span>Options Level 4</span>
-      </a>
-      <a href="options-l5.html" class="block options" data-category="options" data-level="5" title="Options Level 5">
-        <span>Options Level 5</span>
-      </a>
-      <div class="block" aria-hidden="true" style="visibility:hidden; pointer-events:none;"></div>
-    </div>
 
-    <div class="sep" aria-hidden="true"></div>
+      <a href="spot-l5.html" class="block sports" data-category="sports" data-level="5" title="Spot Trading Level 5" style="grid-column:1;">
+        Spot Level 5
+      </a>
+      <a href="futures-l5.html" class="block futures" data-category="futures" data-level="5" title="Futures Level 5" style="grid-column:2;">
+        Futures Level 5
+      </a>
 
-    <!-- Mining: 5 levels -->
-    <div class="section-title" style="color:#fff;">
-      Mining
-    </div>
-    <div class="grid" id="miningGrid">
-      <a href="mining-l1.html" class="block mining" data-category="mining" data-level="1" title="Mining Level 1">
-        <span>Mining Level 1</span>
+      <!-- Pair header: Options | Mining -->
+      <div class="block" style="grid-column:1; text-align:left; background: transparent; border:none; color:#fff; font-weight:900;">
+        Options
+      </div>
+      <div class="block" style="grid-column:2; text-align:left; background: transparent; border:none; color:#fff; font-weight:900;">
+        Mining Trad...
+      </div>
+
+      <a href="options-l1.html" class="block options" data-category="options" data-level="1" title="Options Level 1" style="grid-column:1;">
+        Options Level 1
       </a>
-      <a href="mining-l2.html" class="block mining" data-category="mining" data-level="2" title="Mining Level 2">
-        <span>Mining Level 2</span>
+      <a href="mining-l1.html" class="block mining" data-category="mining" data-level="1" title="Mining Level 1" style="grid-column:2;">
+        Mining Level 1
       </a>
-      <a href="mining-l3.html" class="block mining" data-category="mining" data-level="3" title="Mining Level 3">
-        <span>Mining Level 3</span>
+
+      <a href="options-l2.html" class="block options" data-category="options" data-level="2" title="Options Level 2" style="grid-column:1;">
+        Options Level 2
       </a>
-      <a href="mining-l4.html" class="block mining" data-category="mining" data-level="4" title="Mining Level 4">
-        <span>Mining Level 4</span>
+      <a href="mining-l2.html" class="block mining" data-category="mining" data-level="2" title="Mining Level 2" style="grid-column:2;">
+        Mining Level 2
       </a>
-      <a href="mining-l5.html" class="block mining" data-category="mining" data-level="5" title="Mining Level 5">
-        <span>Mining Level 5</span>
+
+      <a href="options-l3.html" class="block options" data-category="options" data-level="3" title="Options Level 3" style="grid-column:1;">
+        Options Level 3
       </a>
-      <div class="block" aria-hidden="true" style="visibility:hidden; pointer-events:none;"></div>
+      <a href="mining-l3.html" class="block mining" data-category="mining" data-level="3" title="Mining Level 3" style="grid-column:2;">
+        Mining Level 3
+      </a>
+
+      <a href="options-l4.html" class="block options" data-category="options" data-level="4" title="Options Level 4" style="grid-column:1;">
+        Options Level 4
+      </a>
+      <a href="mining-l4.html" class="block mining" data-category="mining" data-level="4" title="Mining Level 4" style="grid-column:2;">
+        Mining Level 4
+      </a>
+
+      <a href="options-l5.html" class="block options" data-category="options" data-level="5" title="Options Level 5" style="grid-column:1;">
+        Options Level 5
+      </a>
+      <a href="mining-l5.html" class="block mining" data-category="mining" data-level="5" title="Mining Level 5" style="grid-column:2;">
+        Mining Level 5
+      </a>
     </div>
   </section>
 
@@ -386,7 +394,7 @@
   </section>
 </main>
 
-<!-- FOOTER / FAQ (FAQ kept in original state as requested) -->
+<!-- FAQ (arranged vertically as requested) -->
 <section class="container content" id="faq" aria-label="FAQ">
   <h2> FAQ </h2>
   <div class="faq-item" style="margin:6px 0;">
@@ -431,7 +439,6 @@
       <p>A: Bulk purchases unlock multiple levels; ensure you complete prerequisites to access advanced sections.</p>
     </div>
   </div>
-
 </section>
 
 <!-- Photo placeholder & copyright / disclaimer (self-updating year) -->
@@ -453,11 +460,6 @@
   </div>
 </footer>
 
-<!-- JOIN DISCORD (moved to bottom as requested) -->
-<div class="footer-discord" aria-label="Discord notice" style="width:100%;">
-  Join our Discord community for support and updates: discord.gg/MedorCoin
-</div>
-
 <script>
   // Footer year (self-updating)
   document.getElementById('footerYear').textContent = '© ' + new Date().getFullYear() + ' MedorCoin. All rights reserved.';
@@ -468,6 +470,16 @@
     if(!el) return;
     el.style.display = (el.style.display === 'block') ? 'none' : 'block';
   }
+
+  // Keyboard-friendly FAQ (optional)
+  document.querySelectorAll('[aria-label="FAQ"] button').forEach(btn => {
+    btn.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        btn.click();
+      }
+    });
+  });
 
   // Simple terms gating (preserve original gating idea)
   let termsAccepted = localStorage.getItem('medorcoin_terms') === 'accepted';
@@ -676,10 +688,16 @@
     // Seed cart count
     renderCartBadge();
 
-    // Small helper: clicking on a category could navigate to its page (handled by each block link)
+    // Keyboard-friendly FAQ toggle (optional)
+    document.querySelectorAll('[aria-label="FAQ"] button').forEach(btn => {
+      btn.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          btn.click();
+        }
+      });
+    });
   });
-
-  // FAQ: keep as-is beyond this script
 </script>
 
 </body>
