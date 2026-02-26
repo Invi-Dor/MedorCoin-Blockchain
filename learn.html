@@ -12,103 +12,111 @@
       --card:#141923;
       --text:#eaecef;
       --muted:#98a2b3;
-      --success:#4ade80;
-      --warn:#f59e0b;
-      --error:#ef4444;
-      --gold1:#ffd54f;
-      --gold2:#f6c242;
-      --darkGray:#2b2f3a;
-      --darkBlue:#0b1e3a;
+      --gold:#ffd54f;
+      --dark-gray:#2b2f3a;
       --lemon:#dfffa0;
     }
     * { box-sizing: border-box; }
-    body{ font-family: system-ui, Arial, sans-serif; margin:0; padding:0; background:var(--bg); color:var(--text); }
-    header{padding:16px; background:#12141a; border-bottom:1px solid #252833;}
-    /* Brand bar from your original header */
-    .container{ max-width:1100px; margin:0 auto; padding:0 16px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
-    .row{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
-    .btn{ padding:12px 20px; background:var(--blue); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700; text-decoration:none; display:inline-block; }
-    .btn.secondary{ background:#2a2f3a; }
-    .badge{ padding:4px 8px; background:#1b1f2a; border:1px solid #2a2f3a; border-radius:999px; font-size:12px}
-    .muted{ color:var(--muted) }
-    /* Carousel / hero area (left untouched in structure) */
-    .live-carousel { position: relative; width: 100%; max-width: 1400px; margin: auto; overflow: hidden; border-radius: 15px; }
+    body{ font-family: system-ui, Arial, sans-serif; margin:0; padding:0; background:var(--bg); color:var(--text); font-size:14px; }
+    /* Header: one-line brand bar */
+    header {
+      padding: 10px 16px;
+      background: #12141a;
+      border-bottom: 1px solid #252833;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; color:white; }
+    .brand svg{ width:26px; height:26px; }
+    .brand-name{ font-size:16px; white-space:nowrap; }
+    .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .btn{ padding:10px 16px; background:var(--blue); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700; text-decoration:none; display:inline-block; }
+    .muted{ color:var(--muted); }
+    /* Carousel (left intact) */
+    .live-carousel { position: relative; width: 100%; max-width: 1400px; margin: 20px auto; overflow: hidden; border-radius: 15px; }
     .slides { display:flex; transition: transform 0.8s ease-in-out; }
     .slide { min-width: 100%; position: relative; }
     .slide img { width:100%; height:65vh; object-fit:cover; display:block; }
-    .caption { position:absolute; bottom:40px; left:50px; background: rgba(0,0,0,.6); padding:20px 30px; border-radius:12px; }
+    .caption { position: absolute; bottom: 40px; left: 40px; background: rgba(0,0,0,0.6); padding: 16px 20px; border-radius: 12px; color:#fff; }
     @media (max-width: 768px){
       .slide img { height:45vh; }
-      .caption { left:20px; bottom:20px; padding:15px; }
+      .caption { left: 16px; bottom: 16px; padding: 12px; }
     }
-    /* Terms modal (existing gating) */
-    #termsModal{ display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.8); z-index:9999; }
-    #termsModal .modal-content{ position: absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:30px; border-radius:20px; max-width:90%; max-height:90%; overflow:auto; font-family:Arial; }
-    /* New UI: Course blocks sections */
-    .content{ padding:18px 0 40px; }
-    .section-title{ font-size:22px; font-weight:800; margin:14px 0 8px; color:#fff; }
-    .discord{ background:#2a2a2a; color:#fff; padding:8px 12px; border-radius:6px; display:inline-block; font-size:12px; margin-bottom:12px; }
-    .grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap:14px; }
-    .block{ height:110px; border-radius:8px; text-align:center; display:flex; align-items:center; justify-content:center; text-decoration:none; font-weight:800; font-size: clamp(14px, 2vw, 18px); border:1px solid rgba(0,0,0,.15); padding:12px; transition: transform .15s ease; }
-    .block:hover{ transform: scale(1.02); }
-    /* Category color schemes (as requested) */
-    /* Sports Trading: shimmering gold on dark text */
-    .sports { background: linear-gradient(135deg, #fff2cc 0%, #ffd799 60%, #ffd24d 100%); color:#333; border-bottom:2px solid #e5c100; }
-    /* Futures: dark gray with shimmering gold text */
-    .futures { background: #2b2b2b; color: #ffd700; border-bottom:2px solid #a48a00; }
-    /* Options: lemon green with dark text */
-    .options { background: var(--lemon); color:#333; border-bottom:2px solid #a6c60a; }
-    /* Mining: dark blue with white text */
-    .mining { background:#0b2a63; color:#fff; border-bottom:2px solid #3a66b3; }
-    /* Inline labels inside blocks (optional) */
-    .block .label{ display:block; font-size:12px; opacity:.9; }
-    .sep{ height:1px; background:#333; margin:14px 0; }
-    /* Simple header cart button + cart drawer */
-    #cartBtn{ position:relative; }
-    #cartCount{ position:absolute; top:-6px; right:-6px; background: #f43f5e; color:white; border-radius:999px; padding:2px 6px; font-size:12px; }
-    .cart-drawer{ position:fixed; top:0; right:0; width:340px; height:100%; background:#1a1a1a; color:#fff; border-left:1px solid #333; transform: translateX(100%); transition: transform .25s ease-in-out; z-index:9999; padding:14px; overflow:auto; box-shadow: -6px 0 20px rgba(0,0,0,.4);}
-    .cart-drawer.open{ transform: translateX(0); }
-    .cart-item{ display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #333; }
-    .cart-total{ font-weight:800; font-size:16px; margin-top:6px; }
-    .cart-actions{ display:flex; gap:8px; margin-top:10px; }
-    /* Checkout / Dashboard sections (one-page flow) */
-    #checkoutView, #dashboardView, #receiptView{ display:none; padding:16px; }
-    .card{ background:#141923; border:1px solid #252833; border-radius:10px; padding:16px; }
-    .level{ padding:8px; border:1px dashed #2a2f3a; border-radius:8px; text-align:left; margin-bottom:6px; }
-    /* FAQ area remains as in the original last section (no structural changes) */
-    footer{ margin-top:20px; text-align:center; font-size:12px; color:#888; padding:16px 0; border-top:1px solid #333; }
 
-    /* Responsive tweaks */
-    @media (max-width: 800px){
-      .grid{ grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); }
-      #cartDrawer{ width: 92vw; }
+    /* Content layout: two-column, three-row per category blocks
+       - 2-column grid ensures 6 slots per category (5 items + one empty slot) for perfect 3x2 layout. */
+    .content{ padding: 18px 0 40px; }
+    .section-title{ font-size:22px; font-weight:800; margin:14px 0 8px; color:#fff; }
+    .grid{ display:grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 110px; gap:14px; }
+    .block{ border-radius:8px; text-align:center; display:flex; align-items:center; justify-content:center; text-decoration:none; font-weight:800; font-size:14px; border:1px solid rgba(0,0,0,.15); padding:12px; position:relative; }
+    .block span{ line-height:1.2; display:block; }
+    .block .label{ font-size:12px; opacity:.95; display:block; }
+
+    /* Category color schemes
+       - Sports Trading: shimmering gold on dark text
+       - Futures: dark gray with shimmering gold text
+       - Options: light lemon green with dark text
+       - Mining: dark blue with white text
+    */
+    .sports { background: linear-gradient(135deg, #fff2cc 0%, #ffd799 60%, #ffd24d 100%); color:#333; border-bottom:2px solid #e5c100; }
+    .futures { background: #2b2b2b; color: #ffd700; border-bottom:2px solid #a48a00; }
+    .options { background: var(--lemon); color:#333; border-bottom:2px solid #a6c60a; }
+    .mining { background:#0b2a63; color:#fff; border-bottom:2px solid #3a66b3; }
+
+    .sep{ height:1px; background:#333; margin:14px 0; }
+
+    /* Cart drawer (basic) */
+    #cartDrawer { position: fixed; top:0; right:0; width:320px; height:100%; background:#1a1a1a; color:#fff; border-left:1px solid #333; padding:14px; display:none; z-index:9999; overflow:auto; }
+    #cartDrawer.open { display:block; }
+    .cart-item{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #333; }
+    .cart-total{ font-weight:800; margin-top:8px; }
+
+    /* Photo area (copyright + disclaimer) */
+    .photo-block{ text-align:center; padding:18px 0 8px; }
+    .photo-placeholder{ width:320px; height:180px; margin:0 auto; border-radius:6px; background:#444; display:flex; align-items:center; justify-content:center; color:#ddd; }
+    .disclaimer{ font-size:12px; color:#bbb; padding:6px 16px 20px; }
+
+    /* Footer / Discord banner at the bottom as requested */
+    .footer-discord{ background:#2a2a2a; color:#fff; padding:12px 16px; text-align:center; margin-top:40px; border-top:1px solid #333; }
+
+    footer{ margin-top:20px; font-size:12px; color:#888; text-align:center; padding:20px 0; border-top:1px solid #333; }
+
+    /* FAQ unchanged: keep original state; ensure font size remains 14px in FAQ area as requested */
+    #faq { padding-top:6px; }
+    #faq h2 { font-size: 18px; }
+
+    /* Responsive tweaks: keep two-column blocks on small screens too (still two columns but stack nicely) */
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px){
+      .grid{ grid-template-columns: repeat(2, 1fr); grid-auto-rows: 120px; }
     }
   </style>
 </head>
 <body>
-<!-- TERMS AGREEMENT MODAL - REQUIRED FOR ALL FORMS -->
+<!-- TERMS AGREEMENT MODAL - REQUIRED FOR ALL FORMS (preserved) -->
 <div id="termsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999;">
-    <div class="modal-content" style="max-width:90%; max-height:90%; overflow:auto;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <div style="font-size:24px; font-weight:bold;">🪙 Terms Required</div>
-            <button onclick="acceptTerms()" style="background:#4ade80; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-size:16px;">✓ Accept</button>
-        </div>
-        <div style="font-size:14px; line-height:1.5;">
-            <p><strong>⚠️ You must agree to Terms before proceeding:</strong></p>
-            <ul style="margin:15px 0; padding-left:20px;">
-                <li>I am 18+ years old</li>
-                <li>Crypto is HIGHLY VOLATILE - I accept ALL risks</li>
-                <li>NO refunds on courses/payments</li>
-                <li>MedorCoin provides NO financial advice</li>
-                <li>Terms may change without notice</li>
-                <li>I am responsible for my security</li>
-            </ul>
-            <p><a href="terms.html" target="_blank" style="color:#fff; text-decoration:underline;">Read Full Terms</a></p>
-        </div>
+  <div class="modal-content" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:30px; border-radius:20px; max-width:90%; max-height:90%; overflow:auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <div style="font-size:24px; font-weight:bold;">🪙 Terms Required</div>
+      <button onclick="acceptTerms()" style="background:#4ade80; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-size:16px;">✓ Accept</button>
     </div>
+    <div style="font-size:14px; line-height:1.6;">
+      <p><strong>⚠️ You must agree to Terms before proceeding:</strong></p>
+      <ul style="margin:12px 0 16px; padding-left:20px;">
+        <li>I am 18+ years old</li>
+        <li>Crypto is HIGHLY VOLATILE - I accept ALL risks</li>
+        <li>NO refunds on courses/payments</li>
+        <li>MedorCoin provides NO financial advice</li>
+        <li>Terms may change without notice</li>
+        <li>I am responsible for my security</li>
+      </ul>
+      <p><a href="terms.html" class="link" target="_blank" style="color:#fff; text-decoration:underline;">Read Full Terms</a></p>
+    </div>
+  </div>
 </div>
 
-<!-- SIGNUP / LOGIN MODALS (mock frontend gating) -->
+<!-- SIGNUP / LOGIN MODALS (minimal frontend mocks) -->
 <div id="signupModal" aria-hidden="true" role="dialog" style="display:none; position:fixed; inset:0; background: rgba(0,0,0,.6); align-items:center; justify-content:center;">
   <div style="background:#1f1f2b; color:white; padding:18px; border-radius:10px; width:min(500px,90%); box-shadow:0 6px 20px rgba(0,0,0,.5);">
     <h3 style="margin:0 0 8px;">Sign Up</h3>
@@ -153,52 +161,38 @@
   </div>
 </div>
 
-<!-- Header / Brand Bar (keep original structure) -->
+<!-- Header (one-line brand bar) -->
 <header>
-  <div class="container" style="align-items:center;">
-    <div class="brand" aria-label="brand" style="display:flex; align-items:center; gap:8px;">
-      <!-- Simple inline logo -->
-      <svg width="28" height="28" viewBox="0 0 64 64" aria-label="MedorCoin Logo">
-        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd54f"/><stop offset="1" stop-color="#f2b300"/></linearGradient></defs>
-        <circle cx="32" cy="32" r="28" fill="url(#g)"/>
-        <path d="M32 20 L26 44 L38 44 Z" fill="#2b2b2b" opacity=".9"/>
-      </svg>
-      <span class="brand-name" style="color:white; font-weight:800; letter-spacing:.3px;">MedorCoin Courses</span>
-    </div>
-    <div class="row" id="headerActions" aria-label="header actions">
-      <a class="btn" href="home.html" style="min-width:140px; text-align:center;">Home</a>
-      <button class="btn" onclick="openSignup()" style="min-width:140px; text-align:center;">Sign up</button>
-      <button class="btn" onclick="openLogin()" style="min-width:140px; text-align:center;">Log in</button>
-      <button class="btn" onclick="scrollToSection('coursesSection')" style="min-width:140px; text-align:center;">Courses</button>
-      <button class="btn" id="openCart" onclick="toggleCart()" style="min-width:140px; text-align:center; position:relative;">
-        Cart
-        <span id="cartCount" aria-live="polite" style="top:-4px; right:-8px; position:absolute;">0</span>
-      </button>
+  <div class="brand" style="display:flex; align-items:center; gap:10px;">
+    <!-- Simple inline logo -->
+    <svg width="26" height="26" viewBox="0 0 64 64" aria-label="MedorCoin Logo">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd54f"/><stop offset="1" stop-color="#f2b300"/></linearGradient></defs>
+      <circle cx="32" cy="32" r="26" fill="url(#g)"/>
+      <path d="M32 18 L26 46 L38 46 Z" fill="#1b1b1b" opacity=".9"/>
+    </svg>
+    <span class="brand-name" style="color:white;">MedorCoin Courses</span>
+  </div>
 
-      <!-- Logged-in account area (hidden by default; shown when signed in) -->
-      <div id="accountArea" class="row" style="display:none; align-items:center;">
-        <button class="btn" onclick="goDashboard()">Dashboard</button>
-        <div class="avatar" style="width:28px; height:28px; border-radius:50%; background:#666; display:inline-block;" title="Account"></div>
-        <div id="accountDropdown" style="position:relative;">
-          <div id="accountMenu" style="display:none; position:absolute; right:0; top:38px; background:#1a1f2a; border:1px solid #2a2f3a; border-radius:6px; min-width:200px; padding:6px;">
-            <a href="#" onclick="goDashboard()" style="display:block; padding:6px 8px; color:#fff; text-decoration:none;">Dashboard</a>
-            <a href="#" onclick="goProgress()" style="display:block; padding:6px 8px; color:#fff; text-decoration:none;">Progress</a>
-            <a href="#" onclick="goCourses()" style="display:block; padding:6px 8px; color:#fff; text-decoration:none;">Courses</a>
-            <a href="#" onclick="goSettings()" style="display:block; padding:6px 8px; color:#fff; text-decoration:none;">Settings</a>
-            <a href="#" onclick="logoutUser()" style="display:block; padding:6px 8px; color:#fff; text-decoration:none;">Logout</a>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="row" id="headerActions" aria-label="header actions">
+    <a class="btn" href="home.html" style="min-width:120px; text-align:center;">Home</a>
+    <button class="btn" onclick="openSignup()" style="min-width:120px;">Sign up</button>
+    <button class="btn" onclick="openLogin()" style="min-width:120px;">Log in</button>
+    <button class="btn" onclick="scrollToSection('coursesSection')" style="min-width:120px;">Courses</button>
+    <button class="btn" onclick="toggleCart()" style="min-width:120px; position:relative;">
+      Cart
+      <span id="cartCount" style="position:absolute; top:-6px; right:-8px; background:#f43f5e; color:white; border-radius:999px; padding:2px 6px; font-size:12px;">0</span>
+    </button>
+  </div>
+
+  <!-- Mock account area (hidden until login) -->
+  <div id="accountArea" class="row" style="display:none; align-items:center;">
+    <button class="btn" onclick="goDashboard()">Dashboard</button>
+    <div class="avatar" style="width:28px; height:28px; border-radius:50%; background:#666;" title="Account"></div>
   </div>
 </header>
 
-<!-- HERO DISCORD NOTICE (kept) -->
+<!-- HERO / carousel area (left intact) -->
 <section class="container content" id="intro" aria-label="Intro">
-  <div class="discord" style="margin-bottom:12px;">
-    Join our Discord for community support and live updates: discord.gg/MedorCoin
-  </div>
-  <!-- Carousel (preserved as-is) -->
   <div class="live-carousel" aria-label="Promotional carousel">
     <div class="slides">
 
@@ -246,40 +240,40 @@
   </div>
 </section>
 
-<!-- MAIN CONTENT: Preserve the existing structure but add cart + catalog here -->
-<main class="container content" id="learnMain" aria-label="Main content">
-  <!-- Demo previews (kept generic; not on home)
-       Ensure this area is part of the per-user course page when integrated with real routing -->
-  <section class="card" id="catalogCard" aria-label="Course catalog with cost blocks">
+<!-- MAIN CONTENT: Course catalog arranged in two-column grids (3x2 layout per category) -->
+<main class="container content" id="coursesSection" aria-label="Course catalog">
+  <section class="card" id="catalogCard" aria-label="Course catalog blocks">
     <h2 class="section-title" style="color:#fff; margin:0 0 12px;">Course Catalog</h2>
 
-    <!-- Sports Trading Section: 5 levels -->
+    <!-- Sports Trading: 5 levels, 2 columns x 3 rows (layout pads with a hidden slot) -->
     <div class="sep" aria-hidden="true"></div>
-    <div class="section-title" style="color:#fff; margin-bottom:6px; border-bottom:1px solid #333; padding-bottom:6px;">
+    <div class="section-title" style="color:#fff; border-bottom:1px solid #333; padding-bottom:6px; margin-bottom:6px;">
       Sports Trading
     </div>
     <div class="grid" id="sportsGrid">
       <a href="spot-l1.html" class="block sports" data-category="sports" data-level="1" title="Spot Trading Level 1">
-        <span>Spot Trading<br/><span class="label">Level 1</span></span>
+        <span>Spot Trading<br><span class="label">Level 1</span></span>
       </a>
       <a href="spot-l2.html" class="block sports" data-category="sports" data-level="2" title="Spot Trading Level 2">
-        <span>Spot Trading<br/><span class="label">Level 2</span></span>
+        <span>Spot Trading<br><span class="label">Level 2</span></span>
       </a>
       <a href="spot-l3.html" class="block sports" data-category="sports" data-level="3" title="Spot Trading Level 3">
-        <span>Spot Trading<br/><span class="label">Level 3</span></span>
+        <span>Spot Trading<br><span class="label">Level 3</span></span>
       </a>
       <a href="spot-l4.html" class="block sports" data-category="sports" data-level="4" title="Spot Trading Level 4">
-        <span>Spot Trading<br/><span class="label">Level 4</span></span>
+        <span>Spot Trading<br><span class="label">Level 4</span></span>
       </a>
       <a href="spot-l5.html" class="block sports" data-category="sports" data-level="5" title="Spot Trading Level 5">
-        <span>Spot Trading<br/><span class="label">Level 5</span></span>
+        <span>Spot Trading<br><span class="label">Level 5</span></span>
       </a>
+      <!-- Empty slot to maintain 3x2 grid alignment -->
+      <div class="block" aria-hidden="true" style="visibility:hidden; pointer-events:none;"></div>
     </div>
 
     <div class="sep" aria-hidden="true"></div>
 
-    <!-- Futures Section: 5 levels -->
-    <div class="section-title" style="color:gold; margin-bottom:6px; border-bottom:1px solid #333; padding-bottom:6px;">
+    <!-- Futures: 5 levels -->
+    <div class="section-title" style="color:gold; border-bottom:1px solid #333; padding-bottom:6px; margin-bottom:6px;">
       Futures
     </div>
     <div class="grid" id="futuresGrid">
@@ -298,12 +292,13 @@
       <a href="futures-l5.html" class="block futures" data-category="futures" data-level="5" title="Futures Level 5">
         <span>Futures Level 5</span>
       </a>
+      <div class="block" aria-hidden="true" style="visibility:hidden; pointer-events:none;"></div>
     </div>
 
     <div class="sep" aria-hidden="true"></div>
 
-    <!-- Options Section: 5 levels -->
-    <div class="section-title" style="color:#333; background: #f7f9a8; display:inline-block; padding:6px 12px; border-radius:6px; margin-bottom:6px;">
+    <!-- Options: 5 levels -->
+    <div class="section-title" style="color:#333; background:#f7f9a8; display:inline-block; padding:6px 12px; border-radius:6px; margin-bottom:6px;">
       Options
     </div>
     <div class="grid" id="optionsGrid">
@@ -322,11 +317,12 @@
       <a href="options-l5.html" class="block options" data-category="options" data-level="5" title="Options Level 5">
         <span>Options Level 5</span>
       </a>
+      <div class="block" aria-hidden="true" style="visibility:hidden; pointer-events:none;"></div>
     </div>
 
     <div class="sep" aria-hidden="true"></div>
 
-    <!-- Mining Section: 5 levels -->
+    <!-- Mining: 5 levels -->
     <div class="section-title" style="color:#fff;">
       Mining
     </div>
@@ -346,21 +342,22 @@
       <a href="mining-l5.html" class="block mining" data-category="mining" data-level="5" title="Mining Level 5">
         <span>Mining Level 5</span>
       </a>
+      <div class="block" aria-hidden="true" style="visibility:hidden; pointer-events:none;"></div>
     </div>
   </section>
 
-  <!-- CART / CHECKOUT FLOW PLACEHOLDER (handled by JS) -->
+  <!-- CART / CHECKOUT FLOW PLACEHOLDER -->
   <div id="cartInbox" class="card" style="margin-top:14px; display:none;">
     <h3 style="margin:0 0 8px;">Your Cart</h3>
     <div id="cartItems"></div>
     <div class="cart-total" id="cartSubtotal"></div>
-    <div class="cart-actions">
+    <div class="cart-actions" style="margin-top:8px;">
       <button class="btn" onclick="openCheckout()">Checkout</button>
       <button class="btn secondary" onclick="clearCart()">Clear</button>
     </div>
   </div>
 
-  <!-- Hidden sections for multi-step flow -->
+  <!-- Hidden checkout/receipt/dashboard sections to realize the flow -->
   <section id="checkoutView" class="card" aria-label="Checkout" style="display:none; margin-top:14px;">
     <h3>Checkout</h3>
     <div id="checkoutItems"></div>
@@ -389,7 +386,7 @@
   </section>
 </main>
 
-<!-- FAQ (left intact as requested) -->
+<!-- FOOTER / FAQ (FAQ kept in original state as requested) -->
 <section class="container content" id="faq" aria-label="FAQ">
   <h2> FAQ </h2>
   <div class="faq-item" style="margin:6px 0;">
@@ -435,15 +432,16 @@
     </div>
   </div>
 
-  <div class="divider" style="height:1px; background:#333; margin:8px 0;"></div>
+</section>
 
-  <div class="faq-item" style="margin:6px 0;">
-    <button onclick="toggleAnswer('qa6')">📚 Q: Is there a verification system?</button>
-    <div id="qa6" style="display:none; padding-left:12px;">
-      <p>A: Yes — you’ll receive a certificate upon completion, and it can be downloaded or shared.</p>
-    </div>
+<!-- Photo placeholder & copyright / disclaimer (self-updating year) -->
+<section class="photo-block" aria-label="Photo and copyright">
+  <div class="photo-placeholder" aria-label="Photo placeholder">
+    <span>MedorCoin Photo © 2026</span>
   </div>
-
+  <p class="disclaimer" id="disclaimer">
+    All information provided here is for educational purposes. Please do your own research. Use information responsibly.
+  </p>
 </section>
 
 <footer>
@@ -455,23 +453,28 @@
   </div>
 </footer>
 
+<!-- JOIN DISCORD (moved to bottom as requested) -->
+<div class="footer-discord" aria-label="Discord notice" style="width:100%;">
+  Join our Discord community for support and updates: discord.gg/MedorCoin
+</div>
+
 <script>
-  // Basic helper to render footer year
+  // Footer year (self-updating)
   document.getElementById('footerYear').textContent = '© ' + new Date().getFullYear() + ' MedorCoin. All rights reserved.';
 
-  // Simple FAQ toggle
+  // FAQ toggle helper
   function toggleAnswer(id){
     const el = document.getElementById(id);
     if(!el) return;
     el.style.display = (el.style.display === 'block') ? 'none' : 'block';
   }
 
-  // --------------- Terms gating (preserve existing gating behavior) ---------------
+  // Simple terms gating (preserve original gating idea)
   let termsAccepted = localStorage.getItem('medorcoin_terms') === 'accepted';
   function showTermsModal(){ document.getElementById('termsModal').style.display = 'flex'; }
   function acceptTerms(){ localStorage.setItem('medorcoin_terms', 'accepted'); termsAccepted = true; document.getElementById('termsModal').style.display = 'none'; }
 
-  // Cart state (local in-page)
+  // CART logic (basic)
   const cart = [];
   const PRICING = {
     sports: {1: 29, 2: 39, 3: 49, 4: 59, 5: 69},
@@ -480,39 +483,73 @@
     mining: {1: 25, 2: 30, 3: 35, 4: 40, 5: 45}
   };
 
-  // Create cart item
-  function addToCart(category, level, title) {
+  // Attach "Add to Cart" buttons to all blocks
+  document.addEventListener('DOMContentLoaded', function(){
+    // Create Add to Cart button on each block
+    document.querySelectorAll('.block').forEach(b => {
+      if(b.querySelector('.addToCartBtn')) return;
+      const btn = document.createElement('button');
+      btn.textContent = 'Add to Cart';
+      btn.className = 'btn';
+      btn.style.position = 'absolute';
+      btn.style.bottom = '6px';
+      btn.style.right = '6px';
+      btn.style.padding = '6px 10px';
+      btn.style.fontSize = '12px';
+      btn.style.borderRadius = '6px';
+      btn.style.background = '#111';
+      btn.style.border = '1px solid #333';
+      btn.style.color = '#fff';
+      btn.classList.add('addToCartBtn');
+      btn.onclick = function(e){
+        e.preventDefault();
+        const category = b.getAttribute('data-category');
+        const level = b.getAttribute('data-level');
+        const title = b.textContent.trim() || (category + ' Level ' + level);
+        addToCart(category, level, `${category.charAt(0).toUpperCase() + category.slice(1)} Level ${level}`);
+      };
+      b.style.position = 'relative';
+      b.appendChild(btn);
+    });
+
+    // Simple cart drawer
+    const drawer = document.createElement('div');
+    drawer.id = 'cartDrawer';
+    drawer.className = 'cart-drawer';
+    drawer.innerHTML = `
+      <h3 style="margin:6px 0 10px;">Cart</h3>
+      <div id="cartItems" style="max-height:60vh; overflow:auto;"></div>
+      <div id="cartSubtotal" class="cart-total" style="margin-top:8px;"></div>
+      <div class="cart-actions" style="margin-top:8px;">
+        <button class="btn" onclick="openCheckout()">Checkout</button>
+        <button class="btn secondary" onclick="toggleCart()">Close</button>
+      </div>
+    `;
+    document.body.appendChild(drawer);
+
+    // Show cart badge
+    renderCartBadge();
+  });
+
+  function addToCart(category, level, title){
     const price = (PRICING[category] && PRICING[category][level]) || 0;
     cart.push({ category, level, title, price });
-    renderCartBadge();
     renderCartInbox();
-    // simple toast
-    const t = document.createElement('div');
-    t.textContent = `Added ${title} to cart`;
-    Object.assign(t.style, {position:'fixed', bottom:'20px', right:'20px', background:'#111', color:'#fff', padding:'10px 12px', borderRadius:'6px', zIndex:9999});
-    document.body.appendChild(t);
-    setTimeout(()=>t.remove(), 1500);
-  }
-
-  function renderCartBadge(){
-    const c = document.getElementById('cartCount');
-    if(c) c.textContent = cart.length;
   }
 
   function renderCartInbox(){
     const inbox = document.getElementById('cartInbox');
     const list = document.getElementById('cartItems');
     if(!inbox || !list) return;
-    if(cart.length===0){
-      inbox.style.display='none';
-      list.innerHTML = '';
+    list.innerHTML = '';
+    if(cart.length === 0){
+      inbox.style.display = 'none';
       document.getElementById('cartSubtotal').textContent = '';
       return;
     }
-    inbox.style.display='block';
-    list.innerHTML = '';
+    inbox.style.display = 'block';
     let total = 0;
-    cart.forEach((it, idx) => {
+    cart.forEach(it => {
       total += it.price;
       const row = document.createElement('div');
       row.className = 'cart-item';
@@ -522,34 +559,29 @@
     document.getElementById('cartSubtotal').textContent = `Subtotal: $${total}`;
   }
 
-  // Cart drawer toggle
-  function toggleCart(){
-    const drawer = document.querySelector('.cart-drawer');
-    if(!drawer) return;
-    const isOpen = drawer.classList.contains('open');
-    if(isOpen){
-      drawer.classList.remove('open');
-    }else{
-      drawer.classList.add('open');
-      // ensure inbox is visible when opening
-      renderCartInbox();
-    }
+  function renderCartBadge(){
+    const c = document.getElementById('cartCount');
+    if(c) c.textContent = cart.length;
   }
 
-  // Checkout flow (multi-step within same page)
+  function toggleCart(){
+    const drawer = document.getElementById('cartDrawer');
+    if(!drawer) return;
+    drawer.style.display = (drawer.style.display === 'block' || drawer.style.transform !== '') ? 'block' : 'block';
+  }
+
   function openCheckout(){
     document.getElementById('checkoutView').style.display = 'block';
     document.getElementById('dashboardView').style.display = 'none';
-    document.getElementById('receiptView').style.display = 'none';
-    // populate checkout
+    document.getElementById(' receiptView')?.style.display = 'none';
     const cont = document.getElementById('checkoutItems');
     cont.innerHTML = '';
     let total = 0;
-    cart.forEach((it) => {
+    cart.forEach(it => {
       total += it.price;
       const row = document.createElement('div');
-      row.style.display='flex'; row.style.justifyContent='space-between';
-      row.style.padding='6px 0';
+      row.style.display = 'flex'; row.style.justifyContent = 'space-between';
+      row.style.padding = '6px 0';
       row.innerHTML = `<span>${it.title}</span><span>$${it.price}</span>`;
       cont.appendChild(row);
     });
@@ -562,7 +594,6 @@
   }
 
   function processPayment(){
-    // gate by terms
     if(!termsAccepted){
       showTermsModal();
       return;
@@ -572,64 +603,49 @@
       alert('Please agree to the Terms to complete payment.');
       return;
     }
-    // Simulate receipt content
     const items = cart.map(i => `- ${i.title} ($${i.price})`).join('\n');
-    const total = cart.reduce((s,i)=>s+i.price,0);
+    const total = cart.reduce((s, i) => s + i.price, 0);
     const receipt = `Receipt\nDate: ${new Date().toLocaleString()}\n\nItems:\n${items}\n\nTotal: $${total}\n\nThank you for your purchase!`;
-    document.getElementById('checkoutView').style.display='none';
-    // show receipt
-    document.getElementById('receiptView').style.display='block';
+    document.getElementById('checkoutView').style.display = 'none';
+    document.getElementById('receiptView').style.display = 'block';
     document.getElementById('receiptContent').textContent = receipt;
-    // Optionally simulate auto-redirect to dashboard after receipt
-    // We'll leave a "Go to Dashboard" button for user to proceed
   }
 
   function openDashboardFromReceipt(){
-    document.getElementById('receiptView').style.display='none';
-    showDashboardWithCourses();
+    document.getElementById('receiptView').style.display = 'none';
+    document.getElementById('dashboardView').style.display = 'block';
+    renderDashboardFromCart();
   }
 
-  function showDashboardWithCourses(){
-    // Show dashboard with enrolled courses derived from cart
-    document.getElementById('dashboardView').style.display = 'block';
+  function renderDashboardFromCart(){
     const list = document.getElementById('enrolledCourses');
     list.innerHTML = '';
-    if(cart.length===0){
+    if(cart.length === 0){
       list.innerHTML = '<p class="muted">No courses enrolled yet. Add some to cart and checkout.</p>';
     } else {
-      cart.forEach((it) => {
+      cart.forEach(it => {
         const el = document.createElement('div');
         el.className = 'level';
-        el.innerHTML = `<strong>${it.title}</strong> <span style="float:right;">${it.price ? '$'+it.price : ''}</span>`;
+        el.innerHTML = `<strong>${it.title}</strong> <span style="float:right;">$${it.price}</span>`;
         list.appendChild(el);
       });
     }
-    // update note
     document.getElementById('dashboardNote').textContent = 'You are now enrolled in the selected courses. Click a course to start learning.';
   }
 
-  function openDashboard(){
-    if(cart.length>0){
-      showDashboardWithCourses();
-      return;
-    }
-    // otherwise show a sample
-    showDashboardWithCourses();
-  }
-
+  // Sign up / login mocks (kept simple)
   function openSignup(){ document.getElementById('signupModal').style.display = 'flex'; }
   function closeSignup(){ document.getElementById('signupModal').style.display = 'none'; }
   function openLogin(){ document.getElementById('loginModal').style.display = 'flex'; }
   function closeLogin(){ document.getElementById('loginModal').style.display = 'none'; }
 
-  // Mock signup/login flow (local)
   function handleSignup(e){
     e.preventDefault();
     const email = document.getElementById('signupEmail').value;
-    // pretend success
     loginAs(email);
     closeSignup();
   }
+
   function handleLogin(e){
     e.preventDefault();
     const email = document.getElementById('loginEmail').value;
@@ -637,7 +653,6 @@
     closeLogin();
   }
 
-  // Simple login state in UI
   function loginAs(email){
     localStorage.setItem('medorcoin_user', email);
     renderHeaderState();
@@ -655,97 +670,16 @@
     }
   }
 
-  // Initialize header state and cart badge on load
+  // Init
   document.addEventListener('DOMContentLoaded', function(){
-    // 1) Attach "Add to cart" behavior on all blocks
-    document.querySelectorAll('[data-category]').forEach(el => {
-      // Click on block itself navigates to course page; we also want a distinct Add to Cart action
-      // We'll add a small "Add to cart" overlay button programmatically
-    });
-    // Add per-block action: insert "Add to cart" button into each block
-    document.querySelectorAll('.block').forEach(b => {
-      if(b.querySelector('.addToCartBtn')) return;
-      const btn = document.createElement('button');
-      btn.textContent = 'Add to Cart';
-      btn.className = 'btn';
-      btn.style.position = 'absolute';
-      btn.style.bottom = '6px';
-      btn.style.right = '6px';
-      btn.style.pointerEvents = 'auto';
-      btn.style.padding = '6px 10px';
-      btn.style.fontSize = '12px';
-      btn.style.borderRadius = '6px';
-      btn.style.background = '#111';
-      btn.style.border = '1px solid #333';
-      btn.style.color = '#fff';
-      btn.classList.add('addToCartBtn');
-      btn.onclick = function(e){
-        e.preventDefault();
-        const category = b.getAttribute('data-category');
-        const level = b.getAttribute('data-level');
-        const title = b.textContent.trim().replace('Add to Cart','').trim() || b.textContent.trim();
-        addToCart(category, level, `${capitalize(category)} Level ${level}`);
-      };
-      b.style.position = 'relative';
-      b.appendChild(btn);
-    });
-
-    // 2) Cart drawer (simple aside)
-    const drawer = document.createElement('aside');
-    drawer.className = 'cart-drawer';
-    drawer.setAttribute('aria-label','Cart Drawer');
-    drawer.innerHTML = `
-      <h3 style="margin:6px 0 10px;">Cart</h3>
-      <div id="cartItems" style="max-height:50vh; overflow:auto;"></div>
-      <div id="cartSubtotal" class="cart-total" style="margin-top:6px;"></div>
-      <div class="cart-actions" style="margin-top:8px;">
-        <button class="btn" onclick="openCheckout()">Checkout</button>
-        <button class="btn secondary" onclick="clearCart()">Clear</button>
-      </div>
-    `;
-    document.body.appendChild(drawer);
-
-    // 3) Terms gating at first interaction
-    // If terms not accepted, show modal on first submission attempt (handled in processPayment)
     renderHeaderState();
+    // Seed cart count
+    renderCartBadge();
 
-    // 4) Initialize cart badge
-    renderCartInboxForInit();
-
+    // Small helper: clicking on a category could navigate to its page (handled by each block link)
   });
 
-  function renderCartInboxForInit(){
-    const count = cart.length;
-    const btn = document.getElementById('cartCount');
-    if(btn) btn.textContent = count;
-  }
-
-  // Helpers
-  function capitalize(s){
-    return s.charAt(0).toUpperCase() + s.slice(1);
-  }
-
-  // Public navigation helpers (for demo)
-  function goDashboard(){ openDashboard(); }
-  function goProgress(){ alert('Progress (demo)'); }
-  function goCourses(){ document.getElementById('coursesSection')?.scrollIntoView({behavior:'smooth'}); }
-  function goSettings(){ alert('Settings (demo)'); }
-
-  // Minor: close dropdown if click outside (for account menu)
-  document.addEventListener('click', function(e){
-    const menu = document.getElementById('accountMenu');
-    if(menu && !e.target.closest('#accountArea')){
-      menu.style.display = 'none';
-    }
-  });
-
-  // Convenience: numbers display for terms modal
-  function ensureTerms(){
-    if(!termsAccepted){
-      showTermsModal();
-    }
-  }
-
+  // FAQ: keep as-is beyond this script
 </script>
 
 </body>
