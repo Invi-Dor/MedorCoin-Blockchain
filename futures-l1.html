@@ -142,28 +142,14 @@ function checkResults(){
       Are you ready to explore more?<br>
       <button onclick="location.href='futures-course.html'">Click Here</button>
     `;
-} else {
+  } else {
     msg.innerHTML = `
       ❗ You need a little more practice.<br>
-      Review the answers:<br>
-      1️⃣ Leverage means: Using borrowed money to control a larger position<br>
-      2️⃣ First step before entering a trade: Analyze chart trends and market indicators<br><br>
+      Review the sections above and try again
     `;
-
-    // Remove any existing button
-    const existingBtn = msg.querySelector('button');
-    if(existingBtn) existingBtn.remove();
-
-    // Add one button for full course access
-    const button = document.createElement('button');
-    button.textContent = "Access Level 1 Fully";
-    button.style.cssText = "font-size:14px; padding:12px 20px; font-family:sans-serif; background:#ff7f50; color:white; border:none; border-radius:6px; cursor:pointer; margin-top:12px;";
-    button.onclick = () => { 
-        window.location.href = 'https://medorcoin.invisible-m.com/futures-L1.html'; 
-    };
-
-    msg.appendChild(button);
+  }
 }
+
 </script>
 
 </body>
