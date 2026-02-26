@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MedorCoin Certificate Generator</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  padding: 20px;
+}
+.container {
+  max-width: 700px;
+  margin: auto;
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+h1 {
+  text-align: center;
+  color: #4a2fa6;
+}
+label {
+  font-size: 16px;
+  margin-top: 12px;
+  display: block;
+}
+select, input {
+  padding: 10px;
+  font-size: 16px;
+  width: 100%;
+  margin-top: 8px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+}
+button {
+  background: #667eea;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 16px;
+  font-size: 16px;
+}
+button:hover {
+  background: #5a6fd1;
+}
+#certificateArea {
+  width: 1000px;
+  height: 700px;
+  background: #f5effc;
+  padding: 40px;
+  font-family: Georgia, serif;
+  display: none; /* hidden in page but used for PDF */
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>MedorCoin Certificate Generator</h1>
+
+  <label for="courseSelect">Select Your Course</label>
+  <select id="courseSelect">
+    <optgroup label="Futures Training">
+      <option value="futures-l1">Futures Level 1</option>
+      <option value="futures-l2">Futures Level 2</option>
+      <option value="futures-l3">Futures Level 3</option>
+      <option value="futures-l4">Futures Level 4</option>
+      <option value="futures-l5">Futures Level 5</option>
+    </optgroup>
+    <optgroup label="Spot Trading">
+      <option value="spot-l1">Spot Trading Level 1</option>
+      <option value="spot-l2">Spot Trading Level 2</option>
+      <option value="spot-l3">Spot Trading Level 3</option>
+      <option value="spot-l4">Spot Trading Level 4</option>
+      <option value="spot-l5">Spot Trading Level 5</option>
+    </optgroup>
+    <optgroup label="Options Trading">
+      <option value="options-l1">Options Trading Level 1</option>
+      <option value="options-l2">Options Trading Level 2</option>
+      <option value="options-l3">Options Trading Level 3</option>
+      <option value="options-l4">Options Trading Level 4</option>
+      <option value="options-l5">Options Trading Level 5</option>
+    </optgroup>
+    <optgroup label="Mining Training">
+      <option value="mining-l1">Mining Training Level 1</option>
+      <option value="mining-l2">Mining Training Level 2</option>
+      <option value="mining-l3">Mining Training Level 3</option>
+      <option value="mining-l4">Mining Training Level 4</option>
+      <option value="mining-l5">Mining Training Level 5</option>
+    </optgroup>
+  </select>
+
+  <label for="fullName">Your Full Name</label>
+  <input type="text" id="fullName" placeholder="Enter your full name">
+
+  <button onclick="generateCertificate()">Download Certificate</button>
+</div>
+
+<!-- Hidden Certificate Template -->
+<div id="certificateArea">
+  <div style="text-align:center; margin-top:20px;">
+    <h2 style="font-size:32px; color:#4a2fa6;">MedorCoin Blockchain</h2>
+    <h3 style="font-size:26px; margin-top:-10px;">Training Certificate</h3>
+    <p style="font-size:18px; margin-top:40px;">This is to certify that</p>
+    <h1 id="certName" style="font-size:36px; margin:20px 0; color:#222;"></h1>
+    <p style="font-size:18px;">has successfully completed</p>
+    <p id="certCourse" style="font-size:20px; font-weight:bold; margin-top:10px;"></p>
+    <div style="display:flex; justify-content:space-between; margin-top:100px; padding:0 80px;">
+      <div style="text-align:center;">
+        <p>________________________</p>
+        <p style="font-size:14px;">Instructor</p>
+      </div>
+      <div style="text-align:center;">
+        <p>________________________</p>
+        <p style="font-size:14px;">Date</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.3/jspdf.umd.min.js"></script>
+<script>
+function generateCertificate() {
+  const fullName = document.getElementById("fullName").value.trim();
+  const courseID = document.getElementById("courseSelect").value;
+
+  if (!fullName) {
+    alert("Please enter your full name.");
+    return;
+  }
+
+  // Fill certificate template
+  document.getElementById("certName").textContent = fullName;
+
+  // Convert ID into readable format
+  const formattedCourse = courseID
+    .replace(/-/g, " ")
+    .replace(/\bl\b/, "Level ")
+    .toUpperCase();
+
+  document.getElementById("certCourse").textContent = formattedCourse;
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('landscape', 'pt', 'a4');
+
+  pdf.html(document.getElementById("certificateArea"), {
+    callback: function(doc) {
+      // create a safe filename
+      const safeName = fullName.replace(/\s+/g, '-').toLowerCase();
+      const filename = `medorcoin-${courseID}-certificate-${safeName}.pdf`;
+      doc.save(filename);
+    },
+    x: 10,
+    y: 10
+  });
+}
+</script>
+
+</body>
+</html>
