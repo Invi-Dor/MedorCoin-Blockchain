@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +12,8 @@
   body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
   a{color:inherit;text-decoration:none}
   .container{max-width:980px;margin:0 auto;padding:12px}
-  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.space{justify-content:space-between}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .space{justify-content:space-between}
   .logo{display:flex;align-items:center;gap:10px}
   .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7}
   .brand{font-weight:800;font-size:18px}
@@ -34,12 +37,15 @@
 <div id="walletStatus" class="wallet-status"></div>
 
 <div class="container">
-  <div class="row space" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:12px 16px;border-radius:14px;margin-bottom:16px">
- <img src="assets/logo.svg" alt="MedorCoin Logo" height="36" width="auto">
-</div>
+  <!-- HEADER: logo + brand on left, actions on right (no changes to other content) -->
+  <div class="row space" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:12px 16px;border-radius:14px;margin-bottom:16px;align-items:center;">
+    <div class="logo" aria-label="MedorCoin Logo and Brand" style="display:flex;align-items:center;gap:12px;">
+      <img src="assets/logo.svg" alt="MedorCoin Logo" height="36" style="width:36px;height:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7;">
+      <span class="brand" style="font-weight:800;font-size:18px;">MedorCoin</span>
+    </div>
 
-    <!-- RIGHT‑SIDE LINKS ON ONE LINE -->
-    <div style="font-size:11px;font-family:Arial,Helvetica,sans-serif;white-space:nowrap;">
+    <!-- RIGHT-SIDE LINKS ON ONE LINE (now on header, visible on the same row) -->
+    <div style="font-size:12px;display:flex;gap:12px;align-items:center;">
       <a href="create-wallet.html" style="color:white;text-decoration:none;">Create Wallet</a> |
       <a href="connect-wallet.html" style="color:white;text-decoration:none;">Connect Wallet</a> |
       <a href="signup.html" style="color:white;text-decoration:none;">SignUp</a> |
@@ -61,8 +67,8 @@
   </div>
 
   <div class="grid">
-    <!-- ALL YOUR ORIGINAL TILES - UNCHANGED -->
-    <a class="tile" href="/blockchain.html">
+    <!-- ALL YOUR ORIGINAL TILES - UNCHANGED WITH COLOR UPDATES -->
+    <a class="tile" href="/blockchain.html" style="background:#87CEEB;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
       <div class="icon ic-slate" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="#B5943F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="5" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
@@ -75,8 +81,19 @@
       <b>Blockchain</b>
       <span class="muted">On-chain tools & explorer</span>
     </a>
-    <a class="tile" href="miners.html"><div class="icon ic-slate">⛏️</div><b>Miners</b><span class="muted">Start mining</span></a>
-    <a class="tile" href="developers.html"><div class="icon ic-slate">👩‍💻</div><b>Developers</b><span class="muted">Docs & SDKs</span></a>
+
+    <a class="tile" href="miners.html" style="background:#FFD6A3;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">⛏️</div>
+      <b>Miners</b>
+      <span class="muted">Start mining</span>
+    </a>
+
+    <a class="tile" href="developers.html" style="background:#87CEEB;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">👩‍💻</div>
+      <b>Developers</b>
+      <span class="muted">Docs & SDKs</span>
+    </a>
+
     <a class="tile" href="trading.html"><div class="icon ic-slate">📈</div><b>Crypto Trading</b><span class="muted">Markets & tools</span></a>
     <a class="tile" href="learn.html"><div class="icon ic-slate">📚</div><b>Learn</b><span class="muted">Guides</span></a>
     <a class="tile" href="Chatroom.html"><div class="icon ic-slate">💬</div><b>Chatroom</b><span class="muted">Chat & support</span></a>
@@ -97,6 +114,7 @@
       <span class="muted">Lock-ups & vesting</span>
     </a>
   </div>
+
      <!-- More Section Block -->
 <div style="text-align: center; margin: 20px;">
     <a href="more.html" style="display: inline-block; text-decoration: none; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; background-color: #faf9f6; color: #333;">
@@ -123,8 +141,7 @@ if (urlParams.get('wallet') === 'created' || walletStorage) {
 // ORIGINAL COPYRIGHT SCRIPT
 document.getElementById('currentYear') ? document.getElementById('currentYear').textContent = new Date().getFullYear() : null;
 </script>
+</div> <!-- end of .container -->
 </body>
-  
-</style>
 </html>
 
