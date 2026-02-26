@@ -1,186 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>MedorCoin — Home</title>
-<meta name="description" content="MedorCoin home portal."/>
-<style>
-  :root{--bg:#faf9f6;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb;--success:#10b981}
-  {box-sizing:border-box}
-  body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-  a{color:inherit;text-decoration:none}
-  .container{max-width:980px;margin:0 auto;padding:12px}
-  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .space{justify-content:space-between}
-  .logo{display:flex;align-items:center;gap:10px}
-  .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7}
-  .brand{font-weight:800;font-size:18px}
-  .wallet-status{position:fixed;top:10px;right:10px;background:var(--success);color:white;padding:8px 12px;border-radius:20px;font-size:12px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(16,185,129,0.3);display:none}
-  .searchbar{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:10px 12px;margin-top:10px}
-  .searchbar input{border:0;outline:0;flex:1;font-size:14px;color:var(--ink);background:transparent}
-  .pill{font-size:12px;background:#fff7e6;color:#333333;border:1px solid #f2e6bf;border-radius:999px;padding:4px 8px}
-  .tabs{display:flex;gap:10px;overflow:auto;padding:10px 0;margin-top:8px}
-  .tab{display:flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid var(--border);color:var(--ink);border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
-  .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center}
-  .muted{color:var(--muted);font-size:12px}
-  .icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center}
-  .icon svg{width:22px;height:22px;display:block}
-  .ic-gold{background:#fff7e6;border:1px solid #f2e6bf}
-  .ic-slate{background:#eef1f5;border:1px solid #e2e8f0}
-</style>
+  <meta charset="UTF-8" />
+  <title>MedorCoin — Learners Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="MedorCoin Learners Portal: Course access, certificates, and progress tracking."/>
+  <style>
+    :root{
+      --blue:#2b5cff; 
+      --bg:#0e0f12; 
+      --card:#141923;
+      --text:#eaecef;
+      --muted:#98a2b3;
+      --gold:#ffd54f;
+      --dark-gray:#2b2f3a;
+      --lemon:#dfffa0;
+    }
+    /* CSS reset-ish */
+    :root, * { box-sizing: border-box; }
+    body{ font-family: system-ui, Arial, sans-serif; margin:0; padding:0; background:var(--bg); color:var(--text); font-size:14px; }
+
+    /* Header: one-line brand bar (horizontal) */
+    header {
+      padding: 10px 16px;
+      background: #12141a;
+      border-bottom: 1px solid #252833;
+      display:flex; align-items:center; justify-content:space-between; flex-wrap:nowrap;
+    }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; color:white; white-space:nowrap; }
+    .brand svg{ width:26px; height:26px; }
+    .brand-name{ font-size:16px; white-space:nowrap; }
+    headerActions{ display:flex; align-items:center; gap:12px; white-space:nowrap; }
+    .btn{ padding:10px 16px; background:var(--blue); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700; text-decoration:none; display:inline-block; }
+    .btn.secondary { background:#374151; }
+    .muted{ color:var(--muted); }
+
+    /* Carousel (left intact) */
+    .live-carousel { position: relative; width: 100%; max-width: 1400px; margin: 20px auto; overflow: hidden; border-radius: 15px; height: 42vh; min-height: 260px; }
+    .slides { display:flex; height:100%; width:100%; transition: transform 0.8s ease-in-out; }
+    .slide { min-width:100%; height:100%; display:flex; align-items:stretch; position:relative; }
+    .slide .bg { position:absolute; top:0; left:0; width:100%; height:100%; background-size:cover; background-position:center; }
+    .slide .caption { position:absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.6); padding: 12px 16px; border-radius: 12px; color:#fff; }
+
+    @media (max-width: 768px){
+      .slide { min-height: 38vh; }
+      .slide .caption { bottom: 16px; left: 16px; padding: 12px; }
+    }
+
+    /* Content layout: two-column grid for category blocks (with 6 slots: 5 items + 1 empty) */
+    .content{ padding: 18px 0 40px; }
+    .section-title{ font-size:22px; font-weight:800; margin:14px 0 8px; color:#fff; }
+    .grid{ display:grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 110px; gap:14px; }
+    .block{ border-radius:8px; text-align:center; display:flex; align-items:center; justify-content:center; text-decoration:none; font-weight:800; font-size:14px; border:1px solid rgba(0,0,0,.15); padding:12px; position:relative; color:inherit; }
+    .block span{ line-height:1.2; display:block; }
+    .block .label{ font-size:12px; opacity:.95; display:block; }
+
+    /* Category color schemes */
+    .sports { background: linear-gradient(135deg, #fff2cc 0%, #ffd799 60%, #ffd24d 100%); color:#333; border-bottom:2px solid #e5c100; }
+    .futures { background: #2b2b2b; color: #ffd700; border-bottom:2px solid #a48a00; }
+    .options { background: var(--lemon); color:#333; border-bottom:2px solid #a6c60a; }
+    .mining { background:#0b2a63; color:#fff; border-bottom:2px solid #3a66b3; }
+    .api { background:#d7ebff; color:#37474f; border-bottom:2px solid #7ab2f3; }
+
+    .sep{ height:1px; background:#333; margin:14px 0; }
+
+    /* Terms modal - preserved */
+    #termsModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; }
+    .modal-content { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:30px; border-radius:20px; max-width:90%; max-height:90%; overflow:auto; }
+    .modal-content h3 { margin:0 0 12px; }
+    .modal-content ul{ margin:6px 0 0 20px; padding:0; }
+    .link{ color:white; text-decoration:underline; }
+
+    /* Responsive tweaks (two-column remains) */
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px){
+      .grid{ grid-template-columns: repeat(2, 1fr); grid-auto-rows: 120px; }
+      .live-carousel { height: 40vh; }
+    }
+  </style>
 </head>
 <body>
-<!-- WALLET STATUS - NEW -->
-<div id="walletStatus" class="wallet-status"></div>
-
-<div class="container">
-  <!-- HEADER: logo + brand on left, actions on right (no changes to other content) -->
-  <div class="row space" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:12px 16px;border-radius:14px;margin-bottom:16px;align-items:center;">
-    <div class="logo" aria-label="MedorCoin Logo and Brand" style="display:flex;align-items:center;gap:12px;">
-      <img src="assets/logo.svg" alt="MedorCoin Logo" height="36" style="width:36px;height:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7;">
-      <span class="brand" style="font-weight:800;font-size:18px;">MedorCoin</span>
+<!-- TERMS AGREEMENT MODAL - REQUIRED FOR ALL FORMS (preserved) -->
+<div id="termsModal" aria-label="Terms Modal" style="display:none;">
+  <div class="modal-content" role="dialog" aria-modal="true">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <div style="font-size:24px; font-weight:bold;">🪙 Terms Required</div>
+      <button onclick="acceptTerms()" style="background:#4ade80; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-size:16px;">✓ Accept</button>
     </div>
-
-    <!-- RIGHT-SIDE LINKS ON ONE LINE (now on header, visible on the same row) -->
-    <div style="font-size:12px;display:flex;gap:12px;align-items:center;">
-      <a href="create-wallet.html" style="color:white;text-decoration:none;">Create Wallet</a> |
-      <a href="connect-wallet.html" style="color:white;text-decoration:none;">Connect Wallet</a> |
-      <a href="signup.html" style="color:white;text-decoration:none;">SignUp</a> |
-      <a href="login.html" style="color:white;text-decoration:none;">Login</a>
+    <div style="font-size:14px; line-height:1.6;">
+      <p><strong>⚠️ You must agree to Terms before proceeding:</strong></p>
+      <ul style="margin:12px 0 16px; padding-left:20px;">
+        <li>I am 18+ years old</li>
+        <li>Crypto is HIGHLY VOLATILE - I accept ALL risks</li>
+        <li>NO refunds on courses/payments</li>
+        <li>MedorCoin provides NO financial advice</li>
+        <li>Terms may change without notice</li>
+        <li>I am responsible for my security</li>
+      </ul>
+      <p><a href="terms.html" class="link" target="_blank" style="color:#fff;">Read Full Terms</a></p>
     </div>
   </div>
+</div>
 
-  <div class="searchbar">
-    <span style="opacity:.7">🔎</span>
-    <input id="q" placeholder="Search"/>
-    <span class="pill">AI</span>
-  </div>
+<div class="container" style="padding:0 12px;">
+  <!-- HEADER: brand bar (horizontal) -->
+  <header>
+    <div class="brand" aria-label="MedorCoin Brand">
+      <img src="assets/logo.svg" alt="MedorCoin Logo" style="height:28px; width:28px; border-radius:6px; border:1px solid #e8e1c7;">
+      <span>MedorCoin</span>
+      <span class="brand-name" style="margin-left:6px;">Learners Portal</span>
+    </div>
+    <div class="headerActions" aria-label="Header Actions">
+      <a class="btn" href="learn.html">Learn</a>
+      <a class="btn secondary" href="signup.html">SignUp</a>
+    </div>
+  </header>
 
-  <div class="tabs">
-    <a class="tab" href="index.html">🏠 HomePage</a>
-    <a class="tab" href="miners.html">⛏️ Miners</a>
-    <a class="tab" href="developers.html">👩‍💻 Developers</a>
-    <a class="tab" href="trading.html">📈 Crypto Trading</a>
-  </div>
-
-  <div class="grid">
-    <!-- ALL YOUR ORIGINAL TILES - UNCHANGED WITH COLOR UPDATES -->
-    <a class="tile" href="/blockchain.html" style="background:#87CEEB;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-slate" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#B5943F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="5" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-          <circle cx="19" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-          <circle cx="5" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-          <circle cx="19" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-          <path d="M7.2 6h9.6"/><path d="M5 8.6v6.8"/><path d="M19 8.6v6.8"/><path d="M6.6 16.8L10.8 12h-2.2l4.8-4.8M12.8 12l4.6 4.6"/>
-        </svg>
+  <!-- Carousel (left intact) -->
+  <section class="live-carousel" aria-label="Promotional carousel">
+    <div class="slides" id="slides">
+      <div class="slide">
+        <div class="bg" style="background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);"></div>
+        <div class="caption">Welcome to MedorCoin Learners Portal</div>
       </div>
-      <b>Blockchain</b>
-      <span class="muted">On-chain tools & explorer</span>
-    </a>
-
-    <a class="tile" href="miners.html" style="background:#FFD6A3;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-slate" aria-hidden="true">⛏️</div>
-      <b>Miners</b>
-      <span class="muted">Start mining</span>
-    </a>
-
-    <a class="tile" href="developers.html" style="background:#87CEEB;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-slate" aria-hidden="true">👩‍💻</div>
-      <b>Developers</b>
-      <span class="muted">Docs & SDKs</span>
-    </a>
-
-    <!-- Crypto Trading: updated to dark grey with light gold text -->
-    <a class="tile" href="trading.html" style="background:#2f2f2f;color:#FDE68A;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-slate" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#FDE68A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 12h4l3-7 4 14 5-9" stroke="#FDE68A"/>
-          <path d="M3 12h4" stroke="#FDE68A"/>
-        </svg>
+      <div class="slide">
+        <div class="bg" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"></div>
+        <div class="caption">Earn certificates as you progress</div>
       </div>
-      <b style="color:#FDE68A">Crypto Trading</b>
-      <span class="muted" style="color:#FDE68A">Markets & tools</span>
-    </a>
-
-    <!-- Learn: dark blue background, white text -->
-    <a class="tile" href="learn.html" style="background:#0B3D91;color:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-slate" aria-hidden="true">📚</div>
-      <b>Learn</b>
-      <span class="muted" style="color:#fff">Guides</span>
-    </a>
-
-    <!-- Chatroom: light purple background with light purple text -->
-    <a class="tile" href="Chatroom.html" style="background:#E6D5FF;color:#A089FF;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-slate" aria-hidden="true">💬</div>
-      <b>Chatroom</b>
-      <span class="muted" style="color:#A089FF">Chat & support</span>
-    </a>
-
-    <!-- Crypto Whales: beige background -->
-    <a class="tile" href="crypto-whales.html" style="background:#F5F5DC;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-slate" aria-hidden="true">🐋</div>
-      <b>Crypto Whales</b>
-      <span class="muted" style="color:#333">Large flows</span>
-    </a>
-
-    <!-- My Account: light blue -->
-    <a class="tile" href="my-account.html" style="background:#BDE7FF;color:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-slate" aria-hidden="true">👤</div>
-      <b>My Account</b>
-      <span class="muted" style="color:#fff">Profile</span>
-    </a>
-
-    <!-- New Listing: light orange -->
-    <a class="tile" href="new-listing.html" style="background:#FFD6A3;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-slate" aria-hidden="true">🆕</div>
-      <b>New Listing</b>
-      <span class="muted" style="color:#333">List a token</span>
-    </a>
-
-    <!-- Locks: dark blue, white text -->
-    <a class="tile" href="locks.html" style="background:#1F3A8A;color:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-gold" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M7.5 10V8.5a4.5 4.5 0 1 1 9 0V10" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="5.5" y="10" width="13" height="10" rx="2" fill="#D7BF77" stroke="#FFFFFF" stroke-width="1.4"/>
-          <path d="M6.8 11.4h10.4c.3 0 .5.2.5.5v.2c-1.8.6-3.7.9-5.5.9s-3.7-.3-5.5-.9v-.2c0-.3.2-.5.5-.5z" fill="#F7EFD4" opacity=".55"/>
-          <circle cx="12" cy="15" r="1.2" fill="#FFFFFF"/>
-          <rect x="11.4" y="15.9" width="1.2" height="2.3" rx=".6" fill="#FFFFFF"/>
-        </svg>
+      <div class="slide">
+        <div class="bg" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);"></div>
+        <div class="caption">Explore courses and tokens</div>
       </div>
-      <b>Locks</b>
-      <span class="muted" style="color:#fff">Lock-ups & vesting</span>
-    </a>
-  </div>
+    </div>
+  </section>
 
-     <!-- More Section Block -->
-<div style="text-align: center; margin: 20px;">
-    <a href="more.html" style="display: inline-block; text-decoration: none; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; background-color: #faf9f6; color: #333;">
-        <div style="font-size: 40px;">&#8594;</div> <!-- Arrow icon -->
-        <div style="font-size: 20px;">More</div>
-    </a>
+  <!-- Content: two-column, two rows of category blocks (6 slots total) -->
+  <section class="content">
+    <div class="section-title" style="color:#fff;">Categories</div>
+    <div class="grid" role="grid" aria-label="Category grid">
+      <a class="block sports" href="trading.html" role="gridcell" aria-label="Sports Trading">
+        <span>Sports Trading</span>
+        <span class="label">Shimmering gold on dark text</span>
+      </a>
+
+      <a class="block futures" href="futures.html" role="gridcell" aria-label="Futures">
+        <span>Futures</span>
+        <span class="label">Dark gray with shimmering gold text</span>
+      </a>
+
+      <a class="block options" href="options.html" role="gridcell" aria-label="Options">
+        <span>Options</span>
+        <span class="label">Lemon green background</span>
+      </a>
+
+      <a class="block mining" href="mining.html" role="gridcell" aria-label="Mining">
+        <span>Mining</span>
+        <span class="label">Dark blue with white text</span>
+      </a>
+
+      <a class="block api" href="api.html" role="gridcell" aria-label="API">
+        <span>API</span>
+        <span class="label">Programmatic access</span>
+      </a>
+
+      <!-- Empty slot to satisfy the "5 items + 1 empty" layout -->
+      <a class="block" href="#" aria-label="Empty Slot" style="visibility:hidden; pointer-events:none;"></a>
+    </div>
+  </section>
+
+  <!-- Optional: More section could go here -->
+
+  <!-- FOOTER / general disclaimer could be added here if needed -->
 </div>
 
 <script>
-// 🚀 WALLET DETECTION - ADDED (12 LINES TOTAL)
-const urlParams = new URLSearchParams(window.location.search);
-const walletStorage = localStorage.getItem('medorcoin_wallet_v2');
-if (urlParams.get('wallet') === 'created' || walletStorage) {
-    const walletData = walletStorage ? JSON.parse(walletStorage) : {};
-    const statusEl = document.getElementById('walletStatus');
-    statusEl.style.display = 'block';
-    statusEl.innerHTML = `✅ Wallet Active: ${walletData.address?.slice(0,12) || 'Connected'}...`;
-    
-    // Update Create Wallet link to show "Wallet Created"
-    const createLink = document.querySelector('a[href="create-wallet.html"]');
-    if (createLink) createLink.textContent = '✅ Wallet Created';
-}
+  // Terms acceptance: preserve modal behavior
+  function acceptTerms(){
+    try {
+      localStorage.setItem('medorcoin_terms_accepted', 'true');
+    } catch(e) { /* ignore storage errors */ }
+    const modal = document.getElementById('termsModal');
+    if (modal) modal.style.display = 'none';
+  }
 
-// ORIGINAL COPYRIGHT SCRIPT
-document.getElementById('currentYear') ? document.getElementById('currentYear').textContent = new Date().getFullYear() : null;
+  // Simple carousel auto-rotate
+  (function initCarousel(){
+    const slidesWrap = document.getElementById('slides');
+    if (!slidesWrap) return;
+    const slides = slidesWrap.children;
+    let index = 0;
+    const total = slides.length;
+
+    function showNext(){
+      index = (index + 1) % total;
+      slidesWrap.style.transform = `translateX(-${index * 100}%)`;
+    }
+
+    // Initialize: ensure first slide is visible
+    slidesWrap.style.transform = 'translateX(0%)';
+    if (total > 1){
+      setInterval(showNext, 5000);
+    }
+  })();
+
+  // Show Terms modal if not yet accepted
+  document.addEventListener('DOMContentLoaded', function(){
+    const accepted = localStorage.getItem('medorcoin_terms_accepted');
+    const modal = document.getElementById('termsModal');
+    if (modal && !accepted){
+      modal.style.display = 'block';
+      // Also set basic accessibility focus
+      modal.querySelector('.modal-content')?.focus?.();
+    }
+  });
 </script>
-</div> <!-- end of .container -->
 </body>
 </html>
