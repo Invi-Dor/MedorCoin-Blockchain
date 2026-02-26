@@ -1,32 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Futures Level 1 — Full Course</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Futures L1 — Interactive Module</title>
 <style>
-body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#222;}
-header { background:linear-gradient(135deg,#667eea,#764ba2); padding:12px 16px; color:white; display:flex; justify-content:space-between; align-items:center;}
-header .brand { font-size:20px; font-weight:800; display:flex; align-items:center; gap:10px;}
-header nav a { color:white; text-decoration:none; margin-left:20px; font-size:14px;}
-.container { max-width:900px; margin:auto; padding:20px; background:white; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
-h1 { text-align:center; color:#333;}
-.section { margin-bottom:40px;}
-.graph { width:100%; height:150px; margin:12px 0; background:#e0e0e0; border-radius:6px; display:block;}
-button { padding:10px 18px; background:#667eea; color:white; border:none; border-radius:6px; cursor:pointer;}
-.hidden { display:none;}
-.quiz button { display:block; margin:6px 0; background:#764ba2;}
-.result-msg { margin-top:20px; font-weight:bold;}
-input { padding:10px; font-size:16px; width:100%; margin-top:10px; border:1px solid #bbb; border-radius:6px;}
-.certificate-btn { background:#4CAF50; margin-top:10px; }
-.continue-btn { background:#2196F3; margin-top:10px; }
+  body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#222;}
+  header{background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+  header .brand{font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px;}
+  header nav a{color:white;text-decoration:none;margin-left:16px;font-size:14px;}
+  .container{max-width:760px;margin:auto;padding:20px;background:white;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+  h1,h2,h3{margin-top:1em;color:#333;}
+  p{margin:1em 0;}
+  button{padding:10px 18px;margin-top:12px;background:#667eea;color:white;border:none;border-radius:6px;cursor:pointer;}
+  .hidden{display:none;}
+  .quiz button{display:block;margin:8px 0;background:#764ba2;}
+  .result{font-weight:bold;margin-top:16px;color:#2a7f62;}
 </style>
 </head>
 <body>
 
 <header>
   <div class="brand">
-    <img src="assets/logo.svg" alt="MedorCoin Logo" height="32">MedorCoin
+    <img src="assets/logo.svg" alt="MedorCoin Logo" height="32">
+    <span>MedorCoin</span>
   </div>
   <nav>
     <a href="courses.html">Courses ▼</a>
@@ -36,128 +33,121 @@ input { padding:10px; font-size:16px; width:100%; margin-top:10px; border:1px so
 </header>
 
 <div class="container">
-  <h1>Futures Level 1 — Crypto Futures Trading Fundamentals</h1>
 
-  <!-- Progressive Sections -->
-  <div id="section1" class="section">
-    <h2>1) Margin &amp; 2) Settlement</h2>
-    <p><strong>Margin:</strong> The money you put down to open a leveraged trade.</p>
-    <div class="graph"></div>
-    <p><strong>Settlement:</strong> The asset you receive your profit or loss in when closing.</p>
-    <div class="graph"></div>
-    <button onclick="goTo(2)">Next</button>
+  <!-- Step 1: Introduction -->
+  <div id="step1">
+    <h1>🚀 Futures L1: Crypto Futures Trading Fundamentals</h1>
+    <h2>The Trade That Started It All</h2>
+    <p><strong>Date of Flip:</strong> Wednesday, April 16, 2025 at 10:41 am</p>
+    <p><strong>Platform Used:</strong> Binance Futures • <strong>Leverage:</strong> 125x</p>
+    <p>This trade wasn’t just another transaction — it was a pivotal moment. With a $5 start and 125x leverage, I made a small profit that taught a huge lesson: **motion creates momentum.**</p>
+    <p>It wasn’t about getting rich overnight, it was about understanding how small wins lead to bigger possibilities. So how did I go from $5 to understanding crypto futures? Let’s explore.</p>
+    <button onclick="showStep(2)">Next</button>
   </div>
 
-  <div id="section2" class="section hidden">
-    <h2>3) Stablecoins &amp; 4) USD‑M</h2>
-    <p><strong>Stablecoins:</strong> Cryptos designed to keep stable value (ex: USDT).</p>
-    <div class="graph"></div>
-    <p><strong>USD‑M:</strong> A type where margin &amp; settlement are in USD‑linked coins.</p>
-    <div class="graph"></div>
-    <button onclick="goTo(3)">Next</button>
+  <!-- Step 2 -->
+  <div id="step2" class="hidden">
+    <h2>1. How to Read Simple Binance Analysis Before Trading</h2>
+    <p>Before trading, understand basic market analysis from Binance:</p>
+    <ul>
+      <li><strong>Price Action & Trend:</strong> Identify bullish or bearish movement.</li>
+      <li><strong>Support & Resistance:</strong> Know where price stalls or reverses.</li>
+      <li><strong>Market Sentiment:</strong> Use RSI, MACD, volume to judge strength.</li>
+      <li><strong>Timeframes & Moving Averages:</strong> Use multiple charts for better timing.</li>
+    </ul>
+    <button onclick="showStep(3)">Next</button>
   </div>
 
-  <!-- Repeat for all 35 definitions in pairs -->
+  <!-- Step 3 -->
+  <div id="step3" class="hidden">
+    <h2>2. How to Fund Your Futures Account on Binance</h2>
+    <p>Here’s how to get USDT into your futures wallet:</p>
+    <ul>
+      <li><strong>Set Up Binance & KYC</strong></li>
+      <li><strong>Buy USDT via P2P</strong> (cheap, fast market liquidity)</li>
+      <li><strong>Transfer to Futures Wallet</strong></li>
+    </ul>
+    <button onclick="showStep(4)">Next</button>
+  </div>
 
-  <!-- Final Quiz Section -->
-  <div id="quizSection" class="section hidden">
-    <h2>Final Quiz</h2>
-    <p>Answer both questions to complete the course:</p>
+  <!-- Step 4 -->
+  <div id="step4" class="hidden">
+    <h2>3. Starting to Trade: First Buy & Sell</h2>
+    <p><strong>Long (Buy) Trade:</strong> Market showed upward signals → placed position → small loss, big lessons.</p>
+    <p><strong>Short (Sell) Trade:</strong> Spot weakness → capitalized on the drop → profit.</p>
+    <button onclick="showStep(5)">Next</button>
+  </div>
+
+  <!-- Step 5 -->
+  <div id="step5" class="hidden">
+    <h2>Conclusion</h2>
+    <p>Understand market trends, fund efficiently, and build confidence with small wins. Futures trading is about discipline, psychology, and fundamentals. One step at a time.</p>
+    <button onclick="showQuiz()">Take Quiz</button>
+  </div>
+
+  <!-- Quiz -->
+  <div id="quizSection" class="hidden">
     <div class="quiz">
-      <p>1. What is Margin?</p>
-      <button onclick="recordAnswer('q1','correct')">The money put down to open a trade</button>
-      <button onclick="recordAnswer('q1','wrong')">A type of stablecoin</button>
+      <h3>📋 Quick Quiz</h3>
 
-      <p>2. What is Leverage?</p>
-      <button onclick="recordAnswer('q2','correct')">Borrowed capital that amplifies profits &amp; losses</button>
-      <button onclick="recordAnswer('q2','wrong')">A chart indicator</button>
+      <div>
+        <p>1. What does leverage mean in futures trading?</p>
+        <button onclick="answer('q1','correct')">Using borrowed money to control a larger position</button>
+        <button onclick="answer('q1','wrong')">Buying more coins than you have</button>
+      </div>
+
+      <div>
+        <p>2. What is the first step before entering a trade?</p>
+        <button onclick="answer('q2','correct')">Analyze chart trends and market indicators</button>
+        <button onclick="answer('q2','wrong')">Immediately place a market order</button>
+      </div>
+
+      <button onclick="checkResults()">Check Results</button>
     </div>
-    <button onclick="evaluateQuiz()">Submit Quiz</button>
-    <div id="quizResult" class="result-msg"></div>
+    <div id="finalMessage" class="hidden result"></div>
   </div>
 
-  <!-- Certificate Generator -->
-  <div id="certificateSection" class="section hidden">
-    <h2>🎉 Congratulations!</h2>
-    <p>Enter your full name to download your certificate:</p>
-    <input type="text" id="certNameInput" placeholder="Your Full Name">
-    <button class="certificate-btn" onclick="generateCertificate()">Download Certificate</button>
-    <div id="continueArea"></div>
-  </div>
 </div>
 
-<!-- Hidden Certificate HTML -->
-<div id="certificateTemplate" style="display:none; width:1000px; height:700px; background:linear-gradient(135deg,#f5effc,#e8e0f8); padding:40px; font-family:Georgia, serif;">
-  <div style="text-align:center;">
-    <h2 style="font-size:32px; color:#4a2fa6;">MedorCoin Blockchain</h2>
-    <h3 style="font-size:28px; color:#4a2fa6; margin-top:-10px;">Certificate of Completion</h3>
-    <p style="font-size:18px; margin-top:40px;">This is to certify that</p>
-    <h1 id="pdfName" style="font-size:34px; color:#222;"></h1>
-    <p style="font-size:18px;">has successfully completed</p>
-    <p style="font-size:20px; font-weight:bold;">Futures Level 1 Training Course</p>
-    <p id="pdfDate" style="font-size:16px; margin-top:10px;"></p>
-  </div>
-  <div style="display:flex; justify-content:space-between; margin-top:80px; padding:0 80px;">
-    <div style="text-align:center;">
-      <p>________________________</p>
-      <p style="font-size:14px;">Instructor</p>
-    </div>
-    <div style="text-align:center;">
-      <p>________________________</p>
-      <p style="font-size:14px;">Date</p>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.3/jspdf.umd.min.js"></script>
 <script>
 let answers = {q1:null, q2:null};
 
-function goTo(n) {
-  // Save current section
-  localStorage.setItem("futuresL1Section", n);
-  // Hide all sections
-  document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-  document.getElementById('section'+n).classList.remove('hidden');
+function showStep(n){
+  document.getElementById('step' + (n-1)).classList.add('hidden');
+  document.getElementById('step' + n).classList.remove('hidden');
 }
 
-// Load last section on page load
-window.onload = function() {
-  const saved = localStorage.getItem("futuresL1Section");
-  if (saved) goTo(parseInt(saved)); else goTo(1);
+function showQuiz(){
+  document.getElementById('step5').classList.add('hidden');
+  document.getElementById('quizSection').classList.remove('hidden');
 }
 
-function recordAnswer(q,val) { answers[q] = val; }
+function answer(question, value){
+  answers[question] = value;
+}
 
-function evaluateQuiz() {
-  const result = document.getElementById('quizResult');
-  if (answers.q1==='correct' && answers.q2==='correct') {
-    result.style.color='green';
-    result.textContent = "🎉 You passed! Enter your name below to download your certificate.";
-    document.getElementById('certificateSection').classList.remove('hidden');
-  } else {
-    result.style.color='red';
-    result.textContent = "Some answers are incorrect — review the course and try again!";
+function checkResults(){
+  let correctCount = 0;
+  for(let k in answers){
+    if(answers[k] === 'correct') correctCount++;
   }
-}
 
-function generateCertificate() {
-  const name = document.getElementById('certNameInput').value.trim();
-  if (!name) return alert("Enter your full name.");
-  document.getElementById('pdfName').textContent = name;
-  document.getElementById('pdfDate').textContent = "Completed on " + new Date().toLocaleDateString();
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF('landscape','pt','a4');
-  pdf.html(document.getElementById('certificateTemplate'), {
-    callback: function(doc) {
-      const safe = name.replace(/\s+/g,'-').toLowerCase();
-      doc.save(`medorcoin-futures-l1-certificate-${safe}.pdf`);
-      document.getElementById('continueArea').innerHTML = `
-        <button class="continue-btn" onclick="location.href='futures-L2-full.html'">Continue to Futures Level 2</button>
-      `;
-    },
-    x:10,y:10
-  });
+  const msg = document.getElementById('finalMessage');
+  msg.classList.remove('hidden');
+
+  if(correctCount === 2){
+    msg.innerHTML = `
+      🎉 <strong>Wow, congratulations!</strong><br>
+      You’re ready to level up and go deeper into Futures trading!<br><br>
+      Are you ready to explore more?<br>
+      <button onclick="location.href='futures-course.html'">Click Here</button>
+    `;
+  } else {
+    msg.innerHTML = `
+      ❗ You need a little more practice.<br>
+      Review the sections above and try again!
+    `;
+  }
 }
 </script>
 
