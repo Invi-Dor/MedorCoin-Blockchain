@@ -4,10 +4,10 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>MedorCoin — More</title>
-<meta name="description" content="MedorCoin — More pages and resources."/>
+<meta name="description" content="Access MedorCoin tools, courses, and resources. Navigate seamlessly across sign-up, account, mining, trading, and documentation pages."/>
 <style>
   :root{
-    --bg:#0f1013;
+    --bg:#0f1013;         /* dark background */
     --bg-elev:#15171b;
     --ink:#f1f5f9;
     --muted:#a3a3a3;
@@ -18,123 +18,108 @@
     --pill:#1c2029;
   }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;padding:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;}
+  html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink);background:var(--bg)}
   a{text-decoration:none;color:inherit}
-  a:hover{text-decoration:underline}
 
-  .app{max-width:520px;margin:0 auto;padding-bottom:80px;position:relative}
-  .topbar{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#0f1013 60%,#0f1013cc);backdrop-filter:saturate(120%) blur(6px);border-bottom:1px solid var(--border);padding:12px 14px}
-  .topbar .title{font-weight:800;font-size:18px}
-  .topbar .subtitle{color:var(--muted);font-size:12px;margin-top:4px}
-
-  .panel{background:var(--bg-elev);border:1px solid var(--border);border-radius:16px;padding:12px;margin:10px 14px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-  @media(min-width:480px){.grid.triple{grid-template-columns:repeat(3,1fr)}}
-  .card{background:#0f1115;border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;cursor:pointer;transition:transform 0.2s}
-  .card:hover{transform:scale(1.05);}
-  .favicon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background-color:var(--accent);color:#1a1a1a;font-weight:700;font-size:18px}
-  .label{font-weight:700;font-size:14px;color:var(--ink)}
+  header{text-align:center;padding:14px 0;font-weight:800;font-size:22px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;padding:12px}
+  .card{background:var(--bg-elev);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center;transition:transform .2s;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .card:hover{transform:scale(1.05)}
+  .icon-img{width:48px;height:48px;border-radius:12px;object-fit:cover}
+  .label{font-weight:700;font-size:14px;text-align:center;color:var(--ink)}
 </style>
 </head>
 <body>
-  <div class="app">
-    <div class="topbar">
-      <div class="title">MedorCoin — More</div>
-      <div class="subtitle">All additional pages and resources</div>
-    </div>
-
-    <div class="panel">
-      <div class="grid">
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/signup.html">
-          <div class="favicon">S</div>
-          <div class="label">Sign Up</div>
-        </a>
-        <a class="card" href="login.html">
-          <div class="favicon">L</div>
-          <div class="label">Login</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/account.html">
-          <div class="favicon">A</div>
-          <div class="label">My Account</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/blockchain.html">
-          <div class="favicon">B</div>
-          <div class="label">Blockchain</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/miners.html">
-          <div class="favicon">M</div>
-          <div class="label">Miners</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/mining-course.html">
-          <div class="favicon">C</div>
-          <div class="label">Mining Courses</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/more.html">
-          <div class="favicon">S</div>
-          <div class="label">Spot Trading</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/futures-l1.html">
-          <div class="favicon">F</div>
-          <div class="label">Futures Courses</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/options-l1.html">
-          <div class="favicon">O</div>
-          <div class="label">Options Courses</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/whales.html">
-          <div class="favicon">W</div>
-          <div class="label">Crypto Whales</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/terms.html">
-          <div class="favicon">T</div>
-          <div class="label">Terms & Conditions</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/developers.html">
-          <div class="favicon">D</div>
-          <div class="label">Developers</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/create-wallet.html">
-          <div class="favicon">C</div>
-          <div class="label">Create Wallet</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/connect-wallet.html">
-          <div class="favicon">C</div>
-          <div class="label">Connect Wallet</div>
-        </a>
-        <a class="card" href="crypto trading.html">
-          <div class="favicon">T</div>
-          <div class="label">Crypto Trading</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/learn.html">
-          <div class="favicon">L</div>
-          <div class="label">Learn</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/locks.html">
-          <div class="favicon">L</div>
-          <div class="label">Buy Locks</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/new-listings.html">
-          <div class="favicon">N</div>
-          <div class="label">New Listing</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/chatroom.html">
-          <div class="favicon">C</div>
-          <div class="label">Chat Room</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/course-terms.and-conditions.html">
-          <div class="favicon">C</div>
-          <div class="label">Course T&C</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/what-medorcoin-does-for.html">
-          <div class="favicon">A</div>
-          <div class="label">About Us</div>
-        </a>
-        <a class="card" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/docs.html">
-          <div class="favicon">D</div>
-          <div class="label">Documentation</div>
-        </a>
-      </div>
-    </div>
-  </div>
+<header>More</header>
+<div class="grid">
+  <a class="card" href="signup.html">
+    <img src="assets/icons/signup.png" class="icon-img" alt="Sign Up">
+    <div class="label">Sign Up</div>
+  </a>
+  <a class="card" href="login.html">
+    <img src="assets/icons/login.png" class="icon-img" alt="Login">
+    <div class="label">Login</div>
+  </a>
+  <a class="card" href="account.html">
+    <img src="assets/icons/account.png" class="icon-img" alt="My Account">
+    <div class="label">My Account</div>
+  </a>
+  <a class="card" href="blockchain.html">
+    <img src="assets/icons/blockchain.png" class="icon-img" alt="Blockchain">
+    <div class="label">Blockchain</div>
+  </a>
+  <a class="card" href="miners.html">
+    <img src="assets/icons/miners.png" class="icon-img" alt="Miners">
+    <div class="label">Miners</div>
+  </a>
+  <a class="card" href="mining-course.html">
+    <img src="assets/icons/mining-course.png" class="icon-img" alt="Mining Courses">
+    <div class="label">Mining Courses</div>
+  </a>
+  <a class="card" href="spot-trading-course.html">
+    <img src="assets/icons/spot-trading.png" class="icon-img" alt="Spot Trading">
+    <div class="label">Spot Trading Course</div>
+  </a>
+  <a class="card" href="futures-l1.html">
+    <img src="assets/icons/futures.png" class="icon-img" alt="Futures Courses">
+    <div class="label">Futures Trading Courses</div>
+  </a>
+  <a class="card" href="options-l1.html">
+    <img src="assets/icons/options.png" class="icon-img" alt="Options Courses">
+    <div class="label">Options Courses</div>
+  </a>
+  <a class="card" href="whales.html">
+    <img src="assets/icons/whales.png" class="icon-img" alt="Crypto Whales">
+    <div class="label">Crypto Whales</div>
+  </a>
+  <a class="card" href="terms.html">
+    <img src="assets/icons/terms.png" class="icon-img" alt="Terms & Conditions">
+    <div class="label">Terms & Conditions</div>
+  </a>
+  <a class="card" href="developers.html">
+    <img src="assets/icons/developers.png" class="icon-img" alt="Developers">
+    <div class="label">Developers</div>
+  </a>
+  <a class="card" href="create-wallet.html">
+    <img src="assets/icons/create-wallet.png" class="icon-img" alt="Create Wallet">
+    <div class="label">Create Wallet</div>
+  </a>
+  <a class="card" href="connect-wallet.html">
+    <img src="assets/icons/connect-wallet.png" class="icon-img" alt="Connect Wallet">
+    <div class="label">Connect Wallet</div>
+  </a>
+  <a class="card" href="crypto-trading.html">
+    <img src="assets/icons/crypto-trading.png" class="icon-img" alt="Crypto Trading">
+    <div class="label">Crypto Trading</div>
+  </a>
+  <a class="card" href="learn.html">
+    <img src="assets/icons/learn.png" class="icon-img" alt="Learn">
+    <div class="label">Learn</div>
+  </a>
+  <a class="card" href="locks.html">
+    <img src="assets/icons/locks.png" class="icon-img" alt="Buy Locks">
+    <div class="label">Buy Locks</div>
+  </a>
+  <a class="card" href="new-listings.html">
+    <img src="assets/icons/new-listings.png" class="icon-img" alt="New Listing">
+    <div class="label">New Listing</div>
+  </a>
+  <a class="card" href="chatroom.html">
+    <img src="assets/icons/chatroom.png" class="icon-img" alt="Chat Room">
+    <div class="label">Chat Room</div>
+  </a>
+  <a class="card" href="course-terms-and-conditions.html">
+    <img src="assets/icons/course-terms.png" class="icon-img" alt="Course Terms & Conditions">
+    <div class="label">Course Terms & Conditions</div>
+  </a>
+  <a class="card" href="what-medorcoin-does-for.html">
+    <img src="assets/icons/about-us.png" class="icon-img" alt="About Us">
+    <div class="label">About Us</div>
+  </a>
+  <a class="card" href="docs.html">
+    <img src="assets/icons/docs.png" class="icon-img" alt="Documentation">
+    <div class="label">Documentation</div>
+  </a>
+</div>
 </body>
 </html>
