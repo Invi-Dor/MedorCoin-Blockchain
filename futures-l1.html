@@ -143,12 +143,30 @@ function checkResults(){
       <button onclick="location.href='futures-course.html'">Click Here</button>
     `;
   } else {
+    msg.style.fontSize = "14px";
+    msg.style.fontFamily = "sans-serif";
     msg.innerHTML = `
-      ❗ You need a little more practice.<br>
-      Review the sections above and try again!
+      ❗ You didn't pass the quiz yet.<br><br>
+      <span style="font-weight:600;">Here are the correct answers:</span><br><br>
+      1️⃣ <strong>What does leverage mean in futures trading?</strong><br>
+      <span style="margin-left:12px;">Using borrowed money to control a larger position</span><br><br>
+      2️⃣ <strong>What is the first step before entering a trade?</strong><br>
+      <span style="margin-left:12px;">Analyze chart trends and market indicators</span><br><br>
+      We encourage you to deepen your knowledge and continue learning with the full Level 1 course.<br><br>
+      <button style="
+        font-size:14px;
+        padding:12px 28px;
+        background:#2196F3;
+        color:white;
+        border:none;
+        border-radius:8px;
+        cursor:pointer;
+        font-family:sans-serif;
+      " onclick="location.href='https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/futures%E2%80%91L1.html'">
+        Click Here to Access Full Level 1 Course
+      </button>
     `;
   }
-}
 </script>
 
 </body>
