@@ -1,4 +1,4 @@
-
+Done. All blocks have color updates per your specs. Here is the complete updated HTML for easy reference:
 
 <!DOCTYPE html>
 <html lang="en">
@@ -94,24 +94,66 @@
       <span class="muted">Docs & SDKs</span>
     </a>
 
-    <a class="tile" href="trading.html"><div class="icon ic-slate">📈</div><b>Crypto Trading</b><span class="muted">Markets & tools</span></a>
-    <a class="tile" href="learn.html"><div class="icon ic-slate">📚</div><b>Learn</b><span class="muted">Guides</span></a>
-    <a class="tile" href="Chatroom.html"><div class="icon ic-slate">💬</div><b>Chatroom</b><span class="muted">Chat & support</span></a>
-    <a class="tile" href="crypto-whales.html"><div class="icon ic-slate">🐋</div><b>Crypto Whales</b><span class="muted">Large flows</span></a>
-    <a class="tile" href="my-account.html"><div class="icon ic-slate">👤</div><b>My Account</b><span class="muted">Profile</span></a>
-    <a class="tile" href="new-listing.html"><div class="icon ic-slate">🆕</div><b>New Listing</b><span class="muted">List a token</span></a>
-    <a class="tile" href="locks.html">
+    <!-- Crypto Trading: updated to dark grey with light gold text -->
+    <a class="tile" href="trading.html" style="background:#2f2f2f;color:#FDE68A;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#FDE68A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12h4l3-7 4 14 5-9" stroke="#FDE68A"/>
+          <path d="M3 12h4" stroke="#FDE68A"/>
+        </svg>
+      </div>
+      <b style="color:#FDE68A">Crypto Trading</b>
+      <span class="muted" style="color:#FDE68A">Markets & tools</span>
+    </a>
+
+    <!-- Learn: dark blue background, white text -->
+    <a class="tile" href="learn.html" style="background:#0B3D91;color:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">📚</div>
+      <b>Learn</b>
+      <span class="muted" style="color:#fff">Guides</span>
+    </a>
+
+    <!-- Chatroom: light purple background with light purple text -->
+    <a class="tile" href="Chatroom.html" style="background:#E6D5FF;color:#A089FF;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">💬</div>
+      <b>Chatroom</b>
+      <span class="muted" style="color:#A089FF">Chat & support</span>
+    </a>
+
+    <!-- Crypto Whales: beige background -->
+    <a class="tile" href="crypto-whales.html" style="background:#F5F5DC;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">🐋</div>
+      <b>Crypto Whales</b>
+      <span class="muted" style="color:#333">Large flows</span>
+    </a>
+
+    <!-- My Account: light blue -->
+    <a class="tile" href="my-account.html" style="background:#BDE7FF;color:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">👤</div>
+      <b>My Account</b>
+      <span class="muted" style="color:#fff">Profile</span>
+    </a>
+
+    <!-- New Listing: light orange -->
+    <a class="tile" href="new-listing.html" style="background:#FFD6A3;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">🆕</div>
+      <b>New Listing</b>
+      <span class="muted" style="color:#333">List a token</span>
+    </a>
+
+    <!-- Locks: dark blue, white text -->
+    <a class="tile" href="locks.html" style="background:#1F3A8A;color:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
       <div class="icon ic-gold" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none">
-          <path d="M7.5 10V8.5a4.5 4.5 0 1 1 9 0V10" stroke="#A3AAB5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="5.5" y="10" width="13" height="10" rx="2" fill="#D7BF77" stroke="#B5943F" stroke-width="1.4"/>
+          <path d="M7.5 10V8.5a4.5 4.5 0 1 1 9 0V10" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="5.5" y="10" width="13" height="10" rx="2" fill="#D7BF77" stroke="#FFFFFF" stroke-width="1.4"/>
           <path d="M6.8 11.4h10.4c.3 0 .5.2.5.5v.2c-1.8.6-3.7.9-5.5.9s-3.7-.3-5.5-.9v-.2c0-.3.2-.5.5-.5z" fill="#F7EFD4" opacity=".55"/>
-          <circle cx="12" cy="15" r="1.2" fill="#8C6A2C"/>
-          <rect x="11.4" y="15.9" width="1.2" height="2.3" rx=".6" fill="#8C6A2C"/>
+          <circle cx="12" cy="15" r="1.2" fill="#FFFFFF"/>
+          <rect x="11.4" y="15.9" width="1.2" height="2.3" rx=".6" fill="#FFFFFF"/>
         </svg>
       </div>
       <b>Locks</b>
-      <span class="muted">Lock-ups & vesting</span>
+      <span class="muted" style="color:#fff">Lock-ups & vesting</span>
     </a>
   </div>
 
@@ -144,4 +186,3 @@ document.getElementById('currentYear') ? document.getElementById('currentYear').
 </div> <!-- end of .container -->
 </body>
 </html>
-
