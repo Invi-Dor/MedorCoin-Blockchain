@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Transaction Receipt</title>
+<style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 20px; }
+    .receipt { background: #fff; padding: 30px; max-width: 800px; margin: auto; border: 1px solid #ccc; }
+    h1, h2 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+</style>
+</head>
+<body>
+<div class="receipt">
+    <h1>Transaction Receipt</h1>
+
+    <h2>Transaction Details</h2>
+    <table>
+        <tr><th>TX Hash</th><td>{{transactionHash}}</td></tr>
+        <tr><th>Block Hash</th><td>{{blockHash}}</td></tr>
+        <tr><th>Block Number</th><td>{{blockNumber}}</td></tr>
+        <tr><th>Transaction Index</th><td>{{transactionIndex}}</td></tr>
+        <tr><th>From</th><td>{{from}}</td></tr>
+        <tr><th>To</th><td>{{to}}</td></tr>
+        <tr><th>Status</th><td>{{status}}</td></tr>
+        <tr><th>Gas Used</th><td>{{gasUsed}}</td></tr>
+        <tr><th>Cumulative Gas</th><td>{{cumulativeGasUsed}}</td></tr>
+    </table>
+
+    <h2>Event Logs</h2>
+    <table>
+        <tr><th>#</th><th>Address</th><th>Topics</th><th>Data</th></tr>
+        {{#logs}}
+        <tr>
+            <td>{{index}}</td>
+            <td>{{address}}</td>
+            <td>{{topics}}</td>
+            <td>{{data}}</td>
+        </tr>
+        {{/logs}}
+    </table>
+
+    <h2>Purchased Item</h2>
+    <table>
+        <tr><th>Course / Product</th><td>{{productName}}</td></tr>
+        <tr><th>Level</th><td>{{productLevel}}</td></tr>
+        <tr><th>Price</th><td>{{price}}</td></tr>
+        <tr><th>Date</th><td>{{date}}</td></tr>
+        <tr><th>Buyer</th><td>{{buyerName}}</td></tr>
+        <tr><th>Mining Power Bought</th><td>{{miningAmount}}</td></tr>
+    </table>
+</div>
+</body>
+</html>
