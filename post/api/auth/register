@@ -1,0 +1,22 @@
+// In your auth backend registration code
+CROW_ROUTE(app, "/api/auth/register").methods("POST"_method)
+([](const crow::request &req) {
+    auto body = json::parse(req.body);
+    std::string email = body["email"];
+    std::string password = body["password"];
+
+    // Validate input (simple example)
+    if (email.empty() || password.empty()) {
+        return crow::response(400, "{\"error\":\"Email & password required\"}");
+    }
+
+    // TODO: Save user securely (hash password and store in DB)
+    // For now, assume user is saved and generate token
+    std::string token = generateJWT(email);
+
+    json res;
+    res["message"] = "User registered";
+    res["token"] = token;
+
+    return crow::response(200, res.dump());
+});
