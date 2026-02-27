@@ -1,9 +1,3 @@
-// kevcak.cpp
-// Hardened Keccak (Ethereum Keccak-256 compatible core) with C API.
-// Drop-in replacement for your prior Keccak.cpp, but safer and portable.
-// Exposes: void keccakf(uint64_t st[25]); and int keccak(const uint8_t* in, size_t inlen, uint8_t* out, size_t outlen);
-// If you previously used different names, adjust the function names below accordingly.
-
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
