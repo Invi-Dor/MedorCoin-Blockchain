@@ -1,15 +1,11 @@
 #include "main.h"
 #include "blockchain.h"
 #include "api.h"
-#include "transaction.h"
 #include "net/net_manager.h"
 #include "net/sync_manager.h"
 #include "crypto/keystore.h"
 #include "utxo.h"
 
-int main() {
-    startAPIServer();
-}
 #include <iostream>
 #include <vector>
 #include <string>
@@ -31,6 +27,16 @@ int main(int argc, char* argv[]) {
     std::signal(SIGINT, handleSignal);
     std::signal(SIGTERM, handleSignal);
 
+    // --------------------
+    // Start API Server
+    // --------------------
+    std::thread apiThread([]() {
+        startAPIServer(); // Starts Crow HTTP server on configured port
+    });
+
+    // --------------------
+    // Start MedorCoin Node
+    // --------------------
     std::string listenAddr = "0.0.0.0:4001";
     if (argc > 1) listenAddr = argv[1];
 
@@ -50,6 +56,7 @@ int main(int argc, char* argv[]) {
     syncMgr = std::make_unique<SyncManager>(medorChain);
     SyncManager &syncManager = *syncMgr;
 
+    // Peer message handler
     network.onMessage([&](const nlohmann::json &msg) {
         std::string type = msg.value("type", "");
 
@@ -80,6 +87,7 @@ int main(int argc, char* argv[]) {
         }
     });
 
+    // Broadcast initial height
     auto announceHeight = [&]() {
         nlohmann::json h;
         h["type"] = "announce_height";
@@ -92,11 +100,17 @@ int main(int argc, char* argv[]) {
 
     std::cout << "[NODE] Initialization complete, entering loop." << std::endl;
 
+    // Main node loop
     while (running) {
         announceHeight();
         std::this_thread::sleep_for(std::chrono::seconds(10));
     }
 
-    std::cout << "[NODE] Node shutting down..." << std::endl;
+    std::cout << "[NODE] Shutting down..." << std::endl;
+
+    // Stop all
+    network.stop();
+    if (apiThread.joinable()) apiThread.join();
+
     return 0;
 }
