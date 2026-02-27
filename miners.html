@@ -1,515 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>MedorCoin — Miners</title>
-<meta name="description" content="MedorCoin Mining Plans — free 12h at 4 GH/s or subscribe for 610 GH/s. Secure checkout with 2FA; pay by card (bridge to ETH/BNB) or direct crypto."/>
-<style>
-  :root{
-    --bg:#0f1013;         /* very dark grey (pencil-like) */
-    --bg-elev:#15171b;
-    --ink:#f1f5f9;
-    --muted:#a3a3a3;
-    --border:#232630;
-    --accent:#ff8a00;     /* orange replacing purple */
-    --accent-2:#ffb84d;
-    --accent-3:#ffd199;
-    --good:#10b981;
-    --warn:#f59e0b;
-    --bad:#ef4444;
-    --pill:#1c2029;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.45;-webkit-font-smoothing:antialiased}
-  a{color:var(--accent-2);text-decoration:none} a:hover{text-decoration:underline}
-
-  /* Mobile-first layout inspired by your screenshot */
-  .app{max-width:520px;margin:0 auto;padding-bottom:80px;position:relative}
-  .topbar{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#0f1013 60%,#0f1013cc);backdrop-filter:saturate(120%) blur(6px);border-bottom:1px solid var(--border)}
-  .status{display:flex;align-items:center;justify-content:space-between;padding:10px 14px}
-  .status .balance{display:flex;align-items:center;gap:8px}
-  .badge{background:var(--accent);color:#1a1a1a;border-radius:999px;padding:2px 8px;font-weight:700;font-size:12px}
-  .notif{position:relative}
-  .notif .dot{position:absolute;top:-2px;right:-2px;background:#ff4d4d;border:2px solid #0f1013;width:10px;height:10px;border-radius:50%}
-  .summary{padding:12px 14px 8px}
-  .title{font-weight:800;font-size:18px}
-  .subtitle{color:var(--muted);font-size:12px;margin-top:4px}
-
-  .panel{background:var(--bg-elev);border:1px solid var(--border);border-radius:16px;padding:12px;margin:10px 14px}
-  .hrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
-  .kicker{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2)}
-  .hint{font-size:11px;color:#9ca3af}
-  .pill{display:inline-flex;align-items:center;gap:6px;background:var(--pill);border:1px solid #29303a;border-radius:999px;padding:6px 10px;font-size:12px}
-
-  /* Slider */
-  .slider-wrap{margin-top:10px}
-  input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:999px;background:#20232b;outline:none}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:linear-gradient(180deg,var(--accent-2),var(--accent));border:2px solid #da7a05;box-shadow:0 2px 6px #0007;cursor:pointer}
-  input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:linear-gradient(180deg,var(--accent-2),var(--accent));border:2px solid #da7a05;box-shadow:0 2px 6px #0007;cursor:pointer}
-
-  /* Cards grid */
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-  @media(min-width:480px){.grid.triple{grid-template-columns:repeat(3,1fr)}}
-  .card{background:#0f1115;border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:6px}
-  .card.pop{border-color:#da7a05;box-shadow:inset 0 0 0 1px #da7a05}
-  .price{font-weight:800;color:#ffce7a}
-  .speed{font-weight:700;color:#ffdca8}
-  .btn{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--accent-2),var(--accent));border:1px solid #da7a05;color:#1a1a1a;border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer}
-  .btn.secondary{background:#0f1115;color:#f1f5f9;border:1px solid var(--border)}
-  .btn.ghost{background:transparent;color:#f1f5f9;border:1px dashed #394150}
-  .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
-  .divider{height:1px;background:var(--border);margin:10px 0}
-
-  /* Bottom nav like the screenshot */
-  .bottom-nav{position:fixed;left:0;right:0;bottom:0;border-top:1px solid var(--border);background:#0f1013ee;backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:space-around;padding:8px 6px;z-index:20}
-  .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:#c7c7c7;font-size:11px}
-  .nav-item.active{color:var(--accent-2)}
-  .nav-item .icon{font-size:18px}
-
-  /* Right GIF on larger screens */
-  .wrap{display:grid;grid-template-columns:1fr;gap:14px}
-  @media(min-width:900px){
-    .wrap{grid-template-columns:1fr 360px}
-    .gifWrap{position:sticky;top:12px;align-self:start;margin-right:14px}
-    .gifWrap .gif-card{padding:0;border-radius:16px;overflow:hidden;background:var(--bg-elev);border:1px solid var(--border)}
-    .gifWrap img{width:100%;height:auto;display:block}
-  }
-
-  /* Modals */
-  .modal-backdrop{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;z-index:50}
-  .modal{background:#0f1115;border:1px solid var(--border);border-radius:14px;max-width:540px;width:92%;padding:16px}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MedorCoin Mining - Miners</title>
+  <style>
+    :root{
+      --bg:#0f1013;
+      --bg-elev:#15171b;
+      --ink:#f8fafa;
+      --muted:#a3a3a3;
+      --border:#232630;
+      --accent:#ff8a00;     /* orange */
+      --accent-2:#ffb84d;
+      --pill:#1c2029;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.45}
+    a{color:var(--accent-2);text-decoration:none}
+    .app{max-width:1120px;margin:0 auto;padding:0 16px}
+    .topbar{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#0f1013 60%,#0f1013cc);border-bottom:1px solid var(--border)}
+    .status{display:flex;justify-content:space-between;align-items:center;padding:10px 14px}
+    .balance{display:flex;gap:8px;align-items:center}
+    .badge{background:var(--accent);color:#1a1a1a;border-radius:999px;padding:2px 8px;font-weight:800}
+    .panel{background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;padding:14px;margin:14px 0}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .kicker{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2)}
+    .title{font-weight:800;font-size:18px}
+    .row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .btn{display:inline-flex;gap:8px;align-items:center;padding:10px 14px;border-radius:10px;border:1px solid #0000;cursor:pointer;background:linear-gradient(180deg,var(--accent-2),var(--accent));font-weight:800;color:#1a1a1a}
+    .btn.secondary{background:#0f1115;border:1px solid var(--border);color:#f1f5f9}
+    .card{border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+    .price{font-weight:800;color:#ffce7a}
+    .speed{font-weight:700;color:#ffdca8}
+    .card.pop{border-color:#da7a05;box-shadow:inset 0 0 0 1px #da7a05}
+    .big{font-size:28px;font-weight:800}
+    .muted{color:var(--muted);font-size:12px}
+  </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="app" role="main" aria-label="MedorCoin Miners">
-      <!-- Top bar -->
-      <div class="topbar">
-        <div class="status">
-          <div class="balance">
-            <span class="pill">Balance</span>
-            <span class="mono" id="walletBalance">0.00000000 MEDOR</span>
-          </div>
-          <div class="row">
-            <span class="badge" id="networkPill">Mainnet</span>
-            <div class="notif" aria-label="Notifications"><span class="icon">🔔</span><span class="dot" id="notifDot" style="display:none"></span></div>
-          </div>
+  <div class="app" role="main" aria-label="MedorCoin Miners App">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="status">
+        <div class="balance">
+          <span class="badge" id="walletBalanceLabel">Wallet</span>
+          <span id="walletBalance" style="font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0.00000000 MEDOR</span>
         </div>
-        <div class="summary">
-          <div class="title">MedorCoin Mining Plans</div>
-          <div class="subtitle">Start with a free plan, then boost your hashrate with optional paid upgrades.</div>
+        <div class="row">
+          <span class="badge" id="networkPill">Mainnet</span>
+          <span class="muted" id="userStatus" style="margin-left:12px">Not signed in</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sign up / Sign in Page (collapsed into one page) -->
+    <section id="authSection" class="panel" aria-label="Authentication">
+      <div class="row" style="gap:12px;align-items:flex-end;">
+        <div>
+          <div class="kicker">Account</div>
+          <h2 class="title" style="margin:0">Create or Sign in</h2>
+          <div class="muted" style="margin-top:4px">Sign up to start mining. Email verification required.</div>
+        </div>
+        <div style="margin-left:auto">
+          <span class="muted" id="signupHint" style="display:block"></span>
         </div>
       </div>
 
-      <!-- Account panel -->
-      <div class="panel" aria-labelledby="accTitle">
-        <div class="hrow"><div class="kicker" id="accTitle">Account</div></div>
-        <div class="grid">
-          <form class="card" onsubmit="return false;">
-            <b>Sign in</b>
-            <label>Email</label><input id="si-email" type="email" placeholder="you@example.com" required/>
-            <label>Password</label><input id="si-pass" type="password" placeholder="••••••••" required/>
-            <label class="row"><input id="si-2fa" type="checkbox"/> Use 2FA (TOTP)</label>
-            <button class="btn" onclick="login()">Sign In</button>
-            <div id="si-msg" class="hint"></div>
-          </form>
-          <form class="card" onsubmit="return false;">
-            <b>Sign up</b>
-            <label>Email</label><input id="su-email" type="email" required/>
-            <label>Password</label><input id="su-pass" type="password" placeholder="Min 8 chars" required/>
-            <label>Confirm</label><input id="su-pass2" type="password" required/>
-            <label class="row"><input id="su-18" type="checkbox" required/> I am 18+ </label>
-            <label class="row"><input id="su-terms" type="checkbox" required/> I accept Terms & Mining Policy</label>
-            <label class="row"><input id="su-2fa" type="checkbox" checked/> Enable 2FA</label>
-            <button class="btn" onclick="register()">Create Account</button>
-            <div id="su-msg" class="hint"></div>
-          </form>
+      <div class="grid" style="margin-top:12px">
+        <!-- Sign Up Card -->
+        <form id="signUpForm" class="card" onsubmit="return false;">
+          <strong>Sign Up</strong>
+          <label>Email</label><input id="su-email" type="email" placeholder="you@example.com" required/>
+          <label>Password</label><input id="su-pass" type="password" placeholder="Min 8 chars" required/>
+          <label>Confirm Password</label><input id="su-pass2" type="password" placeholder="Re-enter password" required/>
+          <label class="row" style="align-items:center"><input id="su-18" type="checkbox" required/> I am 18+</label>
+          <label class="row" style="align-items:center"><input id="su-terms" type="checkbox" required/> I accept Terms & Mining Policy</label>
+          <button class="btn" onclick="register()">Create Account</button>
+          <div id="su-msg" class="muted" style="margin-top:6px"></div>
+        </form>
+
+        <!-- Sign In Card -->
+        <form id="signInForm" class="card" onsubmit="return false;">
+          <strong>Sign In</strong>
+          <label>Email</label><input id="si-email" type="email" placeholder="you@example.com" required/>
+          <label>Password</label><input id="si-pass" type="password" placeholder="Your password" required/>
+          <label class="row" style="align-items:center"><input id="si-2fa" type="checkbox"/> Use 2FA</label>
+          <button class="btn" onclick="login()">Sign In</button>
+          <div id="si-msg" class="muted" style="margin-top:6px"></div>
+        </form>
+      </div>
+      <div class="muted" style="margin-top:8px">
+        By continuing, you agree to the Mining Terms. You may be asked to verify your email.
+      </div>
+    </section>
+
+    <!-- Mining Dashboard (hidden until signed in) -->
+    <section id="dashboardSection" class="panel" style="display:none" aria-label="Mining Dashboard">
+      <div class="row" style="align-items:center">
+        <div class="muted" style="font-size:12px">Dashboard</div>
+        <div style="margin-left:auto" class="row">
+          <span class="badge" id="dashboardStatus">Live</span>
         </div>
       </div>
 
-      <!-- Mining speed (slider) -->
-      <div class="panel" aria-labelledby="speedTitle">
-        <div class="hrow">
-          <div>
-            <div class="kicker">Mining speed</div>
-            <b id="speedTitle">Drag slider to select hashrate</b>
-          </div>
-          <div class="pill"><span>Hashrate</span><span class="mono" id="hashrateLbl">4.00 GH/s</span></div>
+      <div class="grid" style="margin-top:6px">
+        <!-- Left: Live balance / per second -->
+        <div class="card" style="min-height:140px">
+          <div class="kicker">Medor Balance</div>
+          <div class="big" id="liveBalance">0.00000000 MEDOR</div>
+          <div class="muted" id="balanceNote" style="margin-top:6px">Balance accrues as you mine.</div>
         </div>
-        <div class="slider-wrap">
-          <!-- Slider range 4 -> 610 GH/s -->
-          <input id="speedSlider" type="range" min="4" max="610" step="1" value="4" oninput="onSpeedChange(this.value)"/>
-          <div class="hint">Free plan max is 4 GH/s for 12 hours. Paid plans unlock 610 GH/s.</div>
+
+        <div class="card" id="liveRateCard">
+          <div class="row" style="justify-content:space-between">
+            <div class="kicker">Medor mined per second</div>
+            <span class="badge" id="minedPerSecLabel">LIVE</span>
+          </div>
+          <div class="big" id="medorPerSec">0.00000010</div>
+          <div class="muted" style="margin-top:6px">Free: 4 GH/s every 12h. Paid plans unlock up to 610 GH/s.</div>
         </div>
       </div>
 
-      <!-- Duration and quick actions -->
-      <div class="panel">
-        <div class="kicker">Duration</div>
-        <div class="grid">
-          <div class="card">
-            <b>Free</b>
-            <div>12 Hours</div>
-            <div class="hint">First-time: up to 2 concurrent sessions.</div>
-            <button class="btn" onclick="startFreeContract()">Start Free 12h</button>
-          </div>
-          <div class="card">
-            <b>Paid</b>
-            <div>Renews per plan term</div>
-            <div class="hint">Auto or manual renew (24h/term)</div>
-            <button class="btn secondary" onclick="location.hash='#plans'">View Plans</button>
-          </div>
-        </div>
-        <div class="divider"></div>
-        <label class="row"><input id="agree-mining-terms" type="checkbox"/> I agree that rewards vary and are not guaranteed.</label>
-      </div>
-
-      <!-- Plans (match screenshot style with badges) -->
-      <div class="panel" id="plans">
-        <div class="hrow">
-          <div class="kicker">Plans</div>
-          <div class="pill">Popular</div>
-        </div>
-        <div class="grid">
-          <div class="card pop">
-            <div class="row" style="justify-content:space-between">
-              <b>Monthly</b>
-              <span class="badge">-</span>
+      <!-- Free Contract Panel -->
+      <div class="grid" style="margin-top:12px">
+        <div class="card" id="freeContractPanel">
+          <div class="row" style="justify-content:space-between;">
+            <div>
+              <div class="kicker">Free Contract</div>
+              <strong>4 GH/s</strong>
             </div>
-            <div class="row"><span class="price">$15 / Month</span><span class="speed">610 GH/s</span></div>
-            <div class="hint">All Pro benefits: priority pool routing, higher throughput.</div>
-            <div class="row">
+            <span class="badge" id="freeContractStatus">Active</span>
+          </div>
+          <div class="muted" id="freeContractDesc" style="margin-top:4px">Free mining every 12 hours. Claim to renew.</div>
+          <div class="row" style="gap:8px;margin-top:6px">
+            <button class="btn" id="claimFreeBtn" onclick="claimFreeContract()">Claim Contract</button>
+            <button class="btn secondary" onclick="startMiningDemo()">Start Mining</button>
+          </div>
+          <div class="muted" id="freeCountdown" style="margin-top:6px"></div>
+        </div>
+
+        <!-- Paid Plans -->
+        <div class="card" id="plansPanel">
+          <div class="row" style="justify-content:space-between;">
+            <div class="kicker">Plans</div>
+            <span class="badge" id="plansBadge">610 GH/s max</span>
+          </div>
+          <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px">
+            <div class="card pop">
+              <div class="row" style="justify-content:space-between">
+                <span>Monthly</span><span class="badge">$15</span>
+              </div>
+              <div class="row" style="justify-content:space-between">
+                <span>610 GH/s</span><span>Auto-renew</span>
+              </div>
               <button class="btn" onclick="openCheckout('monthly')">Subscribe</button>
-              <button class="btn secondary" onclick="openCryptoFor('monthly')">Crypto</button>
             </div>
-          </div>
 
-          <div class="card">
-            <div class="row" style="justify-content:space-between">
-              <b>3 Months</b>
-              <span class="badge">-20%</span>
-            </div>
-            <div class="row"><span class="price">$36</span><span class="speed">610 GH/s</span></div>
-            <div class="hint">Same Pro benefits. Discounted bundle.</div>
-            <div class="row">
+            <div class="card">
+              <div class="row" style="justify-content:space-between">
+                <span>3 Months</span><span class="badge">$36</span>
+              </div>
+              <div class="row" style="justify-content:space-between">
+                <span>610 GH/s</span><span>Auto-renew</span>
+              </div>
               <button class="btn" onclick="openCheckout('quarterly')">Subscribe</button>
-              <button class="btn secondary" onclick="openCryptoFor('quarterly')">Crypto</button>
             </div>
-          </div>
 
-          <div class="card">
-            <div class="row" style="justify-content:space-between">
-              <b>6 Months</b>
-              <span class="badge">-40%</span>
-            </div>
-            <div class="row"><span class="price">$54</span><span class="speed">610 GH/s</span></div>
-            <div class="hint">Best mid-term saving.</div>
-            <div class="row">
+            <div class="card">
+              <div class="row" style="justify-content:space-between">
+                <span>6 Months</span><span class="badge">$54</span>
+              </div>
+              <div class="row" style="justify-content:space-between">
+                <span>610 GH/s</span><span>Auto-renew</span>
+              </div>
               <button class="btn" onclick="openCheckout('semiannual')">Subscribe</button>
-              <button class="btn secondary" onclick="openCryptoFor('semiannual')">Crypto</button>
             </div>
-          </div>
 
-          <div class="card">
-            <div class="row" style="justify-content:space-between">
-              <b>12 Months</b>
-              <span class="badge">-60%</span>
-            </div>
-            <div class="row"><span class="price">$72</span><span class="speed">610 GH/s</span></div>
-            <div class="hint">Best value long-term.</div>
-            <div class="row">
+            <div class="card">
+              <div class="row" style="justify-content:space-between">
+                <span>12 Months</span><span class="badge">$72</span>
+              </div>
+              <div class="row" style="justify-content:space-between">
+                <span>610 GH/s</span><span>Auto-renew</span>
+              </div>
               <button class="btn" onclick="openCheckout('annual')">Subscribe</button>
-              <button class="btn secondary" onclick="openCryptoFor('annual')">Crypto</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Earn more -->
-      <div class="panel">
-        <div class="kicker">Earn More</div>
-        <ul style="margin:6px 0 0 18px">
-          <li>Keep rigs cool to stabilize hashrate.</li>
-          <li>Use regional pools to reduce stale shares.</li>
-          <li>Secure payout settings with 2FA.</li>
-          <li>Track profitability; adjust thresholds.</li>
-        </ul>
+      <!-- Sign out / go back -->
+      <div style="margin-top:14px">
+        <button class="btn secondary" onclick="logout()">Logout</button>
       </div>
+    </section>
+  </section>
 
-
-    <!-- Right GIF (hidden on small screens) -->
-    <aside class="gifWrap" aria-label="Animated miner">
-      <div class="gif-card">
-        <img src="assets/miner-digging.gif" alt="Animated crypto miner digging under earth with coin heap" loading="eager"/>
-      </div>
-    </aside>
-  </div>
-
-  <!-- Quiz Modal -->
-  <div class="modal-backdrop" id="quizModal">
-    <div class="modal">
-      <b>Quick Check</b>
-      <p class="hint">Confirm you understand mining basics.</p>
-      <label>1) Do rewards vary with network difficulty and hashrate?</label>
-      <select id="q1"><option value="">Choose</option><option value="yes">Yes</option><option value="no">No</option></select>
-      <label style="margin-top:8px">2) What affects payouts more: hashrate or wallpaper?</label>
-      <select id="q2"><option value="">Choose</option><option value="hashrate">Hashrate</option><option value="wallpaper">Wallpaper</option></select>
-      <div class="row" style="margin-top:10px">
-        <button class="btn" onclick="quizSubmit()">Continue</button>
-        <button class="btn secondary" onclick="quizClose()">Cancel</button>
-      </div>
-      <div id="quizMsg" class="hint" style="margin-top:6px"></div>
-    </div>
-  </div>
-
-  <!-- Checkout Verification Modal -->
-  <div class="modal-backdrop" id="verifyModal">
-    <div class="modal">
-      <b>Checkout Verification</b>
-      <div class="row" style="gap:6px;margin-top:4px">
-        <span class="hint">Plan:</span><span id="planLabel" class="mono"></span>
-        <span class="hint">USD:</span><span id="planUsd" class="mono"></span>
-        <span class="hint">Est. ETH/BNB:</span><span id="planCryptoQuote" class="mono"></span>
-      </div>
-      <div class="divider"></div>
-      <label>Verification method</label>
-      <select id="verifMethod"><option value="email">Email</option><option value="sms">SMS</option></select>
-      <div class="row" style="margin-top:8px"><button class="btn" onclick="sendVerification()">Send Code</button></div>
-      <label style="margin-top:8px">Enter verification code</label><input id="verifCode" type="text" placeholder="123456"/>
-      <label style="margin-top:8px">2FA (TOTP) code (if enabled)</label><input id="totp" type="text" placeholder="6-digit"/>
-      <label class="row" style="margin-top:8px"><input id="saveCard" type="checkbox"/> Save card (tokenized)</label>
-      <div class="row" style="margin-top:10px">
-        <button class="btn" onclick="confirmCheckout()">Confirm Purchase</button>
-        <button class="btn secondary" onclick="closeVerify()">Cancel</button>
-      </div>
-      <div id="verifyMsg" class="hint" style="margin-top:6px"></div>
-    </div>
-  </div>
-
-  <!-- Crypto Pay Modal -->
-  <div class="modal-backdrop" id="cryptoModal">
-    <div class="modal">
-      <b>Pay with Crypto</b>
-      <div class="row" style="gap:6px;margin-top:4px">
-        <span class="hint">Plan:</span><span id="cPlanLabel" class="mono"></span>
-        <span class="hint">USD:</span><span id="cPlanUsd" class="mono"></span>
-      </div>
-      <div class="divider"></div>
-      <div class="grid">
-        <div class="card">
-          <b>Ethereum (ETH)</b>
-          <div class="hint">Send to:</div>
-          <div class="mono" style="word-break:break-all">0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D</div>
-          <img id="qr-eth" src="assets/qr-eth.png" alt="ETH QR" style="margin-top:6px;max-width:180px;width:100%"/>
-          <button class="btn secondary" onclick="copyAddr('eth')">Copy Address</button>
-        </div>
-        <div class="card">
-          <b>BNB Chain (BNB)</b>
-          <div class="hint">Send to:</div>
-          <div class="mono" style="word-break:break-all">0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D</div>
-          <img id="qr-bnb" src="assets/qr-bnb.png" alt="BNB QR" style="margin-top:6px;max-width:180px;width:100%"/>
-          <button class="btn secondary" onclick="copyAddr('bnb')">Copy Address</button>
-        </div>
-      </div>
-      <div class="divider"></div>
-      <label>Paste your transaction hash</label>
-      <input id="txHash" type="text" placeholder="0x..."/>
-      <div class="row" style="margin-top:8px">
-        <button class="btn" onclick="verifyCrypto()">I’ve Paid — Verify</button>
-        <button class="btn secondary" onclick="closeCrypto()">Close</button>
-      </div>
-      <div id="cryptoMsg" class="hint" style="margin-top:6px"></div>
-    </div>
-  </div>
-
+  <!-- Simple script to tie the flow together (demo-only; wire to backend later) -->
   <script>
-    // Endpoints (to be wired on your backend)
-    const API = {
-      auth:{ login:'/api/auth/login', register:'/api/auth/register', me:'/api/auth/me' },
-      twofa:{ send:'/api/2fa/send', confirm:'/api/2fa/confirm' },
-      payments:{
-        fiatIntent:'/api/payments/fiat/intent',   // {planId, saveCard} -> {paymentId, clientSecret, quote:{eth, bnb}}
-        fiatConfirm:'/api/payments/fiat/confirm', // {paymentId, verificationCode, totp, saveCard} -> {bridgeTxId|paymentId}
-        cryptoVerify:'/api/payments/crypto/verify'// {planId, network:'eth'|'bnb', txHash}
-      },
-      contracts:{ startFree:'/api/contracts/free/start', subscribe:'/api/contracts/subscribe' }
+    // Simple local state (replace with real backend calls)
+    const STATE = {
+      verified: false,
+      balance: 0,
+      freeActiveUntil: Date.now() + 12*60*60*1000,
+      paidPlan: null,
+      paidUntil: 0,
+      perSec: 0.00000010
     };
 
-    // Pricing and state
-    const PRICING = {
-      monthly:{label:'Monthly',months:1,price:15,speed:610},
-      quarterly:{label:'3 Months',months:3,price:36,speed:610},  // 20% off 45
-      semiannual:{label:'6 Months',months:6,price:54,speed:610}, // 40% off 90
-      annual:{label:'12 Months',months:12,price:72,speed:610}    // 60% off 180
-    };
-    let currentPlan=null;
-
-    // UI: slider
-    function onSpeedChange(v){
-      const val = Math.max(4, Math.min(610, Number(v)||4));
-      document.getElementById('hashrateLbl').textContent = val.toFixed(0)+' GH/s';
+    function setAuthUI(verified){
+      document.getElementById('authSection').style.display = verified ? 'none' : 'block';
+      document.getElementById('dashboardSection').style.display = verified ? 'block' : 'none';
+      document.getElementById('userStatus').textContent = verified ? 'Signed in' : 'Not signed in';
     }
 
-    // Auth
-    async function login(){
-      const email=document.getElementById('si-email').value.trim();
-      const pass=document.getElementById('si-pass').value;
-      const use2fa=document.getElementById('si-2fa').checked;
-      const msg=document.getElementById('si-msg'); msg.textContent='Signing in...';
-      try{
-        const res=await fetch(API.auth.login,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass,require2fa:use2fa})});
-        if(!res.ok) throw new Error('Login failed');
-        await res.json();
-        msg.textContent='Signed in.';
-      }catch(e){ msg.textContent='Error: '+e.message; }
-    }
-    async function register(){
-      const email=document.getElementById('su-email').value.trim();
-      const p1=document.getElementById('su-pass').value;
-      const p2=document.getElementById('su-pass2').value;
-      const over18=document.getElementById('su-18').checked;
-      const terms=document.getElementById('su-terms').checked;
-      const msg=document.getElementById('su-msg');
-      if(!email||!p1||!p2){ msg.textContent='Fill all fields.'; return; }
-      if(p1!==p2){ msg.textContent='Passwords do not match.'; return; }
-      if(p1.length<8){ msg.textContent='Use 8+ characters.'; return; }
-      if(!over18||!terms){ msg.textContent='Confirm 18+ and accept Terms.'; return; }
-      msg.textContent='Creating account...';
-      try{
-        const res=await fetch(API.auth.register,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:p1,enable2fa:document.getElementById('su-2fa').checked})});
-        if(!res.ok) throw new Error('Registration failed');
-        await res.json();
-        msg.textContent='Account created. Please sign in.';
-      }catch(e){ msg.textContent='Error: '+e.message; }
+    function register(){
+      const email = document.getElementById('su-email').value;
+      const p1 = document.getElementById('su-pass').value;
+      const p2 = document.getElementById('su-pass2').value;
+      const ok = email && p1 && p2 && p1 === p2 && p1.length >= 8;
+      if(!ok){
+        document.getElementById('su-msg').textContent = 'Check your fields (min 8 chars, passwords match).';
+        return;
+      }
+      // In real app, call server; here simulate success and redirect to dashboard after verification
+      document.getElementById('su-msg').textContent = 'Account created. Please verify your email.';
+      // Simulate immediate "verification" for demo after a moment
+      setTimeout(()=> {
+        STATE.verified = true;
+        setAuthUI(true);
+        initializeDashboard();
+      }, 800);
     }
 
-    // Gates
-    function consentOk(){
-      if(!document.getElementById('agree-mining-terms').checked){ alert('Please agree to the Mining Terms.'); return false; }
-      return true;
-    }
-    function openQuizThen(action){
-      if(!consentOk()) return;
-      window.__postQuizAction=action;
-      document.getElementById('quizMsg').textContent='';
-      document.getElementById('q1').value=''; document.getElementById('q2').value='';
-      document.getElementById('quizModal').style.display='flex';
-    }
-    function quizSubmit(){
-      const q1=document.getElementById('q1').value, q2=document.getElementById('q2').value;
-      const msg=document.getElementById('quizMsg');
-      if(q1!=='yes'||q2!=='hashrate'){ msg.textContent='Correct answers required to proceed.'; return; }
-      document.getElementById('quizModal').style.display='none';
-      if(typeof window.__postQuizAction==='function') window.__postQuizAction();
-    }
-    function quizClose(){ document.getElementById('quizModal').style.display='none'; }
-
-    // Free contract
-    function startFreeContract(){
-      openQuizThen(async ()=>{
-        try{
-          const res=await fetch(API.contracts.startFree,{method:'POST'});
-          if(!res.ok) throw new Error('Could not start free session');
-          alert('Free 12h session at 4 GH/s started. First-time users may run 2 sessions concurrently.');
-        }catch(e){ alert('Error: '+e.message); }
-      });
+    function login(){
+      const email = document.getElementById('si-email').value;
+      const pass  = document.getElementById('si-pass').value;
+      if(email && pass){
+        // Simulate success
+        STATE.verified = true; // or false until verification
+        setAuthUI(true);
+        initializeDashboard();
+      } else {
+        document.getElementById('si-msg').textContent = 'Enter email and password';
+      }
     }
 
-    // Checkout (card → crypto bridge)
+    function logout(){
+      STATE.verified = false;
+      // Reset UI to auth section
+      document.getElementById('authSection').style.display = 'block';
+      document.getElementById('dashboardSection').style.display = 'none';
+      document.getElementById('userStatus').textContent = 'Not signed in';
+    }
+
+    // Dashboard init
+    function initializeDashboard(){
+      // Start with a live balance and per-second rate
+      document.getElementById('liveBalance').textContent = STATE.balance.toFixed(8) + ' MEDOR';
+      document.getElementById('medorPerSec').textContent = STATE.perSec.toFixed(9);
+      // Free contract status
+      updateFreeCountdown();
+      // Start mining demo loop
+      loopMining();
+    }
+
+    function updateFreeCountdown(){
+      const remaining = Math.max(0, Math.floor((STATE.freeActiveUntil - Date.now())/1000));
+      const label = remaining > 0 ? remaining + 's' : 'Expired';
+      document.getElementById('freeCountdown').textContent = 'Free contract time left: ' + label;
+      document.getElementById('freeContractStatus').textContent = remaining > 0 ? 'Active' : 'Expired';
+    }
+
+    function claimFreeContract(){
+      STATE.freeActiveUntil = Date.now() + 12*60*60*1000;
+      updateFreeCountdown();
+      alert('Free contract renewed for 12 hours.');
+    }
+
+    function startMiningDemo(){
+      // Simple UI hint; in real app, this would start the miner (or enable UI)
+      alert('Mining started (demo).');
+    }
+
     function openCheckout(planId){
-      currentPlan=planId;
-      openQuizThen(async ()=>{
-        try{
-          const res=await fetch(API.payments.fiatIntent,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({planId,saveCard:false})});
-          if(!res.ok) throw new Error('Failed to initialize checkout');
-          const data=await res.json();
-          window.__payment={id:data.paymentId,clientSecret:data.clientSecret};
-          const p=PRICING[planId];
-          document.getElementById('planLabel').textContent=p.label+' — '+p.speed+' GH/s';
-          document.getElementById('planUsd').textContent='$'+p.price.toFixed(2);
-          const q=data.quote||{};
-          document.getElementById('planCryptoQuote').textContent=(q.eth?'~'+q.eth+' ETH':'?')+' / '+(q.bnb?'~'+q.bnb+' BNB':'?');
-          document.getElementById('verifyMsg').textContent='';
-          document.getElementById('verifyModal').style.display='flex';
-        }catch(e){ alert('Checkout init error: '+e.message); }
-      });
-    }
-    function closeVerify(){ document.getElementById('verifyModal').style.display='none'; }
-    async function sendVerification(){
-      const method=document.getElementById('verifMethod').value, msg=document.getElementById('verifyMsg');
-      msg.textContent='Sending code...';
-      try{
-        const res=await fetch(API.twofa.send,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({method})});
-        if(!res.ok) throw new Error('Failed to send code');
-        msg.textContent='Code sent via '+method+'.';
-      }catch(e){ msg.textContent='Error: '+e.message; }
-    }
-    async function confirmCheckout(){
-      const msg=document.getElementById('verifyMsg');
-      const code=document.getElementById('verifCode').value.trim();
-      const totp=document.getElementById('totp').value.trim();
-      const saveCard=document.getElementById('saveCard').checked;
-      if(!window.__payment){ msg.textContent='No payment initialized.'; return; }
-      if(!code){ msg.textContent='Enter verification code.'; return; }
-      msg.textContent='Confirming payment and bridging to crypto...';
-      try{
-        const res=await fetch(API.payments.fiatConfirm,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentId:window.__payment.id,verificationCode:code,totp,saveCard})});
-        if(!res.ok) throw new Error('Payment/verification failed');
-        const data=await res.json();
-        const sres=await fetch(API.contracts.subscribe,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({planId:currentPlan,paymentRef:data.bridgeTxId||data.paymentId})});
-        if(!sres.ok) throw new Error('Subscription activation failed');
-        document.getElementById('verifyModal').style.display='none';
-        alert('Subscription active: '+PRICING[currentPlan].label+' — '+PRICING[currentPlan].speed+' GH/s.');
-      }catch(e){ msg.textContent='Error: '+e.message; }
+      // In production, call /payments/fiat/intent, then /contracts/subscribe
+      STATE.paidPlan = planId;
+      STATE.paidUntil = Date.now() + 30*24*60*60*1000; // 30 days as demo
+      document.getElementById('dashboardStatus').textContent = 'Paid';
+      alert('Subscribed to ' + planId + ' plan (demo).');
+      // Update per-second rate for demo
+      if(planId === 'monthly'){ STATE.perSec = 0.00000050; }
+      else if(planId === 'quarterly'){ STATE.perSec = 0.000000550; }
+      else if(planId === 'semiannual'){ STATE.perSec = 0.000000550; }
+      else if(planId === 'annual'){ STATE.perSec = 0.000000980; }
+      document.getElementById('medorPerSec').textContent = STATE.perSec.toFixed(9);
     }
 
-    // Crypto direct
-    function openCryptoFor(planId){
-      currentPlan=planId;
-      const p=PRICING[planId];
-      document.getElementById('cPlanLabel').textContent=p.label+' — '+p.speed+' GH/s';
-      document.getElementById('cPlanUsd').textContent='$'+p.price.toFixed(2);
-      openQuizThen(()=>{ document.getElementById('cryptoMsg').textContent=''; document.getElementById('cryptoModal').style.display='flex'; });
-    }
-    function closeCrypto(){ document.getElementById('cryptoModal').style.display='none'; }
-    function copyAddr(){ const a='0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D'; navigator.clipboard.writeText(a).then(()=>alert('Address copied.')); }
-    async function verifyCrypto(){
-      const txHash=document.getElementById('txHash').value.trim();
-      const msg=document.getElementById('cryptoMsg');
-      if(!txHash){ msg.textContent='Enter transaction hash.'; return; }
-      msg.textContent='Verifying on-chain payment...';
-      try{
-        const network=txHash.startsWith('0x')?'eth':'bnb';
-        const res=await fetch(API.payments.cryptoVerify,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({planId:currentPlan,network,txHash})});
-        if(!res.ok) throw new Error('Could not verify payment');
-        await res.json();
-        const sres=await fetch(API.contracts.subscribe,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({planId:currentPlan,paymentRef:txHash})});
-        if(!sres.ok) throw new Error('Subscription activation failed');
-        document.getElementById('cryptoModal').style.display='none';
-        alert('Subscription active: '+PRICING[currentPlan].label+' — '+PRICING[currentPlan].speed+' GH/s.');
-      }catch(e){ msg.textContent='Error: '+e.message; }
+    // Live mining loop (demo)
+    function loopMining(){
+      setInterval(()=> {
+        // Free 12h window accrual
+        const now = Date.now();
+        if (now < STATE.freeActiveUntil) {
+          // Free mining
+          STATE.balance += 0.00000010;
+        } else if (STATE.paidPlan) {
+          // Paid mining
+          STATE.balance += STATE.perSec;
+        }
+        document.getElementById('liveBalance').textContent = STATE.balance.toFixed(8) + ' MEDOR';
+        document.getElementById('walletBalance').textContent = STATE.balance.toFixed(8) + ' MEDOR';
+        updateFreeCountdown();
+      }, 1000);
     }
 
-    // Init
-    (async function init(){
-      try{
-        const res=await fetch(API.auth.me);
-        if(res.ok){ document.getElementById('notifDot').style.display='block'; }
-      }catch(e){}
-    })();
+    // Initialize to show signup form first
+    window.onload = function(){
+      document.getElementById('authSection').style.display = 'block';
+      document.getElementById('dashboardSection').style.display = 'none';
+      // Bind signup/login for demo
+    };
   </script>
 </body>
-        <!-- Disclaimer -->
-      <div class="panel">
-        <b>Disclaimer</b>
-        <ul style="margin:6px 0 0 18px">
-          <li>Crypto markets are volatile; crypto priced fuctuates.</li>
-          <li>MedorCoin protocol is not liable for losses or interruptions.</li>
-          <li>Adults only. By continuing, you confirm you are 18+ and accept Terms.</li>
-        </ul>
-      </div>
-    </div>
 </html>
+
