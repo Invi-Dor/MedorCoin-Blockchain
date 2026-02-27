@@ -58,5 +58,3 @@ bool BlockBuilder::executeAndApply(const Transaction &tx, const std::string &min
     return true;
 }
 
-// Additional handling for incoming transactions via your API (if needed)
-// Make sure to integrate API handlers in a separate CPP file
