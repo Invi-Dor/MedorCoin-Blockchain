@@ -1,6 +1,9 @@
-#include "storage.h"
-#include <string>
-#include <vector>
+// SPDX-License-Identifier: MIT
+// Purpose: Simple RocksDB-backed storage for EVM.
+
+include "storage.h"
+include <string>
+include <vector>
 
 EVMStorage::EVMStorage(const std::string &dbPath) 
     : rocksdb(dbPath) {}
