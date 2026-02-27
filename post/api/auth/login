@@ -1,0 +1,21 @@
+CROW_ROUTE(app, "/api/auth/login").methods("POST"_method)
+([](const crow::request &req) {
+    auto body = json::parse(req.body);
+    std::string email = body["email"];
+    std::string password = body["password"];
+
+    // TODO: Look up user in database, verify password
+    bool authenticated = checkUserCredentials(email, password);
+
+    if (!authenticated) {
+        return crow::response(401, "{\"error\":\"Invalid credentials\"}");
+    }
+
+    std::string token = generateJWT(email);
+
+    json res;
+    res["message"] = "Login successful";
+    res["token"] = token;
+
+    return crow::response(200, res.dump());
+});
