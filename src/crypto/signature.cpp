@@ -1,3 +1,5 @@
+// File: src/crypto/signature.cpp
+
 #include "signature.h"
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
@@ -10,11 +12,12 @@ bool recover_pubkey(
 ) {
     if (!hash32 || !sig65 || !out_pubkey) return false;
 
+    // Create a verify-capable context
     secp256k1_context* ctx = secp256k1_context_create(SECP256K1_CONTEXT_VERIFY);
     if (!ctx) return false;
 
+    // Parse the compact recoverable signature (64 bytes + recovery id)
     secp256k1_ecdsa_recoverable_signature recsig;
-    // parse the recoverable signature (64 bytes + recid)
     if (secp256k1_ecdsa_recoverable_signature_parse_compact(
             ctx,
             &recsig,
@@ -24,14 +27,14 @@ bool recover_pubkey(
         return false;
     }
 
-    // now recover the public key from the signature and the hash
+    // Recover the public key from the signature and the hash
     secp256k1_pubkey pubkey;
     if (secp256k1_ecdsa_recover(ctx, &pubkey, &recsig, hash32) != 1) {
         secp256k1_context_destroy(ctx);
         return false;
     }
 
-    // serialize the recovered public key into compressed (33‑byte) format
+    // Serialize recovered public key in compressed form (33 bytes)
     size_t outlen = 33;
     if (secp256k1_ec_pubkey_serialize(
             ctx,
