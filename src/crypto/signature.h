@@ -30,4 +30,4 @@ bool recover_pubkey(
 }
 #endif
 
-#endif  // SIGNATURE_H
+#endif // SIGNATURE_H
