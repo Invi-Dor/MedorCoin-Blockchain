@@ -35,16 +35,13 @@ signHash(const std::array<uint8_t,32> &digest,
     }
 
     // Sign the 32‑byte hash
-    ECDSA_SIG *sig = ECDSA_do_sign(digest.data(), digest.size(), ec_key);
     if (!sig) {
-        EC_KEY_free(ec_key);
         throw std::runtime_error("ECDSA signing failed");
     }
 
     // Get r and s BIGNUMs from signature
     const BIGNUM *r_bn = nullptr;
     const BIGNUM *s_bn = nullptr;
-    ECDSA_SIG_get0(sig, &r_bn, &s_bn);
 
     std::array<uint8_t, 32> r_bytes = {};
     std::array<uint8_t, 32> s_bytes = {};
@@ -52,8 +49,6 @@ signHash(const std::array<uint8_t,32> &digest,
     BN_bn2binpad(s_bn, s_bytes.data(), 32);
 
     // Cleanup
-    ECDSA_SIG_free(sig);
-    EC_KEY_free(ec_key);
 
     // Recovery ID will be computed separately
     uint8_t v = 0;
