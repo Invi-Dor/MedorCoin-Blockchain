@@ -1,5 +1,3 @@
-
-
 // src/convert_medor_to_usdt.cpp
 
 #include <crow.h>
