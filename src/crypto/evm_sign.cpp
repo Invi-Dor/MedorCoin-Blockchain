@@ -1,115 +1,94 @@
+// File: crypto/evm_sign.cpp
+// SPDX‑License‑Identifier: MIT
+// Purpose: EVM transaction signing (legacy + EIP‑1559 dynamic fees) using libsecp256k1.
+// This produces a signed RLP‑encoded transaction ready for broadcasting.
+
 #include "evm_sign.h"
 #include "rlp.h"
-#include "keccak/keccak.h"
-#include "signature.h"
+#include "keccak256.h"
+#include "secp256k1_wrapper.h"
 #include "signature_helpers.h"
-#include <secp256k1.h>
-#include <secp256k1_recovery.h>
-#include <fstream>
 
-// Helper to load raw private key bytes (32 bytes) from a file
-static std::vector<uint8_t> loadPrivKey(const std::string &path) {
-    std::ifstream in(path, std::ios::binary);
-    std::vector<uint8_t> key(32);
-    in.read(reinterpret_cast<char*>(key.data()), 32);
-    return key;
-}
+#include <vector>
+#include <array>
+#include <stdexcept>
 
-std::vector<uint8_t> signEvmTransaction(
-    Transaction &tx,
-    const std::string &privKeyPath,
-    uint64_t chainId
-) {
+namespace {
+
+// Build the *unsigned* RLP payload for signing (chainId, nonce, fees, to, value, data, empty v,r,s).
+// This matches how dynamic fee transactions are hashed for signing.  [oai_citation:1‡console.settlemint.com](https://console.settlemint.com/documentation/blockchain-platform/knowledge-bank/besu-transaction-flow?utm_source=chatgpt.com)
+std::vector<uint8_t> buildUnsignedRlp(const EvmTx &tx) {
     using namespace rlp;
 
-    // RLP encode unsigned tx fields
-    auto encNonce    = encodeUInt(tx.nonce);
-    auto encMaxFee   = encodeUInt(tx.maxFeePerGas);
-    auto encTip      = encodeUInt(tx.maxPriorityFeePerGas);
-    auto encGasLimit = encodeUInt(tx.gasLimit);
-    std::vector<uint8_t> toBytes(tx.toAddress.begin(), tx.toAddress.end());
-    auto encTo       = encodeBytes(toBytes);
-    auto encValue    = encodeUInt(tx.value);
-    auto encData     = encodeBytes(tx.data);
+    std::vector<std::vector<uint8_t>> fields;
+    fields.push_back( encodeUInt(tx.chainId) );
+    fields.push_back( encodeUInt(tx.nonce) );
+    fields.push_back( encodeUInt(tx.maxPriorityFeePerGas) );
+    fields.push_back( encodeUInt(tx.maxFeePerGas) );
+    fields.push_back( encodeUInt(tx.gasLimit) );
+    fields.push_back( encodeBytes(tx.to) );
+    fields.push_back( encodeBytes(tx.value) );
+    fields.push_back( encodeBytes(tx.data) );
 
-    // Build RLP list for signing
-    std::vector<std::vector<uint8_t>> items = {
-        encNonce,
-        encMaxFee,
-        encTip,
-        encGasLimit,
-        encTo,
-        encValue,
-        encData,
-        encodeUInt(0), // v placeholder
-        encodeUInt(0), // r placeholder
-        encodeUInt(0)  // s placeholder
-    };
+    // EIP‑1559 typed transactions add an access list, but for simplicity assume none
+    fields.push_back( encodeUInt(0) );
 
-    std::vector<uint8_t> raw = encodeList(items);
+    // Placeholder signature fields
+    fields.push_back( encodeUInt(0) ); // v placeholder
+    fields.push_back( encodeUInt(0) ); // r placeholder
+    fields.push_back( encodeUInt(0) ); // s placeholder
 
-    // Keccak-256 the RLP to get the signing hash
-    uint8_t hashOut[32];
-    keccak(raw.data(), raw.size(), hashOut, 32);
-    std::array<uint8_t,32> hashBytes;
-    memcpy(hashBytes.data(), hashOut, 32);
+    return encodeList(fields);
+}
 
-    // Load private key from file
-    auto privKey = loadPrivKey(privKeyPath);
+} // namespace
 
-    // Create recoverable signature
-    secp256k1_context *ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
-    secp256k1_ecdsa_recoverable_signature sigRec;
-    secp256k1_ecdsa_sign_recoverable(
-        ctx,
-        &sigRec,
-        hashBytes.data(),
-        privKey.data(),
-        nullptr,
-        nullptr
-    );
+std::vector<uint8_t> signEvmTransaction(
+    EvmTx &tx,
+    const std::array<uint8_t,32> &privkey
+) {
+    // 1) Build unsigned RLP payload
+    auto unsignedRlp = buildUnsignedRlp(tx);
 
-    // Serialize signature to get r,s and recid
-    unsigned char compactSig[64];
-    int recid = 0;
-    secp256k1_ecdsa_recoverable_signature_serialize_compact(
-        ctx,
-        compactSig,
-        &recid,
-        &sigRec
-    );
+    // 2) Hash using Keccak256
+    auto hashVec = crypto::keccak256(unsignedRlp);
+    if (hashVec.size() != 32) {
+        throw std::runtime_error("Keccak256 hash must be 32 bytes");
+    }
+    std::array<uint8_t, 32> hash;
+    std::copy(hashVec.begin(), hashVec.end(), hash.begin());
 
-    secp256k1_context_destroy(ctx);
+    // 3) Sign the hash recoverably with secp256k1
+    auto sigOpt = crypto::signRecoverable(hash.data(), privkey);
+    if (!sigOpt) {
+        throw std::runtime_error("Secp256k1 recoverable signing failed");
+    }
+    auto sig = *sigOpt;
 
-    // Assign r and s
-    std::array<uint8_t,32> rArr;
-    std::array<uint8_t,32> sArr;
-    memcpy(rArr.data(), compactSig, 32);
-    memcpy(sArr.data(), compactSig + 32, 32);
+    // 4) Populate tx signature fields
+    tx.r.assign(sig.r.begin(), sig.r.end());
+    tx.s.assign(sig.s.begin(), sig.s.end());
+    tx.v = crypto::computeEip155V(sig.recid, tx.chainId);
 
-    tx.r = rArr;
-    tx.s = sArr;
+    // 5) Build the final signed RLP payload
+    using namespace rlp;
+    std::vector<std::vector<uint8_t>> finalFields;
+    finalFields.push_back( encodeUInt(tx.chainId) );
+    finalFields.push_back( encodeUInt(tx.nonce) );
+    finalFields.push_back( encodeUInt(tx.maxPriorityFeePerGas) );
+    finalFields.push_back( encodeUInt(tx.maxFeePerGas) );
+    finalFields.push_back( encodeUInt(tx.gasLimit) );
+    finalFields.push_back( encodeBytes(tx.to) );
+    finalFields.push_back( encodeBytes(tx.value) );
+    finalFields.push_back( encodeBytes(tx.data) );
 
-    // Compute EIP‑155 v
-    tx.v = computeEip155V(static_cast<uint8_t>(recid), chainId);
+    // Access list (empty)
+    finalFields.push_back( encodeUInt(0) );
 
-    // Now RLP encode with real v/r/s
-    auto finalV = encodeUInt(tx.v);
-    auto finalR = encodeBytes(std::vector<uint8_t>(tx.r.begin(), tx.r.end()));
-    auto finalS = encodeBytes(std::vector<uint8_t>(tx.s.begin(), tx.s.end()));
+    // Signature parts
+    finalFields.push_back( encodeUInt(tx.v) );
+    finalFields.push_back( encodeBytes(tx.r) );
+    finalFields.push_back( encodeBytes(tx.s) );
 
-    std::vector<std::vector<uint8_t>> finalItems = {
-        encNonce,
-        encMaxFee,
-        encTip,
-        encGasLimit,
-        encTo,
-        encValue,
-        encData,
-        finalV,
-        finalR,
-        finalS
-    };
-
-    return encodeList(finalItems);
+    return encodeList(finalFields);
 }
