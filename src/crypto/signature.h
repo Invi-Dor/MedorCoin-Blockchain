@@ -1,24 +1,33 @@
-#pragma once
+#ifndef SIGNATURE_H
+#define SIGNATURE_H
 
-#include <array>
-#include <string>
-#include <tuple>
-#include <cstdint>
+#include <cstddef>
 
-/**
- * @brief Sign a 32‑byte message hash using a secp256k1 private key.
- * 
- * The digest must be exactly 32 bytes (Keccak‑256 output).
- * The private key file must be a PEM encoded secp256k1 key.
- * 
- * @param digest The 32‑byte hash to sign
- * @param privKeyPath Filesystem path to the private key PEM
- * @return A tuple of (r, s, v)
- *         where:
- *         - r: 32‑byte signature component
- *         - s: 32‑byte signature component
- *         - v: recovery id (to be calculated separately)
- */
-std::tuple<std::array<uint8_t,32>, std::array<uint8_t,32>, uint8_t>
-signHash(const std::array<uint8_t,32> &digest,
-         const std::string &privKeyPath);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+bool sign_hash(
+    const unsigned char* hash32,
+    const unsigned char* privkey32,
+    unsigned char* out_sig65
+);
+
+bool verify_hash(
+    const unsigned char* hash32,
+    const unsigned char* sig65,
+    const unsigned char* pubkey_bytes,
+    size_t pubkey_len
+);
+
+bool recover_pubkey(
+    const unsigned char* hash32,
+    const unsigned char* sig65,
+    unsigned char* out_pubkey
+);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // SIGNATURE_H

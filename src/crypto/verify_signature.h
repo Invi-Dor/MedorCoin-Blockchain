@@ -1,26 +1,55 @@
-#pragma once
+// File: src/crypto/signature.h
 
-#include <array>
-#include <cstdint>
-#include <string>
+#ifndef SIGNATURE_H
+#define SIGNATURE_H
+
+#include <secp256k1.h>
+#include <secp256k1_recovery.h>
 
 /**
- * Verify EVM transaction signature:
- * - Reconstruct the public key from (r, s, v) and hash
- * - Compute address (last 20 bytes of keccak(publicKey))
- * - Compare with expected fromAddress
+ * Signs a 32‑byte hash using a 32‑byte private key and produces
+ * a 65‑byte recoverable ECDSA signature.
  *
- * @param hash      32‑byte Keccak hash used in signing
- * @param r         32‑byte r signature component
- * @param s         32‑byte s signature component
- * @param v         EIP‑155 v value
- * @param expectedAddress 20‑byte expected wallet address
- * @return true if signature is valid and matches expectedAddress
+ * @param hash32      Pointer to 32‑byte message hash.
+ * @param privkey32   Pointer to 32‑byte private key.
+ * @param out_sig65   Output buffer (65 bytes) for signature + recovery id.
+ * @return            true on success, false on failure.
  */
-bool verifyEvmSignature(
-    const std::array<uint8_t,32> &hash,
-    const std::array<uint8_t,32> &r,
-    const std::array<uint8_t,32> &s,
-    uint8_t v,
-    const std::array<uint8_t,20> &expectedAddress
+bool sign_hash(
+    const unsigned char* hash32,
+    const unsigned char* privkey32,
+    unsigned char* out_sig65
 );
+
+/**
+ * Verifies a 65‑byte recoverable ECDSA signature against
+ * a 32‑byte hash and a public key.
+ *
+ * @param hash32        Pointer to 32‑byte message hash.
+ * @param sig65         Pointer to 65‑byte recoverable signature.
+ * @param pubkey_bytes  Pointer to public key bytes (33 or 65 bytes).
+ * @param pubkey_len    Length of public key in bytes.
+ * @return              true if signature is valid, false otherwise.
+ */
+bool verify_hash(
+    const unsigned char* hash32,
+    const unsigned char* sig65,
+    const unsigned char* pubkey_bytes,
+    size_t pubkey_len
+);
+
+/**
+ * Recovers a public key from a 65‑byte recoverable signature and a 32‑byte hash.
+ *
+ * @param hash32        Pointer to 32‑byte message hash.
+ * @param sig65         Pointer to 65‑byte recoverable signature.
+ * @param out_pubkey    Buffer to receive serialized public key (33 bytes).
+ * @return              true on success, false on failure.
+ */
+bool recover_pubkey(
+    const unsigned char* hash32,
+    const unsigned char* sig65,
+    unsigned char* out_pubkey
+);
+
+#endif // SIGNATURE_H

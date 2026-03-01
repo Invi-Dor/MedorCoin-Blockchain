@@ -1,23 +1,20 @@
-// File: crypto/rlp.h
-// SPDX‑License‑Identifier: MIT
-// Purpose: Ethereum RLP encoding utilities
-#ifndef CRYPTO_RLP_H
-#define CRYPTO_RLP_H
+#ifndef RLP_H
+#define RLP_H
 
-#include <cstdint>
 #include <vector>
+#include <cstdint>
 
+/**
+ * Recursive Length Prefix (RLP) encode functions.
+ * This matches the Ethereum RLP specification:
+ * strings and lists encoded according to length and payload rules.  [oai_citation:0‡ethereum.org](https://ethereum.org/developers/docs/data-structures-and-encoding/rlp/?utm_source=chatgpt.com)
+ */
 namespace rlp {
 
-// Encode a byte vector as RLP
 std::vector<uint8_t> encodeBytes(const std::vector<uint8_t>& input);
-
-// Encode a 64‑bit unsigned as RLP
 std::vector<uint8_t> encodeUInt(uint64_t value);
-
-// Encode an RLP list
 std::vector<uint8_t> encodeList(const std::vector<std::vector<uint8_t>>& items);
 
 } // namespace rlp
 
-#endif // CRYPTO_RLP_H
+#endif // RLP_H
