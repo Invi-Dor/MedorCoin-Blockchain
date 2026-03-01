@@ -52,5 +52,5 @@ signHash(const std::array<uint8_t,32> &digest,
 
     // Recovery ID will be computed separately
     uint8_t v = 0;
-    return {r_bytes, s_bytes, v};
+    return std::make_tuple(r_bytes, s_bytes, v);
 }
