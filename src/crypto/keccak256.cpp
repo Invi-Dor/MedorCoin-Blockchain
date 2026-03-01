@@ -1,4 +1,3 @@
-// Keccak-256 implementation (no external deps beyond standard headers)
 include "keccak256.h"
 include <array>
 include <cstring>
