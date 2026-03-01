@@ -2,7 +2,6 @@
 #define KECCAK256_H
 
 #include <vector>
-#include <cstddef>
 #include <cstdint>
 
 namespace crypto {
