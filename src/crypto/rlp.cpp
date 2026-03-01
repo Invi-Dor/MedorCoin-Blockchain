@@ -1,4 +1,3 @@
-// (Kept as-is; depends on rlp.h and rlp.cpp implementation)
 include "rlp.h"
 include <algorithm>
 
