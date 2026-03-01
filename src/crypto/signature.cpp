@@ -1,56 +1,49 @@
 #include "signature.h"
-#include <openssl/ec.h>
-#include <openssl/ecdsa.h>
-#include <openssl/pem.h>
-#include <openssl/bn.h>
-#include <stdexcept>
-#include <cstdio>
+#include <secp256k1.h>
+#include <secp256k1_recovery.h>
+#include <cstring>
 
-// Sign a 32‑byte Keccak digest with a secp256k1 private key.
-// Returns tuple (r, s, v) where:
-// - r and s are the signature components,
-// - v is the recovery id (calculated later externally).
+// Sign a 32‑byte hash and return (r, s, v)
 std::tuple<std::array<uint8_t,32>, std::array<uint8_t,32>, uint8_t>
-signHash(const std::array<uint8_t,32> &digest,
-         const std::string &privKeyPath) {
-
-    // Open private key file
-    FILE *fp = fopen(privKeyPath.c_str(), "r");
-    if (!fp) {
-        throw std::runtime_error("Failed to open private key file");
+signHash(
+    const std::array<uint8_t,32> &digest,
+    const std::array<uint8_t,32> &privKeyBytes
+) {
+    secp256k1_context* ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
+    if (!ctx) {
+        throw std::runtime_error("Failed to create secp256k1 context");
     }
 
-    // Load private key
-    EVP_PKEY *pkey = PEM_read_PrivateKey(fp, nullptr, nullptr, nullptr);
-    fclose(fp);
-    if (!pkey) {
-        throw std::runtime_error("Failed to read private key PEM");
+    secp256k1_ecdsa_recoverable_signature recsig;
+    // Sign with deterministic nonce (RFC6979)
+    if (secp256k1_ecdsa_sign_recoverable(
+            ctx,
+            &recsig,
+            digest.data(),
+            privKeyBytes.data(),
+            secp256k1_nonce_function_default,
+            nullptr) != 1) {
+        secp256k1_context_destroy(ctx);
+        throw std::runtime_error("secp256k1 signing failed");
     }
 
-    // Extract EC key (secp256k1)
-    EC_KEY *ec_key = EVP_PKEY_get1_EC_KEY(pkey);
-    EVP_PKEY_free(pkey);
-    if (!ec_key) {
-        throw std::runtime_error("Invalid EC private key");
-    }
+    // Serialize to 64 bytes + recid
+    unsigned char compact64[64];
+    int recid = 0;
+    secp256k1_ecdsa_recoverable_signature_serialize_compact(
+        ctx,
+        compact64,
+        &recid,
+        &recsig
+    );
 
-    // Sign the 32‑byte hash
-    if (!sig) {
-        throw std::runtime_error("ECDSA signing failed");
-    }
+    secp256k1_context_destroy(ctx);
 
-    // Get r and s BIGNUMs from signature
-    const BIGNUM *r_bn = nullptr;
-    const BIGNUM *s_bn = nullptr;
+    std::array<uint8_t,32> r_bytes;
+    std::array<uint8_t,32> s_bytes;
+    std::memcpy(r_bytes.data(), compact64, 32);
+    std::memcpy(s_bytes.data(), compact64 + 32, 32);
+    uint8_t v = static_cast<uint8_t>(recid);
 
-    std::array<uint8_t, 32> r_bytes = {};
-    std::array<uint8_t, 32> s_bytes = {};
-    BN_bn2binpad(r_bn, r_bytes.data(), 32);
-    BN_bn2binpad(s_bn, s_bytes.data(), 32);
-
-    // Cleanup
-
-    // Recovery ID will be computed separately
-    uint8_t v = 0;
     return std::make_tuple(r_bytes, s_bytes, v);
 }
