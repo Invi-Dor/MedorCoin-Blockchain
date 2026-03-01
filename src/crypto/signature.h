@@ -1,33 +1,18 @@
 #ifndef SIGNATURE_H
 #define SIGNATURE_H
 
-#include <cstddef>
+#include <array>
+#include <tuple>
+#include <cstdint>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-bool sign_hash(
-    const unsigned char* hash32,
-    const unsigned char* privkey32,
-    unsigned char* out_sig65
+// Produces (r, s, v) from a 32‑byte Keccak hash and 32‑byte private key
+std::tuple<
+    std::array<uint8_t,32>,
+    std::array<uint8_t,32>,
+    uint8_t
+> signHash(
+    const std::array<uint8_t,32> &digest,
+    const std::array<uint8_t,32> &privKeyBytes
 );
-
-bool verify_hash(
-    const unsigned char* hash32,
-    const unsigned char* sig65,
-    const unsigned char* pubkey_bytes,
-    size_t pubkey_len
-);
-
-bool recover_pubkey(
-    const unsigned char* hash32,
-    const unsigned char* sig65,
-    unsigned char* out_pubkey
-);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // SIGNATURE_H
