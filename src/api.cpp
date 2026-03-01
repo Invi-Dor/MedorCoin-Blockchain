@@ -3,10 +3,11 @@
 #include "blockchain.h"
 #include "crypto/keystore.h"
 #include <nlohmann/json.hpp> // For JSON handling; include your JSON library header
+#include <curl/curl.h>        // For HTTP calls to 1inch
 
 using json = nlohmann::json;
 
-// Forward declarations for new handlers
+// Forward declarations for new handlers (existing already present)
 void getLatestTransactionsHandler(const crow::request& req, crow::response& res);
 void getLatestBlocksHandler(const crow::request& req, crow::response& res);
 void getNewTokensHandler(const crow::request& req, crow::response& res);
@@ -15,15 +16,56 @@ void getTransactionHandler(const crow::request& req, crow::response& res, std::s
 void getBlockHandler(const crow::request& req, crow::response& res, int blockIndex);
 void getAddressHandler(const crow::request& req, crow::response& res, std::string address);
 
+// Helpers: simple curl fetch
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+  ((std::string*)userp)->append((char*)contents, size * nmemb);
+  return size * nmemb;
+}
+static std::string curlFetch(const std::string& url) {
+  CURL* curl = curl_easy_init();
+  if (!curl) return "";
+  std::string buffer;
+  curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+  CURLcode res = curl_easy_perform(curl);
+  curl_easy_cleanup(curl);
+  if (res != CURLE_OK) return "";
+  return buffer;
+}
+
+// Production-ready: MEDOR addresses per chain (fill with real values)
+static std::string MEDOR_ETH_ADDRESS = "0xMEDOR_ETH_ADDRESS_REPLACE";
+static std::string MEDOR_BSC_ADDRESS = "0xMEDOR_BSC_ADDRESS_REPLACE";
+
+// Optional: fetch MEDOR balance on a chain via JSON-RPC (ETH node). If you have a node, you can enable.
+// This function demonstrates how you could expose balanceFromToken in a future endpoint.
+static json queryEthBalance(const std::string& rpcUrl, const std::string& contractAddr, const std::string& holder) {
+  // Build a simple eth_call to balanceOf(address)
+  // data = first 4 bytes of balanceOf(uint256) => 0x70a08231 + padded address
+  std::string data = "0x70a08231000000000000000000000000" + holder.substr(2);
+  json req = {
+    {"jsonrpc","2.0"},
+    {"method","eth_call"},
+    {"params":[{"to": contractAddr, "data": data}, "latest"]},
+    {"id":1}
+  };
+  // Simple POST; adapt to your JSON-RPC client
+  // For brevity, this demo uses curl in a minimal way
+  // You should implement proper HTTP POST here in production
+  (void)rpcUrl; (void)req; // placeholder to indicate where to wire in
+  return json(); // Placeholder if you don't wire RPC here
+}
+
 // Starts the server (your HTTP engine code here)
 void startAPIServer() {
     // Initialize HTTP server and attach routes
 
     // ➤ API key generation
     app.route("/api/apikey/new", "POST", [](const crow::request& req, crow::response& res) {
-        APIKey k = registerNewKey();                         
+        APIKey k = registerNewKey();
         res.code = 200;
-        res.write(json({{"apiKey", k.key}}).dump());         
+        res.write(json({{"apiKey", k.key}}).dump());
         res.end();
     });
 
@@ -40,6 +82,11 @@ void startAPIServer() {
     app.route_dynamic("/api/tx/<string>")(getTransactionHandler);
     app.route_dynamic("/api/block/<int>")(getBlockHandler);
     app.route_dynamic("/api/address/<string>")(getAddressHandler);
+
+    // NEW: Swap endpoints (quote + execute) via 1inch
+    // These are read-only / quote endpoints that return data for the UI to prompt a signed transaction
+    app.route("/api/swap/quote", "GET", swapQuoteHandler);
+    app.route("/api/swap/execute", "GET", swapExecuteHandler);
 }
 
 // POST /api/tx/create
@@ -90,8 +137,8 @@ void broadcastTransactionHandler(const crow::request& req, crow::response& res) 
 }
 
 // -------------------
-// NEW FRONTEND / EXPLORER HANDLERS
-// -------------------
+// NEW FRONTEND / EXPLORER HANDLERS (EXISTING HANDLERS BELOW) -------------------
+// (Keep existing implementations as they are)
 
 // GET latest 10 transactions
 void getLatestTransactionsHandler(const crow::request& req, crow::response& res) {
