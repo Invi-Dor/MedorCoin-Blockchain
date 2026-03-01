@@ -21,10 +21,7 @@ static std::vector<uint8_t> buildUnsignedRlp(const EvmTx &tx) {
     fields.push_back( encodeBytes(tx.to) );
     fields.push_back( encodeBytes(tx.value) );
     fields.push_back( encodeBytes(tx.data) );
-    fields.push_back( encodeUInt(0) ); // access list empty
-    fields.push_back( encodeUInt(0) ); // v placeholder
-    fields.push_back( encodeUInt(0) ); // r placeholder
-    fields.push_back( encodeUInt(0) ); // s placeholder
+    fields.push_back( encodeUInt(0) );
 
     return encodeList(fields);
 }
@@ -43,7 +40,7 @@ std::vector<uint8_t> signEvmTransaction(
 
     tx.r.assign(rArr.begin(), rArr.end());
     tx.s.assign(sArr.begin(), sArr.end());
-    tx.v = v + 27; // standard recovery offset
+    tx.v = static_cast<uint8_t>(v + 27);
 
     using namespace rlp;
     std::vector<std::vector<uint8_t>> finalFields;
@@ -55,7 +52,6 @@ std::vector<uint8_t> signEvmTransaction(
     finalFields.push_back( encodeBytes(tx.to) );
     finalFields.push_back( encodeBytes(tx.value) );
     finalFields.push_back( encodeBytes(tx.data) );
-    finalFields.push_back( encodeUInt(0) ); // access list
     finalFields.push_back( encodeUInt(tx.v) );
     finalFields.push_back( encodeBytes(tx.r) );
     finalFields.push_back( encodeBytes(tx.s) );
@@ -63,4 +59,4 @@ std::vector<uint8_t> signEvmTransaction(
     return encodeList(finalFields);
 }
 
-} 
+} // namespace crypto
