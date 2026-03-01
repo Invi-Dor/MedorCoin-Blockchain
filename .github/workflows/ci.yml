@@ -14,34 +14,41 @@ permissions:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
         use_system_deps: [OFF, ON]
         enable_evm: [ON, OFF]
-        node-version: [20.x]  # Node version for Node.js
+        node-version: [20.x]
 
     steps:
-      # Checkout repo
+      # -------------------------
+      # Checkout repository
+      # -------------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ---- Node.js / npm setup & tests ----
+      # -------------------------
+      # Node.js setup
+      # -------------------------
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'   # cache npm deps
+          cache: npm
 
-      - name: Install Node backend dependencies
+      - name: Install Node dependencies
         run: npm ci || npm install
 
-      - name: Run backend build/tests
+      - name: Build & test Node backend
         run: |
           npm run build --if-present
           npm test --if-present
 
-      # ---- C/C++ build & tests ----
+      # -------------------------
+      # C/C++ Toolchain
+      # -------------------------
       - name: Set up C/C++ toolchain
         uses: aminya/setup-cpp@v1
         with:
@@ -50,12 +57,14 @@ jobs:
           ninja: true
           gcovr: true
 
-      - name: Install additional packages (Ubuntu)
-        if: runner.os == 'Linux'
+      - name: Install Ubuntu packages
         run: |
           sudo apt-get update
           sudo apt-get install -y lcov
 
+      # -------------------------
+      # Configure CMake
+      # -------------------------
       - name: Configure CMake
         run: |
           cmake -S . -B build \
@@ -65,23 +74,30 @@ jobs:
             -DMEDOR_USE_SYSTEM_DEPS=${{ matrix.use_system_deps }} \
             -DMEDOR_ENABLE_EVM=${{ matrix.enable_evm }}
 
-      - name: Build C++ project
+      # -------------------------
+      # Build C++ project
+      # -------------------------
+      - name: Build
         run: cmake --build build --parallel
 
-      - name: Run C++ tests
+      # -------------------------
+      # Run C++ tests
+      # -------------------------
+      - name: Run tests
         run: ctest --test-dir build --output-on-failure
 
-      - name: Coverage report
-        uses: threeal/gcovr-action@v1.2.0
-        with:
-          root: build
-          html-out: build/coverage.html
-          xml-out: build/coverage.xml
-          coveralls-out: build/coverage.coveralls.json
-          fail-under-line: 70
+      # -------------------------
+      # Coverage
+      # -------------------------
+      - name: Generate coverage
+        run: |
+          gcovr -r . build \
+            --html --html-details -o build/coverage.html \
+            --xml -o build/coverage.xml \
+            --fail-under-line 70
 
-      - name: Upload C++ coverage HTML
+      - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-html-${{ matrix.use_system_deps }}-${{ matrix.enable_evm }}
+          name: coverage-${{ matrix.use_system_deps }}-${{ matrix.enable_evm }}
           path: build/coverage.html
