@@ -1,5 +1,3 @@
-// File: crypto/signature_helpers.cpp
-// SPDX‑License‑Identifier: MIT
 #include "signature_helpers.h"
 
 namespace crypto {
