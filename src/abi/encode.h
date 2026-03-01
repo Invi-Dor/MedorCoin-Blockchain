@@ -1,19 +1,13 @@
-#pragma once
-#include <vector>
-#include <string>
+ifndef CRYPTO_RLP_H
+define CRYPTO_RLP_H
 
-// Helpers to encode ABI types
-class ABIEncoder {
-public:
-    static std::vector<uint8_t> encodeAddress(const std::string &addr);
-    static std::vector<uint8_t> encodeUint256(const std::string &value);
-    static std::vector<uint8_t> encodeBool(bool v);
-    static std::vector<uint8_t> encodeCall(const int& selector, const std::vector<std::vector<uint8_t>>& args);
-};
+include <vector>
+include <cstdint>
 
+namespace rlp {
+std::vector<uint8_t> encodeBytes(const std::vector<uint8_t>& input);
+std::vector<uint8_t> encodeUInt(uint64_t value);
+std::vector<uint8_t> encodeList(const std::vector<std::vector<uint8_t>>& items);
+} // namespace rlp
 
-    // Build full calldata: selector + encoded args
-    static std::vector<uint8_t> encodeCall(
-        const std::vector<uint8_t> &selector,
-        const std::vector<std::vector<uint8_t>> &args);
-};
+endif
