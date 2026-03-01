@@ -1,11 +1,11 @@
-#ifndef KECCAK256_H
-#define KECCAK256_H
+ifndef CRYPTO_KECCAK256_H
+define CRYPTO_KECCAK256_H
 
-#include <vector>
-#include <cstdint>
+include <vector>
+include <cstdint>
 
 namespace crypto {
-    std::vector<unsigned char> Keccak256(const std::vector<unsigned char>& data);
-}
+std::vector<uint8_t> Keccak256(const std::vector<uint8_t>& data);
+} // namespace crypto
 
-#endif // KECCAK256_H
+endif // KECCAK256_H
