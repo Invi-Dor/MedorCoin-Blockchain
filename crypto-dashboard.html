@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MedorCoin — Crypto Dashboard</title>
+  <style>
+    :root{
+      --bg:#f7fbf6; --ink:#1f2937; --border:#e5e7eb;
+      --green:#0a8d4a; --green-soft:#d7f5e3;
+      --red:#e11d48; --red-soft:#ffd6dc;
+      --gold:#d4b400; --gold-soft:#fff6d0;
+      --card:#fff;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+    .topbar { display:flex; align-items:center; justify-content:space-between;
+      padding:12px 16px; border-bottom:1px solid var(--border); background:#fff; position:sticky; top:0; z-index:10; }
+    .brand { display:flex; align-items:center; gap:8px; font-weight:700; }
+    .wallet-area { position:relative; display:inline-block; }
+    .wallet-trigger { padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-weight:600; }
+    .wallet-menu { display:none; position:absolute; top:110%; left:0; min-width:320px; max-height:420px; overflow:auto;
+      border:1px solid var(--border); background:#fff; border-radius:8px; padding:8px; box-shadow:0 6px 18px rgba(0,0,0,.08); z-index:20; }
+    .wallet-item { display:flex; justify-content:space-between; align-items:center; padding:8px 6px; border-bottom:1px solid #f0f0f0; }
+    .wallet-name { font-weight:600; }
+    .wallet-address { font-family: monospace; font-size:12px; color:#374151; max-width:180px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; }
+    .copy-btn { padding:6px 10px; border:1px solid var(--border); background:#f3f4f6; border-radius:6px; cursor:pointer; }
+    .create-wallet { display:block; width:100%; text-align:center; padding:10px; border:1px solid var(--border);
+      background:#111; color:#fff; border-radius:6px; margin-top:8px; cursor:pointer; text-decoration:none; }
+
+    .container { max-width:1200px; margin:0 auto; padding:16px; }
+    .balance { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border:1px solid var(--border);
+      border-radius:12px; background:#fff; margin:8px 0; }
+    .balance .amount { font-weight:700; font-size:20px; }
+    .toolbar { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:12px; margin:8px 0 16px; }
+    .tool { padding:12px; border-radius:8px; border:1px solid var(--border); text-align:center; font-weight:700; cursor:pointer; }
+    .tool.buy { background:var(--green-soft); }
+    .tool.swap { background:var(--red-soft); }
+    .tool.send { background:var(--gold-soft); }
+    .panel { display:none; margin-top:8px; padding:12px; border:1px solid var(--border); border-radius:8px; background:#fff; }
+    .panel h4 { margin:0 0 8px 0; }
+    .panel-row { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
+    select, input { padding:8px 10px; border-radius:6px; border:1px solid var(--border); }
+    .btn { padding:10px 14px; border-radius:6px; border:0; cursor:pointer; font-weight:700; }
+    .btn.primary { background:#111; color:#fff; }
+    .muted { color:#6b7280; font-size:12px; }
+    .qr { width:180px; height:180px; display:block; margin:0 auto; }
+
+    @media (max-width: 700px){
+      .container { padding:6px; }
+      .balance { flex-wrap:wrap; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top bar with Wallet, Card/QR/Notifications/Links -->
+  <div class="topbar">
+    <div class="brand">MedorCoin Dashboard</div>
+
+    <div class="wallet-area">
+      <button id="walletTrigger" class="wallet-trigger" title="Wallets">
+        Wallet: <span id="currentWalletName">Wallet 1</span> ▾
+      </button>
+      <div id="walletMenu" class="wallet-menu" aria-label="Wallets list"></div>
+    </div>
+
+    <button id="cardBtn" class="tool" title="Card">Card</button>
+    <button id="qrBtn" class="tool" title="Receive/QR">QR</button>
+    <button id="notifBtn" class="tool" title="Notifications">🔔</button>
+
+    <button id="linksBtn" class="tool" title="Links">☰ Links</button>
+  </div>
+
+  <div class="container" id="main">
+    <!-- Balance -->
+    <div class="balance" aria-label="Total balance">
+      <div>
+        <span class="muted" style="margin-right:8px;">Total Balance</span>
+        <span class="amount" id="balanceAmount">$0.00</span>
+      </div>
+      <div class="muted" id="balanceCurrency">(USD)</div>
+      <div class="muted" style="margin-left:8px;">Currency</div>
+      <select id="currencySelector" aria-label="Currency selector">
+        <option value="usd" selected>USD</option>
+      </select>
+    </div>
+
+    <!-- Actions -->
+    <div class="toolbar" aria-label="Main actions">
+      <div class="tool buy" id="btn-buy" title="Buy">Buy</div>
+      <div class="tool swap" id="btn-swap" title="Swap">Swap</div>
+      <div class="tool send" id="btn-send" title="Send">Send</div>
+      <div class="tool" id="btn-receive" title="Receive">Receive</div>
+      <div class="tool" id="btn-market" title="Market">Market</div>
+      <div class="tool" id="btn-history" title="History">History</div>
+    </div>
+
+    <!-- Swap panel (primary focus for real on-chain trading) -->
+    <div id="panel-swap" class="panel" aria-label="Swap panel">
+      <h4>Swap Crypto (on‑chain)</h4>
+      <div class="panel-row">
+        <div>
+          <label>From</label><br/>
+          <select id="swap-from" style="min-width:240px;">
+            <option value="ETH">ETH</option>
+            <option value="WETH">WETH</option>
+            <option value="MEDOR">MedorCoin (MEDOR)</option>
+          </select>
+        </div>
+        <div>
+          <label>To</label><br/>
+          <select id="swap-to" style="min-width:240px;">
+            <option value="ETH">ETH</option>
+            <option value="MEDOR">MedorCoin (MEDOR)</option>
+            <option value="USDT">USDT</option>
+          </select>
+        </div>
+        <div>
+          <label>Amount</label><br/>
+          <input id="swap-amount" type="number" min="0" step="0.01" value="0.1" style="min-width:240px;" />
+        </div>
+        <div>
+          <label>Slippage %</label><br/>
+          <input id="swap-slippage" type="number" min="0" step="0.1" value="0.5" style="width:120px;" />
+        </div>
+      </div>
+      <div class="muted" style="margin-top:6px;">
+        This uses a DEX aggregator (1inch) to select the best on‑chain route. The swap will be signed by your wallet.
+      </div>
+      <div class="muted" id="swap-fee-info" style="margin-top:6px;">
+        Platform fee: 0.50% will be displayed before confirmation. Gas fees payable by you.
+      </div>
+
+      <div class="muted" style="margin-top:8px;" id="swap-estimate">Est. received: -</div>
+
+      <div style="text-align:right; margin-top:8px;">
+        <button class="btn primary" id="swap-now">Swap</button>
+      </div>
+    </div>
+
+    <!-- Optional: other panels (Receive/Market/History) can be wired similarly -->
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js" integrity="sha384-..." crossorigin="anonymous"></script>
+
+  <script>
+    // Simple multi-wallet UI (replace with your real wallet store)
+    const WALLETS_KEY = 'md_wallets';
+    const CURRENT_WALLET_KEY = 'md_current_wallet_id';
+    function getWallets(){ const s = localStorage.getItem(WALLETS_KEY); if (s) return JSON.parse(s); const w = [{id:1, name:'Wallet 1', address: generateMockAddress()}]; localStorage.setItem(WALLETS_KEY, JSON.stringify(w)); localStorage.setItem(CURRENT_WALLET_KEY, '1'); return w; }
+    function generateMockAddress(){ const h = '0x'; for(let i=0;i<40;i++){ h += '0123456789abcdef'[Math.floor(Math.random()*16)]; } return h; }
+    function getCurrentWallet(){ const wallets = getWallets(); const id = parseInt(localStorage.getItem(CURRENT_WALLET_KEY) || '1', 10); return wallets.find(w => w.id === id) || wallets[0]; }
+    function setCurrentWallet(id){ localStorage.setItem(CURRENT_WALLET_KEY, String(id)); refreshWalletUI(); }
+    function refreshWalletUI(){
+      const cw = getCurrentWallet();
+      document.getElementById('currentWalletName').textContent = cw ? cw.name : 'Wallet';
+      // Build wallet list
+      const menu = document.getElementById('walletMenu');
+      menu.innerHTML = '';
+      const wallets = getWallets();
+      wallets.forEach(w => {
+        const div = document.createElement('div');
+        div.className = 'wallet-item';
+        div.innerHTML = `<span class="wallet-name">${w.name}</span>
+                         <span class="wallet-address" title="${w.address}">${shorten(w.address, 18)}</span>
+                         <button class="copy-btn" data-address="${w.address}">Copy</button>`;
+        div.querySelector('.copy-btn').addEventListener('click', () => {
+          copyToClipboard(w.address); showToast('Address copied');
+        });
+        div.addEventListener('click', () => { setCurrentWallet(w.id); hideAllPanels(); });
+        menu.appendChild(div);
+      });
+      const create = document.createElement('a');
+      create.href = '#';
+      create.className = 'create-wallet';
+      create.textContent = 'Create Wallet';
+      create.addEventListener('click', (e)=>{ e.preventDefault(); createWallet(); });
+      menu.appendChild(create);
+    }
+    function shorten(s, len){ if(!s) return ''; if (s.length <= len) return s; return s.slice(0,6) + '...' + s.slice(-4); }
+    function copyToClipboard(text){
+      navigator.clipboard?.writeText(text).catch(()=>fallbackCopy(text));
+    }
+    function fallbackCopy(text){
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+    }
+    function showToast(msg){
+      const t = document.createElement('div');
+      t.textContent = msg; t.style.position='fixed'; t.style.bottom='20px'; t.style.left='50%'; t.style.transform='translateX(-50%)';
+      t.style.background='#111'; t.style.color='#fff'; t.style.padding='8px 12px'; t.style.borderRadius='6px'; t.style.zIndex='9999';
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 1800);
+    }
+    function hideAllPanels(){ document.getElementById('panel-swap').style.display='none'; }
+
+    function createWallet(){
+      const wallets = getWallets();
+      const id = (wallets.length ? wallets[wallets.length-1].id : 0) + 1;
+      const w = {id, name:`Wallet ${id}`, address: generateMockAddress()};
+      wallets.push(w); localStorage.setItem(WALLETS_KEY, JSON.stringify(wallets)); setCurrentWallet(id);
+      showToast('Wallet created: ' + w.name);
+      refreshWalletUI();
+    }
+
+    // Swap using 1inch (client-side, signed by user)
+    async function fetchQuote(chainId, fromToken, toToken, amountWei, fromAddress){
+      // 1inch v5: quote endpoint
+      const url = `https://api.1inch.io/v5.0/${chainId}/quote?fromTokenAddress=${fromToken}&toTokenAddress=${toToken}&amount=${amountWei}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Quote fetch failed');
+      return res.json();
+    }
+
+    async function fetchSwapData(chainId, fromToken, toToken, amountWei, fromAddress, slippage){
+      const url = `https://api.1inch.io/v5.0/${chainId}/swap?fromTokenAddress=${fromToken}&toTokenAddress=${toToken}&amount=${amountWei}&fromAddress=${fromAddress}&slippage=${slippage}`;
+      const res = await fetch(url, {method:'GET'});
+      if (!res.ok) throw new Error('Swap fetch failed');
+      return res.json();
+    }
+
+    // Very light token map for common tokens; in production fill via CoinGecko / registry
+    const TOKEN_ADDRESSES = {
+      // Ethereum example (addresses should be actual token contract addresses)
+      ETH: '0xEeeeeEeeeEeEeeEeEeEeEEEeeeeEeeeeeeeEEeE', // native
+      MEDOR: '0x0000000000000000000000000000000000000000', // placeholder: replace with real MEDOR address
+      WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+      USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    };
+
+    // Wire UI
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Wallet UI
+      refreshWalletUI();
+      document.getElementById('walletTrigger').addEventListener('click', ()=> {
+        const m = document.getElementById('walletMenu');
+        const shown = m.style.display === 'block';
+        m.style.display = shown ? 'none' : 'block';
+      });
+      // Close on outside click
+      document.addEventListener('click', (e) => { if(!e.target.closest('.wallet-area')) document.getElementById('walletMenu').style.display = 'none'; });
+
+      // Init swap panel
+      document.getElementById('btn-swap').addEventListener('click', () => {
+        document.getElementById('panel-swap').style.display = 'block';
+        // Estimate if needed
+      });
+
+      // Swap action
+      document.getElementById('swap-now').addEventListener('click', async () => {
+        if (!window.ethereum) { alert('Please install MetaMask or a Web3 wallet.'); return; }
+        const fromToken = TOKEN_ADDRESSES[(document.getElementById('swap-from').value] || 'ETH');
+        const toToken   = TOKEN_ADDRESSES[(document.getElementById('swap-to').value] || 'ETH');
+        const amountEth = parseFloat(document.getElementById('swap-amount').value || '0');
+        if (!amountEth || amountEth <= 0) { alert('Enter a valid amount'); return; }
+
+        // Assume ETH value for simplicity if native
+        // Convert to token amount in wei units depending on token decimals; this is simplified.
+        const amountWei = String(Math.floor(amountEth * 1e18)); // naive
+        const fromAddress = getCurrentWallet()?.address;
+        if (!fromAddress) { alert('Please connect a wallet.'); return; }
+
+        // Chain selection (1 for Ethereum, 56 for BSC). For production, detect network via provider
+        const chainId = 1; // Ethereum mainnet; switch to 56 for BSC
+        try {
+          // Optional: get a quote first
+          // const quote = await fetchQuote(chainId, fromToken, toToken, amountWei, fromAddress);
+          // you can use quote to display expected return
+          const slippage = document.getElementById('swap-slippage').value || '0.5';
+          const swapData = await fetchSwapData(chainId, fromToken, toToken, amountWei, fromAddress, slippage);
+          // swapData contains: tx: {from, to, data, value, gas}
+          const tx = swapData.tx;
+          // Sign and send via wallet
+          if (!tx || !tx.to || !tx.data) throw new Error('Invalid swap data');
+          await window.ethereum.request({ method: 'eth_sendTransaction', params: [ { from: fromAddress, to: tx.to, data: tx.data, value: tx.value || '0x0', gas: tx.gas } ] });
+          showToast('Swap submitted via wallet');
+        } catch (err) {
+          console.error(err);
+          alert('Swap failed: ' + (err?.message || err));
+        }
+      });
+
+      // Wallet copy / address copy
+      // Here you could wire up Copy Address button and QR if needed
+    });
+  </script>
+
+</body>
+</html>
