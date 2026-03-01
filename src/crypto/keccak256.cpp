@@ -8,7 +8,6 @@ static inline uint64_t rotl64(uint64_t x, unsigned int y) {
     return (x << y) | (x >> (64 - y));
 }
 
-// Round constants for Keccak-f1600
 static const uint64_t KECCAKF_ROUND_CONSTANTS[24] = {
     0x0000000000000001ULL, 0x0000000000008082ULL, 0x800000000000808AULL,
     0x8000000080008000ULL, 0x000000000000808BULL, 0x0000000080000001ULL,
@@ -20,7 +19,6 @@ static const uint64_t KECCAKF_ROUND_CONSTANTS[24] = {
     0x8000000000008080ULL, 0x0000000000000001ULL, 0x8000000000008008ULL
 };
 
-// Rho offsets
 static const unsigned KECCAKF_RHO_OFFSETS[25] = {
      0,  1, 62, 28, 27,
     36, 44,  6, 55, 20,
@@ -34,16 +32,16 @@ static void keccakF1600(std::array<uint64_t, 25>& state) {
         uint64_t C[5], D[5], B[25];
 
         for (int x = 0; x < 5; x++)
-            C[x] = state[x] ^ state[x + 5] ^ state[x + 10] ^ state[x + 15] ^ state[x + 20];
+            C[x] = state[x + 0*5] ^ state[x + 1*5] ^ state[x + 2*5] ^ state[x + 3*5] ^ state[x + 4*5];
         for (int x = 0; x < 5; x++)
-            D[x] = C[(x + 4) % 5] ^ rotl64(C[(x + 1) % 5], 1);
+            D[x] = C[(x+4)%5] ^ rotl64(C[(x+1)%5], 1);
 
         for (int x = 0; x < 5; x++)
             for (int y = 0; y < 5; y++)
                 state[x + 5*y] ^= D[x];
 
         for (int i = 0; i < 25; i++)
-            B[i] = rotl64(state[(i % 5) + 5*(i / 5)], KECCAKF_RHO_OFFSETS[i]);
+            B[i] = rotl64(state[i], KECCAKF_RHO_OFFSETS[i]);
 
         for (int x = 0; x < 5; x++)
             for (int y = 0; y < 5; y++)
@@ -51,7 +49,7 @@ static void keccakF1600(std::array<uint64_t, 25>& state) {
 
         for (int y = 0; y < 5; y++)
             for (int x = 0; x < 5; x++)
-                state[x + 5*y] ^= (~B[((x + 1) % 5) + 5*y]) & B[((x + 2) % 5) + 5*y];
+                state[x + 5*y] ^= (~B[((x+1)%5) + 5*y]) & B[((x+2)%5) + 5*y];
 
         state[0] ^= KECCAKF_ROUND_CONSTANTS[round];
     }
@@ -59,29 +57,29 @@ static void keccakF1600(std::array<uint64_t, 25>& state) {
 
 std::vector<unsigned char> Keccak256(const std::vector<unsigned char>& data) {
     constexpr size_t RATE_BYTES = 136;
-    std::array<uint8_t, 200> byteState{};
-    std::array<uint64_t, 25> state64{};
-    std::memset(state64.data(), 0, state64.size() * sizeof(uint64_t));
+    std::array<uint64_t, 25> state64 = {};
+    std::array<uint8_t, 200> buf = {};
+    size_t i = 0;
 
-    size_t offset = 0;
-    while (offset + RATE_BYTES <= data.size()) {
-        for (size_t i = 0; i < RATE_BYTES / 8; i++)
-            state64[i] ^= ((uint64_t*)data.data())[i];
+    while (i + RATE_BYTES <= data.size()) {
+        for (size_t j = 0; j < RATE_BYTES / 8; j++)
+            state64[j] ^= ((uint64_t*)data.data())[j];
         keccakF1600(state64);
-        offset += RATE_BYTES;
+        i += RATE_BYTES;
     }
 
-    for (size_t i = offset; i < data.size(); i++)
-        byteState[i % RATE_BYTES] ^= data[i];
-    byteState[data.size() % RATE_BYTES] ^= 0x01;
-    byteState[RATE_BYTES - 1] ^= 0x80;
+    for (size_t j = i; j < data.size(); j++)
+        buf[j % RATE_BYTES] ^= data[j];
+    buf[data.size() % RATE_BYTES] ^= 0x01;
+    buf[RATE_BYTES - 1] ^= 0x80;
 
-    for (size_t i = 0; i < RATE_BYTES / 8; i++)
-        state64[i] ^= ((uint64_t*)byteState.data())[i];
+    for (size_t j = 0; j < RATE_BYTES/8; j++)
+        state64[j] ^= ((uint64_t*)buf.data())[j];
     keccakF1600(state64);
 
     std::vector<unsigned char> hash(32);
     std::memcpy(hash.data(), state64.data(), 32);
+
     return hash;
 }
 
