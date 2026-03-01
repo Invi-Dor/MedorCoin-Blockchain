@@ -23,15 +23,11 @@ jobs:
         node-version: [20.x]
 
     steps:
-      # -------------------------
-      # Checkout repository
-      # -------------------------
+      # Checkout repo
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # -------------------------
-      # Node.js setup
-      # -------------------------
+      # Node.js setup and tests
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -41,14 +37,12 @@ jobs:
       - name: Install Node dependencies
         run: npm ci || npm install
 
-      - name: Build & test Node backend
+      - name: Run Node build & tests
         run: |
           npm run build --if-present
           npm test --if-present
 
-      # -------------------------
-      # C/C++ Toolchain
-      # -------------------------
+      # C/C++ environment
       - name: Set up C/C++ toolchain
         uses: aminya/setup-cpp@v1
         with:
@@ -57,15 +51,13 @@ jobs:
           ninja: true
           gcovr: true
 
-      - name: Install Ubuntu packages
+      - name: Install additional Ubuntu packages
         run: |
           sudo apt-get update
           sudo apt-get install -y lcov
 
-      # -------------------------
       # Configure CMake
-      # -------------------------
-      - name: Configure CMake
+      - name: Configure C++ build
         run: |
           cmake -S . -B build \
             -G Ninja \
@@ -74,29 +66,23 @@ jobs:
             -DMEDOR_USE_SYSTEM_DEPS=${{ matrix.use_system_deps }} \
             -DMEDOR_ENABLE_EVM=${{ matrix.enable_evm }}
 
-      # -------------------------
-      # Build C++ project
-      # -------------------------
-      - name: Build
+      # Build
+      - name: Build C++ project
         run: cmake --build build --parallel
 
-      # -------------------------
-      # Run C++ tests
-      # -------------------------
-      - name: Run tests
+      # Run tests
+      - name: Run C++ tests
         run: ctest --test-dir build --output-on-failure
 
-      # -------------------------
       # Coverage
-      # -------------------------
-      - name: Generate coverage
+      - name: Generate coverage report
         run: |
           gcovr -r . build \
             --html --html-details -o build/coverage.html \
             --xml -o build/coverage.xml \
             --fail-under-line 70
 
-      - name: Upload coverage artifact
+      - name: Upload coverage HTML
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.use_system_deps }}-${{ matrix.enable_evm }}
