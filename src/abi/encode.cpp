@@ -1,4 +1,3 @@
-// Production-ready ABI encoder implementation
 include "abi/encode.h"
 include <sstream>
 include <iomanip>
