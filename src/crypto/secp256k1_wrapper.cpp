@@ -1,6 +1,3 @@
-// File: crypto/secp256k1_wrapper.cpp
-// SPDX‑License‑Identifier: MIT
-
 #include "secp256k1_wrapper.h"
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
