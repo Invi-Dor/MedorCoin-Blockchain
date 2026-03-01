@@ -1,5 +1,3 @@
-Is it not suppose to be this?
-
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
 #include <cstring> // for std::memcpy
