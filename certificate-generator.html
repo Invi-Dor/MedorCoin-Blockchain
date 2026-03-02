@@ -18,15 +18,8 @@ body {
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
-h1 {
-  text-align: center;
-  color: #4a2fa6;
-}
-label {
-  font-size: 16px;
-  margin-top: 12px;
-  display: block;
-}
+h1 { text-align: center; color: #4a2fa6; }
+label { font-size: 16px; margin-top: 12px; display: block; }
 select, input {
   padding: 10px;
   font-size: 16px;
@@ -45,9 +38,8 @@ button {
   margin-top: 16px;
   font-size: 16px;
 }
-button:hover {
-  background: #5a6fd1;
-}
+button:hover { background: #5a6fd1; }
+
 #certificateArea {
   width: 1000px;
   height: 700px;
@@ -98,7 +90,7 @@ button:hover {
   <label for="fullName">Your Full Name</label>
   <input type="text" id="fullName" placeholder="Enter your full name">
 
-  <button onclick="generateCertificate()">Download Certificate</button>
+  <button id="generateCertificateButton">Download Certificate</button>
 </div>
 
 <div id="certificateArea">
@@ -124,17 +116,20 @@ button:hover {
 
 <script
   src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-  integrity="sha384-OgVRvuATP1z7JjHLkuOU4dG0kQ7CxR6uJq8D9IFMFBskIDb0NqF6n+4O5NN7L7x4"
   crossorigin="anonymous">
 </script>
 
 <script>
+// Handler wiring
+document.getElementById("generateCertificateButton")
+        .addEventListener("click", generateCertificate);
+
 function generateCertificate() {
   const fullName = document.getElementById("fullName").value.trim();
   const courseID = document.getElementById("courseSelect").value;
 
   if (!fullName) {
-    alert("Please enter your full name.");
+    window.alert("Please enter your full name.");
     return;
   }
 
@@ -156,10 +151,14 @@ function generateCertificate() {
     .replace(/^-+|-+$/g, '')
     .toLowerCase() || 'user';
 
-  pdf.html(document.getElementById("certificateArea"), {
-    callback: function(doc) {
-      const filename = `medorcoin-${courseID}-certificate-${safeName}.pdf`;
-      doc.save(filename);
+  // Temporarily show element for correct html rendering
+  const element = document.getElementById("certificateArea");
+  element.style.display = "block";
+
+  pdf.html(element, {
+    callback: (doc) => {
+      doc.save(`medorcoin-${courseID}-certificate-${safeName}.pdf`);
+      element.style.display = "none";
     },
     x: 10,
     y: 10
