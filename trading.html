@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>MedorCoin — Our Services</title>
+<meta name="description" content="Access MedorCoin tools, courses, and resources. Navigate seamlessly across sign-up, account, mining, trading, and documentation pages."/>
+<style>
+  :root{
+    --bg:#0f1013;
+    --bg-elev:#15171b;
+    --ink:#f1f5f9;
+    --muted:#a3a3a3;
+    --border:#232630;
+    --accent:#ff8a00;
+    --accent-2:#ffb84d;
+    --accent-3:#ffd199;
+    --pill:#1c2029;
+    --card:#1b1f2a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink);background:var(--bg)}
+  a{text-decoration:none;color:inherit}
+
+  header{ text-align:center; padding:14px 0; font-weight:800; font-size:22px; background: linear-gradient(135deg,#1e1f2a 0%, #2a2b39 100%); color:#fff; }
+
+  /* Layout */
+  .container{max-width:1100px;margin:0 auto;padding:16px}
+  .disclaimer{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:12px 14px;margin:12px 0 20px;color:#f8f8f8;line-height:1.5}
+  .accordion{display:flex;flex-direction:column;gap:12px}
+  .section{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#11131a}
+  .section-header{width:100%; text-align:left; padding:14px 16px; background: linear-gradient(135deg,#2a2f45 0%, #1a1f2b 100%); border:0; color:#fff; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:space-between}
+  .section-header[aria-expanded="true"]{ background: linear-gradient(135deg,#313a63 0%, #262b54 100%); }
+  .section-content{ padding:12px 14px; display:none; background:#0b0f14; color:#e5e7eb; }
+  .section-content.active{ display:block; }
+
+  /* Crypto table */
+  table{ width:100%; border-collapse:collapse; margin-top:6px; }
+  th,td{ padding:8px 10px; border-bottom:1px solid #2a2a2a; text-align:left; font-size:13px; }
+  th{ color:#cbd5e1; font-weight:600; }
+  .up{ color:#34d399; font-weight:700; }
+  .down{ color:#f87171; font-weight:700; }
+
+  /* Simple responsive tweaks */
+  @media (max-width: 700px){
+    header{font-size:20px}
+  }
+</style>
+</head>
+<body>
+<header>More</header>
+
+<div class="container">
+
+  <!-- Risk Disclaimer -->
+  <div class="disclaimer" role="note" aria-label="Investment disclaimer">
+    Important: crypto markets are highly volatile. This page fetches live data from public APIs for educational purposes only. Do your own research, never invest more than you can afford, and be aware of the risks. This platform does not provide financial advice and is not liable for trading outcomes.
+  </div>
+
+  <div class="accordion" id="accordion" aria-label="Trading sections">
+
+    <!-- Section 1: Crypto Trading -->
+    <section class="section" id="sec-crypto">
+      <button class="section-header" type="button" aria-expanded="false" aria-controls="content-crypto">
+        <span>Crypto Trading — Live Markets</span>
+        <span aria-hidden="true">▾</span>
+      </button>
+      <div id="content-crypto" class="section-content" role="region" aria-labelledby="sec-crypto-title">
+        <p style="margin:0 0 6px 0; color:#cbd5e1;">Live prices from CoinGecko. Prices update every 60 seconds.</p>
+        <table aria-label="Live crypto prices">
+          <thead>
+            <tr>
+              <th>Coin</th>
+              <th>Price (USD)</th>
+              <th>24h Change</th>
+            </tr>
+          </thead>
+          <tbody id="crypto-body">
+            <!-- dynamic rows -->
+          </tbody>
+        </table>
+        <div id="crypto-status" style="margin-top:8px; font-size:12px; color:#94a3b8;">Fetching data...</div>
+      </div>
+    </section>
+
+    <!-- Section 2: Futures Trading -->
+    <section class="section" id="sec-futures">
+      <button class="section-header" type="button" aria-expanded="false" aria-controls="content-futures">
+        <span>Futures Trading — BTC Perpetual</span>
+        <span aria-hidden="true">▾</span>
+      </button>
+      <div id="content-futures" class="section-content" role="region" aria-labelledby="sec-futures-title">
+        <p style="margin:0 0 6px 0; color:#cbd5e1;">Live futures data (BTC-PERP) from Deribit. If not available, this section will display a status message.</p>
+        <div id="futures-status" style="margin-bottom:8px; font-size:13px; color:#e5e7eb;">Loading futures data...</div>
+        <table aria-label="BTC perpetual futures">
+          <thead>
+            <tr>
+              <th>Instrument</th>
+              <th>Last Price (USD)</th>
+              <th>Index Price</th>
+            </tr>
+          </thead>
+          <tbody id="futures-body">
+            <tr><td colspan="3" style="color:#94a3b8;">Attempting to fetch data from Deribit...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 3: Options Trading -->
+    <section class="section" id="sec-options">
+      <button class="section-header" type="button" aria-expanded="false" aria-controls="content-options">
+        <span>Options Trading — BTC Options (Deribit)</span>
+        <span aria-hidden="true">▾</span>
+      </button>
+      <div id="content-options" class="section-content" role="region" aria-labelledby="sec-options-title">
+        <p style="margin:0 0 6px 0; color:#cbd5e1;">Top BTC options instruments currently available. This pulls from public Deribit instruments data.</p>
+        <table aria-label="BTC options instruments">
+          <thead>
+            <tr>
+              <th>Instrument</th>
+              <th>Expiration</th>
+              <th>Strike</th>
+              <th>Option Type</th>
+            </tr>
+          </thead>
+          <tbody id="options-body">
+            <tr><td colspan="4" style="color:#94a3b8;">Loading options...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  // Helper: toggle accordion sections
+  function setupAccordion() {
+    const headers = document.querySelectorAll('.section-header');
+    headers.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        // collapse all
+        document.querySelectorAll('.section-header').forEach(b => b.setAttribute('aria-expanded', 'false'));
+        document.querySelectorAll('.section-content').forEach(c => c.classList.remove('active'));
+
+        // expand this one if it wasn't already
+        if (!expanded) {
+          btn.setAttribute('aria-expanded', 'true');
+          const contentId = btn.getAttribute('aria-controls');
+          const content = document.getElementById(contentId);
+          if (content) content.classList.add('active');
+        }
+      });
+    });
+  }
+
+  // Section 1: Crypto prices from CoinGecko
+  async function loadCryptoPrices() {
+    const body = document.getElementById('crypto-body');
+    const status = document.getElementById('crypto-status');
+    try {
+      // Pick a small set of coins (adjust as needed)
+      const ids = ['bitcoin','ethereum','solana','cardano'];
+      const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids.join(',')}&order=market_cap_desc&per_page=100&page=1&sparkline=false`;
+      const res = await fetch(url, {cache: 'no-cache'});
+      if (!res.ok) throw new Error('Network response was not ok');
+      const data = await res.json();
+      body.innerHTML = '';
+      data.forEach(coin => {
+        const tr = document.createElement('tr');
+        const price = coin.current_price != null ? `$${Number(coin.current_price).toLocaleString()}` : '—';
+        const change24h = coin.price_change_percentage_24h != null ? coin.price_change_percentage_24h.toFixed(2) + '%' : '—';
+        const changeClass = coin.price_change_percentage_24h >= 0 ? 'up' : 'down';
+        tr.innerHTML = `
+          <td>${coin.name}</td>
+          <td>${price}</td>
+          <td class="${changeClass}">${change24h}</td>
+        `;
+        body.appendChild(tr);
+      });
+      status.textContent = 'Live data updated.';
+    } catch (e) {
+      body
+
