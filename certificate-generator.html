@@ -54,7 +54,7 @@ button:hover {
   background: #f5effc;
   padding: 40px;
   font-family: Georgia, serif;
-  display: none; /* hidden in page but used for PDF */
+  display: none;
 }
 </style>
 </head>
@@ -101,7 +101,6 @@ button:hover {
   <button onclick="generateCertificate()">Download Certificate</button>
 </div>
 
-<!-- Hidden Certificate Template -->
 <div id="certificateArea">
   <div style="text-align:center; margin-top:20px;">
     <h2 style="font-size:32px; color:#4a2fa6;">MedorCoin Blockchain</h2>
@@ -128,6 +127,7 @@ button:hover {
   integrity="sha384-OgVRvuATP1z7JjHLkuOU4dG0kQ7CxR6uJq8D9IFMFBskIDb0NqF6n+4O5NN7L7x4"
   crossorigin="anonymous">
 </script>
+
 <script>
 function generateCertificate() {
   const fullName = document.getElementById("fullName").value.trim();
@@ -138,24 +138,26 @@ function generateCertificate() {
     return;
   }
 
-  // Fill certificate template
-  document.getElementById("certName").textContent = fullName;
-
-  // Convert ID into readable format
   const formattedCourse = courseID
     .replace(/-/g, " ")
-    .replace(/\bl\b/, "Level ")
+    .replace(/\bl(\d+)\b/g, "Level $1")
     .toUpperCase();
 
+  document.getElementById("certName").textContent = fullName;
   document.getElementById("certCourse").textContent = formattedCourse;
 
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF('landscape', 'pt', 'a4');
 
+  const safeName = fullName
+    .replace(/[\x00-\x1F\x7F]/g, '')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase() || 'user';
+
   pdf.html(document.getElementById("certificateArea"), {
     callback: function(doc) {
-      // create a safe filename
-      const safeName = fullName.replace(/\s+/g, '-').toLowerCase();
       const filename = `medorcoin-${courseID}-certificate-${safeName}.pdf`;
       doc.save(filename);
     },
