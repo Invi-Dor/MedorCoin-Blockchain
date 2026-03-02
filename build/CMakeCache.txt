@@ -14,6 +14,9 @@
 # EXTERNAL cache entries
 ########################
 
+//No help, variable specified on the command line.
+CMAKE_BUILD_TYPE:UNINITIALIZED=Release
+
 //Value Computed by CMake.
 CMAKE_FIND_PACKAGE_REDIRECTS_DIR:STATIC=/workspaces/MedorCoin-Blockchain/build/CMakeFiles/pkgRedirects
 
@@ -31,9 +34,6 @@ PKG_CONFIG_ARGN:STRING=
 
 //pkg-config executable
 PKG_CONFIG_EXECUTABLE:FILEPATH=/usr/bin/pkg-config
-
-//No help, variable specified on the command line.
-RocksDB_ROOT:UNINITIALIZED=/usr/local
 
 //Path to a library.
 pkgcfg_lib_ROCKSDB_rocksdb:FILEPATH=/usr/lib/x86_64-linux-gnu/librocksdb.so
