@@ -1,240 +1,517 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>MedorCoin — Our Services</title>
-<meta name="description" content="Tools, courses, and resources for sign-up, account, mining, trading, and documentation."/>
-<style>
-  :root{
-    --bg:#0f1013;
-    --bg-elev:#15171b;
-    --ink:#f1f5f9;
-    --muted:#a3a3a3;
-    --border:#232630;
-    --card:#1b1f2a;
-    --accent:#ffb400;
-    --bg-soft:#1a1f2a;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink);background:var(--bg)}
-  a{text-decoration:none;color:inherit}
-  header{ text-align:center; padding:14px 0; font-weight:800; font-size:22px; color:#fff; background: linear-gradient(135deg,#1e1f2a 0%, #2a2b39 100%); }
-  .container{max-width:1100px;margin:0 auto;padding:16px}
-  .disclaimer{ background:#1a1a1a; border:1px solid #333; border-radius:12px; padding:12px; color:#f5f5f5; margin:8px 0 16px; line-height:1.5 }
-  .accordion{ display:flex; flex-direction:column; gap:12px }
-  .section{ border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#11131a }
-  .section-header{ width:100%; text-align:left; padding:14px 16px; background: linear-gradient(135deg,#2a2f45 0%, #1a1f2b 100%); border:0; color:#fff; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:space-between }
-  .section-content{ padding:12px 14px; display:none; background:#0b0f14; color:#e5e7eb; }
-  .section-content.active{ display:block; }
-  table{ width:100%; border-collapse:collapse; margin-top:6px; }
-  th,td{ padding:8px 10px; border-bottom:1px solid #2a2a2a; text-align:left; font-size:13px; }
-  th{ color:#cbd5e1; font-weight:600; }
-  .up{ color:#34d399; font-weight:700 }
-  .down{ color:#f87171; font-weight:700 }
-  @media (max-width: 700px){
-    header{font-size:20px}
-  }
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MedorCoin — Crypto Dashboard</title>
+  <style>
+    :root{
+      --bg:#f7fbf6; --ink:#1f2937; --border:#e5e7eb;
+      --green:#0a8d4a; --green-soft:#d7f5e3;
+      --red:#e11d48; --red-soft:#ffd6dc;
+      --gold:#d4b400; --gold-soft:#fff6d0;
+      --card:#fff; --shadow:0 6px 18px rgba(0,0,0,.08);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: Inter, system-ui, Arial, sans-serif; background: #f7f7f7; color: var(--ink); }
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 16px; border-bottom:1px solid var(--border); background:#fff; position:sticky; top:0; z-index:10;
+      box-shadow: 0 2px 6px rgba(0,0,0,.04);
+    }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px; }
+    .logo { width:28px; height:28px; display:inline-block;
+      background: linear-gradient(135deg, #58d68d 0%, #1f8a4c 100%);
+      border-radius:6px; box-shadow: inset 0 0 6px rgba(0,0,0,.15);
+      vertical-align: middle;
+    }
+    .wallet-area { position:relative; display:inline-block; }
+    .wallet-trigger { padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-weight:600; }
+    .wallet-menu { display:none; position:absolute; top:110%; left:0; min-width:320px; max-height:420px; overflow:auto;
+      border:1px solid var(--border); background:#fff; border-radius:8px; padding:8px; box-shadow:0 6px 18px rgba(0,0,0,.08); z-index:20; }
+    .wallet-item { display:flex; justify-content:space-between; align-items:center; padding:8px 6px; border-bottom:1px solid #f0f0f0; }
+    .wallet-name { font-weight:600; }
+    .wallet-address { font-family: monospace; font-size:12px; color:#374151; max-width:180px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; }
+    .copy-btn { padding:6px 10px; border:1px solid var(--border); background:#f3f4f6; border-radius:6px; cursor:pointer; }
+    .create-wallet { display:block; width:100%; text-align:center; padding:10px; border:1px solid var(--border);
+      background:#111; color:#fff; border-radius:6px; margin-top:8px; cursor:pointer; text-decoration:none; }
+
+    .container { max-width:1200px; margin:0 auto; padding:16px; display:flex; flex-direction:column; gap:16px; }
+
+    /* Trading layout */
+    .panel {
+      background:#fff; border:1px solid var(--border); border-radius:12px; padding:12px; box-shadow: var(--shadow);
+    }
+
+    .trading {
+      display:grid; grid-template-columns: 1fr 2fr 1.1fr; gap:12px;
+    }
+    @media (max-width: 1024px){
+      .trading { grid-template-columns: 1fr; }
+    }
+
+    /* Left: Sell orders (order book) */
+    .orderbook { display:flex; flex-direction:column; height:420px; overflow:auto; }
+    .section-title { font-weight:700; margin:6px 0 8px; font-size:14px; color:#374151; }
+    .book { width:100%; border-collapse: collapse; font-size:12px; }
+    .book th, .book td { padding:6px 8px; border-bottom:1px solid #f0f0f0; text-align:left; }
+    .sell { color:#b91c1c; font-weight:700; }
+    .buy { color:#166534; font-weight:700; }
+    .price { text-align:right; }
+
+    /* Center chart area (placeholder) */
+    .chart-area { height:420px; background: #0b1220; color:#e5e7eb; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+    .chart-area canvas { width:100%; height:100%; }
+
+    /* Right: Buy panel */
+    .trade-panel { padding:14px; display:flex; flex-direction:column; gap:12px; }
+    .tabs { display:flex; gap:8px; }
+    .tab { padding:8px 14px; border-radius:6px; border:1px solid var(--border); cursor:pointer; background:#f1f5f9; font-weight:700; }
+    .tab.active { background:#111; color:#fff; border-color:#111; }
+    .row { display:flex; gap:12px; align-items:center; }
+
+    .field { display:flex; flex-direction:column; gap:6px; }
+    label { font-size:12px; color:#6b7280; }
+    input, select { padding:8px 10px; border-radius:6px; border:1px solid var(--border); min-width:0; }
+    .btn { padding:10px 14px; border-radius:6px; border:0; cursor:pointer; font-weight:700; }
+    .btn.primary { background:#111; color:#fff; }
+    .btn.secondary { background:#eee; color:#111; }
+
+    .muted { color:#6b7280; font-size:12px; }
+
+    /* Bottom quick stats and links (simplified) */
+    .bottom { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:8px 0; }
+    .stat { font-size:12px; color:#374151; }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media (max-width: 700px){
+      .bottom { flex-direction:column; }
+    }
+
+    /* More dropdown (top-right) */
+    .more { position:relative; display:inline-block; }
+    .more-menu { display:none; position:absolute; right:0; top:110%; min-width:180px; background:#fff; border:1px solid var(--border); border-radius:6px; box-shadow: var(--shadow); padding:6px 0; z-index:30; }
+    .more-menu a { display:block; padding:8px 12px; color:#111; text-decoration:none; }
+    .more-menu a:hover { background:#f3f4f6; }
+
+    /* Small utility */
+    .section { margin:0; padding:0; }
+
+  </style>
 </head>
 <body>
-<header>More</header>
 
-<div class="container">
+  <header class="topbar" aria-label="Top navigation">
+    <div class="brand">
+      <span class="logo" aria-label="MedorLogo"></span>
+      <span>MedorCoin Dashboard</span>
+    </div>
 
-  <!-- Risk Disclaimer -->
-  <div class="disclaimer" role="note" aria-label="Investment disclaimer">
-    Important: crypto markets are highly volatile. This page fetches live data from public APIs for educational purposes only. Do your own research, never invest more than you can afford, and be aware of the risks. This platform is not financial advice and not liable for trading outcomes.
-  </div>
+    <!-- Center navigation (Dashboard is the default view) -->
+    <nav class="center-nav" aria-label="Main navigation" style="display:flex; gap:8px;">
+      <button class="btn tab active" id="nav-dashboard" aria-pressed="true" style="background:#111; color:#fff;">Dashboard</button>
+      <button class="btn tab" id="nav-spot" aria-pressed="false" style="background:#f1f5f9;">Spot</button>
+      <button class="btn tab" id="nav-bots" aria-pressed="false" style="background:#f1f5f9;">Bots</button>
+      <button class="btn tab" id="nav-p2p" aria-pressed="false" style="background:#f1f5f9;">P2P</button>
+      <button class="btn tab" id="nav-alpha" aria-pressed="false" style="background:#f1f5f9;">Alpha</button>
+    </nav>
 
-  <div class="accordion" id="accordion" aria-label="Trading sections">
-
-    <!-- Crypto Trading Section -->
-    <section class="section" id="sec-crypto">
-      <button class="section-header" type="button" aria-expanded="false" aria-controls="content-crypto">
-        <span>Crypto Trading — Live Markets</span>
-        <span aria-hidden="true">▾</span>
+    <!-- Wallet drop-down -->
+    <div class="wallet-area">
+      <button id="walletTrigger" class="wallet-trigger" title="Wallets">
+        Wallet: <span id="currentWalletName">Wallet 1</span> ▾
       </button>
-      <div id="content-crypto" class="section-content" role="region" aria-labelledby="sec-crypto-title">
-        <p style="color:#cbd5e1;margin:0 0 6px 0;">Live prices (USD) from CoinGecko. Updates every 60 seconds.</p>
-        <table aria-label="Live crypto prices">
-          <thead>
-            <tr>
-              <th>Coin</th>
-              <th>Price</th>
-              <th>24h Change</th>
-            </tr>
-          </thead>
-          <tbody id="crypto-body">
-            <tr><td colspan="3" style="color:#94a3b8;">Loading...</td></tr>
-          </tbody>
-        </table>
-        <div id="crypto-status" style="margin-top:6px; font-size:12px; color:#94a3b8;">Fetching data...</div>
+      <div id="walletMenu" class="wallet-menu" aria-label="Wallets list"></div>
+    </div>
+
+    <!-- Right: More menu -->
+    <div class="more" style="margin-left:8px;">
+      <button class="wallet-trigger" id="moreBtn" aria-label="More options">☰ More</button>
+      <div id="moreMenu" class="more-menu" aria-label="More links">
+        <a href="#" id="link-dashboard">Dashboard</a>
+        <a href="#" id="link-sports-trading">Sports Trading</a>
+        <a href="#" id="link-futures">Futures</a>
+        <a href="#" id="link-options">Options</a>
+        <a href="#" id="link-mining">Mining</a>
+        <a href="#" id="link-courses">Courses</a>
+        <a href="#" id="link-settings">Settings</a>
+        <a href="#" id="link-logout">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" id="app" role="main" style="min-height:60vh;">
+    <!-- Dashboard / Trading interface (one page) -->
+    <section id="dashboard" class="panel" aria-label="Trading dashboard">
+      <div class="trading" style="gap:14px;">
+
+        <!-- Left: Sell orders (orderbook) -->
+        <div class="panel orderbook" aria-label="Sell orders">
+          <div class="section-head" style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="section-title" style="font-size:14px;">Sell Orders</div>
+            <div class="muted" style="font-size:12px;">Live depth</div>
+          </div>
+          <table class="book" id="sellBook" aria-label="Sell side order book" style="width:100%;">
+            <thead>
+              <tr><th>Price (USDT)</th><th>Amount</th></tr>
+            </thead>
+            <tbody id="sellBody">
+              <!-- populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Center: Chart area -->
+        <div class="panel chart-area" aria-label="Chart area" id="chartArea">
+          <canvas id="chartCanvas" width="800" height="420" style="width:100%; height:420px;"></canvas>
+          <div style="position:absolute; left:50%; transform: translateX(-50%); bottom:8px; font-size:12px; color:#9ca3af;">
+            BTC/USD — live chart (placeholder)
+          </div>
+        </div>
+
+        <!-- Right: Buy/Sell panel -->
+        <div class="panel trade-panel" aria-label="Trade panel" id="tradePanel" style="min-width:320px;">
+          <div class="tabs" role="tablist" aria-label="Trade type">
+            <button class="tab active" data-mode="buy" aria-selected="true" id="tab-buy">Buy</button>
+            <button class="tab" data-mode="sell" aria-selected="false" id="tab-sell">Sell</button>
+          </div>
+
+          <div class="row" style="align-items:stretch;">
+            <div class="field" style="flex:1;">
+              <label>Market</label>
+              <select id="pairSelector" aria-label="Trading pair">
+                <option value="MEDORUSDT">MEDOR/USD (MEDORUSDT)</option>
+                <option value="BTCUSDT" selected>BTC/USD</option>
+                <option value="ETHUSDT">ETH/USD</option>
+                <option value="BNBUSDT">BNB/USD</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row" style="gap:8px;">
+            <div class="field" style="flex:1;">
+              <label>Price (USDT)</label>
+              <input type="number" id="priceInput" step="0.01" value="65956.31" />
+            </div>
+            <div class="field" style="flex:1;">
+              <label>Amount (BTC)</label>
+              <input type="number" id="amountInput" step="0.0001" value="0.00200" />
+            </div>
+          </div>
+
+          <div class="row" style="gap:8px; align-items:flex-end;">
+            <div class="field" style="flex:1;">
+              <label>Order Type</label>
+              <select id="orderType" aria-label="Order type">
+                <option value="LIMIT" selected>Limit</option>
+                <option value="MARKET">Market</option>
+              </select>
+            </div>
+            <div class="field" style="width:180px;">
+              <label>Est. Fee</label>
+              <input type="text" id="estFee" value="--" disabled/>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; justify-content:flex-end;">
+            <button class="btn" style="background:#e5e7eb; color:#111;" id="btn-preview">Preview</button>
+            <button class="btn primary" id="btn-action" style="background:#111; color:#fff;">Buy BTC</button>
+          </div>
+
+          <div class="bottom" aria-label="Quick stats" style="border-top:1px solid var(--border); padding-top:8px;">
+            <div class="stat">Open Orders (0)</div>
+            <div class="stat">Holdings (3)</div>
+            <div class="stat" style="min-width:120px; text-align:right;">Bots</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional controls / right-side quick links -->
+      <div class="bottom" style="margin-top:12px;">
+        <div class="muted" style="font-size:12px;">
+          You may be interested in - Copy
+          <span style="margin-left:8px; font-weight:700; background:#ffd166; padding:2px 6px; border-radius:4px;">河南交易之神</span> 
+          <button class="btn" style="margin-left:6px; padding:4px 8px; background:#fef3c7; border:1px solid #f59e0b; border-radius:6px;">Copy</button>
+        </div>
       </div>
     </section>
 
-    <!-- Futures Section -->
-    <section class="section" id="sec-futures">
-      <button class="section-header" type="button" aria-expanded="false" aria-controls="content-futures">
-        <span>Futures Trading — BTC Perpetual</span>
-        <span aria-hidden="true">▾</span>
-      </button>
-      <div id="content-futures" class="section-content" role="region" aria-labelledby="sec-futures-title">
-        <p style="color:#cbd5e1;margin:0 0 6px 0;">Live BTC-PERP data from Deribit (last price and index price).</p>
-        <div id="futures-status" style="margin-bottom:6px; font-size:13px; color:#e5e7eb;">Loading futures data...</div>
-        <table aria-label="BTC perpetual futures">
-          <thead>
-            <tr>
-              <th>Instrument</th>
-              <th>Last Price</th>
-              <th>Index Price</th>
-            </tr>
-          </thead>
-          <tbody id="futures-body">
-            <tr><td colspan="3" style="color:#94a3b8;">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+    <!-- Placeholder for additional sections (Sports, Futures, Mining, Courses, Settings) -->
+    <!-- You can wire those up to a router / show/hide sections on this same page as needed -->
 
-    <!-- Options Section -->
-    <section class="section" id="sec-options">
-      <button class="section-header" type="button" aria-expanded="false" aria-controls="content-options">
-        <span>Options Trading — BTC Options (Deribit)</span>
-        <span aria-hidden="true">▾</span>
-      </button>
-      <div id="content-options" class="section-content" role="region" aria-labelledby="sec-options-title">
-        <p style="color:#cbd5e1;margin:0 0 6px 0;">Top BTC options instruments. Data from Deribit.</p>
-        <table aria-label="BTC options instruments">
-          <thead>
-            <tr>
-              <th>Instrument</th>
-              <th>Expiration</th>
-              <th>Strike</th>
-              <th>Type</th>
-            </tr>
-          </thead>
-          <tbody id="options-body">
-            <tr><td colspan="4" style="color:#94a3b8;">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+  </main>
 
-  </div>
-</div>
+  <script>
+    // Utility: currency helpers
+    function fmtUSD(n){ if (n == null || isNaN(n)) return '—'; return '$' + Number(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); }
 
-<script>
-  // Accordion behavior
-  function setupAccordion() {
-    document.querySelectorAll('.section-header').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const wasOpen = btn.getAttribute('aria-expanded') === 'true';
-        // collapse all
-        document.querySelectorAll('.section-header').forEach(b => b.setAttribute('aria-expanded', 'false'));
-        document.querySelectorAll('.section-content').forEach(c => c.classList.remove('active'));
-        // open this if it wasn't already
-        if (!wasOpen) {
-          btn.setAttribute('aria-expanded', 'true');
-          const content = document.getElementById(btn.getAttribute('aria-controls'));
-          if (content) content.classList.add('active');
+    // Wallet (local mock; replace with your wallet file logic as needed)
+    const WALLETS_KEY = 'md_wallets';
+    const CURRENT_WALLET_KEY = 'md_current_wallet_id';
+    function getWallets(){
+      const s = localStorage.getItem(WALLETS_KEY);
+      if (s) return JSON.parse(s);
+      const w = [{id:1, name:'Wallet 1', address:'0x' + '0'.repeat(40)}];
+      localStorage.setItem(WALLETS_KEY, JSON.stringify(w));
+      localStorage.setItem(CURRENT_WALLET_KEY, '1');
+      return w;
+    }
+    function getCurrentWallet(){
+      const wallets = getWallets();
+      const id = parseInt(localStorage.getItem(CURRENT_WALLET_KEY) || '1', 10);
+      return wallets.find(w => w.id === id) || wallets[0];
+    }
+    function refreshWalletUI(){
+      const cw = getCurrentWallet();
+      document.getElementById('currentWalletName').textContent = cw.name || 'Wallet';
+      const menu = document.getElementById('walletMenu');
+      menu.innerHTML = '';
+      getWallets().forEach(w => {
+        const div = document.createElement('div');
+        div.className = 'wallet-item';
+        div.innerHTML = `<span class="wallet-name">${w.name}</span>
+                         <span class="wallet-address">${shorten(w.address,18)}</span>
+                         <button class="copy-btn" data-address="${w.address}">Copy</button>`;
+        div.querySelector('.copy-btn').addEventListener('click', ()=>navigator.clipboard.writeText(w.address).catch(()=>{}));
+        menu.appendChild(div);
+      });
+      const create = document.createElement('a');
+      create.className = 'create-wallet'; create.textContent = 'Create Wallet';
+      create.addEventListener('click', ()=>{
+        const wallets = getWallets();
+        const id = wallets.length ? wallets[wallets.length-1].id+1 : 1;
+        const w = {id, name:'Wallet '+id, address: '0x'+Array.from({length:40}, ()=>Math.floor(Math.random()*16).toString(16)).join('')};
+        wallets.push(w); localStorage.setItem(WALLETS_KEY, JSON.stringify(wallets));
+        localStorage.setItem(CURRENT_WALLET_KEY, String(id));
+        refreshWalletUI();
+      });
+      menu.appendChild(create);
+    }
+    function shorten(s,len){
+      if (!s) return s;
+      return s.length > len ? s.slice(0,6)+'...'+s.slice(-4) : s;
+    }
+
+    // Top-level UI wiring
+    document.addEventListener('DOMContentLoaded', () => {
+      // Wallet UI
+      refreshWalletUI();
+      document.getElementById('walletTrigger').addEventListener('click', ()=>{
+        const m = document.getElementById('walletMenu');
+        m.style.display = m.style.display === 'block' ? 'none' : 'block';
+      });
+
+      // More menu
+      const moreBtn = document.getElementById('moreBtn');
+      const moreMenu = document.getElementById('moreMenu');
+      moreBtn.addEventListener('click', () => {
+        moreMenu.style.display = moreMenu.style.display === 'block' ? 'none' : 'block';
+      });
+      // Close on outside click
+      document.addEventListener('click', (e) => {
+        if (!moreBtn.contains(e.target) && !moreMenu.contains(e.target)) moreMenu.style.display = 'none';
+        if (!document.getElementById('walletTrigger').contains(e.target) && !document.getElementById('walletMenu').contains(e.target)) {
+          document.getElementById('walletMenu').style.display = 'none';
         }
       });
-    });
-  }
 
-  // Crypto prices via CoinGecko
-  async function loadCryptoPrices() {
-    const body = document.getElementById('crypto-body');
-    const status = document.getElementById('crypto-status');
-    try {
-      const ids = ['bitcoin','ethereum','solana','cardano'];
-      const url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=' + ids.join(',') + '&order=market_cap_desc&per_page=100&page=1&sparkline=false';
-      const res = await fetch(url, {cache: 'no-cache'});
-      if (!res.ok) throw new Error('Network response was not ok');
-      const data = await res.json();
-      body.innerHTML = '';
-      data.forEach(coin => {
-        const tr = document.createElement('tr');
-        const price = coin.current_price != null ? '$' + Number(coin.current_price).toLocaleString() : '—';
-        const ch = coin.price_change_percentage_24h != null ? coin.price_change_percentage_24h.toFixed(2) + '%' : '—';
-        const cls = coin.price_change_percentage_24h >= 0 ? 'up' : 'down';
-        tr.innerHTML = `<td>${coin.name}</td><td>${price}</td><td class="${cls}">${ch}</td>`;
-        body.appendChild(tr);
+      // Nav: Dashboard (default) toggles visibility if you later split panels
+      document.getElementById('nav-dashboard').addEventListener('click', ()=> {
+        // In this starter, dashboard is always visible; you could show/hide sections here
       });
-      status.textContent = 'Live data updated';
-    } catch (e) {
-      body.innerHTML = `<tr><td colspan="3" style="color:#f87171;">Unable to fetch crypto prices: ${e.message}</td></tr>`;
-      status.textContent = 'Could not fetch data. Check console for details.';
-    }
-  }
 
-  // Futures data from Deribit
-  async function loadFutures() {
-    const body = document.getElementById('futures-body');
-    const status = document.getElementById('futures-status');
-    body.innerHTML = '';
-    try {
-      // Deribit v2 tickers for BTC-PERP
-      const res = await fetch('https://www.deribit.com/api/v2/public/tickers?instrument_name=BTC-PERP');
-      if (!res.ok) throw new Error('Deribit request failed');
-      const data = await res.json();
-      const tickers = Array.isArray(data.result) ? data.result : [];
-      if (!tickers.length) throw new Error('No ticker data');
-      const t = tickers[0];
-      const last = t.last_price != null ? '$' + Number(t.last_price).toLocaleString() : '—';
-      const idx = t.index_price != null ? '$' + Number(t.index_price).toLocaleString() : '—';
-      body.innerHTML = `<tr><td>${t.instrument_name}</td><td>${last}</td><td>${idx}</td></tr>`;
-      status.textContent = 'Live BTC-PERP data (if available)';
-    } catch (e) {
-      body.innerHTML = `<tr><td colspan="3" style="color:#f87171;">Unable to fetch futures: ${e.message}</td></tr>`;
-      status.textContent = 'Futures data not available at the moment';
-    }
-  }
-
-  // Options data from Deribit
-  async function loadOptions() {
-    const body = document.getElementById('options-body');
-    body.innerHTML = '';
-    try {
-      const res = await fetch('https://www.deribit.com/api/v2/public/get_instruments?currency=BTC&kind=option&expired=false');
-      if (!res.ok) throw new Error('Options request failed');
-      const data = await res.json();
-      const instruments = Array.isArray(data.result) ? data.result : [];
-      if (instruments.length === 0) {
-        body.innerHTML = `<tr><td colspan="4" style="color:#f87171;">No options available.</td></tr>`;
-        return;
-      }
-      instruments
-        .sort((a,b) => (a.expiration_timestamp ?? 0) - (b.expiration_timestamp ?? 0) || (a.strike ?? 0) - (b.strike ?? 0))
-        .slice(0,5)
-        .forEach(opt => {
-          const exp = new Date((opt.expiration_timestamp ?? 0)).toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
-          const strike = opt.strike != null ? '$' + Number(opt.strike).toLocaleString() : '—';
-          const type = (opt.kind ?? 'CALL').toString().toUpperCase();
+      // Trading data: fetch live prices from CoinGecko
+      const cryptoBody = document.getElementById('sellBody');
+      // Build an initial empty sell book
+      function renderInitialOrderBook(){
+        cryptoBody.innerHTML = '';
+        // simple placeholder rows that will be replaced by live data
+        const rows = [
+          {price: 65950.12, amount: 0.018},
+          {price: 65940.00, amount: 0.042},
+          {price: 65920.55, amount: 0.010},
+          {price: 65910.25, amount: 0.120},
+          {price: 65890.00, amount: 0.050}
+        ];
+        rows.forEach(r => {
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${opt.instrument_name ?? 'BTC-Option'}</td><td>${exp}</td><td>${strike}</td><td>${type}</td>`;
-          body.appendChild(tr);
+          // Sell orders are shown on the left; we mark as red to match the design
+          tr.innerHTML = `<td class="sell" style="color:#b91c1c;">${r.price.toFixed(2)}</td><td class="price">${r.amount.toFixed(3)}</td>`;
+          cryptoBody.appendChild(tr);
         });
-    } catch (e) {
-      body.innerHTML = `<tr><td colspan="4" style="color:#f87171;">Unable to fetch options: ${e.message}</td></tr>`;
-    }
-  }
+      }
+      renderInitialOrderBook();
 
-  // Init
-  document.addEventListener('DOMContentLoaded', () => {
-    setupAccordion();
-    // Open first section by default for guidance
-    const firstHeader = document.querySelector('.section-header');
-    if (firstHeader && firstHeader.getAttribute('aria-expanded') === 'false') firstHeader.click();
+      // Fetch live depth for a symbol (MEDORUSDT first, fallback to BTCUSDT)
+      async function fetchDepth(symbol){
+        const s = symbol || 'MEDORUSDT';
+        // Binance REST depth (top bids/asks)
+        const url = 'https://api.binance.com/api/v3/depth?symbol='+s+'&limit=10';
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('Depth fetch failed');
+          const data = await res.json();
+          return data;
+        } catch (e) {
+          // fallback data
+          return null;
+        }
+      }
 
-    // Load data
-    loadCryptoPrices();
-    setInterval(loadCryptoPrices, 60 * 1000);
-    loadFutures();
-    loadOptions();
-  });
-</script>
+      // Update Sell side and Buy side from a depth payload
+      function updateOrderBookFromDepth(depth){
+        const sellBody = document.getElementById('sellBody');
+        sellBody.innerHTML = '';
+        if (!depth || !depth.asks) {
+          // fallback placeholder
+          const rows = [
+            {price:65956.31, amount:0.015},
+            {price:65956.00, amount:0.010},
+            {price:65955.50, amount:0.020}
+          ];
+          rows.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td class="sell" style="color:#b91c1c; text-align:right;">${r.price.toFixed(2)}</td><td>${r.amount.toFixed(3)}</td>`;
+            sellBody.appendChild(tr);
+          });
+          return;
+        }
+        // asks (sellers) -> Sell side
+        depth.asks.slice(0,5).forEach(a => {
+          const tr = document.createElement('tr');
+          const price = parseFloat(a[0]);
+          const amt = parseFloat(a[1]);
+          tr.innerHTML = `<td class="sell" style="color:#b91c1c; text-align:right;">${price.toFixed(2)}</td><td>${amt.toFixed(3)}</td>`;
+          sellBody.appendChild(tr);
+        });
+      }
+
+      // Init: fetch depth and then refresh periodically
+      async function initDepth(){
+        const depth = await fetchDepth('MEDORUSDT'); // primary
+        if (depth && depth.asks && depth.bids) {
+          updateOrderBookFromDepth(depth);
+        } else {
+          // try BTCUSDT as fallback
+          const fb = await fetchDepth('BTCUSDT');
+          updateOrderBookFromDepth(fb);
+        }
+      }
+      initDepth();
+      // Periodic updates (every 30s)
+      setInterval(initDepth, 30 * 1000);
+
+      // Binance WebSocket for real-time updates (optional, can be blocked by browser)
+      // This will push updates to the orderbook when allowed by the browser.
+      try {
+        const ws = new WebSocket('wss://stream.binance.com:9443/stream?streams=medorusdt@depth@100ms,busdt@depth@100ms');
+        ws.onopen = () => console.log('Binance depth stream connected');
+        ws.onmessage = (ev) => {
+          try {
+            const msg = JSON.parse(ev.data);
+            const stream = msg.stream || '';
+            // We only handle depth-like messages in this simple demo
+            if (msg.data && (stream.includes('depth') || stream.includes('BUSDT'.toLowerCase()))) {
+              const data = msg.data;
+              // Re-fetch depth for simplicity on each update (less code to maintain)
+              // You could merge bids/asks here if you want volume-level UX
+              initDepth();
+            }
+          } catch (e) {
+            // ignore
+          }
+        };
+        ws.onerror = (e) => console.error('Binance depth stream error', e);
+      } catch (e){
+        console.warn('WebSocket not available or blocked', e);
+      }
+
+      // Chart placeholder: simple canvas drawing (static grid)
+      // You can replace with a real chart library (Lightweight Charts, Chart.js, etc.)
+      const canvas = document.getElementById('chartCanvas');
+      const ctx = canvas.getContext('2d');
+      function drawGrid(){
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        // scale canvas for crisp lines on HiDPI displays
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        ctx.scale(dpr, dpr);
+
+        ctx.fillStyle = '#0b1020';
+        ctx.fillRect(0,0,w,h);
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1;
+        // vertical grid
+        for(let x=0; x<w; x+=40){
+          ctx.beginPath();
+          ctx.moveTo(x,0); ctx.lineTo(x,h);
+          ctx.stroke();
+        }
+        // horizontal grid
+        for(let y=0; y<h; y+=40){
+          ctx.beginPath();
+          ctx.moveTo(0,y); ctx.lineTo(w,y);
+          ctx.stroke();
+        }
+        // A simple fake price line
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const pts = [20, h-60, w/3, h-80, w/2, h-120, (2*w)/3, h-90, w-40, h-110];
+        ctx.moveTo(pts[0], pts[1]);
+        for(let i=2; i<pts.length; i+=2){
+          ctx.lineTo(pts[i], pts[i+1]);
+        }
+        ctx.stroke();
+      }
+      drawGrid();
+      window.addEventListener('resize', ()=> drawGrid());
+
+      // Simple price ticker to update the chart placeholder color (simulated)
+      let t = 0;
+      setInterval(()=>{
+        t += 1;
+        // Just redraw a small dot to simulate price movement
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(60 + (t%100), 60 + ((t*3)%120), 3, 0, Math.PI*2);
+        ctx.fill();
+      }, 1200);
+
+      // Buy/Sell actions (demo)
+      const tabBuy = document.getElementById('tab-buy');
+      const tabSell = document.getElementById('tab-sell');
+      const btnAction = document.getElementById('btn-action');
+      const priceInput = document.getElementById('priceInput');
+      const amountInput = document.getElementById('amountInput');
+      const pairSelector = document.getElementById('pairSelector');
+      const orderType = document.getElementById('orderType');
+      const btnPreview = document.getElementById('btn-preview');
+      tabBuy.addEventListener('click', ()=> {
+        tabBuy.classList.add('active');
+        tabSell.classList.remove('active');
+        btnAction.textContent = 'Buy BTC';
+        btnAction.style.background = '#111';
+      });
+      tabSell.addEventListener('click', ()=> {
+        tabSell.classList.add('active');
+        tabBuy.classList.remove('active');
+        btnAction.textContent = 'Sell BTC';
+        btnAction.style.background = '#b91c1c';
+      });
+
+      btnPreview.addEventListener('click', ()=> {
+        // A simple preview; in production this would estimate slippage, fees, etc.
+        const p = parseFloat(priceInput.value);
+        const a = parseFloat(amountInput.value);
+        alert(`Preview: ${orderType.value} ${a} BTC at ${p} USDT (${pairSelector.value})`);
+      });
+
+      btnAction.addEventListener('click', ()=>{
+        alert(`${btnAction.textContent} order submitted (demo).`);
+      });
+    });
+  </script>
 </body>
 </html>
-
