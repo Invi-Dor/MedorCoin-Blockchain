@@ -1,6 +1,3 @@
-// SPDX-License-Identifier: MIT
-// Purpose: Simple RocksDB-backed storage for EVM.
-
 include "storage.h"
 include <string>
 include <vector>
