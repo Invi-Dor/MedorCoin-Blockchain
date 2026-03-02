@@ -51,8 +51,8 @@ a.button-link{display:inline-block;padding:10px 20px;border-radius:5px;color:whi
   <h2>3) Stablecoins & 4) USD-M</h2>
   <p><strong>Stablecoins:</strong> Cryptocurrencies designed to keep a stable value, usually linked to a real currency like the US dollar (Example: USDT).</p>
   <svg class="graph"><rect width="100%" height="100%" fill="#ff7f50"/><text x="50%" y="50%" fill="#fff" font-size="18" text-anchor="middle" dominant-baseline="middle">Stablecoins</text></svg>
-  <p><strong>USD-M:</strong> A type of futures contract where margin and settlement are in US dollar‑linked stablecoins like USDT.</p>
-  <svg class="graph"><rect width="100%" height="100%" fill="#ffa500"/><text x="50%" y="50%" fill="#fff" font-size="18" text-anchor="middle" dominant-baseline="middle">USD‑M</text></svg>
+  <p><strong>USD-M:</strong> A type of futures contract where margin and settlement are in US dollar-linked stablecoins like USDT.</p>
+  <svg class="graph"><rect width="100%" height="100%" fill="#ffa500"/><text x="50%" y="50%" fill="#fff" font-size="18" text-anchor="middle" dominant-baseline="middle">USD-M</text></svg>
   <button onclick="showSection('section-final')">Next</button>
 </div>
 
@@ -84,7 +84,7 @@ a.button-link{display:inline-block;padding:10px 20px;border-radius:5px;color:whi
 
 <script
   src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-  integrity="sha384-Cnk1y2Sr2qFq8aZ00N4+1W2YyKE+QbhR4CkTd1d+QTY6ZQz9AxxFAo3VjK8FQ5v0"
+  integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA=="
   crossorigin="anonymous">
 </script>
 
@@ -92,8 +92,13 @@ a.button-link{display:inline-block;padding:10px 20px;border-radius:5px;color:whi
 let answers = {q1:null, q2:null};
 
 function showSection(id) {
-  document.querySelectorAll('.section').forEach(s=>s.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
+  let targetId = id;
+  if (typeof targetId === 'number') targetId = 'section' + targetId;
+  if (typeof targetId === 'string' && /^[0-9]+$/.test(targetId)) targetId = 'section' + targetId;
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+  el.classList.remove('hidden');
 }
 
 function answer(q,val) { answers[q]=val; }
@@ -113,15 +118,15 @@ function checkResults(){
 
 function downloadCertificate(){
   const nameInput = document.getElementById('certNameInput').value.trim();
-  if (!nameInput) return alert("Enter your full name.");
+  if (!nameInput) return alert("Please enter your full name to generate the certificate.");
 
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF('landscape','pt','a4');
-  
+
   pdf.setFillColor(245,239,252);
   pdf.rect(0,0,842,595,'F');
   pdf.setFontSize(28);
-  pdf.setTextColor('#4a2fa6');
+  pdf.setTextColor(74,47,166);
   pdf.text("MedorCoin Blockchain", 421, 100, {align:'center'});
   pdf.setFontSize(20);
   pdf.text("Training Certificate", 421, 140, {align:'center'});
@@ -133,15 +138,10 @@ function downloadCertificate(){
   pdf.setFontSize(18);
   pdf.text("has successfully completed Futures Level 1", 421, 320, {align:'center'});
 
-  const safeName = nameInput
-    .replace(/[\x00-\x1F\x7F]/g,'')
-    .replace(/[^a-zA-Z0-9._-]+/g,'-')
-    .replace(/-+/g,'-')
-    .replace(/^-+|-+$/g,'')
-    .toLowerCase() || 'user';
+  const safeName = nameInput.replace(/[\x00-\x1F\x7F]/g,'')
+    .replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'').toLowerCase() || 'user';
 
-  const filename = `medorcoin-futures-l1-certificate-${safeName}.pdf`;
-  pdf.save(filename);
+  pdf.save(`medorcoin-futures-l1-certificate-${safeName}.pdf`);
 }
 </script>
 
