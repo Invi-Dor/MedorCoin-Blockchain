@@ -1,227 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MedorCoin — Crypto Dashboard</title>
-  <style>
-    :root{
-      --bg:#f7fbf6; --ink:#1f2937; --border:#e5e7eb;
-      --green:#0a8d4a; --green-soft:#d7f5e3;
-      --red:#e11d48; --red-soft:#ffd6dc;
-      --gold:#d4b400; --gold-soft:#fff6d0;
-      --card:#fff;
-    }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, Arial, sans-serif; background:var(--bg); color:var(--ink); }
-    .topbar { display:flex; align-items:center; justify-content:space-between;
-      padding:12px 16px; border-bottom:1px solid var(--border); background:#fff; position:sticky; top:0; z-index:10; }
-    .brand { display:flex; align-items:center; gap:8px; font-weight:700; }
-    .wallet-area { position:relative; display:inline-block; }
-    .wallet-trigger { padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-weight:600; }
-    .wallet-menu { display:none; position:absolute; top:110%; left:0; min-width:320px; max-height:420px; overflow:auto;
-      border:1px solid var(--border); background:#fff; border-radius:8px; padding:8px; box-shadow:0 6px 18px rgba(0,0,0,.08); z-index:20; }
-    .wallet-item { display:flex; justify-content:space-between; align-items:center; padding:8px 6px; border-bottom:1px solid #f0f0f0; }
-    .wallet-name { font-weight:600; }
-    .wallet-address { font-family: monospace; font-size:12px; color:#374151; max-width:180px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; }
-    .copy-btn { padding:6px 10px; border:1px solid var(--border); background:#f3f4f6; border-radius:6px; cursor:pointer; }
-    .create-wallet { display:block; width:100%; text-align:center; padding:10px; border:1px solid var(--border);
-      background:#111; color:#fff; border-radius:6px; margin-top:8px; cursor:pointer; text-decoration:none; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirm Transaction</title>
 
-    .container { max-width:1200px; margin:0 auto; padding:16px; }
-    .balance { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border:1px solid var(--border);
-      border-radius:12px; background:#fff; margin:8px 0; }
-    .balance .amount { font-weight:700; font-size:20px; }
-    .toolbar { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:12px; margin:8px 0 16px; }
-    .tool { padding:12px; border-radius:8px; border:1px solid var(--border); text-align:center; font-weight:700; cursor:pointer; }
-    .tool.buy { background:var(--green-soft); }
-    .tool.swap { background:var(--red-soft); }
-    .tool.send { background:var(--gold-soft); }
-    .panel { display:none; margin-top:8px; padding:12px; border:1px solid var(--border); border-radius:8px; background:#fff; }
-    .panel h4 { margin:0 0 8px 0; }
-    .panel-row { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
-    select, input { padding:8px 10px; border-radius:6px; border:1px solid var(--border); }
-    .btn { padding:10px 14px; border-radius:6px; border:0; cursor:pointer; font-weight:700; }
-    .btn.primary { background:#111; color:#fff; }
-    .muted { color:#6b7280; font-size:12px; }
-    .qr { width:180px; height:180px; display:block; margin:0 auto; }
-
-    @media (max-width: 700px){
-      .container { padding:6px; }
-      .balance { flex-wrap:wrap; }
+<style>
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f3f4f6;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
     }
-  </style>
+
+    .wallet-container {
+        background: white;
+        width: 380px;
+        max-width: 95%;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        padding: 24px;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .header h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .network {
+        font-size: 13px;
+        color: #666;
+        margin-top: 4px;
+    }
+
+    .section {
+        margin-bottom: 18px;
+    }
+
+    .label {
+        font-size: 12px;
+        color: #888;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .value {
+        font-size: 15px;
+        word-break: break-all;
+    }
+
+    .amount {
+        font-size: 22px;
+        font-weight: bold;
+    }
+
+    .fee-box {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .warning {
+        background: #fff4e5;
+        border: 1px solid #ffd8a8;
+        color: #8a4b00;
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 13px;
+        margin-top: 16px;
+    }
+
+    .buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    button {
+        flex: 1;
+        padding: 12px;
+        border-radius: 10px;
+        border: none;
+        font-size: 15px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .reject {
+        background: #e5e7eb;
+    }
+
+    .approve {
+        background: #2563eb;
+        color: white;
+    }
+
+    .approve:hover {
+        background: #1d4ed8;
+    }
+
+    .footer-note {
+        font-size: 12px;
+        text-align: center;
+        margin-top: 18px;
+        color: #888;
+    }
+
+    @media (max-width: 420px) {
+        .wallet-container {
+            border-radius: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+    }
+</style>
 </head>
+
 <body>
 
-  <div class="topbar">
-    <div class="brand">MedorCoin Dashboard</div>
+<div class="wallet-container">
 
-    <div class="wallet-area">
-      <button id="walletTrigger" class="wallet-trigger" title="Wallets">
-        Wallet: <span id="currentWalletName">Wallet 1</span> ▾
-      </button>
-      <div id="walletMenu" class="wallet-menu" aria-label="Wallets list"></div>
+    <div class="header">
+        <h2>Confirm Transaction</h2>
+        <div class="network">Main Network</div>
     </div>
 
-    <button id="cardBtn" class="tool" title="Card">Card</button>
-    <button id="qrBtn" class="tool" title="Receive/QR">QR</button>
-    <button id="notifBtn" class="tool" title="Notifications">🔔</button>
-
-    <button id="linksBtn" class="tool" title="Links">☰ Links</button>
-  </div>
-
-  <div class="container" id="main">
-    <div class="balance" aria-label="Total balance">
-      <div>
-        <span class="muted" style="margin-right:8px;">Total Balance</span>
-        <span class="amount" id="balanceAmount">$0.00</span>
-      </div>
-      <div class="muted" id="balanceCurrency">(USD)</div>
-      <div class="muted" style="margin-left:8px;">Currency</div>
-      <select id="currencySelector" aria-label="Currency selector">
-        <option value="usd" selected>USD</option>
-      </select>
+    <div class="section">
+        <div class="label">From</div>
+        <div class="value">0xA1b2...9F34</div>
     </div>
 
-    <div class="toolbar" aria-label="Main actions">
-      <div class="tool buy" id="btn-buy" title="Buy">Buy</div>
-      <div class="tool swap" id="btn-swap" title="Swap">Swap</div>
-      <div class="tool send" id="btn-send" title="Send">Send</div>
-      <div class="tool" id="btn-receive" title="Receive">Receive</div>
-      <div class="tool" id="btn-market" title="Market">Market</div>
-      <div class="tool" id="btn-history" title="History">History</div>
+    <div class="section">
+        <div class="label">To</div>
+        <div class="value">0xB4e5...3D21</div>
     </div>
 
-    <div id="panel-swap" class="panel" aria-label="Swap panel">
-      <h4>Swap Crypto (on‑chain)</h4>
-      <div class="panel-row">
-        <div>
-          <label>From</label><br/>
-          <select id="swap-from" style="min-width:240px;">
-            <option value="ETH">ETH</option>
-            <option value="WETH">WETH</option>
-            <option value="MEDOR">MedorCoin (MEDOR)</option>
-          </select>
-        </div>
-        <div>
-          <label>To</label><br/>
-          <select id="swap-to" style="min-width:240px;">
-            <option value="ETH">ETH</option>
-            <option value="MEDOR">MedorCoin (MEDOR)</option>
-            <option value="USDT">USDT</option>
-          </select>
-        </div>
-        <div>
-          <label>Amount</label><br/>
-          <input id="swap-amount" type="number" min="0" step="0.01" value="0.1" style="min-width:240px;" />
-        </div>
-        <div>
-          <label>Slippage %</label><br/>
-          <input id="swap-slippage" type="number" min="0" step="0.1" value="0.5" style="width:120px;" />
-        </div>
-      </div>
-      <div class="muted" style="margin-top:6px;" id="swap-estimate">Est. received: -</div>
-
-      <div style="text-align:right; margin-top:8px;">
-        <button class="btn primary" id="swap-now">Swap</button>
-      </div>
+    <div class="section">
+        <div class="label">Amount</div>
+        <div class="amount">2.50 MED</div>
     </div>
-  </div>
 
-  <script
-    src="https://cdn-cors.ethers.io/lib/ethers-5.7.2.umd.min.js"
-    integrity="sha384-Htz1SE4Sl5aitpvFgr2j0sfsGUIuSXI6t8hEyrlQ93zflEF3a29bH2AvkUROUw7J"
-    crossorigin="anonymous">
-  </script>
+    <div class="section">
+        <div class="label">Network Fee</div>
+        <div class="fee-box">
+            Estimated Gas Fee: 0.0021 MED<br>
+            Max Fee: 0.0030 MED
+        </div>
+    </div>
 
-  <script>
-    const WALLETS_KEY = 'md_wallets';
-    const CURRENT_WALLET_KEY = 'md_current_wallet_id';
+    <div class="warning">
+        You are about to authorize this transaction using your private key.
+        Always verify the recipient address and amount before approving.
+        Never share your recovery phrase or private key.
+    </div>
 
-    function getWallets() {
-      const s = localStorage.getItem(WALLETS_KEY);
-      if (s) return JSON.parse(s);
-      const w = [{id:1, name:'Wallet 1', address: generateMockAddress()}];
-      localStorage.setItem(WALLETS_KEY, JSON.stringify(w));
-      localStorage.setItem(CURRENT_WALLET_KEY, '1');
-      return w;
-    }
+    <div class="buttons">
+        <button class="reject">Reject</button>
+        <button class="approve">Approve</button>
+    </div>
 
-    function generateMockAddress(){
-      let h = '0x';
-      for(let i=0;i<40;i++){
-        h += '0123456789abcdef'[Math.floor(Math.random()*16)];
-      }
-      return h;
-    }
+    <div class="footer-note">
+        Your private key never leaves your device.
+    </div>
 
-    function getCurrentWallet(){
-      const wallets = getWallets();
-      const id = parseInt(localStorage.getItem(CURRENT_WALLET_KEY) || '1', 10);
-      return wallets.find(w => w.id === id) || wallets[0];
-    }
-
-    function refreshWalletUI(){
-      const cw = getCurrentWallet();
-      document.getElementById('currentWalletName').textContent = cw.name || 'Wallet';
-      const menu = document.getElementById('walletMenu');
-      menu.innerHTML = '';
-      getWallets().forEach(w => {
-        const div = document.createElement('div');
-        div.className = 'wallet-item';
-        div.innerHTML = `<span class="wallet-name">${w.name}</span>
-                         <span class="wallet-address">${shorten(w.address,18)}</span>
-                         <button class="copy-btn">${w.address}</button>`;
-        div.querySelector('.copy-btn').addEventListener('click', ()=>copyToClipboard(w.address));
-        menu.appendChild(div);
-      });
-      const create = document.createElement('a');
-      create.className = 'create-wallet'; create.textContent = 'Create Wallet';
-      create.addEventListener('click', createWallet);
-      menu.appendChild(create);
-    }
-
-    function shorten(s,len){ return s && s.length>len ? s.slice(0,6)+'...'+s.slice(-4) : s; }
-
-    function copyToClipboard(text){ navigator.clipboard.writeText(text).catch(()=>{}); }
-
-    function createWallet(){
-      const wallets = getWallets();
-      const id = wallets.length ? wallets[wallets.length-1].id+1 : 1;
-      const w = {id, name:'Wallet '+id, address: generateMockAddress()};
-      wallets.push(w); localStorage.setItem(WALLETS_KEY,JSON.stringify(wallets));
-      setCurrentWallet(id); refreshWalletUI();
-    }
-
-    document.addEventListener('DOMContentLoaded', ()=>{
-      refreshWalletUI();
-
-      document.getElementById('walletTrigger').addEventListener('click', ()=>{
-        const m = document.getElementById('walletMenu');
-        m.style.display = m.style.display==='block'?'none':'block';
-      });
-
-      document.getElementById('swap-now').addEventListener('click', async ()=>{
-        if (!window.ethereum) { alert('Please install MetaMask'); return; }
-        const fromKey = document.getElementById('swap-from').value;
-        const toKey   = document.getElementById('swap-to').value;
-        const fromToken = TOKEN_ADDRESSES[fromKey] || TOKEN_ADDRESSES.ETH;
-        const toToken   = TOKEN_ADDRESSES[toKey]   || TOKEN_ADDRESSES.ETH;
-        const amountInput = document.getElementById('swap-amount').value || '0';
-        const amountWei = ethers.utils.parseUnits(amountInput, 18).toString();
-        const fromAddress = getCurrentWallet().address;
-        if (!fromAddress) { alert('Connect wallet'); return; }
-      });
-    });
-
-    const TOKEN_ADDRESSES = {
-      ETH: '0xEeeeeEeeeEeEeeEeEeEeEEEeeeeEeeeeeeeEEeE',
-      WETH:'0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-      USDT:'0xdAC17F958D2ee523a2206206994597C13D831ec7',
-      MEDOR:null
-    };
-  </script>
+</div>
 
 </body>
 </html>
