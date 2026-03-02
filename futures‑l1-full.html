@@ -38,7 +38,6 @@ a.button-link{display:inline-block;padding:10px 20px;border-radius:5px;color:whi
 
 <h1>Futures Level 1 — Crypto Futures Trading Fundamentals</h1>
 
-<!-- Section 1 -->
 <div id="section1" class="section">
   <h2>1) Margin & 2) Settlement</h2>
   <p><strong>Margin:</strong> The money you put down to open a leveraged trade. It acts as a security deposit.</p>
@@ -54,17 +53,12 @@ a.button-link{display:inline-block;padding:10px 20px;border-radius:5px;color:whi
   <svg class="graph"><rect width="100%" height="100%" fill="#ff7f50"/><text x="50%" y="50%" fill="#fff" font-size="18" text-anchor="middle" dominant-baseline="middle">Stablecoins</text></svg>
   <p><strong>USD-M:</strong> A type of futures contract where margin and settlement are in US dollar‑linked stablecoins like USDT.</p>
   <svg class="graph"><rect width="100%" height="100%" fill="#ffa500"/><text x="50%" y="50%" fill="#fff" font-size="18" text-anchor="middle" dominant-baseline="middle">USD‑M</text></svg>
-  <button onclick="showSection(3)">Next</button>
+  <button onclick="showSection('section-final')">Next</button>
 </div>
 
-<!-- Additional sections for terms 5–35 go here in the same pattern -->
-<!-- For brevity they’re not all printed here, but they follow the pattern above. -->
-
-<!-- Final Quiz Section (after all definitions) -->
 <div id="section-final" class="section hidden">
   <h2>Futures Level 1 Quiz</h2>
   <p>Answer both questions to complete the course.</p>
-
   <div class="quiz">
     <p>1. What does leverage mean in futures trading?</p>
     <button onclick="answer('q1','correct')">Using borrowed money to control a larger position</button>
@@ -76,11 +70,9 @@ a.button-link{display:inline-block;padding:10px 20px;border-radius:5px;color:whi
 
     <button onclick="checkResults()">Check Results</button>
   </div>
-
   <div id="finalMessage" class="result-msg hidden"></div>
 </div>
 
-<!-- Certificate Generator Section -->
 <div id="certificateSection" class="hidden">
   <h2>Congratulations!</h2>
   <p>Enter your full name to download your certificate:</p>
@@ -91,36 +83,38 @@ a.button-link{display:inline-block;padding:10px 20px;border-radius:5px;color:whi
 </div>
 
 <script
-  src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.3/jspdf.umd.min.js"
-  integrity="sha384-+/am09zlYshHgRizY3RkConGj4BsYIdb8r5AxRRvc0o9cPLohB0wb/PTA7LdUHs"
+  src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+  integrity="sha384-Cnk1y2Sr2qFq8aZ00N4+1W2YyKE+QbhR4CkTd1d+QTY6ZQz9AxxFAo3VjK8FQ5v0"
   crossorigin="anonymous">
 </script>
+
 <script>
 let answers = {q1:null, q2:null};
-function showSection(n) {
+
+function showSection(id) {
   document.querySelectorAll('.section').forEach(s=>s.classList.add('hidden'));
-  document.getElementById('section'+n).classList.remove('hidden');
+  document.getElementById(id).classList.remove('hidden');
 }
 
-// collect answers
 function answer(q,val) { answers[q]=val; }
 
 function checkResults(){
-  const msg=document.getElementById('finalMessage');
+  const msg = document.getElementById('finalMessage');
   msg.classList.remove('hidden');
   if (answers.q1==='correct' && answers.q2==='correct') {
     msg.style.color='green';
-    msg.innerHTML = `🎉 You passed!<br>You're ready for your certificate.<br>`;
+    msg.textContent = "🎉 You passed! You're ready for your certificate.";
     document.getElementById('certificateSection').classList.remove('hidden');
   } else {
     msg.style.color='red';
-    msg.innerHTML = `❗ You didn’t pass yet. Review the lessons and try again!`;
+    msg.textContent = "❗ You didn’t pass yet. Try again!";
   }
 }
 
 function downloadCertificate(){
   const nameInput = document.getElementById('certNameInput').value.trim();
   if (!nameInput) return alert("Enter your full name.");
+
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF('landscape','pt','a4');
   
@@ -131,21 +125,22 @@ function downloadCertificate(){
   pdf.text("MedorCoin Blockchain", 421, 100, {align:'center'});
   pdf.setFontSize(20);
   pdf.text("Training Certificate", 421, 140, {align:'center'});
-  
+
   pdf.setFontSize(18);
   pdf.text("This is to certify that", 421, 220, {align:'center'});
   pdf.setFontSize(24);
   pdf.text(nameInput, 421, 270, {align:'center'});
   pdf.setFontSize(18);
   pdf.text("has successfully completed Futures Level 1", 421, 320, {align:'center'});
-  
-  pdf.setFontSize(16);
-  pdf.text("__________________", 180, 450);
-  pdf.text("__________________", 560, 450);
-  pdf.text("Instructor", 185, 480);
-  pdf.text("Date", 575, 480);
 
-  const filename=`medorcoin-futures-l1-certificate-${nameInput.replace(/\s+/g,'-').toLowerCase()}.pdf`;
+  const safeName = nameInput
+    .replace(/[\x00-\x1F\x7F]/g,'')
+    .replace(/[^a-zA-Z0-9._-]+/g,'-')
+    .replace(/-+/g,'-')
+    .replace(/^-+|-+$/g,'')
+    .toLowerCase() || 'user';
+
+  const filename = `medorcoin-futures-l1-certificate-${safeName}.pdf`;
   pdf.save(filename);
 }
 </script>
