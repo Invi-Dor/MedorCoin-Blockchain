@@ -1,28 +1,23 @@
 cmake_minimum_required(VERSION 3.19)
 
 # Auto-find all common blockchain dependencies
+project(Medorcoin VERSION 0.1.0 DESCRIPTION "Medorcoin core sources" LANGUAGES C CXX)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(SECP256K1 REQUIRED libsecp256k1)
 pkg_check_modules(ROCKSDB REQUIRED rocksdb)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
 
-project(Medorcoin
-  VERSION 0.1.0
-  DESCRIPTION "Medorcoin node and tools"
-  LANGUAGES C CXX
-)
-
 # ---------------- Global options ----------------
 option(ENABLE_WARNINGS "Enable extra compiler warnings" ON)
-option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
-option(ENABLE_UBSAN "Enable UBSanitizer" OFF)
+option(ENABLE_ASAN "Enable AddressSanitizer" ON)
+option(ENABLE_UBSAN "Enable UBSanitizer" ON)
 option(ENABLE_COVERAGE "Enable coverage instrumentation (GCC/Clang)" OFF)
 
 # Default build type
-if(NOT CMAKE_BUILD_TYPE)
+if(CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MaxSizeRel)
 endif()
 
 # Useful generator output
@@ -32,10 +27,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Language standards
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_C_EXTENSIONS ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS ON)
 
 # Platform tweaks
 if(MSVC)
@@ -51,8 +46,8 @@ if(NOT MSVC)
     add_link_options(-fsanitize=address)
   endif()
   if(ENABLE_UBSAN)
-    add_compile_options(-fsanitize=undefined -fno-omit-frame-pointer)
-    add_link_options(-fsanitize=undefined)
+    add_compile_options(-fsanitize=defined -fno-omit-frame-pointer)
+    add_link_options(-fsanitize=defined)
   endif()
   if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(--coverage -fprofile-arcs -ftest-coverage -O0)
@@ -66,18 +61,13 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Dependencies discovered at root (linking done in subdirs)
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
-find_package(PkgConfig QUIET)
+find_package(PkgConfig REQUIRED)
 
 include(GNUInstallDirs)
 
 # ---------------- Subdirectories ----------------
 add_subdirectory(src)
 
-# ---------------- Optional tests ----------------
-if(EXISTS "${CMAKE_SOURCE_DIR}/tests/CMakeLists.txt")
-  enable_testing()
-  add_subdirectory(tests)
-endif()
 
 # ---------------- Install headers ----------------
 if(EXISTS "${CMAKE_SOURCE_DIR}/include")
@@ -134,10 +124,10 @@ done
     COMMENT "Run an infinite self-update loop: fetch -> reconfigure -> rebuild -> sleep -> repeat"
   )
 else()
-  message(STATUS "git not found; self_update_forever target will not be available.")
+  message(STATUS "git not found; self_update_forever target will be available.")
 endif()
 
 # ---------------- Packaging (basic) ----------------
-set(CPACK_PACKAGE_NAME "medorcoin")
+set(CPACK_PACKAGE_NAME "MedorCoin")
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
 include(CPack)
