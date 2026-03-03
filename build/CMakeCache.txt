@@ -14,11 +14,11 @@
 # EXTERNAL cache entries
 ########################
 
-//No help, variable specified on the command line.
-CMAKE_BUILD_TYPE:UNINITIALIZED=Release
-
 //Value Computed by CMake.
 CMAKE_FIND_PACKAGE_REDIRECTS_DIR:STATIC=/workspaces/MedorCoin-Blockchain/build/CMakeFiles/pkgRedirects
+
+//No help, variable specified on the command line.
+MAKE_BUILD_TYPE:UNINITIALIZED=Release
 
 //Path to a library.
 OPENSSL_CRYPTO_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libcrypto.so
