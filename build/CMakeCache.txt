@@ -14,14 +14,24 @@
 # EXTERNAL cache entries
 ########################
 
+//Path to a file.
+BZIP2_INCLUDE_DIR:PATH=/usr/include
+
+//Path to a library.
+BZIP2_LIBRARY_DEBUG:FILEPATH=BZIP2_LIBRARY_DEBUG-NOTFOUND
+
+//Path to a library.
+BZIP2_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libbz2.so
+
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
 
 //Path to a program.
 CMAKE_AR:FILEPATH=/usr/bin/ar
 
-//Build type
-CMAKE_BUILD_TYPE:STRING=RelWithDebInfo
+//Choose the type of build, options are: None Debug Release RelWithDebInfo
+// MinSizeRel ...
+CMAKE_BUILD_TYPE:STRING=
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
@@ -289,9 +299,6 @@ ENABLE_UBSAN:BOOL=ON
 //Enable extra compiler warnings
 ENABLE_WARNINGS:BOOL=ON
 
-//No help, variable specified on the command line.
-MAKE_BUILD_TYPE:UNINITIALIZED=Release
-
 //Value Computed by CMake
 MedorcoinSrc_BINARY_DIR:STATIC=/workspaces/MedorCoin-Blockchain/build/src
 
@@ -325,6 +332,24 @@ PKG_CONFIG_ARGN:STRING=
 //pkg-config executable
 PKG_CONFIG_EXECUTABLE:FILEPATH=/usr/bin/pkg-config
 
+//Build RocksDB shared library
+ROCKSDB_BUILD_SHARED:BOOL=OFF
+
+//Disable rocksdb tests
+ROCKSDB_BUILD_TESTS:BOOL=OFF
+
+//Disable install for embedded build
+ROCKSDB_INSTALL:BOOL=OFF
+
+//Path to a file.
+ZLIB_INCLUDE_DIR:PATH=/usr/include
+
+//Path to a library.
+ZLIB_LIBRARY_DEBUG:FILEPATH=ZLIB_LIBRARY_DEBUG-NOTFOUND
+
+//Path to a library.
+ZLIB_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libz.so
+
 //Path to a library.
 pkgcfg_lib_ROCKSDB_rocksdb:FILEPATH=/usr/lib/x86_64-linux-gnu/librocksdb.so
 
@@ -342,12 +367,18 @@ pkgcfg_lib__OPENSSL_ssl:FILEPATH=/usr/lib/x86_64-linux-gnu/libssl.so
 # INTERNAL cache entries
 ########################
 
+//ADVANCED property for variable: BZIP2_INCLUDE_DIR
+BZIP2_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: BZIP2_LIBRARY_DEBUG
+BZIP2_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: BZIP2_LIBRARY_RELEASE
+BZIP2_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
+//Have symbol BZ2_bzCompressInit
+BZIP2_NEED_PREFIX:INTERNAL=1
 //ADVANCED property for variable: CMAKE_ADDR2LINE
 CMAKE_ADDR2LINE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_AR
 CMAKE_AR-ADVANCED:INTERNAL=1
-//STRINGS property for variable: CMAKE_BUILD_TYPE
-CMAKE_BUILD_TYPE-STRINGS:INTERNAL=Debug;Release;RelWithDebInfo;MaxSizeRel
 //This is the directory where this CMakeCache.txt was created
 CMAKE_CACHEFILE_DIR:INTERNAL=/workspaces/MedorCoin-Blockchain/build
 //Major version of cmake used to create the current loaded cache
@@ -609,6 +640,12 @@ SECP256K1_libsecp256k1_INCLUDEDIR:INTERNAL=
 SECP256K1_libsecp256k1_LIBDIR:INTERNAL=
 SECP256K1_libsecp256k1_PREFIX:INTERNAL=
 SECP256K1_libsecp256k1_VERSION:INTERNAL=
+//ADVANCED property for variable: ZLIB_INCLUDE_DIR
+ZLIB_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: ZLIB_LIBRARY_DEBUG
+ZLIB_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: ZLIB_LIBRARY_RELEASE
+ZLIB_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 //linker supports push/pop state
 _CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED:INTERNAL=TRUE
 //CMAKE_INSTALL_PREFIX during last run
