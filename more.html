@@ -7,7 +7,7 @@
 <meta name="description" content="Access MedorCoin tools, courses, and resources. Navigate seamlessly across sign-up, account, mining, trading, and documentation pages."/>
 <style>
   :root{
-    --bg:#0f1013;         /* dark background (base) */
+    --bg:#0f1013;         / dark background (base) /
     --bg-elev:#15171b;
     --ink:#f1f5f9;
     --muted:#a3a3a3;
@@ -30,24 +30,80 @@
 </style>
 </head>
 <body>
-<header>More</header>
-<div class="grid">
-  <!-- Sign Up -->
-  <a class="card" href="signup.html" style="background:#87CEEB;color:#333;border-radius:16px;">
-    <img src="assets/icons/signup.png" class="icon-img" alt="Sign Up">
-    <div class="label">Sign Up</div>
-  </a>
+<header><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MedorCoin — Home</title>
+<meta name="description" content="MedorCoin home portal."/>
+<style>
+  :root{--bg:#faf9f6;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb;--success:#10b981}
+  {box-sizing:border-box}
+  body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  a{color:inherit;text-decoration:none}
+  .container{max-width:980px;margin:0 auto;padding:12px}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .space{justify-content:space-between}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7}
+  .brand{font-weight:800;font-size:18px}
+  .wallet-status{position:fixed;top:10px;right:10px;background:var(--success);color:white;padding:8px 12px;border-radius:20px;font-size:12px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(16,185,129,0.3);display:none}
+  .searchbar{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:10px 12px;margin-top:10px}
+  .searchbar input{border:0;outline:0;flex:1;font-size:14px;color:var(--ink);background:transparent}
+  .pill{font-size:12px;background:#fff7e6;color:#333333;border:1px solid #f2e6bf;border-radius:999px;padding:4px 8px}
+  .tabs{display:flex;gap:10px;overflow:auto;padding:10px 0;margin-top:8px}
+  .tab{display:flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid var(--border);color:var(--ink);border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+  .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+  .muted{color:var(--muted);font-size:12px}
+  .icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+  .icon svg{width:22px;height:22px;display:block}
+  .ic-gold{background:#fff7e6;border:1px solid #f2e6bf}
+  .ic-slate{background:#eef1f5;border:1px solid #e2e8f0}
+</style>
+</head>
+<body>
+<!-- WALLET STATUS - NEW -->
+<div id="walletStatus" class="wallet-status"></div>
 
-  <!-- Login -->
-  <a class="card" href="login.html" style="background:#ADD8E6;color:#333;border-radius:16px;">
-    <img src="assets/icons/login.png" class="icon-img" alt="Login">
-    <div class="label">Login</div>
-  </a>
+<div class="container">
+  <!-- HEADER: logo + brand on left, actions on right (no changes to other content) -->
+  <div class="row space" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:12px 16px;border-radius:14px;margin-bottom:16px;align-items:center;">
+    <div class="logo" aria-label="MedorCoin Logo and Brand" style="display:flex;align-items:center;gap:12px;">
+      <img src="assets/logo.svg" alt="MedorCoin Logo" height="36" style="width:36px;height:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7;">
+      <span class="brand" style="font-weight:800;font-size:18px;">MedorCoin</span>
+    </div>
+
+    <!-- RIGHT-SIDE LINKS ON ONE LINE (now on header, visible on the same row) -->
+    <div style="font-size:12px;display:flex;gap:12px;align-items:center;">
+      <a href="create-wallet.html" style="color:white;text-decoration:none;">Create Wallet</a> |
+      <a href="connect-wallet.html" style="color:white;text-decoration:none;">Connect Wallet</a> |
+      <a href="signup.html" style="color:white;text-decoration:none;">SignUp</a> |
+      <a href="login.html" style="color:white;text-decoration:none;">Login</a>
+    </div>
+  </div>
+
+  <div class="searchbar">
+    <span style="opacity:.7">🔎</span>
+    <input id="q" placeholder="Search"/>
+    <span class="pill">AI</span></header>
+<div class="grid">
 
   <!-- My Account -->
   <a class="card" href="account.html" style="background:#BDE7FF;color:#fff;border-radius:16px;">
     <img src="assets/icons/account.png" class="icon-img" alt="My Account">
     <div class="label">My Account</div>
+  </a>
+  
+  <!-- Get API Block (new block) -->
+  <a class="card" href="public/more.html" style="background:#0a1e3a;color:#fff;border-radius:16px;">
+    <!-- Network-looking icon (SVG) -->
+    <svg class="icon-img" width="48" height="48" viewBox="0 0 64 64" aria-label="Network Icon" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="16" cy="20" r="6" fill="white"/>
+      <circle cx="48" cy="20" r="6" fill="white"/>
+      <circle cx="32" cy="40" r="6" fill="white"/>
+      <path d="M22 22h20" stroke="white" stroke-width="4" stroke-linecap="round"/>
+      <path d="M12 26h10" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      <path d="M42 26h10" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div class="label" style="color:#fff;">Get API</div>
   </a>
 
   <!-- Blockchain (sky blue) -->
@@ -63,7 +119,7 @@
   </a>
 
   <!-- Mining Courses (light lemon green; dark green text; book+pen icon) -->
-  <a class="card" href="mining-course.html" style="background:#D9FDD0;color:#0B3D00;border-radius:16px;">
+  <a class="card" href="mining-course.html" style="background:#D9FDD0;color:0B3D00;border-radius:16px;">
     <!-- Inline book+pen icon -->
     <svg class="icon-img" width="48" height="48" viewBox="0 0 64 64" aria-label="Mining Courses Icon" xmlns="http://www.w3.org/2000/svg">
       <g fill="none" stroke="#0B3D00" stroke-width="2">
@@ -110,7 +166,7 @@
     <div class="label" style="color:#FDE68A">Options Courses</div>
   </a>
 
-  <!-- Crypto Trading (dark grey bg, light gold text, candlesticks icon) -->
+  <!-- Crypto Trading (dark grey bg, light gold text) -->
   <a class="card" href="crypto-trading.html" style="background:#2f2f2f;color:#FDE68A;border-radius:16px;">
     <svg class="icon-img" width="48" height="48" viewBox="0 0 64 64" aria-label="Crypto Trading Icon" xmlns="http://www.w3.org/2000/svg">
       <rect x="6" y="14" width="52" height="36" rx="6" fill="#2f2f2f" stroke="#FDE68A" stroke-width="2"/>
@@ -134,24 +190,16 @@
     <div class="label" style="color:#A089FF">Chat Room</div>
   </a>
 
-  <!-- Crypto Whales (dark green bg, white text, whale icon) -->
+  <!-- Crypto Whales (dark green bg, white text) -->
   <a class="card" href="crypto-whales.html" style="background:#0A3D2E;color:#fff;border-radius:16px;">
-    <!-- simple whale emoji as icon to satisfy the "whale with water drop" idea -->
     <div class="icon-img" aria-label="Crypto Whales" style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:28px; background:transparent;">🐋</div>
     <div class="label" style="color:#fff">Crypto Whales</div>
   </a>
 
-  <!-- Terms & Conditions (dark blue bg, white text) -->
+  <!-- Terms & Conditions (dark blue with white text) -->
   <a class="card" href="terms.html" style="background:#0A1E5A;color:#fff;border-radius:16px;">
-    <!-- simple paper icon -->
-    <svg class="icon-img" width="48" height="48" viewBox="0 0 64 64" aria-label="Terms & Conditions Icon" xmlns="http://www.w3.org/2000/svg">
-      <rect x="12" y="12" width="40" height="40" rx="6" fill="#fff" opacity="0.0"/>
-      <path d="M16 18h28v6H16z" fill="#fff"/>
-      <path d="M18 26h28" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-      <path d="M18 32h28" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-      <path d="M18 38h18" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-    <div class="label" style="color:#fff">Terms & Conditions</div>
+    <img src="assets/icons/terms.png" class="icon-img" alt="Terms & Conditions">
+    <div class="label">Terms & Conditions</div>
   </a>
 
   <!-- Developers (light blue) -->
@@ -162,7 +210,6 @@
 
   <!-- Create Wallet (light orange) -->
   <a class="card" href="create-wallet.html" style="background:#FFD6A3;color:#333;border-radius:16px;">
-    <!-- brown wallet icon (inline) -->
     <svg class="icon-img" width="48" height="48" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Create Wallet Icon">
       <rect x="6" y="18" width="52" height="28" rx="6" fill="#8B5E3C"/>
       <rect x="8" y="22" width="36" height="20" rx="4" fill="#D2A97E"/>
@@ -174,7 +221,6 @@
 
   <!-- Connect Wallet (light orange with dark gray text) -->
   <a class="card" href="connect-wallet.html" style="background:#FFD6A3;color:#333;border-radius:16px;">
-    <!-- black wallet with money icon (inline) -->
     <svg class="icon-img" width="48" height="48" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Connect Wallet Icon">
       <rect x="6" y="18" width="52" height="28" rx="6" fill="#111"/>
       <rect x="8" y="22" width="34" height="20" rx="4" fill="#111"/>
@@ -184,7 +230,7 @@
     <div class="label" style="color:#333">Connect Wallet</div>
   </a>
 
-  <!-- Crypto Trading (same as index: dark grey bg, light gold text) -->
+  <!-- Crypto Trading (same as index) -->
   <a class="card" href="crypto-trading.html" style="background:#2f2f2f;color:#FDE68A;border-radius:16px;">
     <svg class="icon-img" width="48" height="48" viewBox="0 0 64 64" aria-label="Trading Icon" xmlns="http://www.w3.org/2000/svg">
       <rect x="6" y="14" width="52" height="36" rx="6" fill="#2f2f2f" stroke="#FDE68A" stroke-width="2"/>
@@ -198,22 +244,10 @@
     <span class="muted" style="color:#FDE68A">Markets & tools</span>
   </a>
 
-  <!-- Learn (keep as per index) -->
+  <!-- Learn (keep) -->
   <a class="card" href="learn.html" style="background:#0B3D91;color:#fff;border-radius:16px;">
     <img src="assets/icons/learn.png" class="icon-img" alt="Learn">
     <div class="label">Learn</div>
-  </a>
-
-  <!-- Buy Locks (Locks) -->
-  <a class="card" href="locks.html" style="background:#1F3A8A;color:#fff;border-radius:16px;">
-    <img src="assets/icons/locks.png" class="icon-img" alt="Buy Locks">
-    <div class="label">Locks</div>
-  </a>
-
-  <!-- New Listing (orange) -->
-  <a class="card" href="new-listing.html" style="background:#FFD6A3;color:#333;border-radius:16px;">
-    <img src="assets/icons/new-listings.png" class="icon-img" alt="New Listing">
-    <div class="label">New Listing</div>
   </a>
 
   <!-- Chat Room (purple) -->
@@ -222,13 +256,19 @@
     <div class="label" style="color:#A089FF">Chat Room</div>
   </a>
 
-  <!-- Course Terms & Conditions (dark blue with white text) -->
-  <a class="card" href="terms.html" style="background:#0A1E5A;color:#fff;border-radius:16px;">
-    <img src="assets/icons/terms.png" class="icon-img" alt="Terms & Conditions">
-    <div class="label">Course Terms & Conditions</div>
+  <!-- Crypto Whales (white) -->
+  <a class="card" href="crypto-whales.html" style="background:#0A3D2E;color:#fff;border-radius:16px;">
+    <div class="icon-img" aria-label="Crypto Whales" style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:28px; background:transparent;">🐋</div>
+    <div class="label" style="color:#fff">Crypto Whales</div>
   </a>
 
-  <!-- About Us (purple - light purple block) -->
+  <!-- Terms & Conditions (dark blue) -->
+  <a class="card" href="terms.html" style="background:#0A1E5A;color:#fff;border-radius:16px;">
+    <img src="assets/icons/terms.png" class="icon-img" alt="Terms & Conditions">
+    <div class="label">Terms & Conditions</div>
+  </a>
+
+  <!-- About Us (purple) -->
   <a class="card" href="what-medorcoin-does-for.html" style="background:#E6D0FF;color:#333;border-radius:16px;">
     <img src="assets/icons/about-us.png" class="icon-img" alt="About Us">
     <div class="label" style="color:#333">About Us</div>
