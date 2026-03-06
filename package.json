@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Invi-Dor/MedorCoin-Blockchain.git"
+    "url": "git+https://github.com/Invi-Dor/MedorCoin-Blockchain.git"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +21,13 @@
     "nodemailer": "^7.0.13"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^7.0.0",
+    "ethers": "^6.16.0",
     "hardhat": "^3.1.11"
-  }
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Invi-Dor/MedorCoin-Blockchain/issues"
+  },
+  "homepage": "https://github.com/Invi-Dor/MedorCoin-Blockchain#readme"
 }
