@@ -21,11 +21,17 @@
     "nodemailer": "^7.0.13"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^0.15.16",
     "@nomicfoundation/hardhat-toolbox": "^7.0.0",
+    "@nomicfoundation/hardhat-toolbox-viem": "^4.1.2",
+    "@types/node": "^22.19.15",
     "ethers": "^6.16.0",
-    "hardhat": "^3.1.11"
+    "forge-std": "github:foundry-rs/forge-std#v1.9.4",
+    "hardhat": "^3.1.11",
+    "typescript": "~5.8.0",
+    "viem": "^2.47.0"
   },
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/Invi-Dor/MedorCoin-Blockchain/issues"
   },
