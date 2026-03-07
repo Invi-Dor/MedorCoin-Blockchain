@@ -17,23 +17,31 @@ static std::string toHex(const std::vector<uint8_t> &bytes) {
 void Transaction::calculateHash() {
     using namespace rlp;
 
-    // RLP encode fully signed EVM transaction
+    // Encode transaction fields in the correct order
+    auto encChainId  = encodeUInt(chainId);
     auto encNonce    = encodeUInt(nonce);
+    auto encMaxPri   = encodeUInt(maxPriorityFeePerGas);
     auto encMaxFee   = encodeUInt(maxFeePerGas);
-    auto encTip      = encodeUInt(maxPriorityFeePerGas);
     auto encGasLimit = encodeUInt(gasLimit);
+
+    // Encode "to" address as bytes
     std::vector<uint8_t> toBytes(toAddress.begin(), toAddress.end());
     auto encTo       = encodeBytes(toBytes);
+
     auto encValue    = encodeUInt(value);
     auto encData     = encodeBytes(data);
+
+    // Encode the signature components
     auto encV        = encodeUInt(v);
     auto encR        = encodeBytes(std::vector<uint8_t>(r.begin(), r.end()));
     auto encS        = encodeBytes(std::vector<uint8_t>(s.begin(), s.end()));
 
+    // Put all encoded fields into a list
     std::vector<std::vector<uint8_t>> items = {
+        encChainId,
         encNonce,
+        encMaxPri,
         encMaxFee,
-        encTip,
         encGasLimit,
         encTo,
         encValue,
@@ -45,11 +53,11 @@ void Transaction::calculateHash() {
 
     std::vector<uint8_t> raw = encodeList(items);
 
-    // Keccak‑256 hash
+    // Compute Keccak‑256 hash (transaction hash)
     uint8_t hashOut[32];
     keccak(raw.data(), raw.size(), hashOut, 32);
     std::vector<uint8_t> hashBytes(hashOut, hashOut + 32);
 
-    // Convert to hex string for the stored txHash
+    // Store as hex string
     txHash = toHex(hashBytes);
 }
