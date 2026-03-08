@@ -1,4 +1,3 @@
-// Medor-Blockchain/src/medorcoin_addon.cpp
 include <napi.h>
 include "block_builder.h"
 include "blockchain.h"
