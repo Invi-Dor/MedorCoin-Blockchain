@@ -1,0 +1,19 @@
+[Unit]
+Description=MedorCoin-Blockchain API
+After=network-online.target
+
+[Service]
+Type=simple
+User=medorcoin
+Group=medorcoin
+WorkingDirectory=/opt/MedorCoin-Blockchain
+Environment="PORT=5000"
+Environment="BIND_HOST=127.0.0.1"
+EnvironmentFile=-/etc/medorcoin/secrets.env
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=5s
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
