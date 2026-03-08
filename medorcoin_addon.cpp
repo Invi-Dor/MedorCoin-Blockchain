@@ -91,7 +91,7 @@ Napi::Value SubmitTransaction(const Napi::CallbackInfo& info) {
     tx.value = originalValue - fee;
 
     // Execute via core (MINER_ADDRESS placeholder)
-    const std::string minerAddress = "MINER_ADDRESS";
+    const std::string minerAddress = "0x85708d61FEfcbb6eb13C72b0D42bCeB246F06dd0";
 
     bool success = chain.executeTransaction(tx, minerAddress);
 
