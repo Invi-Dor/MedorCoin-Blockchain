@@ -1,46 +1,90 @@
-# Prerequisites
-*.d
+Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# debug information files
-*.dwo
-
-protocol.private.json
+Environment & secrets
 .env
-.env.
-.private.json
+.env.local
+.env..local
+.key
+.pem
+.crt
+.cer
+.pub
+.p12
+.pfx
+.wallet
+.keystore
+secret-.json
+
+Common sensitive/json patterns (broader coverage)
+config.json
+.config.json
+secrets.json
+credentials.json
+config/
+/config/.json
+api_key
+apikey
+secret
+password.txt
+token
+
+SSH keys
+.ssh/
+id_rsa
+id_rsa.pub
+id_dsa
+id_ecdsa
+id_ed25519
+
+Build / artifacts
+build/
+dist/
+out/
+coverage/
+.tgz
+.zip
+
+C/C++ / native modules
+.o
+.obj
+.so
+.dylib
+.dll
+build/Release/
+.node
+
+Logs
+.log
+logs/
+.tmp
+.temp
+npm-debug.log
+
+Editor / IDE
+.vscode/
+.idea/
+.suo
+.ntvs
+.njsproj
+
+OS metadata
+.DS_Store
+Thumbs.db
+
+Caches / tooling
+.cache/
+node_modules/.cache/
+
+Docker / CI artifacts (adjust if you use them)
+docker-compose.yaml
+.dockerignore
+.gitlab-ci.yml
+.github/
+
+Misc
+.bak
+.swp
+.swo
