@@ -1,90 +1,81 @@
-Node.js dependencies
+# Node.js dependencies
 node_modules/
 npm-debug.log
 yarn-error.log
 
-Environment & secrets
+# Environment & secrets
 .env
 .env.local
-.env..local
-.key
-.pem
-.crt
-.cer
-.pub
-.p12
-.pfx
-.wallet
-.keystore
-secret-.json
-
-Common sensitive/json patterns (broader coverage)
+.env.*.local
+*.key
+*.pem
+*.crt
+*.cer
+*.pub
+*.p12
+*.pfx
+*.wallet
+*.keystore
+secret*.json
 config.json
 .config.json
 secrets.json
 credentials.json
-config/
-/config/.json
 api_key
 apikey
-secret
-password.txt
-token
+*secret*
+*password.txt
+*token*
 
-SSH keys
-.ssh/
-id_rsa
-id_rsa.pub
-id_dsa
-id_ecdsa
-id_ed25519
-
-Build / artifacts
+# Build / artifacts
 build/
 dist/
 out/
 coverage/
-.tgz
-.zip
+*.tgz
+*.zip
 
-C/C++ / native modules
-.o
-.obj
-.so
-.dylib
-.dll
+# C/C++ / native modules
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.exe
+*.bin
 build/Release/
-.node
+node_modules/.cache/
 
-Logs
-.log
+# Logs
+*.log
 logs/
-.tmp
-.temp
-npm-debug.log
+.tmp/
+.temp/
 
-Editor / IDE
+# Editors / IDE
 .vscode/
 .idea/
 .suo
-.ntvs
+.ntvs*
 .njsproj
+*.sublime-project
+*.sublime-workspace
 
-OS metadata
+# OS metadata
 .DS_Store
 Thumbs.db
 
-Caches / tooling
+# Caches / tooling
 .cache/
-node_modules/.cache/
+*.cache/
+*.swp
+*.swo
 
-Docker / CI artifacts (adjust if you use them)
+# Docker / CI
 docker-compose.yaml
 .dockerignore
 .gitlab-ci.yml
 .github/
 
-Misc
-.bak
-.swp
-.swo
+# Additional patterns
+*.bak
