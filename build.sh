@@ -6,21 +6,22 @@ LOGFILE="compile_errors.log"
 
 echo "Compiling MedorCoin backend..."
 
-# Include directories — add any other include paths if needed
-INCLUDES="-I./include -I./src"
+# All include directories
+INCLUDE_PATHS="-I./include -I./src -I./src/evm -I./src/crypto -I./src/net"
 
-# Recursively find all .cpp files in the project
-ALL_CPP_FILES=$(find . -type f -name "*.cpp")
+# Find ALL .cpp files recursively in the project
+ALL_CPP=$(find . -type f -name "*.cpp")
 
-# Compile all .cpp files
-g++ $ALL_CPP_FILES $INCLUDES \
-  -std=c++20 -pthread -O2 \
-  -L/usr/lib/x86_64-linux-gnu -lsecp256k1 \
-  -o $OUTPUT 2> $LOGFILE
+# Run compile
+g++ $ALL_CPP $INCLUDE_PATHS \
+    -std=c++20 -pthread -O2 \
+    -L/usr/lib/x86_64-linux-gnu -lsecp256k1 \
+    -o $OUTPUT 2> $LOGFILE
 
+# Check result
 if [ $? -eq 0 ]; then
-  echo "Compilation successful! Binary created: $OUTPUT"
-  rm -f $LOGFILE
+    echo "✔️ Compilation successful! Binary created: $OUTPUT"
+    rm -f $LOGFILE
 else
-  echo "Compilation failed. Check $LOGFILE for details."
+    echo "❌ Compilation failed — see $LOGFILE"
 fi
