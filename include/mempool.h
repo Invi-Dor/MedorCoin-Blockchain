@@ -1,45 +1,27 @@
-#pragma once
+#ifndef MEMPOOL_H
+#define MEMPOOL_H
+
 #include <vector>
 #include <string>
-#include <cstdint>
 #include <mutex>
-#include "block.h"
+#include <unordered_map>
 #include "transaction.h"
-#include "utxo.h"
 
-class Blockchain {
+class Mempool {
 public:
-    Blockchain(const std::string& ownerAddr);
+    Mempool();
+    ~Mempool();
 
-    // Add mined block
-    void addBlock(const std::string& minerAddress, std::vector<Transaction>& transactions);
-
-    // Validate a single block
-    bool validateBlock(const Block& block, const Block& previousBlock);
-
-    // Validate entire chain
-    bool validateChain();
-
-    // Fetch last block
-    Block getLastBlock();
-
-    // Print chain for debug
-    void printChain();
-
-    // Access UTXO set
-    UTXOSet utxoSet;
+    bool addTransaction(const Transaction &tx);
+    void removeTransaction(const std::string &txHash);
+    std::vector<Transaction> getTransactions() const;
+    bool hasTransaction(const std::string &txHash) const;
+    void removeConfirmed(const std::vector<Transaction> &txs);
+    std::vector<Transaction> getSortedByFee(uint64_t currentBaseFee) const;
 
 private:
-    std::vector<Block> chain;
-    std::string ownerAddress;
-    uint64_t medor;
-    uint64_t totalSupply;
-    uint64_t maxSupply;
-    std::mutex mtx;
-
-    // Mining reward
-    uint64_t calculateReward();
-
-    // Lightweight PoW
-    void mineBlock(Block& block);
+    mutable std::mutex mtx;
+    std::unordered_map<std::string, Transaction> txMap;
 };
+
+#endif // MEMPOOL_H
