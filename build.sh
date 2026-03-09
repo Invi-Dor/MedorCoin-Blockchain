@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-OUTPUT="medorcoin"
+OUTPUT="MedorCoin-Blockchain"
 LOGFILE="compile_errors.log"
 
 echo "Compiling MedorCoin backend..."
