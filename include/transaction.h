@@ -1,30 +1,30 @@
-#pragma once
-
 #ifndef TRANSACTION_H
 #define TRANSACTION_H
 
 #include <string>
+#include <vector>
+#include <cstdint>
 
 class Transaction {
 public:
-    Transaction() = default;
+    uint64_t chainId = 0;
+    uint64_t nonce = 0;
+    uint64_t maxPriorityFeePerGas = 0;
+    uint64_t maxFeePerGas = 0;
+    uint64_t gasLimit = 0;
+    std::string toAddress;
+    uint64_t value = 0;
+    std::vector<uint8_t> data;
 
-    Transaction(const std::string &from,
-                const std::string &to,
-                double amount,
-                const std::string &hash)
-        : sender(from), recipient(to), amount(amount), hashValue(hash) {}
+    // Signature fields
+    uint64_t v = 0;
+    std::vector<uint8_t> r;
+    std::vector<uint8_t> s;
 
-    // Returns a unique identifier/hash for this transaction
-    std::string getHash() const {
-        return hashValue;
-    }
+    // The computed transaction hash
+    std::string txHash;
 
-private:
-    std::string sender;
-    std::string recipient;
-    double amount = 0.0;
-    std::string hashValue;
+    void calculateHash();
 };
 
 #endif // TRANSACTION_H
