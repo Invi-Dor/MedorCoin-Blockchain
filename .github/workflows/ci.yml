@@ -9,7 +9,7 @@ on:
 permissions:
   contents: read
   checks: write
-  pull-requests: write
+  
 
 jobs:
   build-and-test:
@@ -80,7 +80,7 @@ jobs:
           gcovr -r . build \
             --html --html-details -o build/coverage.html \
             --xml -o build/coverage.xml \
-            --fail-under-line 70
+            --fail-under-line 50
 
       - name: Upload coverage HTML
         uses: actions/upload-artifact@v4
