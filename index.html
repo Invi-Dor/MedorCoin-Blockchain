@@ -1,42 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>MedorCoin — Home</title>
-<meta name="description" content="MedorCoin home portal."/>
-<style>
-  :root{--bg:#faf9f6;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb;--success:#10b981}
-  {box-sizing:border-box}
-  body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-  a{color:inherit;text-decoration:none}
-  .container{max-width:980px;margin:0 auto;padding:12px}
-  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .space{justify-content:space-between}
-  .logo{display:flex;align-items:center;gap:10px}
-  .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7}
-  .brand{font-weight:800;font-size:18px}
-  .wallet-status{position:fixed;top:10px;right:10px;background:var(--success);color:white;padding:8px 12px;border-radius:20px;font-size:12px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(16,185,129,0.3);display:none}
-  .searchbar{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:10px 12px;margin-top:10px}
-  .searchbar input{border:0;outline:0;flex:1;font-size:14px;color:var(--ink);background:transparent}
-  .pill{font-size:12px;background:#fff7e6;color:#333333;border:1px solid #f2e6bf;border-radius:999px;padding:4px 8px}
-  .tabs{display:flex;gap:10px;overflow:auto;padding:10px 0;margin-top:8px}
-  .tab{display:flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid var(--border);color:var(--ink);border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
-  .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center}
-  .muted{color:var(--muted);font-size:12px}
-  .icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center}
-  .icon svg{width:22px;height:22px;display:block}
-  .ic-gold{background:#fff7e6;border:1px solid #f2e6bf}
-  .ic-slate{background:#eef1f5;border:1px solid #e2e8f0}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MedorCoin — Home</title>
+  <meta name="description" content="MedorCoin home portal."/>
+  <style>
+    :root{--bg:#0f172a;--ink:#e5e7eb;--muted:#94a3b8;--border:#334155;--success:#10b981}
+    {box-sizing:border-box}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#e2e8f0}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:980px;margin:0 auto;padding:12px}
+    .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .space{justify-content:space-between}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #334155}
+    .brand{font-weight:800;font-size:18px}
+    .wallet-status{position:fixed;top:10px;right:10px;background:var(--success);color:white;padding:8px 12px;border-radius:20px;font-size:12px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(16,185,129,0.3);display:none}
+    .searchbar{display:flex;align-items:center;gap:8px;background:#111827;border:1px solid var(--border);border-radius:999px;padding:10px 12px;margin-top:12px}
+    .searchbar input{border:0;outline:0;flex:1;font-size:14px;color:#e5e7eb;background:transparent}
+    .pill{font-size:12px;background:#1e293b;color:#e5e7eb;border:1px solid #334155;border-radius:999px;padding:4px 8px}
+    .tabs{display:flex;gap:10px;overflow:auto;padding:10px 0;margin-top:8px}
+    .tab{display:flex;align-items:center;gap:6px;background:#1f2937;border:1px solid var(--border);color:#e2e8f0;border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px}
+    .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+    .muted{color:var(--muted);font-size:12px}
+    .icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+    .icon svg{width:22px;height:22px;display:block}
+    .ic-slate{background:#1f2937;border:1px solid #374151}
+    /* Specific tile color tweaks to preserve original vibe */
+    .bg-blue{background:#0B3D91;color:#fff;border:1px solid var(--border)}
+    .bg-teal{background:#87CEEB;color:#333;border:1px solid var(--border)}
+    .bg-orange{background:#FFD6A3;color:#333;border:1px solid var(--border)}
+    .bg-dark{background:#2f2f2f;color:#FDE68A;border:1px solid var(--border)}
+    .bg-learn{background:#0B3D91;color:#fff;border:1px solid var(--border)}
+    .bg-chat{background:#E6D5FF;color:#A089FF;border:1px solid var(--border)}
+    .bg-whales{background:#F5F5DC;color:#333;border:1px solid var(--border)}
+    .bg-account{background:#BDE7FF;color:#fff;border:1px solid var(--border)}
+  </style>
 </head>
 <body>
 <!-- WALLET STATUS - NEW -->
 <div id="walletStatus" class="wallet-status"></div>
 
 <div class="container">
+  <!-- Welcoming note (professional, concise, dark grey text) -->
+  <div style="text-align:center;margin:6px 0 14px;">
+    <span style="color:#1f2937;font-weight:700;font-size:16px;">
+      Welcome to MedorCoin — explore tools, APIs, and insights.
+    </span>
+  </div>
+
   <!-- HEADER: logo + brand on left, actions on right (no changes to other content) -->
-  <div class="row space" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:12px 16px;border-radius:14px;margin-bottom:16px;align-items:center;">
+  <div class="row space" style="background:linear-gradient(135deg,#1f3a8a 0%,#1e40af 100%);color:white;padding:12px 16px;border-radius:14px;margin-bottom:14px;align-items:center;">
     <div class="logo" aria-label="MedorCoin Logo and Brand" style="display:flex;align-items:center;gap:12px;">
       <img src="assets/logo.svg" alt="MedorCoin Logo" height="36" style="width:36px;height:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7;">
       <span class="brand" style="font-weight:800;font-size:18px;">MedorCoin</span>
@@ -51,22 +68,22 @@
     </div>
   </div>
 
-  <div class="searchbar">
+  <div class="searchbar" aria-label="Site search">
     <span style="opacity:.7">🔎</span>
     <input id="q" placeholder="Search"/>
     <span class="pill">AI</span>
   </div>
 
-  <div class="tabs">
+  <div class="tabs" aria-label="Main sections">
     <a class="tab" href="index.html">🏠 HomePage</a>
     <a class="tab" href="miners.html">⛏️ Miners</a>
     <a class="tab" href="developers.html">👩‍💻 Developers</a>
     <a class="tab" href="trading.html">📈 Crypto Trading</a>
   </div>
 
-  <div class="grid">
-    <!-- ALL YOUR ORIGINAL TILES - UNCHANGED WITH COLOR UPDATES -->
-    <a class="tile" href="/blockchain.html" style="background:#87CEEB;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+  <div class="grid" aria-label="Portal tiles">
+    <!-- Existing tiles (kept for fidelity) -->
+    <a class="tile bg-teal" href="/blockchain.html" style="min-height:96px;">
       <div class="icon ic-slate" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="#B5943F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="5" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
@@ -127,62 +144,4 @@
 
     <!-- My Account: light blue -->
     <a class="tile" href="my-account.html" style="background:#BDE7FF;color:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-slate" aria-hidden="true">👤</div>
-      <b>My Account</b>
-      <span class="muted" style="color:#fff">Profile</span>
-    </a>
-
-    <!-- New Listing: light orange -->
-    <a class="tile" href="new-listing.html" style="background:#FFD6A3;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-slate" aria-hidden="true">🆕</div>
-      <b>New Listing</b>
-      <span class="muted" style="color:#333">List a token</span>
-    </a>
-
-    <!-- Locks: dark blue, white text -->
-    <a class="tile" href="locks.html" style="background:#1F3A8A;color:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-gold" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M7.5 10V8.5a4.5 4.5 0 1 1 9 0V10" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="5.5" y="10" width="13" height="10" rx="2" fill="#D7BF77" stroke="#FFFFFF" stroke-width="1.4"/>
-          <path d="M6.8 11.4h10.4c.3 0 .5.2.5.5v.2c-1.8.6-3.7.9-5.5.9s-3.7-.3-5.5-.9v-.2c0-.3.2-.5.5-.5z" fill="#F7EFD4" opacity=".55"/>
-          <circle cx="12" cy="15" r="1.2" fill="#FFFFFF"/>
-          <rect x="11.4" y="15.9" width="1.2" height="2.3" rx=".6" fill="#FFFFFF"/>
-        </svg>
-      </div>
-      <b>Locks</b>
-      <span class="section-title">
-    Token Lock-up, Liquidity Lock & Vesting
-</span>
-    </a>
-  </div>
-
-     <!-- More Section Block -->
-<div style="text-align: center; margin: 20px;">
-    <a href="more.html" style="display: inline-block; text-decoration: none; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; background-color: #faf9f6; color: #333;">
-        <div style="font-size: 40px;">&#8594;</div> <!-- Arrow icon -->
-        <div style="font-size: 20px;">More</div>
-    </a>
-</div>
-
-<script>
-// 🚀 WALLET DETECTION - ADDED (12 LINES TOTAL)
-const urlParams = new URLSearchParams(window.location.search);
-const walletStorage = localStorage.getItem('medorcoin_wallet_v2');
-if (urlParams.get('wallet') === 'created' || walletStorage) {
-    const walletData = walletStorage ? JSON.parse(walletStorage) : {};
-    const statusEl = document.getElementById('walletStatus');
-    statusEl.style.display = 'block';
-    statusEl.innerHTML = `✅ Wallet Active: ${walletData.address?.slice(0,12) || 'Connected'}...`;
-    
-    // Update Create Wallet link to show "Wallet Created"
-    const createLink = document.querySelector('a[href="create-wallet.html"]');
-    if (createLink) createLink.textContent = '✅ Wallet Created';
-}
-
-// ORIGINAL COPYRIGHT SCRIPT
-document.getElementById('currentYear') ? document.getElementById('currentYear').textContent = new Date().getFullYear() : null;
-</script>
-</div> <!-- end of .container -->
-</body>
-</html>
+      <div class="icon ic-slate" aria-hidden="true">👤</div
