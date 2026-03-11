@@ -1,5 +1,7 @@
 # Makefile — place this file in the root of MedorCoin-Blockchain
 
+# Recreate Makefile for MedorCoin build
+
 # Compiler and flags
 CXX = g++
 CXXFLAGS = -std=c++17 -Iinclude
