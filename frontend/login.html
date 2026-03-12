@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login - MedorCoin</title>
+  <style>
+    body { font-family: Verdana, Geneva, sans-serif; background:#0f1b2a; color:#fff; padding:40px; }
+    .card { max-width:520px; margin:0 auto; background:#1a2a45; padding:20px; border-radius:8px; }
+    input { width:100%; padding:10px; margin:6px 0; border-radius:6px; border:1px solid #333; }
+    button { width:100%; padding:12px; font-weight:700; border-radius:6px; border:none; background:#2563eb; color:white; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Login</h2>
+    <input id="email" placeholder="Email" type="email" />
+    <input id="password" placeholder="Password" type="password" />
+    <button id="loginBtn">Login</button>
+  </div>
+
+  <script>
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      if (!email || !password) {
+        alert('Please enter both email and password');
+        return;
+      }
+      try {
+        const res = await fetch('/api/auth/login', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.token) {
+          localStorage.setItem('token', data.token);
+          window.location.href = 'myapis.html';
+        } else {
+          alert('Login failed: ' + (data.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Login error: ' + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
