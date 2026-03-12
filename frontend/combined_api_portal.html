@@ -1,315 +1,622 @@
-
-
-// File: backend/server.js
-require('dotenv').config();
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const sqlite3 = require('sqlite3').verbose();
-const nodemailer = require('nodemailer');
-const cookieParser = require('cookie-parser');
-const cors = require('cors');
-const crypto = require('crypto');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Production-ready config
-const JWT_SECRET = process.env.JWT_SECRET || 'REPLACE_WITH_SECURE_JWT_SECRET';
-const DB_PATH = process.env.DB_PATH || './data/medorcoin.db';
-const SMTP_HOST = process.env.SMTP_HOST;
-const SMTP_PORT = Number(process.env.SMTP_PORT) || 587;
-const SMTP_USER = process.env.SMTP_USER;
-const SMTP_PASS = process.env.SMTP_PASS;
-const MAIL_FROM = process.env.MAIL_FROM || 'noreply@example.com';
-
-// Initialize SQLite as the production-oriented persistence layer
-const db = new sqlite3.Database(DB_PATH, (err) => {
-  if (err) {
-    console.error('Failed to open DB:', err);
-    process.exit(1);
-  } else {
-    initDb();
-  }
-});
-
-// Simple, production-ready tables
-function initDb() {
-  db.run(
-    `CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      verified INTEGER NOT NULL DEFAULT 0,
-      verification_code TEXT,
-      verification_expires_at INTEGER,
-      created_at INTEGER,
-      updated_at INTEGER
-    )`,
-    (err) => { if (err) console.error(err); }
-  );
-
-  db.run(
-    `CREATE TABLE IF NOT EXISTS apis (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      key TEXT NOT NULL,
-      created_at INTEGER,
-      FOREIGN KEY(user_id) REFERENCES users(id)
-    )`,
-    (err) => { if (err) console.error(err); }
-  );
-
-  db.run(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`, (err) => {
-    if (err) console.error(err);
-  });
-
-  db.run(`CREATE INDEX IF NOT EXISTS idx_apis_user ON apis(user_id)`, (err) => {
-    if (err) console.error(err);
-  });
-}
-
-// Email transporter (optional in prod; requires SMTP config)
-let emailTransporter = null;
-if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-  emailTransporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_PORT === 465,
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MedorCoin API Portal — Unified Frontend</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0b1020;
+      --surface: #ffffff;
+      --text: #111;
+      --muted: #6b7280;
+      --brand: #0b52d2;
+      --card: rgba(255,255,255,.95);
+      --cardText: #111;
+      --blue: #0a4bd3;
+      --blueDark: #0a4bd3;
     }
-  });
-}
 
-async function sendVerificationEmail(toEmail, code) {
-  if (!emailTransporter) return;
-  const mailOptions = {
-    from: MAIL_FROM,
-    to: toEmail,
-    subject: 'MedorCoin Verification Code',
-    text: `Your verification code is ${code}`,
-    html: `<p>Your verification code is <strong>${code}</strong></p>`
-  };
-  try {
-    await emailTransporter.sendMail(mailOptions);
-  } catch (err) {
-    console.error('Failed to send verification email:', err);
-  }
-}
-
-// Helpers
-function generateToken(userId) {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '2h' });
-}
-function verifyTokenOrNull(token) {
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    return payload.userId;
-  } catch {
-    return null;
-  }
-}
-function generateApiKey() {
-  return crypto.randomBytes(16).toString('hex');
-}
-
-// Middleware: extract token from header or cookie and set req.userId
-function authMiddleware(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  let token = null;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.slice(7);
-  } else if (req.cookies && req.cookies.token) {
-    token = req.cookies.token;
-  }
-
-  if (!token) return res.status(401).json({ error: 'Unauthorized' });
-
-  const userId = verifyTokenOrNull(token);
-  if (!userId) return res.status(401).json({ error: 'Invalid token' });
-
-  req.userId = userId;
-  next();
-}
-
-// App middlewares
-app.use(express.json());
-app.use(cookieParser());
-app.use(cors({ origin: 'http://localhost:8080', credentials: true }));
-
-// Routes
-
-// Register
-app.post('/api/auth/register', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
-  }
-
-  // Check existence
-  db.get('SELECT id FROM users WHERE email = ?', [email], (err, row) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Internal server error' });
+    /* Basic reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #e5e7eb;
+      background: var(--bg);
+      overflow-x: hidden;
     }
-    if (row) return res.status(400).json({ error: 'User already exists' });
 
-    // Hash password
-    bcrypt.hash(password, 12, (err, hash) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Internal server error' });
-      }
+    /* Subtle space background with stars (ambient) */
+    .space {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(circle at 20% 20%, rgba(255,255,255,.08) 0 2px, transparent 2px),
+                  radial-gradient(circle at 70% 60%, rgba(255,255,255,.05) 0 2px, transparent 2px);
+      background-size: 100px 100px, 180px 180px;
+      opacity: .7;
+    }
+    /* Animated tiny stars (JS-generated) will sit above this layer */
+    #starLayer { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
 
-      // Create user
-      const now = Date.now();
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = now + 15 * 60 * 1000;
+    /* Header */
+    .header {
+      position: sticky; top: 0; z-index: 1000;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 20px;
+      background: rgba(2,8,23,.92);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      font-family: Verdana, Geneva, sans-serif;
+    }
+    .logo {
+      width: 38px; height: 38px; border-radius: 6px;
+      background: linear-gradient(135deg, #ffd34d 0%, #f8b800 100%);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 700; color: #1a1a1a; font-family: Verdana, sans-serif;
+      box-shadow: 0 2px 6px rgba(0,0,0,.25);
+    }
+    .brand-name {
+      font-weight: 700; font-family: Verdana, Geneva, sans-serif;
+      font-size: 14px; color: #fff;
+      letter-spacing: .4px;
+    }
+    nav { display: flex; align-items: center; gap: 8px; }
 
-      db.run(
-        `INSERT INTO users (email, password_hash, verified, verification_code, verification_expires_at, created_at, updated_at)
-         VALUES (?, ?, 0, ?, ?, ?, ?)`,
-        [email, hash, verificationCode, expiresAt, now, now],
-        function (err) {
-          if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Internal server error' });
-          }
-          const userId = this.lastID;
-          const token = generateToken(userId);
-          res.cookie('token', token, { httpOnly: true, sameSite: 'Strict' });
-          // Attempt to send verification email (best effort in production)
-          sendVerificationEmail(email, verificationCode);
-          return res.json({ message: 'Registered', token });
+    .btn, .link {
+      background: transparent; color: white; text-decoration: none;
+      border: 1px solid rgba(255,255,255,.25);
+      padding: 10px 14px; border-radius: 6px;
+      font-weight: 600; cursor: pointer;
+    }
+    .btn.primary { background: var(--blue); border-color: rgba(255,255,255,.4); color: #fff; }
+    .cta-area { display: flex; align-items: center; gap: 8px; position: relative; }
+
+    /* Dropdown menu (three dashes) */
+    .menu { display: inline-flex; position: relative; }
+    .menu-btn {
+      width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 8px; border: 1px solid rgba(255,255,255,.25);
+      background: rgba(255,255,255,.08); color: #fff; font-size: 18px;
+    }
+    .mega-menu {
+      position: absolute; top: 52px; right: 0;
+      width: 720px; max-width: calc(100vw - 20px);
+      background: rgba(15,23,42,.98);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 12px; padding: 14px;
+      display: none; color: #e5e7eb;
+      box-shadow: 0 8px 28px rgba(0,0,0,.4);
+    }
+    .mega-menu.active { display: block; }
+    .mega-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .mega-section { padding: 8px 6px; border-right: 1px solid rgba(255,255,255,.1); }
+    .mega-section h4 { margin: 6px 0 6px; font-family: Verdana, Geneva, sans-serif; font-size: 14px; color: #e2e8f0; }
+    .mega-link { display: block; padding: 4px 6px; color: #d1d5db; text-decoration: none; border-radius: 4px; }
+    .mega-link:hover { background: rgba(255,255,255,.08); }
+
+    /* Layout container */
+    .container { max-width: 1100px; margin: 28px auto; padding: 0 20px; position: relative; z-index: 2; }
+
+    h1, h2 { color: white; font-family: Verdana, Geneva, sans-serif; }
+    h1 { font-size: 2.2rem; margin: 0 0 8px; }
+    h2 { font-size: 1.25rem; margin: 0.75rem 0; }
+
+    /* Sections (single-page navigation) */
+    section { display: none; padding: 20px; border-radius: 12px; background: rgba(255,255,255,.04); margin-bottom: 20px; }
+    section.active { display: block; }
+
+    /* Hero / Landing */
+    .hero { font-family: Verdana, Geneva, sans-serif; font-size: 2.2rem; color: #fff; margin-bottom: 6px; }
+    .lead { color: #d1d5db; max-width: 70ch; line-height: 1.5; }
+
+    .free-area { display: inline-flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px;
+                  border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.04); }
+    #generateApiBtn { background: #0a4bd3; color: white; border: none; padding: 12px 18px; border-radius: 999px; font-weight: 700; cursor: pointer; }
+    #freeApiStatus { margin: 0; color: #e5e5e5; }
+
+    /* Pricing cards (4 cards, responsive) */
+    .pricing { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 8px; }
+    .card { background: var(--card); color: var(--cardText); border-radius: 12px; padding: 16px; border: 1px solid rgba(0,0,0,.06); }
+    .card h3 { margin: 0 0 6px; font-family: Verdana, Geneva, sans-serif; }
+    .price { font-size: 28px; font-weight: 700; margin: 6px 0 4px; font-family: Verdana, Geneva, sans-serif; }
+    .per { font-size: 12px; color: #555; margin-left: 6px; }
+    .yearly { font-size: 13px; color: #555; margin-bottom: 8px; }
+    .buy { background: var(--blue); border: none; color: white; padding: 10px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .benefits { padding-left: 16px; margin: 6px 0 0 0; color: #1f2937; }
+    .benefits li { margin: 4px 0; }
+    @media (min-width: 900px) {
+      .pricing { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 800px) {
+      .pricing { grid-template-columns: 1fr; }
+      .mega-menu { width: calc(100vw - 20px); left: 10px; right: 10px; }
+    }
+
+    /* Section: Why Users Love Us / testimonials / carousel */
+    .why { font-family: Verdana, Geneva, sans-serif; }
+    .carousel { position: relative; height: 180px; overflow: hidden; border-radius: 10px; border: 1px solid rgba(0,0,0,.08); background: #fff; color: #111; }
+    .carousel-track { display: flex; height: 100%; transition: transform 0.5s ease-in-out; }
+    .slide { min-width: 100%; padding: 14px; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .slide p { margin: 0; font-family: Verdana, Geneva, sans-serif; color: #111; }
+    .slide.dark { background: #f7f7f7; }
+
+    /* Footer */
+    footer { text-align: center; color: #aaa; padding: 40px 0; background: rgba(0,0,0,.2); margin-top: 20px; }
+    .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; text-align: left; }
+    .footer h4 { color: #fff; font-family: Verdana, Geneva, sans-serif; font-size: 14px; margin: 0 0 6px; }
+    .footer a { color: #d1d5db; text-decoration: none; display: block; font-size: 13px; padding: 2px 0; }
+    .socials { display: inline-flex; gap: 10px; padding: 8px 0; }
+
+    /* Slight shimmer for headings on dark background */
+    .glow { text-shadow: 0 0 6px rgba(0, 186, 255, .6); }
+
+    /* Simple helper colors */
+    .muted { color: #cbd5e1; }
+  </style>
+</head>
+<body>
+
+  <div class="space" aria-hidden="true"></div>
+  <div id="starLayer"></div>
+
+  <header class="header" role="banner" aria-label="Top navigation">
+    <div class="brand" aria-label="MEDOR brand">
+      <div class="logo" aria-label="MEDOR logo">M</div>
+      <div class="brand-name" aria-label="MEDOR coin API">
+        MEDOR coin API
+      </div>
+    </div>
+
+    <div class="cta-area">
+      <button id="getApiBtn" class="btn primary" aria-label="Get API">
+        Get API
+      </button>
+
+      <div class="menu" aria-label="Main navigation">
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+          &#9776;
+        </button>
+        <div id="megaMenu" class="mega-menu" role="menu" aria-label="Portal menu">
+          <div class="mega-grid">
+            <div class="mega-section">
+              <h4>Dashboard</h4>
+              <a class="mega-link" href="#" data-section="dashboard">Open Dashboard</a>
+              <a class="mega-link" href="#" data-section="dashboard">My APIs</a>
+            </div>
+
+            <div class="mega-section">
+              <h4>See Plans</h4>
+              <!-- Basic -->
+              <a class="mega-link" href="#" data-section="basic-plan">Basic</a>
+              <!-- Sub-grid for plan details -->
+              <div id="basic-panel" class="card" style="display:none; padding:12px; margin-top:8px; border-radius:10px; background:#fff; color:#111;">
+                <strong>Basic Plan</strong>
+                <div class="price" style="font-size:28px;margin:6px 0;">$15 <span class="per">per month</span></div>
+                <div class="yearly" style="margin-bottom:6px;">Pay $99/year (Save $72)</div>
+                <button class="buy" style="background:#0a4bd3;color:white;border:0;border-radius:8px;padding:8px 12px;font-weight:700;">Buy Now</button>
+                <ul class="benefits" aria-label="Benefits of Basic">
+                  <li>100,000 APIs</li>
+                  <li>Historical and Real-Time Data</li>
+                  <li>REST Protocol</li>
+                  <li>Volume Discounts</li>
+                  <li>WebSocket Protocol</li>
+                  <li>Email support</li>
+                </ul>
+              </div>
+
+              <!-- Premium -->
+              <a class="mega-link" href="#" data-section="premium-plan" style="margin-top:6px;">Premium</a>
+              <div id="premium-panel" class="card" style="display:none; padding:12px; margin-top:8px; border-radius:10px; background:#fff; color:#111;">
+                <strong>Premium Plan</strong>
+                <div class="price" style="font-size:28px;margin:6px 0;">$45 <span class="per">per month</span></div>
+                <div class="yearly" style="margin-bottom:6px;">Pay $297/year (Save $243)</div>
+                <button class="buy" style="background:#0a4bd3;color:white;border:0;border-radius:8px;padding:8px 12px;font-weight:700;">Buy Now</button>
+                <ul class="benefits" aria-label="Benefits of Premium">
+                  <li>All Basic benefits</li>
+                  <li>1K REST credits per day</li>
+                  <li>40 GB tier 1 data per day</li>
+                  <li>2 GB tier 2 data per day</li>
+                  <li>Exclusive support</li>
+                  <li>Fixed API</li>
+                </ul>
+              </div>
+
+              <!-- Gold -->
+              <a class="mega-link" href="#" data-section="gold-plan" style="margin-top:6px;">Gold</a>
+              <div id="gold-panel" class="card" style="display:none; padding:12px; margin-top:8px; border-radius:10px; background:#fff; color:#111;">
+                <strong>Gold Plan</strong>
+                <div class="price" style="font-size:28px;margin:6px 0;">$150 <span class="per">per month</span></div>
+                <div class="yearly" style="margin-bottom:6px;">Pay $900/year (Save $900)</div>
+                <button class="buy" style="background:#0a4bd3;color:white;border:0;border-radius:8px;padding:8px 12px;font-weight:700;">Buy Now</button>
+                <ul class="benefits" aria-label="Benefits of Gold">
+                  <li>All Premium benefits</li>
+                  <li>12,000 REST credits per day</li>
+                  <li>130 GB tier 1 data per day</li>
+                  <li>2 GB tier 2 data per day</li>
+                </ul>
+              </div>
+
+              <!-- Silver -->
+              <a class="mega-link" href="#" data-section="silver-plan" style="margin-top:6px;">Silver</a>
+              <div id="silver-panel" class="card" style="display:none; padding:12px; margin-top:8px; border-radius:10px; background:#fff; color:#111;">
+                <strong>Silver Plan</strong>
+                <div class="price" style="font-size:28px;margin:6px 0;">$350 <span class="per">per month</span></div>
+                <div class="yearly" style="margin-bottom:6px;">Pay $2300/year (Save 55%)</div>
+                <button class="buy" style="background:#0a4bd3;color:white;border:0;border-radius:8px;padding:8px 12px;font-weight:700;">Buy Now</button>
+                <ul class="benefits" aria-label="Benefits of Silver">
+                  <li>All Gold benefits</li>
+                  <li>512 GB tier 1 data per day</li>
+                  <li>120K REST credits per day</li>
+                  <li>64 GB tier 2 data per day</li>
+                  <li>Exclusive support</li>
+                  <li>Fixed API</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="mega-section" aria-label="Developers">
+              <h4>Developers</h4>
+              <a class="mega-link" href="#" data-section="sdk">SDKs</a>
+              <a class="mega-link" href="#" data-section="docs">API Documentation</a>
+              <a class="mega-link" href="#" data-section="changelog" style="display:block;">Change Log</a>
+              <a class="mega-link" href="#" data-section="tutorials" style="display:block;">Tutorials</a>
+              <a class="mega-link" href="#" data-section="knowapi" style="display:block; margin-top:6px;">Know Your API</a>
+
+              <h4 style="margin-top:12px;">Resources</h4>
+              <a class="mega-link" href="#" data-section="glossary">Glossary</a>
+              <a class="mega-link" href="#" data-section="security">Security & Compliance</a>
+              <a class="mega-link" href="#" data-section="support">Technical Support</a>
+              <a class="mega-link" href="#" data-section="contact">Contact Us</a>
+            </div>
+
+            <div class="mega-section" aria-label="Auth & Sign In">
+              <h4>Account</h4>
+              <a class="mega-link" href="#" data-section="signup">Sign Up</a>
+              <a class="mega-link" href="#" data-section="login">Login</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+  <!-- Main content -->
+  <main class="container" id="main">
+    <!-- API Portal Hub (branding, Get API CTA, navigation) -->
+    <section id="portal" class="portal active-section card section active" aria-label="API portal hub" style="padding:28px;">
+      <h1 class="hero glow" style="color:white; font-family: Verdana, Geneva, sans-serif;">Buy, Get two free APIs</h1>
+      <p class="lead" style="color:#d1d5db;">
+        Medor Coin API enables individuals and institutions to access secure, scalable crypto data through a unified API platform.
+        Get two free APIs to start exploring right away.
+      </p>
+
+      <div class="free-area" style="margin: 12px 0 12px 0;">
+        <button id="generateTwoApis" aria-label="Generate two free APIs" style="background:#e11d48; color:#fff; border:0; padding:12px 18px; border-radius:999px; font-weight:700;">
+          Get Two Free APIs
+        </button>
+        <p id="freeApiStatus" style="margin:0;">You have 2 free APIs available</p>
+      </div>
+
+      <div id="portalMessage" class="lead" style="color:#e5e5e5; font-size:14px;"></div>
+
+      <hr style="border:0;border-top:1px solid rgba(255,255,255,.2);" />
+
+      <h2 style="color:white; margin-top:6px; font-family: Verdana, Geneva, sans-serif;">Unified Navigation</h2>
+      <ul style="color:#e5e5e5; padding-left:1.2rem;">
+        <li><a href="#" class="link" data-section="signup" style="color:#fff;">Sign Up</a></li>
+        <li><a href="#" class="link" data-section="verify" style="color:#fff;">Verify Email</a></li>
+        <li><a href="#" class="link" data-section="dashboard" style="color:#fff;">My APIs</a></li>
+        <li><a href="#" class="link" data-section="receipt" style="color:#fff;">Receipt</a></li>
+      </ul>
+
+      <p style="color:#d1d5db; font-size:14px;">Note: This hub is a front-end proxy to your backend APIs. Sign up with email/password, verify, and manage keys here.</p>
+    </section>
+
+    <!-- Sign Up -->
+    <section id="signup" class="section" aria-label="Sign up" style="padding:28px;">
+      <h2>Sign Up</h2>
+      <form id="signupForm" autocomplete="off">
+        <div class="field">
+          <label for="signupEmail" style="font-size:14px; color:#e5e5e5;">Email</label>
+          <input id="signupEmail" type="email" placeholder="you@example.com" required />
+        </div>
+        <div class="field">
+          <label for="signupPassword" style="font-size:14px; color:#e5e5e5;">Password</label>
+          <input id="signupPassword" type="password" placeholder="Password" required />
+        </div>
+        <button type="button" id="signupBtn" class="btn primary" style="width:fit-content;">Create Account</button>
+      </form>
+      <p class="note" style="margin-top:8px;">Tip: Email/password flow. No username field is sent to the backend.</p>
+      <div id="signupStatus" style="margin-top:8px; color:#e5e5e5;"></div>
+    </section>
+
+    <!-- Verify Email -->
+    <section id="verify" class="section" aria-label="Email verification" style="padding:28px;">
+      <h2>Email Verification</h2>
+      <p style="color:#d1d5db;">Enter the 6-digit code you received after sign up.</p>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input id="verifyCode" placeholder="123456" maxlength="6" style="padding:12px; border-radius:6px; border:1px solid #ddd;" />
+        <button id="verifyBtn" class="btn" style="padding:12px 16px; font-weight:700;">Verify</button>
+      </div>
+      <div id="verifyStatus" class="note" style="margin-top:8px;"></div>
+    </section>
+
+    <!-- My APIs -->
+    <section id="dashboard" class="section" aria-label="My APIs and keys" style="padding:28px;">
+      <h2>Your API Keys</h2>
+      <div id="keys" style="margin: 6px 0 12px 0;"></div>
+      <button id="buyMoreBtn" class="btn" style="margin-right:8px;">Buy More APIs</button>
+      <button id="refreshKeysBtn" class="btn" style="background:#374151;">Refresh</button>
+    </section>
+
+    <!-- Receipt -->
+    <section id="receipt" class="section" aria-label="Receipt" style="padding:28px;">
+      <h2>Transaction Receipt</h2>
+      <div class="receipt" aria-label="Receipt details" style="background:#fff; color:#111;">
+        <h3 class="section-title" style="margin-top:0; text-align:center; color:#333;">Transaction Details</h3>
+        <table id="receiptDetails">
+          <tr><th>TX Hash</th><td id="txHash"></td></tr>
+          <tr><th>Block Hash</th><td id="blockHash"></td></tr>
+          <tr><th>Block Number</th><td id="blockNumber"></td></tr>
+          <tr><th>From</th><td id="from"></td></tr>
+          <tr><th>To</th><td id="to"></td></tr>
+          <tr><th>Status</th><td id="status"></td></tr>
+          <tr><th>Gas Used</th><td id="gasUsed"></td></tr>
+        </table>
+
+        <h3 class="section-title" style="margin-top:14px; text-align:center; color:#333;">Event Logs</h3>
+        <table id="logsTable" style="width:100%; border-collapse: collapse;">
+          <tr><th>#</th><th>Address</th><th>Topics</th><th>Data</th></tr>
+          <!-- rows injected dynamically -->
+        </table>
+
+        <h3 class="section-title" style="margin-top:14px; text-align:center; color:#333;">Purchased Item</h3>
+        <table id="product" style="width:100%; border-collapse: collapse;">
+          <tr><th>Product</th><td id="productName"></td></tr>
+          <tr><th>Level</th><td id="productLevel"></td></tr>
+          <tr><th>Price</th><td id="price"></td></tr>
+          <tr><th>Date</th><td id="date"></td></tr>
+          <tr><th>Buyer</th><td id="buyerName"></td></tr>
+          <tr><th>Mining Power</th><td id="miningAmount"></td></tr>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div style="padding:0 20px; max-width:1100px;margin:0 auto;">
+      <div class="footer-grid" style="margin:0 0 20px 0;">
+        <div class="footer-col">
+          <h4>Other products</h4>
+          <a href="https://mdorcoin.invisible-m.com" target="_blank" rel="noreferrer">MDORCOIN</a>
+        </div>
+        <div class="footer-col">
+          <h4>About</h4>
+          <a href="#" data-section="about">About Us</a>
+        </div>
+        <div class="footer-col">
+          <h4>Developers</h4>
+          <a href="#" data-section="developers">Developers</a>
+        </div>
+        <div class="footer-col">
+          <h4>Help</h4>
+          <a href="#" data-section="help">Help</a>
+        </div>
+      </div>
+
+      <div class="socials" aria-label="Social links" style="justify-content:center;">
+        <a href="#" aria-label="X (Twitter)">X</a>
+        <a href="#" aria-label="LinkedIn">LinkedIn</a>
+        <a href="#" aria-label="GitHub">GitHub</a>
+        <a href="#" aria-label="Facebook">Facebook</a>
+      </div>
+
+      <div style="color:#aaa; font-size:12px; margin-top:6px;">
+        © MedorCoin. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Simple in-page router: show one section at a time
+    const sections = ["portal","signup","verify","dashboard","receipt","about","help","developers","pricing"];
+    function showSection(name) {
+      sections.forEach(n => {
+        const el = document.getElementById(n);
+        if (el) el.style.display = (n === name) ? "block" : "none";
+      });
+      if (name) history.replaceState(null, '', '#' + name);
+    }
+
+    // Wire header nav to sections via data-section attributes
+    document.querySelectorAll('header [data-section], .mega-link').forEach(el => {
+      el.addEventListener('click', (e) => {
+        const target = el.getAttribute('data-section');
+        if (target) {
+          // simple navigation: map target to a visible section
+          const map = {
+            'dashboard':'portal', // using 'dashboard' as the same portal section in this mock
+            'basic-plan':'pricing',
+            'premium-plan':'pricing',
+            'gold-plan':'pricing',
+            'silver-plan':'pricing',
+            'signup':'signup',
+            'verify':'verify',
+            'receipt':'receipt',
+            'knowapi':'pricing'
+          };
+          showSection(map[target] || target);
         }
-      );
+      });
     });
-  });
-});
 
-// Login
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-
-  db.get('SELECT id, password_hash FROM users WHERE email = ?', [email], (err, row) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-    if (!row) return res.status(401).json({ error: 'Invalid credentials' });
-
-    bcrypt.compare(password, row.password_hash, (err, ok) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Internal server error' });
+    // Starfield: create some tiny stars that drift slowly
+    (function createStars() {
+      const layer = document.getElementById('starLayer');
+      const count = 80;
+      for (let i = 0; i < count; i++) {
+        const s = document.createElement('span');
+        const size = Math.random() * 2 + 1;
+        s.style.position = 'absolute';
+        s.style.left = Math.random() * 100 + 'vw';
+        s.style.top = Math.random() * 100 + 'vh';
+        s.style.width = size + 'px';
+        s.style.height = size + 'px';
+        s.style.borderRadius = '50%';
+        s.style.background = 'white';
+        s.style.opacity = Math.random() * 0.8 + 0.2;
+        s.style.filter = 'blur(' + (Math.random()*1.5) + 'px)';
+        s.style.willChange = 'transform';
+        const d = Math.random() * 40;
+        s.style.transform = 'translateY(0)';
+        // animation via CSS transform loop in JS
+        let t = 0;
+        setInterval(() => {
+          t += 0.08;
+          const y = Math.sin(t) * 2;
+          s.style.transform = 'translateY(' + y + 'px)';
+        }, 60);
+        layer.appendChild(s);
       }
-      if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+    })();
 
-      const token = generateToken(row.id);
-      res.cookie('token', token, { httpOnly: true, sameSite: 'Strict' });
-      res.json({ message: 'Logged in', token });
-    });
-  });
-});
-
-// Verify email
-app.post('/api/verify', (req, res) => {
-  const tokenFromCookie = req.cookies.token;
-  const tokenFromHeader = (req.headers['authorization'] || '').startsWith('Bearer ')
-    ? req.headers['authorization'].split(' ')[1]
-    : null;
-  const token = tokenFromCookie || tokenFromHeader;
-
-  const userId = verifyTokenOrNull(token);
-  if (!token || !userId) return res.status(401).json({ success: false, message: 'No valid token' });
-
-  const { code } = req.body;
-  if (!code) return res.status(400).json({ success: false, message: 'Verification code required' });
-
-  db.get('SELECT verification_code, verification_expires_at, verified FROM users WHERE id = ?', [userId], (err, row) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ success: false, message: 'Internal server error' });
-    }
-    if (!row) return res.status(401).json({ success: false, message: 'User not found' });
-
-    if (Date.now() > (row.verification_expires_at || 0)) {
-      return res.status(400).json({ success: false, message: 'Verification code expired' });
-    }
-    if (row.verification_code !== code) {
-      return res.status(400).json({ success: false, message: 'Invalid verification code' });
+    // Portal Get API (mocked flow)
+    let freeCounter = 2;
+    const twoApisBtn = document.getElementById('generateTwoApis');
+    const freeApiStatus = document.getElementById('freeApiStatus');
+    const portalMessage = document.getElementById('portalMessage');
+    if (twoApisBtn) {
+      twoApisBtn.addEventListener('click', () => {
+        if (freeCounter <= 0) {
+          portalMessage.textContent = "Free API limit reached. Sign up or login to purchase more.";
+          return;
+        }
+        // Simulated API call to backend
+        setTimeout(() => {
+          freeCounter--;
+          freeApiStatus.textContent = `You have ${freeCounter} free API${freeCounter !== 1 ? 's' : ''} left`;
+          portalMessage.textContent = "Here is your free API: [mock-key-" + Math.floor(Math.random()*1000000) + "]";
+        }, 600);
+      });
     }
 
-    db.run('UPDATE users SET verified = 1, verification_code = NULL, verification_expires_at = NULL, updated_at = ? WHERE id = ?', [Date.now(), userId], (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ success: false, message: 'Internal server error' });
+    // Sign Up (mock)
+    const signupBtn = document.getElementById('signupBtn');
+    const signupStatus = document.getElementById('signupStatus');
+    if (signupBtn) {
+      signupBtn.addEventListener('click', async () => {
+        const email = document.getElementById('signupEmail').value.trim();
+        const password = document.getElementById('signupPassword').value;
+        if (!email || !password) {
+          signupStatus.textContent = "Please fill in all fields.";
+          return;
+        }
+        // Mock success
+        setTimeout(() => {
+          localStorage.setItem('token', 'mock-token-123');
+          signupStatus.textContent = "Account created. Redirecting to verification...";
+          showSection('verify');
+        }, 400);
+      });
+    }
+
+    // Verify
+    const verifyBtn = document.getElementById('verifyBtn');
+    const verifyStatus = document.getElementById('verifyStatus');
+    if (verifyBtn) {
+      verifyBtn.addEventListener('click', () => {
+        const code = document.getElementById('verifyCode').value.trim();
+        const token = localStorage.getItem('token');
+        if (!token) { verifyStatus.textContent = 'No token found, please login again.'; return; }
+        if (!code || code.length !== 6) { verifyStatus.textContent = 'Enter a valid 6-digit code.'; return; }
+        // Mock success
+        setTimeout(() => {
+          verifyStatus.textContent = 'Verification succeeded. You can now access your APIs.';
+          showSection('dashboard');
+          // loadKeys() could be wired to your /api/user/apis
+        }, 400);
+      });
+    }
+
+    // My APIs: simple mock
+    const refreshKeysBtn = document.getElementById('refreshKeysBtn');
+    if (refreshKeysBtn) {
+      refreshKeysBtn.addEventListener('click', () => {
+        // Mock refresh
+        const keys = document.getElementById('keys');
+        if (keys) {
+          keys.innerHTML = '<div class="api">API 1: <span class="masked">0xABCD1234...EFGH</span></div>';
+        }
+      });
+    }
+
+    // Setup a basic "Know Your API" / "Why Users Love Us" section on first load
+    window.addEventListener('DOMContentLoaded', () => {
+      // Start on portal
+      if (location.hash) {
+        const h = location.hash.substring(1);
+        if (sections.includes(h)) showSection(h);
+        else showSection('portal');
+      } else {
+        showSection('portal');
       }
-      return res.json({ success: true, message: 'Email verified' });
-    });
-  });
-});
 
-// Get user APIs
-app.get('/api/user/apis', authMiddleware, (req, res) => {
-  const userId = req.userId;
-  db.all('SELECT key FROM apis WHERE user_id = ?', [userId], (err, rows) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-    const keys = rows.map(r => r.key);
-    res.json(keys);
-  });
-});
-
-// Generate new API key (requires verification)
-app.post('/api/apikey/new', authMiddleware, (req, res) => {
-  const userId = req.userId;
-  // Ensure user is verified
-  db.get('SELECT verified FROM users WHERE id = ?', [userId], (err, row) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-    if (!row || !row.verified) {
-      return res.status(403).json({ error: 'Not verified' });
-    }
-
-    const apiKey = generateApiKey();
-    const now = Date.now();
-    db.run('INSERT INTO apis (user_id, key, created_at) VALUES (?, ?, ?)', [userId, apiKey, now], (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Internal server error' });
+      // Basic "Why Users Love Us" content
+      // Could be extended to a separate section with a carousel later
+      const hero = document.querySelector('.hero');
+      if (hero) {
+        // no-op, heading already set
       }
-      res.json({ apiKey });
+
+      // Simple 5-slide carousel placeholder
+      createCarousel();
     });
-  });
-});
 
-// Optional: health check
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+    function createCarousel() {
+      const container = document.createElement('div');
+      container.style.marginTop = '16px';
+      container.innerHTML = `
+        <div class="carousel" aria-label="API showcase carousel">
+          <div class="carousel-track" id="carouselTrack">
+            <div class="slide" style="background:#fff;">
+              <span>Slide 1: Reliable Crypto APIs</span>
+            </div>
+            <div class="slide dark" style="background:#f3f4f6;">
+              <span>Slide 2: Real-time Market Data</span>
+            </div>
+            <div class="slide" style="background:#fff;">
+              <span>Slide 3: REST + WebSocket</span>
+            </div>
+            <div class="slide dark" style="background:#f3f4f6;">
+              <span>Slide 4: Global Coverage</span>
+            </div>
+            <div class="slide" style="background:#fff;">
+              <span>Slide 5: Developer Friendly</span>
+            </div>
+          </div>
+        </div>
+      `;
+      // append to portal section
+      const portal = document.getElementById('portal');
+      if (portal) portal.appendChild(container);
 
-// Start
-app.listen(PORT, () => {
-  console.log(`MedorCoin backend running on port ${PORT}`);
-});
+      // simple auto-advance
+      let idx = 0;
+      const track = document.getElementById('carouselTrack');
+      const slides = track ? track.children.length : 0;
+      if (track && slides > 0) {
+        setInterval(() => {
+          idx = (idx + 1) % slides;
+          track.style.transform = `translateX(-${idx * 100}%)`;
+        }, 3500);
+      }
+    }
 
-// Graceful shutdown
-process.on('SIGINT', () => {
-  try {
-    db.close();
-  } catch (_) {}
-  process.exit(0);
-});
-process.on('SIGTERM', () => {
-  try {
-    db.close();
-  } catch (_) {}
-  process.exit(0);
-});
-
+  </script>
+</body>
+</html>
