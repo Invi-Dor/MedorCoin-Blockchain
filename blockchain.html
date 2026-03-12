@@ -1,131 +1,265 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>MedorCoin — Blockchain</title>
-<meta name="description" content="On-chain tools, explorers, and verification for MedorCoin."/>
-<style>
-  :root{--bg:#faf9f6;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb}
-  {box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-  a{color:#B5943F;text-decoration:none} a:hover{text-decoration:underline}
-  .container{max-width:980px;margin:0 auto;padding:12px}
-  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.space{justify-content:space-between}
-  .logo{display:flex;align-items:center;gap:10px}
-  .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7}
-  .brand{font-weight:800;font-size:18px}
-  .tabs{display:flex;gap:10px;overflow:auto;padding:10px 0;margin-top:8px}
-  .tab{display:flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid var(--border);color:var(--ink);border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
-  .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center}
-  .icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#eef1f5;border:1px solid #e2e8f0}
-  .muted{color:var(--muted);font-size:12px}
-  .icon svg{width:22px;height:22px;display:block}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MedorCoin — Home</title>
+  <meta name="description" content="MedorCoin home portal."/>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --ink:#e5e7eb;
+      --muted:#94a3b8;
+      --border:#334155;
+      --success:#10b981;
+    }
+    {box-sizing:border-box}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#e2e8f0}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:980px;margin:0 auto;padding:12px}
+    .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .space{justify-content:space-between}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #334155}
+    .brand{font-weight:800;font-size:18px}
+    .wallet-status{position:fixed;top:10px;right:10px;background:var(--success);color:white;padding:8px 12px;border-radius:20px;font-size:12px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(16,185,129,0.3);display:none}
+    .searchbar{display:flex;align-items:center;gap:8px;background:#111827;border:1px solid var(--border);border-radius:999px;padding:10px 12px;margin-top:12px}
+    .searchbar input{border:0;outline:0;flex:1;font-size:14px;color:#e5e7eb;background:transparent}
+    .pill{font-size:12px;background:#1e293b;color:#e5e7eb;border:1px solid #334155;border-radius:999px;padding:4px 8px}
+    .tabs{display:flex;gap:10px;overflow:auto;padding:10px 0;margin-top:8px}
+    .tab{display:flex;align-items:center;gap:6px;background:#1f2937;border:1px solid var(--border);color:#e2e8f0;border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px}
+    .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+    .muted{color:var(--muted);font-size:12px}
+    .icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+    .icon svg{width:22px;height:22px;display:block}
+    .ic-slate{background:#1f2937;border:1px solid #374151}
+    /* Specific tile color tweaks to preserve original vibe */
+    .bg-blue{background:#0B3D91;color:#fff;border:1px solid var(--border)}
+    .bg-teal{background:#87CEEB;color:#333;border:1px solid var(--border)}
+    .bg-orange{background:#FFD6A3;color:#333;border:1px solid var(--border)}
+    .bg-dark{background:#3F3F3F;color:#FDE68A;border:1px solid var(--border)}
+    .bg-learn{background:#0B3D91;color:#fff;border:1px solid var(--border)}
+    .bg-chat{background:#E6D5FF;color:#A089FF;border:1px solid var(--border)}
+    .bg-whales{background:#F5F5DC;color:#333;border:1px solid var(--border)}
+    .bg-account{background:#BDE7FF;color:#fff;border:1px solid var(--border)}
+  </style>
 </head>
 <body>
-<!-- TERMS AGREEMENT MODAL - REQUIRED FOR ALL FORMS -->
-<div id="termsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999;">
-    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:30px; border-radius:20px; max-width:90%; max-height:90%; overflow-y:auto; font-family:Arial;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <div style="font-size:24px; font-weight:bold;">🪙 Terms Required</div>
-            <button onclick="acceptTerms()" style="background:#ff6b6b; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-size:16px;">✓ Accept</button>
-        </div>
-        <div style="font-size:14px; line-height:1.5; max-height:400px; overflow-y:auto;">
-            <p><strong>⚠️ You must agree to Terms before proceeding:</strong></p>
-            <ul style="margin:15px 0; padding-left:20px;">
-                <li>I am 18+ years old</li>
-                <li>Crypto is HIGHLY VOLATILE - I accept ALL risks</li>
-                <li>NO refunds on courses/payments</li>
-                <li>MedorCoin provides NO financial advice</li>
-                <li>Terms may change without notice</li>
-                <li>I am responsible for my security</li>
-            </ul>
-            <p><a href="terms.html" target="_blank" style="color:#fff; text-decoration:underline;">Read Full Terms</a></p>
-        </div>
-    </div>
-</div>
+<div id="walletStatus" class="wallet-status"></div>
 
-<script>
-// BLOCK ALL FORMS UNTIL TERMS ACCEPTED
-let termsAccepted = localStorage.getItem('medorcoin_terms') === 'accepted';
-
-function showTermsModal() {
-    if (!termsAccepted) document.getElementById('termsModal').style.display = 'block';
-}
-
-function acceptTerms() {
-    localStorage.setItem('medorcoin_terms', 'accepted');
-    termsAccepted = true;
-    document.getElementById('termsModal').style.display = 'none';
-    // UNBLOCK FORMS HERE - remove disabled from buttons/inputs
-}
-
-// AUTO-SHOW ON FORM SUBMITS
-document.addEventListener('DOMContentLoaded', function() {
-    // Add to ALL your signup/wallet/course buttons:
-    const buttons = document.querySelectorAll('button[type="submit"], .signup-btn, .wallet-btn, .course-buy');
-    buttons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            if (!termsAccepted) {
-                e.preventDefault();
-                showTermsModal();
-            }
-        });
-    });
-});
-</script>
-  <div class="container">
-    <div class="row space">
-      <div class="logo"><img src="../assets/logo.png" alt="MedorCoin Logo"/><div class="brand">MedorCoin</div></div>
+<div class="container">
+  <!-- HEADER: logo + brand on left, actions on right -->
+  <div class="row space" style="background:linear-gradient(135deg,#1f3a8a 0%,#1e40af 100%);color:white;padding:12px 16px;border-radius:14px;margin-bottom:14px;align-items:center;">
+    <div class="logo" aria-label="MedorCoin Logo and Brand" style="display:flex;align-items:center;gap:12px;">
+      <img src="assets/logo.svg" alt="MedorCoin Logo" height="36" style="width:36px;height:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7;">
+      <span class="brand" style="font-weight:800;font-size:18px;">MedorCoin</span>
     </div>
 
-    <div class="tabs">
-      <a class="tab" href="../index.html">🏠 HomePage</a>
-      <!-- Removed Food tab -->
-      <a class="tab" href="../miners.html">⛏️ Miners</a>
-      <a class="tab" href="../developers.html">👩‍💻 Developers</a>
-      <a class="tab" href="../trading.html">📈 Crypto Trading</a>
+    <!-- RIGHT-SIDE LINKS ON ONE LINE -->
+    <div style="font-size:12px;display:flex;gap:12px;align-items:center;">
+      <a href="create-wallet.html" style="color:white;text-decoration:none;">Create Wallet</a> |
+      <a href="connect-wallet.html" style="color:white;text-decoration:none;">Connect Wallet</a> |
+      <a href="signup.html" style="color:white;text-decoration:none;">SignUp</a> |
+      <a href="login.html" style="color:white;text-decoration:none;">Login</a> |
+      <a href="verify.html" style="color:white;text-decoration:none;">Verify</a>
     </div>
-
-    <!-- Trading view widget embed right under the header -->
-    <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-market-summary.js"></script>
-    <tv-market-summary direction="horizontal" assets-type="crypto"></tv-market-summary>
-
-    <h2 style="margin:8px 0 0 2px">⛓️ Blockchain</h2>
-    <div class="muted" style="margin:4px 2px 10px">On-chain explorer, verification tools, and network endpoints.</div>
-
-    <div class="grid">
-      <div class="tile">
-        <div class="icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#B5943F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="5" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-            <circle cx="19" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-            <circle cx="5" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-            <circle cx="19" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-            <path d="M7.2 6h9.6"/><path d="M5 8.6v6.8"/><path d="M19 8.6v6.8"/><path d="M6.6 16.8L10.8 12h-2.2l4.8-4.8M12.8 12l4.6 4.6"/>
-          </svg>
-        </div>
-        <div class="menu-item" style="/* optional styling to match your UI */">
-  <a href="explorer.html" target="_blank" rel="noopener" aria-label="Open MEDOR Explorer" style="text-decoration:none;color:inherit; display:inline-flex; align-items:center;">
-    <b>Explorer</b>
-    <span class="muted" style="margin-left:6px;">Search tx, blocks, addresses</span>
-  </a>
-</div>
-
-      <div class="tile">
-        <div class="icon" aria-hidden="true">✅</div>
-        <b>Verify</b>
-        <span class="muted">Proofs & signatures</span>
-      </div>
-
-      <div class="tile">
-        <div class="icon" aria-hidden="true">🛰️</div>
-        <b>RPC Endpoints</b>
-        <span class="muted">Public/Private nodes</span>
-      </div>
-    </div>
-
-    <p class="muted" style="margin-top:14px"><a href="../index.html">← Back to Home</a></p>
   </div>
+
+  <div class="searchbar" aria-label="Site search">
+    <span style="opacity:.7">🔎</span>
+    <input id="q" placeholder="Search"/>
+    <span class="pill">AI</span>
+  </div>
+
+  <div class="tabs" aria-label="Main sections">
+    <a class="tab" href="index.html">🏠 HomePage</a>
+    <a class="tab" href="miners.html">⛏️ Miners</a>
+    <a class="tab" href="developers.html">👩‍💻 Developers</a>
+    <a class="tab" href="trading.html">📈 Crypto Trading</a>
+  </div>
+
+  <!-- Welcome note moved under the tabs -->
+  <div id="welcomeNote" style="text-align:center;margin:6px 0 14px;">
+    <span style="color:#EDE3DA;font-weight:700;font-size:16px;">
+      Welcome to MedorCoin — explore tools, APIs, and insights.
+    </span>
+  </div>
+
+  <div id="ticker" class="ticker" style="text-align:center;margin:6px 0 14px;">
+    <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-ticker-tape.js"></script>
+    <tv-ticker-tape symbols='BINANCE:BTCUSDT,BINANCE:ETHUSDT,BINANCE:XRPUSDT,BINANCE:BNBUSDT,BINANCE:XRPUSDT.P,Fryjcoin,BINANCE:LINKUSDT,BINANCE:SOLUSDT'></tv-ticker-tape>
+  </div>
+
+  <div class="grid" aria-label="Portal tiles">
+    <!-- Blockchain tile -->
+    <a class="tile bg-teal" href="/blockchain.html" style="min-height:96px;">
+      <div class="icon ic-slate" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#B5943F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="5" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+          <circle cx="19" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+          <circle cx="5" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+          <circle cx="19" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
+          <path d="M7.2 6h9.6"/><path d="M5 8.6v6.8"/><path d="M19 8.6v6.8"/><path d="M6.6 16.8L10.8 12h-2.2l4.8-4.8M12.8 12l4.6 4.6"/>
+        </svg>
+      </div>
+      <b>Blockchain</b>
+      <span class="muted">On-chain tools & explorer</span>
+    </a>
+
+    <!-- Get API tile (new, between Blockchain and Miners) -->
+    <a class="tile" href="get-api.html" style="background:#87CEEB;color:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true" style="font-size:20px;">🔗</div>
+      <b>Get API</b>
+      <span class="muted" style="color:#fff;opacity:.95">API access</span>
+    </a>
+
+    <!-- Miners tile -->
+    <a class="tile" href="miners.html" style="background:#FFD6A3;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">⛏️</div>
+      <b>Miners</b>
+      <span class="muted">Start mining</span>
+    </a>
+
+    <!-- Developers tile -->
+    <a class="tile" href="developers.html" style="background:#87CEEB;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">👩‍💻</div>
+      <b>Developers</b>
+      <span class="muted">Docs & SDKs</span>
+    </a>
+
+    <!-- Crypto Trading tile -->
+    <a class="tile" href="trading.html" style="background:#2f2f2f;color:#FDE68A;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#FDE68A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12h4l3-7 4 14 5-9" />
+          <path d="M3 12h4" />
+        </svg>
+      </div>
+      <b style="color:#FDE68A">Crypto Trading</b>
+      <span class="muted" style="color:#FDE68A">Markets & tools</span>
+    </a>
+
+    <!-- Learn tile (links to Learn page) -->
+    <a class="tile" href="learn.html" style="background:#0B3D91;color:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">📚</div>
+      <b>Learn</b>
+      <span class="muted" style="color:#fff">Guides</span>
+    </a>
+
+    <!-- Explorer tile (new) -->
+    <a class="tile" href="explorer.html" style="background:#D5E8FF;color:#0b2a63;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">🧭</div>
+      <b>Explorer</b>
+      <span class="muted" style="color:#0b2a63">MEDOR Smart Chain</span>
+    </a>
+
+    <!-- Chatroom tile -->
+    <a class="tile" href="Chatroom.html" style="background:#E6D5FF;color:#A089FF;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">💬</div>
+      <b>Chatroom</b>
+      <span class="muted" style="color:#A089FF">Chat & support</span>
+    </a>
+
+    <!-- Crypto Whales tile -->
+    <a class="tile" href="crypto-whales.html" style="background:#F5F5DC;color:#333;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true">🐋</div>
+      <b>Crypto Whales</b>
+      <span class="muted" style="color:#333">Large flows</span>
+    </a>
+
+    <!-- More tile (end) -->
+    <a class="tile" href="more.html" style="background:#87CEEB;color:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="icon ic-slate" aria-hidden="true" style="font-size:18px;">MORE</div>
+      <b>More</b>
+      <span class="muted" style="color:#fff;opacity:.95">Explore more</span>
+    </a>
+  </div>
+
+  <!-- TradingView Screener Widget (embedded) -->
+  <div class="tradingview-widget-container" style="margin:20px 0;">
+    <div class="tradingview-widget-container__widget"></div>
+    <div class="tradingview-widget-copyright">
+      <a href="https://www.tradingview.com/markets/cryptocurrencies/prices-all/" rel="noopener nofollow" target="_blank">
+        <span class="blue-text">Crypto markets</span>
+      </a>
+      <span class="trademark"> by TradingView</span>
+    </div>
+    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>
+    {
+      "defaultColumn": "overview",
+      "screener_type": "crypto_mkt",
+      "displayCurrency": "USD",
+      "colorTheme": "dark",
+      "isTransparent": false,
+      "locale": "en",
+      "width": "100%",
+      "height": 550
+    }
+    </script>
+  </div>
+
+  <!-- Two-column resources (General / Introduction, then Row 2) -->
+  <section class="resources" style="padding:20px 12px;">
+    <div class="ext-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
+      <!-- Column 1: General -->
+      <div class="col" aria-label="General">
+        <h3>General</h3>
+        <ul style="padding-left:20px;margin:6px 0 0;">
+          <li><a href="beware-of-scams.html">Beware of Scams</a></li>
+          <li><a href="buy-sell-medorcoin.html">Buy & Sell</a></li>
+          <li><a href="invisible-m-blog.html">Blog</a></li>
+          <li><a href="legal.html">Legal</a></li>
+          <li><a href="run-full-node.html">Full Node</a></li>
+          <li><a href="sponsor-us.html">Sponsor Us</a></li>
+        </ul>
+      </div>
+      <!-- Column 2: Introduction -->
+      <div class="col" aria-label="Introduction">
+        <h3>Introduction</h3>
+        <ul style="padding-left:20px;margin:6px 0 0;">
+          <li><a href="about-medorcoin.html">About MedorCoin</a></li>
+          <li><a href="how-it-works.html">How it Works</a></li>
+          <li><a href="important-to-know.html">Important to Know</a></li>
+          <li><a href="introduction.html">Introductionl</a></li>
+          <li><a href="white-paper.html">White Paper</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ext-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:24px;">
+      <!-- Row 2 Column 1: Resources -->
+      <div class="col" aria-label="Resources">
+        <h3>Resources</h3>
+        <ul style="padding-left:20px;margin:6px 0 0;">
+          <li><a href="community.html">Community</a></li>
+          <li><a href="latest-news.html">Latest News</a></li>
+          <li><a href="resources.html">Resources</a></li>
+          <li><a href="terms-and-conditions.html">Terms & Conditions</a></li>
+        </ul>
+      </div>
+      <!-- Row 2 Column 2: About MedorCoin -->
+      <div class="col" aria-label="About MedorCoin">
+        <h3>About MedorCoin:</h3>
+        <ul style="padding-left:20px;margin:6px 0 0;">
+          <li><a href="institutions.html">For Institutions</a></li>
+          <li><a href="investors.html">For Investors</a></li>
+          <li><a href="medorcoin-core.html">MedorCoin Core</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer / Branding -->
+  <footer class="footer" style="text-align:center;margin-top:40px;padding:12px 0;border-top:1px solid var(--border);color:#9eadb2;">
+    <div>© MedorCoin 2026</div>
+    <p style="font-size:12px;margin:6px 0 0 0;">
+      Trade responsibly. The crypto world is volatile; you are responsible for your own decisions on this platform. MedorCoin and its partners/employees are not liable for any decisions. You must be 18+ years old to use this platform.
+    </p>
+  </footer>
+</div>
+
+<!-- Minimal script to support the mock navigation (no server required) -->
 </body>
 </html>
