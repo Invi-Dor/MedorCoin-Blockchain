@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Email Verification</title>
+  <style>
+    body { font-family: Verdana, Geneva, sans-serif; padding:40px; }
+    input { padding:10px; border-radius:6px; border:1px solid #333; width:100px; }
+    button { padding:10px 20px; border:none; border-radius:6px; background:#2563eb; color:white; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <h2>Email Verification</h2>
+  <p>Enter the 6-digit code you received:</p>
+  <input id="code" placeholder="123456" maxlength="6" />
+  <button onclick="verify()">Verify</button>
+
+  <script>
+    async function verify() {
+      const code = document.getElementById('code').value.trim();
+      const token = localStorage.getItem('token');
+      if (!token) { alert('No token found, please login again'); return; }
+      if (!code || code.length !== 6) { alert('Enter a valid 6-digit code'); return; }
+
+      try {
+        const res = await fetch('/api/verify', {
+          method:'POST',
+          headers:{ 
+            'Content-Type':'application/json',
+            'Authorization':'Bearer ' + token
+          },
+          body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          window.location.href = 'dashboard.html';
+        } else {
+          alert('Verification failed: ' + (data.message || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Verification error: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
