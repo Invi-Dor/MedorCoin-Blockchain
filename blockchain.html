@@ -81,11 +81,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <div class="tabs">
       <a class="tab" href="../index.html">🏠 HomePage</a>
-      <a class="tab" href="../food.html">🍽️ Food</a>
+      <!-- Removed Food tab -->
       <a class="tab" href="../miners.html">⛏️ Miners</a>
       <a class="tab" href="../developers.html">👩‍💻 Developers</a>
       <a class="tab" href="../trading.html">📈 Crypto Trading</a>
     </div>
+
+    <!-- Trading view widget embed right under the header -->
+    <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-market-summary.js"></script>
+    <tv-market-summary direction="horizontal" assets-type="crypto"></tv-market-summary>
 
     <h2 style="margin:8px 0 0 2px">⛓️ Blockchain</h2>
     <div class="muted" style="margin:4px 2px 10px">On-chain explorer, verification tools, and network endpoints.</div>
