@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -222,10 +222,27 @@
                   <li>Fixed API</li>
                 </ul>
               </div>
+
+              <!-- External Resources: NEW LINKS (Signup/Login, Docs, etc.) -->
+              <h4 style="margin-top:12px;">External Resources</h4>
+              <a class="mega-link" href="https://github.com/InviDor/MedorCoin-Blockchain/blob/main/frontend/signup.html" target="_blank" rel="noopener" style="margin-top:6px;">Signup</a>
+              <a class="mega-link" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/frontend/login.html" target="_blank" rel="noopener" style="margin-top:6px;">Login</a>
+              <a class="mega-link" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/docs.html" target="_blank" rel="noopener" style="margin-top:6px;">API Documentation</a>
+              <a class="mega-link" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/README.md" target="_blank" rel="noopener" style="margin-top:6px;">About Us</a>
+              <a class="mega-link" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/frontend/apiCompliance.js" target="_blank" rel="noopener" style="margin-top:6px;">Compliance</a>
+              <a class="mega-link" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/contact-us.html" target="_blank" rel="noopener" style="margin-top:6px;">Contact Us</a>
+              <a class="mega-link" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/frontend/theme-dark.html" target="_blank" rel="noopener" style="margin-top:6px;">Theme: Dark</a>
+              <a class="mega-link" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/frontend/theme-light.html" target="_blank" rel="noopener" style="margin-top:6px;">Theme: Light</a>
+
+              <!-- Optional: Affiliates, Jobs, Blogs, etc. could be added similarly -->
+              <a class="mega-link" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/affiliate.html" target="_blank" rel="noopener" style="margin-top:6px;">Affiliates</a>
+              <a class="mega-link" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/jobs.html" target="_blank" rel="noopener" style="margin-top:6px;">Jobs</a>
+              <a class="mega-link" href="https://invisible-m.com" target="_blank" rel="noopener" style="margin-top:6px;">Blogs</a>
+              <a class="mega-link" href="https://github.com/Invi-Dor/MedorCoin-Blockchain/blob/main/README.md" target="_blank" rel="noopener" style="margin-top:6px;">About</a>
             </div>
 
             <div class="mega-section" aria-label="Developers" style="min-width: 180px;">
-              <h4>Developers</h4>
+              <h4>Resources</h4>
               <a class="mega-link" href="#" data-section="sdk" style="margin-top:6px;">SDKs</a>
               <a class="mega-link" href="#" data-section="docs" style="margin-top:6px;">API Documentation</a>
               <a class="mega-link" href="#" data-section="changelog" style="margin-top:6px;">Change Log</a>
@@ -570,120 +587,119 @@
         return;
       }
       // Production-ready fetch of user APIs with robust error handling
-// Configurable API base (adjust or inject via global var/environment)
-const API_BASE = window.__API_BASE__ || 'https://medorcoin.invisible-m.com';
-const API_APIS_ENDPOINT = `${API_BASE}/api/user/apis`;
+      // Configurable API base (adjust or inject via global var/environment)
+      const API_BASE = window.__API_BASE__ || 'https://medorcoin.invisible-m.com';
+      const API_APIS_ENDPOINT = `${API_BASE}/api/user/apis`;
 
-/**
- * Escape HTML to prevent injection when rendering dynamic content
- * @param {string} s
- * @returns {string}
- */
-function escapeHtml(s) {
-  return ('' + s).replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;'
-  }[c]));
-}
-
-/**
- * Retrieve the auth token from either localStorage or cookies
- * Prefer localStorage if present; fallback to cookie
- * @returns {string|null}
- */
-function getAuthToken() {
-  // 1) Local storage
-  const tokenFromStorage = localStorage.getItem('token');
-  if (tokenFromStorage) return tokenFromStorage;
-
-  // 2) Cookie (format: token=...)
-  const match = document.cookie.match(/(?:^|;\s*)token=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-/**
- * Fetch the current user's API keys (or equivalent tokens)
- * - Handles auth failures gracefully
- * - Displays friendly messages for users
- * - Aborts with a timeout to avoid hanging requests
- * @returns {Promise<void>}
- */
-async function fetchUserApis() {
-  const keysContainer = document.getElementById('api-keys');
-  if (!keysContainer) return; // nothing to render into
-
-  const token = getAuthToken();
-  if (!token) {
-    keysContainer.innerHTML = '<div class="api">Not authenticated. Please login to view your API keys.</div>';
-    return;
-  }
-
-  // Show a loading state
-  keysContainer.innerHTML = '<div class="api">Loading API keys…</div>';
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
-
-  try {
-    const res = await fetch(API_APIS_ENDPOINT, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      signal: controller.signal
-    });
-
-    clearTimeout(timeout);
-
-    // Unauthorized / forbidden - force re-login
-    if (res.status === 401 || res.status === 403) {
-      keysContainer.innerHTML = '<div class="api">Session expired. Please login again.</div>';
-      localStorage.removeItem('token');
-      // Clear cookie if you store token there as well
-      document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      return;
-    }
-
-    if (!res.ok) {
-      let err = {};
-      try {
-        err = await res.json();
-      } catch {
-        err = {};
+      /**
+       * Escape HTML to prevent injection when rendering dynamic content
+       * @param {string} s
+       * @returns {string}
+       */
+      function escapeHtml(s) {
+        return ('' + s).replace(/[&<>"']/g, (c) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        }[c]));
       }
-      const message = (err && err.error) || res.statusText || 'Unknown error';
-      keysContainer.innerHTML = `<div class="api">Error fetching APIs: ${escapeHtml(message)}</div>`;
-      return;
-    }
 
-    const apiKeys = await res.json();
-    if (Array.isArray(apiKeys) && apiKeys.length > 0) {
-      keysContainer.innerHTML = apiKeys
-        .map((k, i) => `<div class="api">API ${i + 1}: <span class="masked">${escapeHtml(k)}</span></div>`)
-        .join('');
-    } else {
-      keysContainer.innerHTML = '<div class="api">No API keys found. Generate one from the portal.</div>';
-    }
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      keysContainer.innerHTML = '<div class="api">Request timed out. Please try again.</div>';
-    } else {
-      keysContainer.innerHTML = `<div class="api">Network error: ${escapeHtml(err.message || 'Unknown error')}</div>`;
-    }
-  }
-}
+      /**
+       * Retrieve the auth token from either localStorage or cookies
+       * Prefer localStorage if present; fallback to cookie
+       * @returns {string|null}
+       */
+      function getAuthToken() {
+        // 1) Local storage
+        const tokenFromStorage = localStorage.getItem('token');
+        if (tokenFromStorage) return tokenFromStorage;
 
-// Optional: expose a public helper to refresh keys from elsewhere
-window.refreshUserApis = fetchUserApis;
+        // 2) Cookie (format: token=...)
+        const match = document.cookie.match(/(?:^|;\s*)token=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : null;
+      }
 
-// Call fetch on page load (adjust as needed to your app lifecycle)
-window.addEventListener('DOMContentLoaded', fetchUserApis);
-      }, 300);
+      /**
+       * Fetch the current user's API keys (or equivalent tokens)
+       * - Handles auth failures gracefully
+       * - Displays friendly messages for users
+       * - Aborts with a timeout to avoid hanging requests
+       * @returns {Promise<void>}
+       */
+      async function fetchUserApis() {
+        const keysContainer = document.getElementById('api-keys');
+        if (!keysContainer) return; // nothing to render into
+
+        const token = getAuthToken();
+        if (!token) {
+          keysContainer.innerHTML = '<div class="api">Not authenticated. Please login to view your API keys.</div>';
+          return;
+        }
+
+        // Show a loading state
+        keysContainer.innerHTML = '<div class="api">Loading API keys…</div>';
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
+
+        try {
+          const res = await fetch(API_APIS_ENDPOINT, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            signal: controller.signal
+          });
+
+          clearTimeout(timeout);
+
+          // Unauthorized / forbidden - force re-login
+          if (res.status === 401 || res.status === 403) {
+            keysContainer.innerHTML = '<div class="api">Session expired. Please login again.</div>';
+            localStorage.removeItem('token');
+            // Clear cookie if you store token there as well
+            document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            return;
+          }
+
+          if (!res.ok) {
+            let err = {};
+            try {
+              err = await res.json();
+            } catch {
+              err = {};
+            }
+            const message = (err && err.error) || res.statusText || 'Unknown error';
+            keysContainer.innerHTML = `<div class="api">Error fetching APIs: ${escapeHtml(message)}</div>`;
+            return;
+          }
+
+          const apiKeys = await res.json();
+          if (Array.isArray(apiKeys) && apiKeys.length > 0) {
+            keysContainer.innerHTML = apiKeys
+              .map((k, i) => `<div class="api">API ${i + 1}: <span class="masked">${escapeHtml(k)}</span></div>`)
+              .join('');
+          } else {
+            keysContainer.innerHTML = '<div class="api">No API keys found. Generate one from the portal.</div>';
+          }
+        } catch (err) {
+          if (err.name === 'AbortError') {
+            keysContainer.innerHTML = '<div class="api">Request timed out. Please try again.</div>';
+          } else {
+            keysContainer.innerHTML = `<div class="api">Network error: ${escapeHtml(err.message || 'Unknown error')}</div>`;
+          }
+        }
+      }
+
+      // Optional: expose a public helper to refresh keys from elsewhere
+      window.refreshUserApis = fetchUserApis;
+
+      // Call fetch on page load (adjust as needed to your app lifecycle)
+      window.addEventListener('DOMContentLoaded', fetchUserApis);
     }
 
     // Sign Out
@@ -719,4 +735,3 @@ window.addEventListener('DOMContentLoaded', fetchUserApis);
   </script>
 </body>
 </html>
-
