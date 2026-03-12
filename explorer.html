@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MedorCoin — MEDOR Smart Chain Explorer</title>
+  <meta name="description" content="MEDOR Smart Chain explorer."/>
+  <style>
+    /* Global base (keep header untouched) */
+    :root{
+      --bg-white: #ffffff;
+      --ink-dark: #111111;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --link: #1a4ed8;
+    }
+    html, body { height: 100%; }
+    body { margin: 0; font-family: Inter,Segoe UI, Roboto, Arial, sans-serif; background: var(--bg-white); color: var(--ink-dark); }
+
+    /* Header container (header is loaded into this div; do not modify header code here) */
+    #headerContainer { width: 100%; }
+
+    /* App content (below header) */
+    #app {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px 40px;
+      background: var(--bg-white);
+      color: var(--ink-dark);
+    }
+
+    /* Title */
+    .title {
+      font-size: 32px;
+      font-weight: 800;
+      margin: 18px 0 8px;
+      color: #111;
+    }
+
+    /* Search bar (in-page) */
+    .searchbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8f9fa;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 10px 12px;
+    }
+    .searchbar input {
+      border: 0; outline: 0; flex: 1;
+      font-size: 14px; background: transparent;
+      color: var(--ink-dark);
+    }
+    .pill { font-size: 12px; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; border-radius: 999px; padding: 4px 8px; }
+
+    /* Tabs under the heading (visual toggles) */
+    .tabs { display:flex; gap:10px; overflow:auto; padding: 10px 0; margin-top: 8px; }
+    .tab {
+      display:flex; align-items:center; gap:6px;
+      background:#eef2ff; color:#1f2d6f;
+      border:1px solid #dbe4ff; border-radius: 999px;
+      padding: 8px 12px; font-size: 13px; white-space: nowrap;
+      cursor: pointer;
+    }
+    .tab.active { background:#1e40af; color:white; border-color:#1e40af; }
+
+    /* Transactions widget */
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    h2.section { font-size: 20px; font-weight: 700; margin: 18px 0 8px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); color: #374151; font-weight: 600; }
+    tbody td { padding: 8px; border-bottom: 1px solid #f2f2f2; vertical-align: middle; }
+
+    /* Block link style (blue link color) */
+    .link { color: var(--link); text-decoration: underline; cursor: pointer; }
+
+    /* Simple grid for two-column, four-row block summary */
+    .grid-2x4 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .grid-2x4 .cell { background: #f9fafb; border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+    .label { color: var(--muted); font-size: 12px; }
+    .value { font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas; }
+
+    /* Card block for security sites */
+    .card-block { cursor: pointer; transition: transform .2s; }
+    .card-block:hover { transform: translateY(-2px); }
+    .card-list { display: none; margin-top: 8px; padding-left: 14px; }
+    .card-block.expanded + .card-list { display: block; }
+
+    /* Disclaimer (global on all pages) */
+    .disclaimer {
+      margin-top: 22px;
+      padding: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #f8fafc;
+      font-size: 13px;
+      color: #374151;
+    }
+
+    /* Helper: small pagination controls */
+    .pagination { display:flex; align-items:center; gap: 8px; padding: 8px 0; }
+    .btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: #fff; cursor: pointer; }
+    .btn.primary { background: #1e40af; color: #fff; border-color: #1e40af; }
+
+    /* Responsive tweaks */
+    @media (max-width: 800px) {
+      .grid-2x4 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER PLACEHOLDER: The header content should be loaded here without changing it.
+       You can point data-header-url to your header fragment (header.html) that contains
+       the exact header you provided. If you inline the header, you can set an empty URL. -->
+  <div id="headerContainer" data-header-url="header.html"></div>
+
+  <div id="app" aria-label="MEDOR Explorer App">
+    <h1 class="title" style="margin-top: 14px;">MEDOR</h1>
+
+    <!-- Search box -->
+    <div class="searchbar" aria-label="Site search">
+      <span style="opacity:.7">🔎</span>
+      <input id="q" placeholder="Search addresses, TXN hashes, blocks, or token names…" />
+      <span class="pill">AI</span>
+    </div>
+
+    <!-- Main section tabs (transaction views) -->
+    <div class="tabs" aria-label="Main sections" id="mainTabs">
+      <div class="tab active" data-view="transactions" title="Transactions">
+        🧾 Transactions
+      </div>
+      <div class="tab" data-view="token-transfers" title="Token transfers">
+        🔁 Token transfers
+      </div>
+      <div class="tab" data-view="internal-tx" title="Internal transactions">
+        ➕ Internal
+      </div>
+      <div class="tab" data-view="nft" title="NFTs">
+        🧬 NFT
+      </div>
+      <div class="tab" data-view="other-tx" title="Other transactions">
+        ⚙ Other
+      </div>
+      <div class="tab" data-view="blocks" title="Produced blocks">
+        ⛏️ Produced blocks
+      </div>
+      <div class="tab" data-view="validator-set" title="Validator set info">
+        ✅ Validator set
+      </div>
+      <div class="tab" data-view="assets" title="Assets">
+        🧭 Assets
+      </div>
+    </div>
+
+    <!-- Transactions widget (default view) -->
+    <section id="transactionsSection" class="card" aria-label="Transactions widget" style="margin-top: 8px;">
+      <h2 class="section" style="margin: 0 0 8px;">Transactions — existing transactions</h2>
+      <table id="transactionsTable" aria-label="Transactions table">
+        <thead>
+          <tr>
+            <th>Block</th>
+            <th>Age</th>
+            <th>TXN</th>
+            <th>Validator</th>
+            <th>Gas Used</th>
+            <th>Gas Limit</th>
+            <th>Reward</th>
+            <th>Burnt Fees</th>
+            <th> </th>
+          </tr>
+        </thead>
+        <tbody id="transactionsBody">
+          <!-- Rows filled by JS -->
+        </tbody>
+      </table>
+
+      <div class="pagination" aria-label="Pagination">
+        <button class="btn" id="prevBtn" title="Previous">Previous</button>
+        <span id="pageInfo" style="color:#6b7280;font-size:13px;"></span>
+        <button class="btn" id="nextBtn" title="Next">Next</button>
+      </div>
+    </section>
+
+    <!-- Block detail page (hidden by default; shown via hash routing) -->
+    <section id="blockPage" class="card" aria-label="Block detail" style="display:none; margin-top: 12px;">
+      <h2 class="section" style="margin: 0 0 8px;">Block Details</h2>
+      <div id="blockHeader" class="grid-2x4" style="margin-bottom: 8px;">
+        <!-- 2x4 summary cells (filled by JS) -->
+        <div class="cell"><div class="label">Block</div><div class="value" id="blkBlock">-</div></div>
+        <div class="cell"><div class="label">Age</div><div class="value" id="blkAge">-</div></div>
+        <div class="cell"><div class="label">Height</div><div class="value" id="blkHeight">-</div></div>
+        <div class="cell"><div class="label">Timestamp</div><div class="value" id="blkTime">-</div></div>
+        <div class="cell"><div class="label">TXN</div><div class="value" id="blkTxn">-</div></div>
+        <div class="cell"><div class="label">Validator</div><div class="value" id="blkValidator">-</div></div>
+        <div class="cell"><div class="label">Block Reward</div><div class="value" id="blkReward">-</div></div>
+        <div class="cell"><div class="label">Difficulty</div><div class="value" id="blkDifficulty">-</div></div>
+      </div>
+
+      <div id="blockMeta" class="grid-2x4" style="margin-top:8px;">
+        <div class="cell"><div class="label">Size (bytes)</div><div class="value" id="blkSize">-</div></div>
+        <div class="cell"><div class="label">Gas Used</div><div class="value" id="blkGasUsed">-</div></div>
+        <div class="cell"><div class="label">Gas Used %</div><div class="value" id="blkGasPct">-</div></div>
+        <div class="cell"><div class="label">Gas Limit</div><div class="value" id="blkGasLimit">-</div></div>
+        <div class="cell"><div class="label">Burnt Fees</div><div class="value" id="blkBurntFees">-</div></div>
+        <div class="cell"><div class="label">Discrepancy</div><div class="value" id="blkDiscrepancy">-</div></div>
+        <div class="cell"><div class="label">Total Difficulty</div><div class="value" id="blkTotalDifficulty">-</div></div>
+        <div class="cell"><div class="label">Notes</div><div class="value" id="blkNotes">-</div></div>
+      </div>
+
+      <div class="disclaimer" style="margin-top:12px;">
+        This block overview is provided for reference. All data is fetched from the backend.
+      </div>
+    </section>
+
+    <!-- Transaction detail page (hash-based) -->
+    <section id="txnPage" class="card" aria-label="Transaction detail" style="display:none; margin-top: 12px;">
+      <h2 class="section" style="margin: 0 0 8px;">Transaction Details</h2>
+      <div id="txnHeaderMeta" class="grid-2x4" style="margin-bottom:8px;">
+        <div class="cell"><div class="label">Txn Hash</div><div class="value" id="txnHash">-</div></div>
+        <div class="cell"><div class="label">Block</div><div class="value" id="txnBlock">-</div></div>
+        <div class="cell"><div class="label">Age</div><div class="value" id="txnAge">-</div></div>
+        <div class="cell"><div class="label">From</div><div class="value" id="txnFrom">-</div></div>
+        <div class="cell"><div class="label">To</div><div class="value" id="txnTo">-</div></div>
+        <div class="cell"><div class="label">Amount</div><div class="value" id="txnAmount">-</div></div>
+        <div class="cell"><div class="label">TXN Fee</div><div class="value" id="txnFee">-</div></div>
+        <div class="cell"><div class="label">Action</div><div class="value" id="txnAction">-</div></div>
+      </div>
+
+      <table aria-label="Txn hashes" style="margin-top:8px;">
+        <thead><tr><th>Txn Hash</th><th>Action</th><th>Block</th><th>Age</th><th>From</th><th>To</th><th>Amount</th><th>Fee</th></tr></thead>
+        <tbody id="txnBody"></tbody>
+      </table>
+
+      <div class="disclaimer" style="margin-top:12px;">
+        This page shows details for a specific transaction. The data is fetched from the backend.
+      </div>
+    </section>
+
+    <!-- Block summary + research card (two-column, four-row + security card) -->
+    <section class="card" aria-label="Block summary and token research" style="margin-top: 12px;">
+      <div class="grid-2x4" id="blockSummary" style="margin-bottom: 8px;">
+        <!-- Summary filled by JS -->
+      </div>
+
+      <div class="card-block" id="securityCard" style="border:1px solid var(--border); border-radius:8px; padding:12px; margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-weight:600;">Token Security Research</div>
+        <div>Click to view security sources</div>
+      </div>
+      <div class="card-list" id="securitySites" aria-label="Security sites list" style="margin-top:6px;">
+        <ul style="margin:0; padding-left:20px;">
+          <li><a href="https://tokensniffer.com" target="_blank" rel="noreferrer">Tokensniffer</a></li>
+          <li><a href="https://apescan.com" target="_blank" rel="noreferrer">APE Scans</a></li>
+          <li><a href="https://honeypots.*/" target="_blank" rel="noreferrer">Honeypots (example)</a></li>
+          <!-- Add more as needed -->
+        </ul>
+      </div>
+    </section>
+
+    <!-- Disclaimer at all pages bottom -->
+    <div class="disclaimer" aria-label="Disclaimer">
+      Disclaimer: This explorer is provided for informational purposes. Always verify data with official sources.
+    </div>
+  </div>
+
+  <script>
+    // Basic header include (loads your header fragment). If you inline the header, you may remove this.
+    (function loadHeader() {
+      const container = document.getElementById('headerContainer');
+      const url = container?.dataset?.headerUrl;
+      if (!url) {
+        // If no URL provided, you can optionally insert a placeholder or leave empty
+        container.innerHTML = '';
+        return;
+      }
+      fetch(url)
+        .then(res => res.text())
+        .then(html => { container.innerHTML = html; })
+        .catch(() => { console.warn('Header could not be loaded from', url); container.innerHTML = ''; });
+    })();
+
+    // Simple client-side routing and data loading
+    const perPage = 20;
+    let currentPage = 1;
+
+    // Helper: render placeholder data if backend not available
+    function makeMockTxn(i) {
+      const idx = i + 1;
+      return {
+        block: 1000 + idx,
+        age: `${idx}m ago`,
+        txn: `0xTXN${idx.toString().padStart(6, '0')}`,
+        validator: `0xVal${(idx%5)+1}`,
+        gasUsed: (21000 + idx*3).toLocaleString(),
+        gasLimit: (8000000).toLocaleString(),
+        reward: (idx * 0.0001).toFixed(6),
+        burnt: (idx * 0.00001).toFixed(6),
+        link: `#block/${1000+idx}`
+      };
+    }
+
+    function renderTransactions(rows) {
+      const tbody = document.getElementById('transactionsBody');
+      tbody.innerHTML = '';
+      rows.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+        // Block cell as link
+        const blockTd = document.createElement('td');
+        const a = document.createElement('a');
+        a.href = `#block/${r.block}`;
+        a.textContent = r.block;
+        a.className = 'link';
+        blockTd.appendChild(a);
+        tr.appendChild(blockTd);
+
+        const ageTd = document.createElement('td');
+        ageTd.textContent = r.age;
+        tr.appendChild(ageTd);
+
+        const txnTd = document.createElement('td');
+        txnTd.textContent = r.txn;
+        tr.appendChild(txnTd);
+
+        const valTd = document.createElement('td');
+        valTd.textContent = r.validator;
+        tr.appendChild(valTd);
+
+        const gasUsedTd = document.createElement('td');
+        gasUsedTd.textContent = r.gasUsed;
+        tr.appendChild(gasUsedTd);
+
+        const gasLimitTd = document.createElement('td');
+        gasLimitTd.textContent = r.gasLimit;
+        tr.appendChild(gasLimitTd);
+
+        const rewardTd = document.createElement('td');
+        rewardTd.textContent = r.reward;
+        tr.appendChild(rewardTd);
+
+        const burntTd = document.createElement('td');
+        burntTd.textContent = `${r.burnt} (MEDOR Coin)`;
+        tr.appendChild(burntTd);
+
+        // Optional empty cell for future actions
+        const actionsTd = document.createElement('td');
+        tr.appendChild(actionsTd);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Load initial mock data if API isn't ready
+    function loadInitialTransactions() {
+      // Try to fetch real data first
+      fetch('/api/transactions?page=' + currentPage + '&per_page=' + perPage)
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            renderTransactions(data);
+            updatePageInfo(data.length);
+          } else {
+            // Fallback to mock
+            const mock = Array.from({ length: perPage }, (_, i) => makeMockTxn(i));
+            renderTransactions(mock);
+            updatePageInfo(mock.length);
+          }
+        })
+        .catch(() => {
+          // Fallback to mock on error
+          const mock = Array.from({ length: perPage }, (_, i) => makeMockTxn(i));
+          renderTransactions(mock);
+          updatePageInfo(mock.length);
+        });
+    }
+
+    function updatePageInfo(count) {
+      document.getElementById('pageInfo').textContent = `Page ${currentPage} • ${count} rows shown (of ~20)`;
+    }
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        loadInitialTransactions();
+      }
+    });
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      currentPage++;
+      loadInitialTransactions();
+    });
+
+    // Simple header search handler
+    document.querySelector('.searchbar input#q').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') performSearch();
+    });
+    function performSearch() {
+      const q = document.querySelector('#q').value.trim();
+      if (!q) return;
+      // Real implementation would hit your backend
+      fetch('/api/search?q=' + encodeURIComponent(q))
+        .then(r => r.json())
+        .then(results => {
+          // Display results inline (simple example)
+          let panel = document.getElementById('searchResults');
+          if (!panel) {
+            panel = document.createElement('div');
+            panel.id = 'searchResults';
+            panel.style.marginTop = '8px';
+            panel.style.padding = '8px';
+            panel.style.border = '1px solid var(--border)';
+            panel.style.borderRadius = '6px';
+            panel.style.background = '#fff';
+            document.getElementById('app').insertBefore(panel, document.getElementById('transactionsSection'));
+          }
+          panel.innerHTML = '';
+          if (Array.isArray(results) && results.length) {
+            const ul = document.createElement('ul');
+            results.forEach(r => {
+              const li = document.createElement('li');
+              li.textContent = r.display || JSON.stringify(r);
+              ul.appendChild(li);
+            });
+            panel.appendChild(ul);
+          } else {
+            panel.textContent = 'No results found.';
+          }
+        })
+        .catch(() => {
+          // Minimal fallback
+          alert('Search backend not reachable.'); 
+        });
+    }
+
+    // Simple hash-based routing
+    function showBlockPage(height) {
+      document.getElementById('blockPage').style.display = '';
+      document.getElementById('transactionsSection').style.display = 'none';
+      document.getElementById('txnPage').style.display = 'none';
+      // Fetch block data
+      fetch('/api/block/' + height)
+        .then(r => r.json())
+        .then(b => {
+          // Fill 2x4 grid
+          document.getElementById('blkBlock').textContent = height;
+          document.getElementById('blkAge').textContent = b.age || '-';
+          document.getElementById('blkHeight').textContent = b.height || height;
+          document.getElementById('blkTime').textContent = b.timestamp || '-';
+          document.getElementById('blkTxn').textContent = b.txnCount || '-';
+          document.getElementById('blkValidator').textContent = b.validator || '-';
+          document.getElementById('blkReward').textContent = b.blockReward != null ? b.blockReward.toString() : '-';
+          document.getElementById('blkDifficulty').textContent = b.totalDifficulty != null ? b.totalDifficulty.toString() : '-';
+          // Meta block info
+          document.getElementById('blkSize').textContent = b.sizeBytes != null ? b.sizeBytes.toLocaleString() : '-';
+          document.getElementById('blkGasUsed').textContent = b.gasUsed != null ? b.gasUsed.toLocaleString() : '-';
+          document.getElementById('blkGasPct').textContent = b.gasUsedPct != null ? b.gasUsedPct.toFixed(2) + '%' : '-';
+          document.getElementById('blkGasLimit').textContent = b.gasLimit != null ? b.gasLimit.toLocaleString() : '-';
+          document.getElementById('blkBurntFees').textContent = b.burntFees != null ? b.burntFees.toLocaleString() : '-';
+          document.getElementById('blkDiscrepancy').textContent = b.discrepancy != null ? b.discrepancy : '-';
+          document.getElementById('blkTotalDifficulty').textContent = b.totalDifficulty != null ? b.totalDifficulty : '-';
+          document.getElementById('blkNotes').textContent = b.notes || '-';
+          // Block summary grid (optional extra rows)
+          const blockSummary = document.getElementById('blockSummary');
+          if (blockSummary) {
+            blockSummary.innerHTML = '';
+            // Re-add a compact summary if needed (omitted for brevity)
+          }
+        })
+        .catch(() => {
+          // Fallback: simple values
+          document.getElementById('blkBlock').textContent = height;
+          document.getElementById('blkAge').textContent = 'unknown';
+        });
+    }
+
+    function showTxnPage(hash) {
+      document.getElementById('txnPage').style.display = '';
+      document.getElementById('blockPage').style.display = 'none';
+      document.getElementById('transactionsSection').style.display = 'none';
+      // Fill header
+      document.getElementById('txnHash').textContent = hash;
+      // Fetch txn details
+      fetch('/api/txn/' + hash)
+        .then(r => r.json())
+        .then(t => {
+          document.getElementById('txnBlock').textContent = t.block || '-';
+          document.getElementById('txnAge').textContent = t.age || '-';
+          document.getElementById('txnFrom').textContent = t.from || '-';
+          document.getElementById('txnTo').textContent = t.to || '-';
+          document.getElementById('txnAmount').textContent = t.amount != null ? t.amount.toString() : '-';
+          document.getElementById('txnFee').textContent = t.fee != null ? t.fee.toString() : '-';
+          document.getElementById('txnAction').textContent = t.action || '-';
+          // Body rows (if any)
+          const body = document.getElementById('txnBody');
+          body.innerHTML = '';
+          if (Array.isArray(t.pairs)) {
+            t.pairs.forEach(p => {
+              const tr = document.createElement('tr');
+              ['txn','action','block','age','from','to','amount','fee'].forEach(col => {
+                const td = document.createElement('td');
+                td.textContent = (p[col] != null) ? p[col] : '';
+                tr.appendChild(td);
+              });
+              body.appendChild(tr);
+            });
+          } else {
+            // simple one-row fallback
+            const tr = document.createElement('tr');
+            const cols = ['hash','action','block','age','from','to','amount','fee'];
+            cols.forEach((c,i) => {
+              const td = document.createElement('td');
+              td.textContent = (t[c] != null) ? t[c] : '';
+              tr.appendChild(td);
+            });
+            body.appendChild(tr);
+          }
+        })
+        .catch(() => {
+          // minimal fallback
+          document.getElementById('txnBlock').textContent = '-';
+          document.getElementById('txnAge').textContent = '-';
+        });
+    }
+
+    function showAllTransactionsView() {
+      document.getElementById('transactionsSection').style.display = '';
+      document.getElementById('blockPage').style.display = 'none';
+      document.getElementById('txnPage').style.display = 'none';
+      // Ensure default tab visuals
+      setActiveView('transactions');
+      // Reload the transaction list
+      loadInitialTransactions();
+    }
+
+    function setActiveView(view) {
+      document.querySelectorAll('#mainTabs .tab').forEach(el => {
+        if (el.dataset.view === view || (view === 'transactions' && el.textContent.includes('Transactions'))) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+    }
+
+    // Router
+    function route() {
+      const h = location.hash || '';
+      if (h.startsWith('#block/')) {
+        const height = h.split('/')[1];
+        showBlockPage(height);
+      } else if (h.startsWith('#txn/')) {
+        const hash = h.split('/')[1];
+        showTxnPage(hash);
+      } else {
+        // default: show transactions
+        document.getElementById('blockPage').style.display = 'none';
+        document.getElementById('txnPage').style.display = 'none';
+        showAllTransactionsView();
+      }
+    }
+    window.addEventListener('hashchange', route);
+    window.addEventListener('DOMContentLoaded', () => {
+      route();
+      // Wire header tab clicks
+      document.querySelectorAll('#mainTabs .tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Activate the clicked tab visually
+          document.querySelectorAll('#mainTabs .tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+        });
+      });
+      loadInitialTransactions();
+    });
+
+    // Security card toggle
+    document.getElementById('securityCard').addEventListener('click', function() {
+      this.classList.toggle('expanded');
+      const list = document.getElementById('securitySites');
+      if (list) list.style.display = (list.style.display === 'block' ? 'none' : 'block');
+      // If first click, ensure content exists
+      if (list && list.children.length === 0) {
+        list.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
