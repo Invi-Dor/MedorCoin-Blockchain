@@ -14,21 +14,19 @@
       --card: rgba(255,255,255,.95);
       --cardText: #111;
       --blue: #0a4bd3;
-      --blueDark: #0a4bd3;
     }
 
-    /* Basic reset */
-    *, *::before, *::after { box-sizing: border-box; }
+    * { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
       margin: 0;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      color: #e5e7eb;
+      font-family: Verdana, Geneva, sans-serif;
       background: var(--bg);
+      color: #e5e7eb;
       overflow-x: hidden;
     }
 
-    /* Subtle space background with stars (ambient) */
+    /* Background ambiance (space-ish) */
     .space {
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
       background: radial-gradient(circle at 20% 20%, rgba(255,255,255,.08) 0 2px, transparent 2px),
@@ -36,7 +34,6 @@
       background-size: 100px 100px, 180px 180px;
       opacity: .7;
     }
-    /* Animated tiny stars (JS-generated) will sit above this layer */
     #starLayer { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
 
     /* Header */
@@ -47,35 +44,27 @@
       background: rgba(2,8,23,.92);
       border-bottom: 1px solid rgba(255,255,255,.08);
     }
-    .brand {
-      display: flex; align-items: center; gap: 12px;
-      font-family: Verdana, Geneva, sans-serif;
-    }
-    .logo {
-      width: 38px; height: 38px; border-radius: 6px;
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { width: 38px; height: 38px; border-radius: 6px;
       background: linear-gradient(135deg, #ffd34d 0%, #f8b800 100%);
       display: inline-flex; align-items: center; justify-content: center;
-      font-weight: 700; color: #1a1a1a; font-family: Verdana, sans-serif;
-      box-shadow: 0 2px 6px rgba(0,0,0,.25);
+      font-weight: 700; color: #1a1a1a; font-family: Verdana;
     }
-    .brand-name {
-      font-weight: 700; font-family: Verdana, Geneva, sans-serif;
-      font-size: 14px; color: #fff;
-      letter-spacing: .4px;
-    }
+    .brand-name { font-weight: 700; font-family: Verdana; font-size: 14px; color: #fff; }
+
     nav { display: flex; align-items: center; gap: 8px; }
 
     .btn, .link {
       background: transparent; color: white; text-decoration: none;
       border: 1px solid rgba(255,255,255,.25);
       padding: 10px 14px; border-radius: 6px;
-      font-weight: 600; cursor: pointer;
+      font-weight: 700; cursor: pointer;
     }
-    .btn.primary { background: var(--blue); border-color: rgba(255,255,255,.4); color: #fff; }
+    .btn.primary { background: var(--blue); border-color: rgba(255,255,255,.4); color: white; }
     .cta-area { display: flex; align-items: center; gap: 8px; position: relative; }
 
-    /* Dropdown menu (three dashes) */
-    .menu { display: inline-flex; position: relative; }
+    /* Three-dashes dropdown */
+    .menu { position: relative; display: inline-block; }
     .menu-btn {
       width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
       border-radius: 8px; border: 1px solid rgba(255,255,255,.25);
@@ -83,7 +72,7 @@
     }
     .mega-menu {
       position: absolute; top: 52px; right: 0;
-      width: 720px; max-width: calc(100vw - 20px);
+      width: 700px; max-width: calc(100vw - 20px);
       background: rgba(15,23,42,.98);
       border: 1px solid rgba(255,255,255,.15);
       border-radius: 12px; padding: 14px;
@@ -93,67 +82,49 @@
     .mega-menu.active { display: block; }
     .mega-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
     .mega-section { padding: 8px 6px; border-right: 1px solid rgba(255,255,255,.1); }
-    .mega-section h4 { margin: 6px 0 6px; font-family: Verdana, Geneva, sans-serif; font-size: 14px; color: #e2e8f0; }
+    .mega-section h4 { margin: 6px 0 6px; font-size: 14px; color: #e2e8f0; font-family: Verdana; }
     .mega-link { display: block; padding: 4px 6px; color: #d1d5db; text-decoration: none; border-radius: 4px; }
     .mega-link:hover { background: rgba(255,255,255,.08); }
 
-    /* Layout container */
+    /* Body */
     .container { max-width: 1100px; margin: 28px auto; padding: 0 20px; position: relative; z-index: 2; }
 
     h1, h2 { color: white; font-family: Verdana, Geneva, sans-serif; }
     h1 { font-size: 2.2rem; margin: 0 0 8px; }
     h2 { font-size: 1.25rem; margin: 0.75rem 0; }
 
-    /* Sections (single-page navigation) */
     section { display: none; padding: 20px; border-radius: 12px; background: rgba(255,255,255,.04); margin-bottom: 20px; }
     section.active { display: block; }
 
-    /* Hero / Landing */
+    /* Hero */
     .hero { font-family: Verdana, Geneva, sans-serif; font-size: 2.2rem; color: #fff; margin-bottom: 6px; }
     .lead { color: #d1d5db; max-width: 70ch; line-height: 1.5; }
 
     .free-area { display: inline-flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px;
                   border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.04); }
-    #generateApiBtn { background: #0a4bd3; color: white; border: none; padding: 12px 18px; border-radius: 999px; font-weight: 700; cursor: pointer; }
+    #generateTwoApis { background: #0a4bd3; color: white; border: none; padding: 12px 18px; border-radius: 999px; font-weight: 700; cursor: pointer; }
     #freeApiStatus { margin: 0; color: #e5e5e5; }
 
-    /* Pricing cards (4 cards, responsive) */
+    /* Pricing grid (2x2) */
     .pricing { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 8px; }
     .card { background: var(--card); color: var(--cardText); border-radius: 12px; padding: 16px; border: 1px solid rgba(0,0,0,.06); }
     .card h3 { margin: 0 0 6px; font-family: Verdana, Geneva, sans-serif; }
     .price { font-size: 28px; font-weight: 700; margin: 6px 0 4px; font-family: Verdana, Geneva, sans-serif; }
     .per { font-size: 12px; color: #555; margin-left: 6px; }
-    .yearly { font-size: 13px; color: #555; margin-bottom: 8px; }
+    .yearly { font-size: 13px; color: #555; margin-bottom: 6px; }
     .buy { background: var(--blue); border: none; color: white; padding: 10px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; }
     .benefits { padding-left: 16px; margin: 6px 0 0 0; color: #1f2937; }
     .benefits li { margin: 4px 0; }
-    @media (min-width: 900px) {
-      .pricing { grid-template-columns: repeat(2, 1fr); }
-    }
+
     @media (max-width: 800px) {
       .pricing { grid-template-columns: 1fr; }
       .mega-menu { width: calc(100vw - 20px); left: 10px; right: 10px; }
     }
 
-    /* Section: Why Users Love Us / testimonials / carousel */
-    .why { font-family: Verdana, Geneva, sans-serif; }
-    .carousel { position: relative; height: 180px; overflow: hidden; border-radius: 10px; border: 1px solid rgba(0,0,0,.08); background: #fff; color: #111; }
-    .carousel-track { display: flex; height: 100%; transition: transform 0.5s ease-in-out; }
-    .slide { min-width: 100%; padding: 14px; display: flex; align-items: center; justify-content: center; text-align: center; }
-    .slide p { margin: 0; font-family: Verdana, Geneva, sans-serif; color: #111; }
-    .slide.dark { background: #f7f7f7; }
-
     /* Footer */
-    footer { text-align: center; color: #aaa; padding: 40px 0; background: rgba(0,0,0,.2); margin-top: 20px; }
-    .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; text-align: left; }
-    .footer h4 { color: #fff; font-family: Verdana, Geneva, sans-serif; font-size: 14px; margin: 0 0 6px; }
-    .footer a { color: #d1d5db; text-decoration: none; display: block; font-size: 13px; padding: 2px 0; }
-    .socials { display: inline-flex; gap: 10px; padding: 8px 0; }
+    footer { text-align: center; color: #aaa; padding: 40px 0; }
 
-    /* Slight shimmer for headings on dark background */
-    .glow { text-shadow: 0 0 6px rgba(0, 186, 255, .6); }
-
-    /* Simple helper colors */
+    /* Small helper styles */
     .muted { color: #cbd5e1; }
   </style>
 </head>
@@ -165,41 +136,34 @@
   <header class="header" role="banner" aria-label="Top navigation">
     <div class="brand" aria-label="MEDOR brand">
       <div class="logo" aria-label="MEDOR logo">M</div>
-      <div class="brand-name" aria-label="MEDOR coin API">
-        MEDOR coin API
-      </div>
+      <div class="brand-name" aria-label="MEDOR coin API">MEDOR coin API</div>
     </div>
 
     <div class="cta-area">
-      <button id="getApiBtn" class="btn primary" aria-label="Get API">
-        Get API
-      </button>
+      <button id="getApiBtn" class="btn primary" aria-label="Get API">Get API</button>
 
       <div class="menu" aria-label="Main navigation">
-        <button class="menu-btn" id="menuBtn" aria-label="Open menu">
-          &#9776;
-        </button>
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
         <div id="megaMenu" class="mega-menu" role="menu" aria-label="Portal menu">
           <div class="mega-grid">
-            <div class="mega-section">
+            <div class="mega-section" style="min-width: 220px;">
               <h4>Dashboard</h4>
               <a class="mega-link" href="#" data-section="dashboard">Open Dashboard</a>
               <a class="mega-link" href="#" data-section="dashboard">My APIs</a>
             </div>
 
-            <div class="mega-section">
+            <div class="mega-section" style="min-width: 220px;">
               <h4>See Plans</h4>
-              <!-- Basic -->
-              <a class="mega-link" href="#" data-section="basic-plan">Basic</a>
-              <!-- Sub-grid for plan details -->
-              <div id="basic-panel" class="card" style="display:none; padding:12px; margin-top:8px; border-radius:10px; background:#fff; color:#111;">
-                <strong>Basic Plan</strong>
-                <div class="price" style="font-size:28px;margin:6px 0;">$15 <span class="per">per month</span></div>
+              <a class="mega-link" href="#" data-section="basic-plan" style="margin-top:4px;">Basic</a>
+              <div id="basic-panel" class="card" style="display:none; padding:10px; margin-top:6px;">
+                <strong>Basic</strong>
+                <div class="price" style="font-size:20px; margin:6px 0;">$15 <span class="per">per month</span></div>
                 <div class="yearly" style="margin-bottom:6px;">Pay $99/year (Save $72)</div>
-                <button class="buy" style="background:#0a4bd3;color:white;border:0;border-radius:8px;padding:8px 12px;font-weight:700;">Buy Now</button>
-                <ul class="benefits" aria-label="Benefits of Basic">
+                <button class="buy" style="background:#0a4bd3; color:white; border:0; border-radius:6px; padding:6px 10px; font-weight:700;"
+                        onclick="location.href='/checkout?planId=basic'">Buy Now</button>
+                <ul class="benefits">
                   <li>100,000 APIs</li>
-                  <li>Historical and Real-Time Data</li>
+                  <li>Historical & Real-Time Data</li>
                   <li>REST Protocol</li>
                   <li>Volume Discounts</li>
                   <li>WebSocket Protocol</li>
@@ -207,91 +171,90 @@
                 </ul>
               </div>
 
-              <!-- Premium -->
               <a class="mega-link" href="#" data-section="premium-plan" style="margin-top:6px;">Premium</a>
-              <div id="premium-panel" class="card" style="display:none; padding:12px; margin-top:8px; border-radius:10px; background:#fff; color:#111;">
-                <strong>Premium Plan</strong>
-                <div class="price" style="font-size:28px;margin:6px 0;">$45 <span class="per">per month</span></div>
+              <div id="premium-panel" class="card" style="display:none; padding:10px; margin-top:6px;">
+                <strong>Premium</strong>
+                <div class="price" style="font-size:20px; margin:6px 0;">$45 <span class="per">per month</span></div>
                 <div class="yearly" style="margin-bottom:6px;">Pay $297/year (Save $243)</div>
-                <button class="buy" style="background:#0a4bd3;color:white;border:0;border-radius:8px;padding:8px 12px;font-weight:700;">Buy Now</button>
-                <ul class="benefits" aria-label="Benefits of Premium">
+                <button class="buy" style="background:#0a4bd3; color:white; border:0; border-radius:6px; padding:6px 10px; font-weight:700;"
+                        onclick="location.href='/checkout?planId=premium'">Buy Now</button>
+                <ul class="benefits">
                   <li>All Basic benefits</li>
-                  <li>1K REST credits per day</li>
-                  <li>40 GB tier 1 data per day</li>
-                  <li>2 GB tier 2 data per day</li>
+                  <li>1K REST credits/day</li>
+                  <li>40 GB tier 1 data/day</li>
+                  <li>2 GB tier 2 data/day</li>
                   <li>Exclusive support</li>
                   <li>Fixed API</li>
                 </ul>
               </div>
 
-              <!-- Gold -->
               <a class="mega-link" href="#" data-section="gold-plan" style="margin-top:6px;">Gold</a>
-              <div id="gold-panel" class="card" style="display:none; padding:12px; margin-top:8px; border-radius:10px; background:#fff; color:#111;">
-                <strong>Gold Plan</strong>
-                <div class="price" style="font-size:28px;margin:6px 0;">$150 <span class="per">per month</span></div>
+              <div id="gold-panel" class="card" style="display:none; padding:10px; margin-top:6px;">
+                <strong>Gold</strong>
+                <div class="price" style="font-size:20px; margin:6px 0;">$150 <span class="per">per month</span></div>
                 <div class="yearly" style="margin-bottom:6px;">Pay $900/year (Save $900)</div>
-                <button class="buy" style="background:#0a4bd3;color:white;border:0;border-radius:8px;padding:8px 12px;font-weight:700;">Buy Now</button>
-                <ul class="benefits" aria-label="Benefits of Gold">
+                <button class="buy" style="background:#0a4bd3; color:white; border:0; border-radius:6px; padding:6px 10px; font-weight:700;"
+                        onclick="location.href='/checkout?planId=gold'">Buy Now</button>
+                <ul class="benefits">
                   <li>All Premium benefits</li>
-                  <li>12,000 REST credits per day</li>
-                  <li>130 GB tier 1 data per day</li>
-                  <li>2 GB tier 2 data per day</li>
+                  <li>12,000 REST credits/day</li>
+                  <li>130 GB tier 1 data/day</li>
+                  <li>2 GB tier 2 data/day</li>
                 </ul>
               </div>
 
-              <!-- Silver -->
               <a class="mega-link" href="#" data-section="silver-plan" style="margin-top:6px;">Silver</a>
-              <div id="silver-panel" class="card" style="display:none; padding:12px; margin-top:8px; border-radius:10px; background:#fff; color:#111;">
-                <strong>Silver Plan</strong>
-                <div class="price" style="font-size:28px;margin:6px 0;">$350 <span class="per">per month</span></div>
-                <div class="yearly" style="margin-bottom:6px;">Pay $2300/year (Save 55%)</div>
-                <button class="buy" style="background:#0a4bd3;color:white;border:0;border-radius:8px;padding:8px 12px;font-weight:700;">Buy Now</button>
-                <ul class="benefits" aria-label="Benefits of Silver">
+              <div id="silver-panel" class="card" style="display:none; padding:10px; margin-top:6px;">
+                <strong>Silver</strong>
+                <div class="price" style="font-size:20px; margin:6px 0;">$350 <span class="per">per month</span></div>
+                <div class="yearly" style="margin-bottom:6px;">Pay $2,300/year (Save 55%)</div>
+                <button class="buy" style="background:#0a4bd3; color:white; border:0; border-radius:6px; padding:6px 10px; font-weight:700;"
+                        onclick="location.href='/checkout?planId=silver'">Buy Now</button>
+                <ul class="benefits">
                   <li>All Gold benefits</li>
-                  <li>512 GB tier 1 data per day</li>
-                  <li>120K REST credits per day</li>
-                  <li>64 GB tier 2 data per day</li>
+                  <li>512 GB tier 1 data/day</li>
+                  <li>120K REST credits/day</li>
+                  <li>64 GB tier 2 data/day</li>
                   <li>Exclusive support</li>
                   <li>Fixed API</li>
                 </ul>
               </div>
             </div>
 
-            <div class="mega-section" aria-label="Developers">
+            <div class="mega-section" aria-label="Developers" style="min-width: 180px;">
               <h4>Developers</h4>
-              <a class="mega-link" href="#" data-section="sdk">SDKs</a>
-              <a class="mega-link" href="#" data-section="docs">API Documentation</a>
-              <a class="mega-link" href="#" data-section="changelog" style="display:block;">Change Log</a>
-              <a class="mega-link" href="#" data-section="tutorials" style="display:block;">Tutorials</a>
-              <a class="mega-link" href="#" data-section="knowapi" style="display:block; margin-top:6px;">Know Your API</a>
+              <a class="mega-link" href="#" data-section="sdk" style="margin-top:6px;">SDKs</a>
+              <a class="mega-link" href="#" data-section="docs" style="margin-top:6px;">API Documentation</a>
+              <a class="mega-link" href="#" data-section="changelog" style="margin-top:6px;">Change Log</a>
+              <a class="mega-link" href="#" data-section="tutorials" style="margin-top:6px;">Tutorials</a>
+              <a class="mega-link" href="#" data-section="knowapi" style="margin-top:6px;">Know Your API</a>
 
               <h4 style="margin-top:12px;">Resources</h4>
-              <a class="mega-link" href="#" data-section="glossary">Glossary</a>
-              <a class="mega-link" href="#" data-section="security">Security & Compliance</a>
-              <a class="mega-link" href="#" data-section="support">Technical Support</a>
-              <a class="mega-link" href="#" data-section="contact">Contact Us</a>
+              <a class="mega-link" href="#" data-section="glossary" style="margin-top:6px;">Glossary</a>
+              <a class="mega-link" href="#" data-section="security" style="margin-top:6px;">Security & Compliance</a>
+              <a class="mega-link" href="#" data-section="support" style="margin-top:6px;">Technical Support</a>
+              <a class="mega-link" href="#" data-section="contact" style="margin-top:6px;">Contact Us</a>
             </div>
 
-            <div class="mega-section" aria-label="Auth & Sign In">
+            <div class="mega-section" aria-label="Auth" style="min-width:180px;">
               <h4>Account</h4>
-              <a class="mega-link" href="#" data-section="signup">Sign Up</a>
-              <a class="mega-link" href="#" data-section="login">Login</a>
+              <a class="mega-link" href="#" data-section="signup" style="margin-top:6px;">Sign Up</a>
+              <a class="mega-link" href="#" data-section="login" style="margin-top:6px;">Login</a>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</header>
+  </header>
 
   <!-- Main content -->
   <main class="container" id="main">
-    <!-- API Portal Hub (branding, Get API CTA, navigation) -->
-    <section id="portal" class="portal active-section card section active" aria-label="API portal hub" style="padding:28px;">
-      <h1 class="hero glow" style="color:white; font-family: Verdana, Geneva, sans-serif;">Buy, Get two free APIs</h1>
+    <!-- Portal/Hero -->
+    <section id="portal" class="section active" aria-label="API portal hub" style="padding:28px;">
+      <h1 class="hero" style="color:white; font-family: Verdana, Geneva, sans-serif;">Buy, Get two free APIs</h1>
       <p class="lead" style="color:#d1d5db;">
-        Medor Coin API enables individuals and institutions to access secure, scalable crypto data through a unified API platform.
-        Get two free APIs to start exploring right away.
+        Medor Coin API enables institutions and individuals to access secure, scalable crypto data via a unified API.
+        Start with two free APIs.
       </p>
 
       <div class="free-area" style="margin: 12px 0 12px 0;">
@@ -334,7 +297,7 @@
       <div id="signupStatus" style="margin-top:8px; color:#e5e5e5;"></div>
     </section>
 
-    <!-- Verify Email -->
+    <!-- Verify -->
     <section id="verify" class="section" aria-label="Email verification" style="padding:28px;">
       <h2>Email Verification</h2>
       <p style="color:#d1d5db;">Enter the 6-digit code you received after sign up.</p>
@@ -345,15 +308,16 @@
       <div id="verifyStatus" class="note" style="margin-top:8px;"></div>
     </section>
 
-    <!-- My APIs -->
+    <!-- Dashboard -->
     <section id="dashboard" class="section" aria-label="My APIs and keys" style="padding:28px;">
       <h2>Your API Keys</h2>
       <div id="keys" style="margin: 6px 0 12px 0;"></div>
       <button id="buyMoreBtn" class="btn" style="margin-right:8px;">Buy More APIs</button>
       <button id="refreshKeysBtn" class="btn" style="background:#374151;">Refresh</button>
+      <button id="logoutBtn" class="btn" style="margin-left: 8px; background:#e11d48; border:0; color:white;">Sign Out</button>
     </section>
 
-    <!-- Receipt -->
+    <!-- Receipt (demo) -->
     <section id="receipt" class="section" aria-label="Receipt" style="padding:28px;">
       <h2>Transaction Receipt</h2>
       <div class="receipt" aria-label="Receipt details" style="background:#fff; color:#111;">
@@ -371,7 +335,6 @@
         <h3 class="section-title" style="margin-top:14px; text-align:center; color:#333;">Event Logs</h3>
         <table id="logsTable" style="width:100%; border-collapse: collapse;">
           <tr><th>#</th><th>Address</th><th>Topics</th><th>Data</th></tr>
-          <!-- rows injected dynamically -->
         </table>
 
         <h3 class="section-title" style="margin-top:14px; text-align:center; color:#333;">Purchased Item</h3>
@@ -389,33 +352,14 @@
 
   <!-- Footer -->
   <footer>
-    <div style="padding:0 20px; max-width:1100px;margin:0 auto;">
-      <div class="footer-grid" style="margin:0 0 20px 0;">
-        <div class="footer-col">
-          <h4>Other products</h4>
-          <a href="https://mdorcoin.invisible-m.com" target="_blank" rel="noreferrer">MDORCOIN</a>
-        </div>
-        <div class="footer-col">
-          <h4>About</h4>
-          <a href="#" data-section="about">About Us</a>
-        </div>
-        <div class="footer-col">
-          <h4>Developers</h4>
-          <a href="#" data-section="developers">Developers</a>
-        </div>
-        <div class="footer-col">
-          <h4>Help</h4>
-          <a href="#" data-section="help">Help</a>
-        </div>
+    <div class="container" style="max-width:1100px;">
+      <div style="color:#aaa; font-size:12px;">Follow us: X | LinkedIn | GitHub | Facebook</div>
+      <div style="margin-top:8px;">
+        <a href="#" class="link" style="color:#fff;">Other products</a> | 
+        <a href="#" class="link" style="color:#fff;">About</a> | 
+        <a href="#" class="link" style="color:#fff;">Developers</a> | 
+        <a href="#" class="link" style="color:#fff;">Help</a>
       </div>
-
-      <div class="socials" aria-label="Social links" style="justify-content:center;">
-        <a href="#" aria-label="X (Twitter)">X</a>
-        <a href="#" aria-label="LinkedIn">LinkedIn</a>
-        <a href="#" aria-label="GitHub">GitHub</a>
-        <a href="#" aria-label="Facebook">Facebook</a>
-      </div>
-
       <div style="color:#aaa; font-size:12px; margin-top:6px;">
         © MedorCoin. All rights reserved.
       </div>
@@ -424,7 +368,7 @@
 
   <script>
     // Simple in-page router: show one section at a time
-    const sections = ["portal","signup","verify","dashboard","receipt","about","help","developers","pricing"];
+    const sections = ["portal","signup","verify","dashboard","receipt"];
     function showSection(name) {
       sections.forEach(n => {
         const el = document.getElementById(n);
@@ -433,32 +377,45 @@
       if (name) history.replaceState(null, '', '#' + name);
     }
 
-    // Wire header nav to sections via data-section attributes
-    document.querySelectorAll('header [data-section], .mega-link').forEach(el => {
+    // Menu toggle
+    const menuBtn = document.getElementById('menuBtn');
+    const megaMenu = document.getElementById('megaMenu');
+    if (menuBtn && megaMenu) {
+      menuBtn.addEventListener('click', () => {
+        megaMenu.classList.toggle('active');
+      });
+      // close on outside click
+      document.addEventListener('click', (e) => {
+        if (!megaMenu.contains(e.target) && e.target !== menuBtn) {
+          megaMenu.classList.remove('active');
+        }
+      });
+    }
+
+    // Header navigation
+    document.querySelectorAll('[data-section]').forEach(el => {
       el.addEventListener('click', (e) => {
         const target = el.getAttribute('data-section');
-        if (target) {
-          // simple navigation: map target to a visible section
-          const map = {
-            'dashboard':'portal', // using 'dashboard' as the same portal section in this mock
-            'basic-plan':'pricing',
-            'premium-plan':'pricing',
-            'gold-plan':'pricing',
-            'silver-plan':'pricing',
-            'signup':'signup',
-            'verify':'verify',
-            'receipt':'receipt',
-            'knowapi':'pricing'
-          };
-          showSection(map[target] || target);
-        }
+        if (!target) return;
+        // Map header target to internal sections
+        const map = {
+          'dashboard': 'dashboard',
+          'signup': 'signup',
+          'verify': 'verify',
+          'receipt': 'receipt',
+          'basic-plan': 'portal',
+          'premium-plan': 'portal',
+          'gold-plan': 'portal',
+          'silver-plan': 'portal',
+        };
+        showSection(map[target] || target);
       });
     });
 
-    // Starfield: create some tiny stars that drift slowly
+    // Simple star background (drifting)
     (function createStars() {
       const layer = document.getElementById('starLayer');
-      const count = 80;
+      const count = 60;
       for (let i = 0; i < count; i++) {
         const s = document.createElement('span');
         const size = Math.random() * 2 + 1;
@@ -471,21 +428,18 @@
         s.style.background = 'white';
         s.style.opacity = Math.random() * 0.8 + 0.2;
         s.style.filter = 'blur(' + (Math.random()*1.5) + 'px)';
-        s.style.willChange = 'transform';
-        const d = Math.random() * 40;
-        s.style.transform = 'translateY(0)';
-        // animation via CSS transform loop in JS
+        layer.appendChild(s);
+        // drift
         let t = 0;
         setInterval(() => {
           t += 0.08;
           const y = Math.sin(t) * 2;
           s.style.transform = 'translateY(' + y + 'px)';
         }, 60);
-        layer.appendChild(s);
       }
     })();
 
-    // Portal Get API (mocked flow)
+    // Portal: free API flow
     let freeCounter = 2;
     const twoApisBtn = document.getElementById('generateTwoApis');
     const freeApiStatus = document.getElementById('freeApiStatus');
@@ -496,16 +450,16 @@
           portalMessage.textContent = "Free API limit reached. Sign up or login to purchase more.";
           return;
         }
-        // Simulated API call to backend
+        // Mock API call to backend
         setTimeout(() => {
           freeCounter--;
           freeApiStatus.textContent = `You have ${freeCounter} free API${freeCounter !== 1 ? 's' : ''} left`;
-          portalMessage.textContent = "Here is your free API: [mock-key-" + Math.floor(Math.random()*1000000) + "]";
-        }, 600);
+          portalMessage.textContent = "Here is your free API: " + "[mock-key-" + Math.floor(Math.random()*1000000) + "]";
+        }, 400);
       });
     }
 
-    // Sign Up (mock)
+    // Sign Up (frontend stub)
     const signupBtn = document.getElementById('signupBtn');
     const signupStatus = document.getElementById('signupStatus');
     if (signupBtn) {
@@ -516,16 +470,17 @@
           signupStatus.textContent = "Please fill in all fields.";
           return;
         }
+        // Real implementation would call /api/auth/register
         // Mock success
         setTimeout(() => {
-          localStorage.setItem('token', 'mock-token-123');
+          localStorage.setItem('token', 'mock-token-abcdef');
           signupStatus.textContent = "Account created. Redirecting to verification...";
           showSection('verify');
         }, 400);
       });
     }
 
-    // Verify
+    // Verify (frontend stub)
     const verifyBtn = document.getElementById('verifyBtn');
     const verifyStatus = document.getElementById('verifyStatus');
     if (verifyBtn) {
@@ -534,89 +489,65 @@
         const token = localStorage.getItem('token');
         if (!token) { verifyStatus.textContent = 'No token found, please login again.'; return; }
         if (!code || code.length !== 6) { verifyStatus.textContent = 'Enter a valid 6-digit code.'; return; }
-        // Mock success
         setTimeout(() => {
           verifyStatus.textContent = 'Verification succeeded. You can now access your APIs.';
           showSection('dashboard');
-          // loadKeys() could be wired to your /api/user/apis
+          loadKeys();
         }, 400);
       });
     }
 
-    // My APIs: simple mock
-    const refreshKeysBtn = document.getElementById('refreshKeysBtn');
-    if (refreshKeysBtn) {
-      refreshKeysBtn.addEventListener('click', () => {
-        // Mock refresh
-        const keys = document.getElementById('keys');
-        if (keys) {
-          keys.innerHTML = '<div class="api">API 1: <span class="masked">0xABCD1234...EFGH</span></div>';
+    // Dashboard: load keys (mock/wired to backend in production)
+    function loadKeys() {
+      const token = localStorage.getItem('token');
+      const keys = document.getElementById('keys');
+      if (!token) {
+        keys.innerHTML = '<div class="api">Please sign in to view your API keys.</div>';
+        return;
+      }
+      // Real implementation would fetch /api/user/apis with Authorization: Bearer token
+      // Mock response:
+      setTimeout(() => {
+        const arr = ['0xABCD1234...EFGH', '0x1234ABCD...WXYZ'];
+        if (arr.length) {
+          keys.innerHTML = arr.map((k, i) => `<div class="api">API ${i+1}: <span class="masked">${k}</span></div>`).join('');
+        } else {
+          keys.innerHTML = '<div class="api">No API keys found. Generate one from the portal.</div>';
         }
+      }, 300);
+    }
+
+    // Sign Out
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        // Reset UI to unauthenticated state
+        showSection('portal');
+        document.getElementById('keys').innerHTML = '';
       });
     }
 
-    // Setup a basic "Know Your API" / "Why Users Love Us" section on first load
+    // Refresh keys
+    const refreshKeysBtn = document.getElementById('refreshKeysBtn');
+    if (refreshKeysBtn) {
+      refreshKeysBtn.addEventListener('click', loadKeys);
+    }
+
+    // Init: show portal by default
     window.addEventListener('DOMContentLoaded', () => {
-      // Start on portal
-      if (location.hash) {
-        const h = location.hash.substring(1);
-        if (sections.includes(h)) showSection(h);
-        else showSection('portal');
+      const hash = location.hash.replace('#','');
+      if (hash && sections.includes(hash)) {
+        showSection(hash);
       } else {
         showSection('portal');
       }
-
-      // Basic "Why Users Love Us" content
-      // Could be extended to a separate section with a carousel later
-      const hero = document.querySelector('.hero');
-      if (hero) {
-        // no-op, heading already set
-      }
-
-      // Simple 5-slide carousel placeholder
-      createCarousel();
+      // if logged in, load keys
+      if (localStorage.getItem('token')) loadKeys();
+      // Prepare basic carousel if desired (omitted for brevity)
     });
-
-    function createCarousel() {
-      const container = document.createElement('div');
-      container.style.marginTop = '16px';
-      container.innerHTML = `
-        <div class="carousel" aria-label="API showcase carousel">
-          <div class="carousel-track" id="carouselTrack">
-            <div class="slide" style="background:#fff;">
-              <span>Slide 1: Reliable Crypto APIs</span>
-            </div>
-            <div class="slide dark" style="background:#f3f4f6;">
-              <span>Slide 2: Real-time Market Data</span>
-            </div>
-            <div class="slide" style="background:#fff;">
-              <span>Slide 3: REST + WebSocket</span>
-            </div>
-            <div class="slide dark" style="background:#f3f4f6;">
-              <span>Slide 4: Global Coverage</span>
-            </div>
-            <div class="slide" style="background:#fff;">
-              <span>Slide 5: Developer Friendly</span>
-            </div>
-          </div>
-        </div>
-      `;
-      // append to portal section
-      const portal = document.getElementById('portal');
-      if (portal) portal.appendChild(container);
-
-      // simple auto-advance
-      let idx = 0;
-      const track = document.getElementById('carouselTrack');
-      const slides = track ? track.children.length : 0;
-      if (track && slides > 0) {
-        setInterval(() => {
-          idx = (idx + 1) % slides;
-          track.style.transform = `translateX(-${idx * 100}%)`;
-        }, 3500);
-      }
-    }
 
   </script>
 </body>
 </html>
+
