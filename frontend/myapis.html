@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My APIs</title>
+  <style>
+    body { font-family: Verdana, Geneva, sans-serif; background:#f7f7f7; padding:20px; }
+    .container { max-width: 800px; margin: 0 auto; background:#fff; border-radius:8px; padding:16px; border:1px solid #ddd; }
+    .api { padding:8px 0; border-bottom:1px solid #eee; }
+    .masked { font-family: monospace; letter-spacing: 1px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Your API Keys</h2>
+    <div id="keys"></div>
+    <button onclick="location.href='pricing.html'">Buy More APIs</button>
+  </div>
+
+  <script>
+    // Fetch keys for the signed-in user (requires auth)
+    async function loadKeys() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('No auth token');
+        const resp = await fetch('/api/user/apis', {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!resp.ok) throw new Error('Failed to fetch keys');
+        const keys = await resp.json();
+        const container = document.getElementById('keys');
+        container.innerHTML = keys.map((k, i) => {
+          const masked = k.slice(0,4) + '****' + k.slice(-4);
+          return `<div class="api">API ${i+1}: <span class="masked">${masked}</span></div>`;
+        }).join('');
+      } catch (err) {
+        document.getElementById('keys').innerHTML = '<div class="api">Please sign in to view your API keys.</div>';
+      }
+    }
+    loadKeys();
+  </script>
+</body>
+</html>
