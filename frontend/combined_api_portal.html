@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>MedorCoin API Portal — Unified Frontend</title>
+  <title>MedorCoin API Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -105,20 +105,23 @@
     #generateTwoApis { background: #0a4bd3; color: white; border: none; padding: 12px 18px; border-radius: 999px; font-weight: 700; cursor: pointer; }
     #freeApiStatus { margin: 0; color: #e5e5e5; }
 
-    /* Pricing grid (2x2) */
-    .pricing { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 8px; }
-    .card { background: var(--card); color: var(--cardText); border-radius: 12px; padding: 16px; border: 1px solid rgba(0,0,0,.06); }
-    .card h3 { margin: 0 0 6px; font-family: Verdana, Geneva, sans-serif; }
-    .price { font-size: 28px; font-weight: 700; margin: 6px 0 4px; font-family: Verdana, Geneva, sans-serif; }
-    .per { font-size: 12px; color: #555; margin-left: 6px; }
-    .yearly { font-size: 13px; color: #555; margin-bottom: 6px; }
-    .buy { background: var(--blue); border: none; color: white; padding: 10px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    .benefits { padding-left: 16px; margin: 6px 0 0 0; color: #1f2937; }
-    .benefits li { margin: 4px 0; }
+    /* Plans on homepage (grid) */
+    .plans-section { margin-top: 12px; }
+    .plans-title { color: #fff; font-family: Verdana, Geneva, sans-serif; font-size: 1.2rem; margin: 12px 0; }
+    .plan-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .plan { background: var(--card); color: var(--cardText); border-radius: 12px; padding: 16px; border: 1px solid rgba(0,0,0,.06); }
+    .plan h3 { margin: 0 0 6px; font-family: Verdana, Geneva, sans-serif; }
+    .plan .price { font-size: 22px; font-weight: 700; margin: 6px 0 4px; }
+    .plan .per { font-size: 12px; color: #555; margin-left: 6px; }
+    .plan .yearly { font-size: 13px; color: #555; margin-bottom: 6px; }
+    .plan .buy { background: var(--blue); border: none; color: white; padding: 8px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .plan ul { padding-left: 16px; margin: 6px 0 0 0; color: #1f2937; }
+    .plan li { margin: 4px 0; }
 
     @media (max-width: 800px) {
       .pricing { grid-template-columns: 1fr; }
       .mega-menu { width: calc(100vw - 20px); left: 10px; right: 10px; }
+      .plan-grid { grid-template-columns: 1fr; }
     }
 
     /* Footer */
@@ -254,7 +257,7 @@
       <h1 class="hero" style="color:white; font-family: Verdana, Geneva, sans-serif;">Buy, Get two free APIs</h1>
       <p class="lead" style="color:#d1d5db;">
         Medor Coin API enables institutions and individuals to access secure, scalable crypto data via a unified API.
-        Start with two free APIs.
+        Obtain two free APIs to start with.
       </p>
 
       <div class="free-area" style="margin: 12px 0 12px 0;">
@@ -264,7 +267,68 @@
         <p id="freeApiStatus" style="margin:0;">You have 2 free APIs available</p>
       </div>
 
-      <div id="portalMessage" class="lead" style="color:#e5e5e5; font-size:14px;"></div>
+      <div class="plans-section" aria-label="Plans on homepage" style="margin-top: 6px;">
+        <div class="plans-title" style="font-weight:700; color:#fff; font-family: Verdana, Geneva, sans-serif;">Available Plans</div>
+        <div class="plan-grid">
+          <div class="plan" aria-label="Basic plan card">
+            <h3>Basic</h3>
+            <div class="price">$15 <span class="per">per month</span></div>
+            <div class="yearly" style="margin-bottom:6px;">Pay $99/year (Save $72)</div>
+            <button class="buy" onclick="location.href='/checkout?planId=basic'" style="margin-bottom:6px;">Buy Now</button>
+            <ul class="benefits" style="margin-top:6px;">
+              <li>100,000 APIs</li>
+              <li>Historical & Real-Time Data</li>
+              <li>REST Protocol</li>
+              <li>Volume Discounts</li>
+              <li>WebSocket Protocol</li>
+              <li>Email support</li>
+            </ul>
+          </div>
+
+          <div class="plan" aria-label="Premium plan card">
+            <h3>Premium</h3>
+            <div class="price">$45 <span class="per">per month</span></div>
+            <div class="yearly" style="margin-bottom:6px;">Pay $297/year (Save $243)</div>
+            <button class="buy" onclick="location.href='/checkout?planId=premium'" style="margin-bottom:6px;">Buy Now</button>
+            <ul class="benefits" style="margin-top:6px;">
+              <li>All Basic benefits</li>
+              <li>1K REST credits/day</li>
+              <li>40 GB tier 1 data/day</li>
+              <li>2 GB tier 2 data/day</li>
+              <li>Exclusive support</li>
+              <li>Fixed API</li>
+            </ul>
+          </div>
+
+          <div class="plan" aria-label="Gold plan card">
+            <h3>Gold</h3>
+            <div class="price">$150 <span class="per">per month</span></div>
+            <div class="yearly" style="margin-bottom:6px;">Pay $900/year (Save $900)</div>
+            <button class="buy" onclick="location.href='/checkout?planId=gold'" style="margin-bottom:6px;">Buy Now</button>
+            <ul class="benefits" style="margin-top:6px;">
+              <li>All Premium benefits</li>
+              <li>12,000 REST credits/day</li>
+              <li>130 GB tier 1 data/day</li>
+              <li>2 GB tier 2 data/day</li>
+            </ul>
+          </div>
+
+          <div class="plan" aria-label="Silver plan card">
+            <h3>Silver</h3>
+            <div class="price">$350 <span class="per">per month</span></div>
+            <div class="yearly" style="margin-bottom:6px;">Pay $2,300/year (Save 55%)</div>
+            <button class="buy" onclick="location.href='/checkout?planId=silver'" style="margin-bottom:6px;">Buy Now</button>
+            <ul class="benefits" style="margin-top:6px;">
+              <li>All Gold benefits</li>
+              <li>512 GB tier 1 data/day</li>
+              <li>120K REST credits/day</li>
+              <li>64 GB tier 2 data/day</li>
+              <li>Exclusive support</li>
+              <li>Fixed API</li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
       <hr style="border:0;border-top:1px solid rgba(255,255,255,.2);" />
 
@@ -276,7 +340,7 @@
         <li><a href="#" class="link" data-section="receipt" style="color:#fff;">Receipt</a></li>
       </ul>
 
-      <p style="color:#d1d5db; font-size:14px;">Note: This hub is a front-end proxy to your backend APIs. Sign up with email/password, verify, and manage keys here.</p>
+      <p style="color:#d1d5db; font-size:14px;"> Sign up with email/password, verify, and manage keys here.</p>
     </section>
 
     <!-- Sign Up -->
@@ -293,14 +357,14 @@
         </div>
         <button type="button" id="signupBtn" class="btn primary" style="width:fit-content;">Create Account</button>
       </form>
-      <p class="note" style="margin-top:8px;">Tip: Email/password flow. No username field is sent to the backend.</p>
+      <p class="note" style="margin-top:8px;">Tip: Email/password flow. </p>
       <div id="signupStatus" style="margin-top:8px; color:#e5e5e5;"></div>
     </section>
 
     <!-- Verify -->
     <section id="verify" class="section" aria-label="Email verification" style="padding:28px;">
       <h2>Email Verification</h2>
-      <p style="color:#d1d5db;">Enter the 6-digit code you received after sign up.</p>
+      <p style="color:#d1d5db;">Enter the 6-digit code you received in your email.</p>
       <div style="display:flex; gap:8px; align-items:center;">
         <input id="verifyCode" placeholder="123456" maxlength="6" style="padding:12px; border-radius:6px; border:1px solid #ddd;" />
         <button id="verifyBtn" class="btn" style="padding:12px 16px; font-weight:700;">Verify</button>
@@ -505,15 +569,120 @@
         keys.innerHTML = '<div class="api">Please sign in to view your API keys.</div>';
         return;
       }
-      // Real implementation would fetch /api/user/apis with Authorization: Bearer token
-      // Mock response:
-      setTimeout(() => {
-        const arr = ['0xABCD1234...EFGH', '0x1234ABCD...WXYZ'];
-        if (arr.length) {
-          keys.innerHTML = arr.map((k, i) => `<div class="api">API ${i+1}: <span class="masked">${k}</span></div>`).join('');
-        } else {
-          keys.innerHTML = '<div class="api">No API keys found. Generate one from the portal.</div>';
-        }
+      // Production-ready fetch of user APIs with robust error handling
+// Configurable API base (adjust or inject via global var/environment)
+const API_BASE = window.__API_BASE__ || 'https://medorcoin.invisible-m.com';
+const API_APIS_ENDPOINT = `${API_BASE}/api/user/apis`;
+
+/**
+ * Escape HTML to prevent injection when rendering dynamic content
+ * @param {string} s
+ * @returns {string}
+ */
+function escapeHtml(s) {
+  return ('' + s).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[c]));
+}
+
+/**
+ * Retrieve the auth token from either localStorage or cookies
+ * Prefer localStorage if present; fallback to cookie
+ * @returns {string|null}
+ */
+function getAuthToken() {
+  // 1) Local storage
+  const tokenFromStorage = localStorage.getItem('token');
+  if (tokenFromStorage) return tokenFromStorage;
+
+  // 2) Cookie (format: token=...)
+  const match = document.cookie.match(/(?:^|;\s*)token=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * Fetch the current user's API keys (or equivalent tokens)
+ * - Handles auth failures gracefully
+ * - Displays friendly messages for users
+ * - Aborts with a timeout to avoid hanging requests
+ * @returns {Promise<void>}
+ */
+async function fetchUserApis() {
+  const keysContainer = document.getElementById('api-keys');
+  if (!keysContainer) return; // nothing to render into
+
+  const token = getAuthToken();
+  if (!token) {
+    keysContainer.innerHTML = '<div class="api">Not authenticated. Please login to view your API keys.</div>';
+    return;
+  }
+
+  // Show a loading state
+  keysContainer.innerHTML = '<div class="api">Loading API keys…</div>';
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
+
+  try {
+    const res = await fetch(API_APIS_ENDPOINT, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    // Unauthorized / forbidden - force re-login
+    if (res.status === 401 || res.status === 403) {
+      keysContainer.innerHTML = '<div class="api">Session expired. Please login again.</div>';
+      localStorage.removeItem('token');
+      // Clear cookie if you store token there as well
+      document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      return;
+    }
+
+    if (!res.ok) {
+      let err = {};
+      try {
+        err = await res.json();
+      } catch {
+        err = {};
+      }
+      const message = (err && err.error) || res.statusText || 'Unknown error';
+      keysContainer.innerHTML = `<div class="api">Error fetching APIs: ${escapeHtml(message)}</div>`;
+      return;
+    }
+
+    const apiKeys = await res.json();
+    if (Array.isArray(apiKeys) && apiKeys.length > 0) {
+      keysContainer.innerHTML = apiKeys
+        .map((k, i) => `<div class="api">API ${i + 1}: <span class="masked">${escapeHtml(k)}</span></div>`)
+        .join('');
+    } else {
+      keysContainer.innerHTML = '<div class="api">No API keys found. Generate one from the portal.</div>';
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      keysContainer.innerHTML = '<div class="api">Request timed out. Please try again.</div>';
+    } else {
+      keysContainer.innerHTML = `<div class="api">Network error: ${escapeHtml(err.message || 'Unknown error')}</div>`;
+    }
+  }
+}
+
+// Optional: expose a public helper to refresh keys from elsewhere
+window.refreshUserApis = fetchUserApis;
+
+// Call fetch on page load (adjust as needed to your app lifecycle)
+window.addEventListener('DOMContentLoaded', fetchUserApis);
       }, 300);
     }
 
