@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Us</title>
+<style>
+  body {
+    font-family: Verdana, Geneva, sans-serif;
+    background: #0b1020;
+    color: #fff;
+    padding: 40px 20px;
+  }
+  .contact-container {
+    max-width: 500px;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.05);
+    padding: 30px;
+    border-radius: 12px;
+  }
+  .contact-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+  }
+  .field label {
+    margin-bottom: 6px;
+    font-size: 14px;
+    color: #d1d5db;
+  }
+  .field input, .field textarea {
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background: #111;
+    color: #fff;
+    font-size: 14px;
+  }
+  .field textarea {
+    resize: vertical;
+    min-height: 120px;
+    max-height: 300px;
+  }
+  #sendBtn {
+    width: 100%;
+    padding: 12px;
+    font-weight: 700;
+    border-radius: 999px;
+    border: none;
+    background: #0a4bd3;
+    color: white;
+    cursor: pointer;
+  }
+  #thankMessage {
+    margin-top: 16px;
+    color: #22c55e;
+    font-weight: 600;
+    text-align: center;
+    display: none;
+  }
+</style>
+</head>
+<body>
+  <div class="contact-container">
+    <h2>Contact Us</h2>
+    <div class="field">
+      <label for="contactEmail">Your Email</label>
+      <input type="email" id="contactEmail" placeholder="Enter your email" required>
+    </div>
+    <div class="field">
+      <label for="contactSubject">Subject</label>
+      <input type="text" id="contactSubject" placeholder="Subject" required>
+    </div>
+    <div class="field">
+      <label for="contactMessage">Message</label>
+      <textarea id="contactMessage" placeholder="Write your message here..." maxlength="3000" required></textarea>
+      <small style="color:#aaa; font-size:12px;">Maximum 3,000 characters</small>
+    </div>
+    <button id="sendBtn">Send Message</button>
+    <div id="thankMessage">Thank you! Your message has been sent. You will receive a response soon.</div>
+  </div>
+
+<script>
+  (function(){
+    const sendBtn = document.getElementById('sendBtn');
+    const emailInput = document.getElementById('contactEmail');
+    const subjectInput = document.getElementById('contactSubject');
+    const messageInput = document.getElementById('contactMessage');
+    const thankMessage = document.getElementById('thankMessage');
+
+    // Hidden company email
+    const companyEmail = 'Admin@invisible-m.com';
+
+    sendBtn.addEventListener('click', () => {
+      const userEmail = emailInput.value.trim();
+      const subject = subjectInput.value.trim();
+      const message = messageInput.value.trim();
+
+      if (!userEmail || !subject || !message) {
+        alert('Please fill in all fields before sending.');
+        return;
+      }
+
+      if (message.length > 3000) {
+        alert('Message exceeds 3,000 characters.');
+        return;
+      }
+
+      // Simulate sending message
+      // In production, replace this with server-side API or mail sending function
+      console.log('Sending to:', companyEmail);
+      console.log('From:', userEmail);
+      console.log('Subject:', subject);
+      console.log('Message:', message);
+
+      // Show thank you message
+      thankMessage.style.display = 'block';
+
+      // Optional: clear form
+      emailInput.value = '';
+      subjectInput.value = '';
+      messageInput.value = '';
+    });
+  })();
+</script>
+</body>
+</html>
