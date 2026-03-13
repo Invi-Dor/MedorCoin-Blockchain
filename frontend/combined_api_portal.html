@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <title>MedorCoin API Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1189498572545023"
-     crossorigin="anonymous"></script>
   <style>
     :root {
       --bg: #0b1020;
@@ -27,38 +25,7 @@
       color: #e5e7eb;
       overflow-x: hidden;
     }
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const btn = document.getElementById('langBtn');
-  const dropdown = document.getElementById('langDropdown');
 
-  // Toggle dropdown
-  btn.addEventListener('click', () => {
-    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-  });
-
-  // Language selection
-  document.querySelectorAll('.lang-option').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.preventDefault();
-      const selected = el.getAttribute('data-lang');
-      const label = el.textContent;
-      btn.textContent = `🌍 ${label}`;
-      dropdown.style.display = 'none';
-
-      // TODO: Add real translation logic here (e.g., load translations)
-      console.log('Selected language:', selected);
-    });
-  });
-
-  // Close if clicked outside
-  document.addEventListener('click', (e) => {
-    if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
-      dropdown.style.display = 'none';
-    }
-  });
-});
-</script>
     /* Background ambiance (space-ish) */
     .space {
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
@@ -119,9 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
     .mega-link { display: block; padding: 4px 6px; color: #d1d5db; text-decoration: none; border-radius: 4px; }
     .mega-link:hover { background: rgba(255,255,255,.08); }
 
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1189498572545023"
-     crossorigin="anonymous"></script>
-  
     /* Body */
     .container { max-width: 1100px; margin: 28px auto; padding: 0 20px; position: relative; z-index: 2; }
 
@@ -158,15 +122,17 @@ document.addEventListener('DOMContentLoaded', () => {
     .plan li { margin: 4px 0; }
 
     @media (max-width: 800px) {
-      .pricing { grid-template-columns: 1fr; }
-      .mega-menu { width: calc(100vw - 20px); left: 10px; right: 10px; }
       .plan-grid { grid-template-columns: 1fr; }
+      .mega-menu { width: calc(100vw - 20px); left: 10px; right: 10px; }
     }
+
+    /* Receipt (hidden by default) */
+    #receiptSection { display: none; padding: 0; margin: 0; }
+    #receiptSection.active { display: block; }
 
     /* Footer */
     footer { text-align: center; color: #aaa; padding: 40px 0; }
 
-    /* Small helper styles */
     .muted { color: #cbd5e1; }
   </style>
 </head>
@@ -182,147 +148,137 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 
     <div class="cta-area">
-  <a href="combined_api_portal.html" id="getApiBtn" class="btn primary" aria-label="Get API">
-    Get API
-  </a>
-</div>
+      <a href="combined_api_portal.html" id="getApiBtn" class="btn primary" aria-label="Get API">
+        Get API
+      </a>
+    </div>
 
-      <div class="menu" aria-label="Main navigation">
-        <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
-        <div id="megaMenu" class="mega-menu" role="menu" aria-label="Portal menu">
-          <div class="mega-grid">
-            <!-- Dashboard (contains Open Dashboard, My APIs, Affiliates, Jobs, Blogs, About, Technical Support, Contact Us) -->
-            <div class="mega-section" id="section-dashboard" style="min-width: 260px;">
-              <h4>Dashboard</h4>
-              <a class="mega-link" href="#" data-section="dashboard-open" style="margin-top:4px;">Open Dashboard</a>
-              <a class="mega-link" href="#" data-section="dashboard-myapis" style="margin-top:4px;">My APIs</a>
-              <a class="mega-link" href="#" data-section="dashboard-jobs" style="margin-top:4px;">Jobs</a>
-              <a class="mega-link" href="#" data-section="dashboard-blogs" style="margin-top:4px;">Blogs</a>
-              <a class="mega-link" href="#" data-section="dashboard-about" style="margin-top:4px;">About</a>
-              <a class="mega-link" href="#" data-section="dashboard-tech" style="margin-top:4px;">Technical Support</a>
-              <a class="mega-link" href="#" data-section="dashboard-contact" style="margin-top:4px; margin-bottom:6px;">Contact Us</a>
-            </div>
-
-            <!-- C Plans (hidden details behind collapsible sections) -->
-            <div class="mega-section" id="section-plans" style="min-width: 260px;">
-              <h4>C Plans</h4>
-              <details style="margin-top:6px;">
-                <summary>Basic</summary>
-                <div style="padding:6px 0 6px 8px;">
-                  <div class="price" style="font-size:14px; margin-bottom:6px;">$15 <span class="per">per month</span></div>
-                  <div class="yearly" style="margin-bottom:6px;">Pay $99/year (Save $72)</div>
-                  <button class="buy" onclick="location.href='/checkout?planId=basic'" style="background:#0a4bd3; color:white; border:0; padding:6px 10px; border-radius:6px; font-weight:700;">Buy Now</button>
-                  <ul style="margin:6px 0 0 0;">
-                    <li>100,000 APIs</li>
-                    <li>Historical & Real-Time Data</li>
-                    <li>REST Protocol</li>
-                    <li>Volume Discounts</li>
-                    <li>WebSocket Protocol</li>
-                    <li>Email support</li>
-                  </ul>
-                </div>
-              </details>
-
-              <details style="margin-top:6px;">
-                <summary>Premium</summary>
-                <div style="padding:6px 0 6px 8px;">
-                  <div class="price" style="font-size:14px; margin-bottom:6px;">$45 <span class="per">per month</span></div>
-                  <div class="yearly" style="margin-bottom:6px;">Pay $297/year (Save $243)</div>
-                  <button class="buy" onclick="location.href='/checkout?planId=premium'" style="background:#0a4bd3; color:white; border:0; padding:6px 10px; border-radius:6px; font-weight:700;">Buy Now</button>
-                  <ul style="margin:6px 0 0 0;">
-                    <li>All Basic benefits</li>
-                    <li>1K REST credits/day</li>
-                    <li>40 GB tier 1 data/day</li>
-                    <li>2 GB tier 2 data/day</li>
-                    <li>Exclusive support</li>
-                    <li>Fixed API</li>
-                  </ul>
-                </div>
-              </details>
-
-              <details style="margin-top:6px;">
-                <summary>Gold</summary>
-                <div style="padding:6px 0 6px 8px;">
-                  <div class="price" style="font-size:14px; margin-bottom:6px;">$150 <span class="per">per month</span></div>
-                  <div class="yearly" style="margin-bottom:6px;">Pay $900/year (Save $900)</div>
-                  <button class="buy" onclick="location.href='/checkout?planId=gold'" style="background:#0a4bd3; color:white; border:0; padding:6px 10px; border-radius:6px; font-weight:700;">Buy Now</button>
-                  <ul style="margin:6px 0 0 0;">
-                    <li>All Premium benefits</li>
-                    <li>12,000 REST credits/day</li>
-                    <li>130 GB tier 1 data/day</li>
-                    <li>2 GB tier 2 data/day</li>
-                  </ul>
-                </div>
-              </details>
-
-              <details style="margin-top:6px;">
-                <summary>Silver</summary>
-                <div style="padding:6px 0 6px 8px;">
-                  <div class="price" style="font-size:14px; margin-bottom:6px;">$350 <span class="per">per month</span></div>
-                  <div className="yearly" style="margin-bottom:6px;">Pay $2,300/year (Save 55%)</div>
-                  <button class="buy" onclick="location.href='/checkout?planId=silver'" style="background:#0a4bd3; color:white; border:0; padding:6px 10px; border-radius:6px; font-weight:700;">Buy Now</button>
-                  <ul style="margin:6px 0 0 0;">
-                    <li>All Gold benefits</li>
-                    <li>512 GB tier 1 data/day</li>
-                    <li>120K REST credits/day</li>
-                    <li>64 GB tier 2 data/day</li>
-                    <li>Exclusive support</li>
-                    <li>Fixed API</li>
-                  </ul>
-                </div>
-              </details>
-            </div>
-
-            <!-- Resources (nested) -->
-            <div class="mega-section" id="section-resources" style="min-width: 260px;">
-              <h4>Settings</h4>
-              <a class="mega-link" href="#" data-section="sdk" style="margin-top:4px;">SDKs</a>
-              <a class="mega-link" href="#" data-section="docs-resources" style="margin-top:4px;">API Documentation</a>
-              <a class="mega-link" href="#" data-section="changelog" style="margin-top:4px;">Change Log</a>
-              <a class="mega-link" href="#" data-section="tutorials" style="margin-top:4px;">Tutorials</a>
-              <a class="mega-link" href="#" data-section="knowapi" style="margin-top:4px;">Know Your API</a>
-              <a class="mega-link" href="#" data-section="glossary" style="margin-top:4px;">Glossary</a>
-              <a class="mega-link" href="#" data-section="security" style="margin-top:4px;">Security & Compliance</a>
-              <a class="mega-link" href="#" data-section="techsupport" style="margin-top:4px;">Technical Support</a>
-            </div>
-
-            <!-- Affiliates (inside Dashboard pane) -->
-            <div class="mega-section" id="section-affiliates" style="min-width: 260px;">
-              <h4>Affiliates</h4>
-              <a class="mega-link" href="#" data-section="affiliate" style="margin-top:4px;">Affiliates</a>
-            </div>
-
-            <!-- Jobs -->
-            <div class="mega-section" id="section-jobs" style="min-width: 260px;">
-              <h4>Jobs</h4>
-              <a class="mega-link" href="#" data-section="jobs" style="margin-top:4px;">Jobs</a>
-            </div>
-
-            <!-- Blogs -->
-            <div class="mega-section" id="section-blogs" style="min-width: 260px;">
-              <h4>Blogs</h4>
-              <a class="mega-link" href="https://invisible-m.com" data-section="blogs" style="margin-top:4px;">Blogs</a>
-            </div>
-
-            <!-- About -->
-            <div class="mega-section" id="section-about" style="min-width: 260px;">
-              <h4>About</h4>
-              <a class="mega-link" href="#" data-section="about2" style="margin-top:4px;">About</a>
-            </div>
-
-            <!-- Technical Support -->
-            <div class="mega-section" id="section-tech" style="min-width: 260px;">
-              <h4>Technical Support</h4>
-              <a class="mega-link" href="#" data-section="techsupport" style="margin-top:4px;">Technical Support</a>
-            </div>
-
-            <!-- Contact Us (separate link on dashboard) -->
-            <div class="mega-section" id="section-contact" style="min-width: 260px;">
-              <h4>Contact Us</h4>
-              <a class="mega-link" href="#" data-section="contact" style="margin-top:4px;">Contact Us</a>
-            </div>
-
+    <div class="menu" aria-label="Main navigation">
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">☰</button>
+      <div id="megaMenu" class="mega-menu" role="menu" aria-label="Portal menu">
+        <div class="mega-grid">
+          <div class="mega-section" id="section-dashboard" style="min-width: 260px;">
+            <h4>Dashboard</h4>
+            <a class="mega-link" href="#" data-section="dashboard-open" style="margin-top:4px;">Open Dashboard</a>
+            <a class="mega-link" href="#" data-section="dashboard-myapis" style="margin-top:4px;">My APIs</a>
+            <a class="mega-link" href="#" data-section="dashboard-jobs" style="margin-top:4px;">Jobs</a>
+            <a class="mega-link" href="#" data-section="dashboard-blogs" style="margin-top:4px;">Blogs</a>
+            <a class="mega-link" href="#" data-section="dashboard-about" style="margin-top:4px;">About</a>
+            <a class="mega-link" href="#" data-section="dashboard-tech" style="margin-top:4px;">Technical Support</a>
+            <a class="mega-link" href="#" data-section="dashboard-contact" style="margin-top:4px; margin-bottom:6px;">Contact Us</a>
           </div>
+
+          <div class="mega-section" id="section-plans" style="min-width: 260px;">
+            <h4>C Plans</h4>
+            <details style="margin-top:6px;">
+              <summary>Basic</summary>
+              <div style="padding:6px 0 6px 8px;">
+                <div class="price" style="font-size:14px; margin-bottom:6px;">$15 <span class="per">per month</span></div>
+                <div class="yearly" style="margin-bottom:6px;">Pay $99/year (Save $72)</div>
+                <button class="buy" onclick="location.href='/checkout?planId=basic'" style="background:#0a4bd3; color:white; border:0; padding:6px 10px; border-radius:6px; font-weight:700;">Buy Now</button>
+                <ul style="margin:6px 0 0 0;">
+                  <li>100,000 APIs</li>
+                  <li>Historical & Real-Time Data</li>
+                  <li>REST Protocol</li>
+                  <li>Volume Discounts</li>
+                  <li>WebSocket Protocol</li>
+                  <li>Email support</li>
+                </ul>
+              </div>
+            </details>
+
+            <details style="margin-top:6px;">
+              <summary>Premium</summary>
+              <div style="padding:6px 0 6px 8px;">
+                <div class="price" style="font-size:14px; margin-bottom:6px;">$45 <span class="per">per month</span></div>
+                <div class="yearly" style="margin-bottom:6px;">Pay $297/year (Save $243)</div>
+                <button class="buy" onclick="location.href='/checkout?planId=premium'" style="background:#0a4bd3; color:white; border:0; padding:6px 10px; border-radius:6px; font-weight:700;">Buy Now</button>
+                <ul style="margin:6px 0 0 0;">
+                  <li>All Basic benefits</li>
+                  <li>1K REST credits/day</li>
+                  <li>40 GB tier 1 data/day</li>
+                  <li>2 GB tier 2 data/day</li>
+                  <li>Exclusive support</li>
+                  <li>Fixed API</li>
+                </ul>
+              </div>
+            </details>
+
+            <details style="margin-top:6px;">
+              <summary>Gold</summary>
+              <div style="padding:6px 0 6px 8px;">
+                <div class="price" style="font-size:14px; margin-bottom:6px;">$150 <span class="per">per month</span></div>
+                <div class="yearly" style="margin-bottom:6px;">Pay $900/year (Save $900)</div>
+                <button class="buy" onclick="location.href='/checkout?planId=gold'" style="background:#0a4bd3; color:white; border:0; padding:6px 10px; border-radius:6px; font-weight:700;">Buy Now</button>
+                <ul style="margin:6px 0 0 0;">
+                  <li>All Premium benefits</li>
+                  <li>12,000 REST credits/day</li>
+                  <li>130 GB tier 1 data/day</li>
+                  <li>2 GB tier 2 data/day</li>
+                </ul>
+              </div>
+            </details>
+
+            <details style="margin-top:6px;">
+              <summary>Silver</summary>
+              <div style="padding:6px 0 6px 8px;">
+                <div class="price" style="font-size:14px; margin-bottom:6px;">$350 <span class="per">per month</span></div>
+                <div class="yearly" style="margin-bottom:6px;">Pay $2,300/year (Save 55%)</div>
+                <button class="buy" onclick="location.href='/checkout?planId=silver'" style="background:#0a4bd3; color:white; border:0; padding:6px 10px; border-radius:6px; font-weight:700;">Buy Now</button>
+                <ul style="margin:6px 0 0 0;">
+                  <li>All Gold benefits</li>
+                  <li>512 GB tier 1 data/day</li>
+                  <li>120K REST credits/day</li>
+                  <li>64 GB tier 2 data/day</li>
+                  <li>Exclusive support</li>
+                  <li>Fixed API</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+
+          <div class="mega-section" id="section-resources" style="min-width: 260px;">
+            <h4>Settings</h4>
+            <a class="mega-link" href="#" data-section="sdk" style="margin-top:4px;">SDKs</a>
+            <a class="mega-link" href="#" data-section="docs-resources" style="margin-top:4px;">API Documentation</a>
+            <a class="mega-link" href="#" data-section="changelog" style="margin-top:4px;">Change Log</a>
+            <a class="mega-link" href="#" data-section="tutorials" style="margin-top:4px;">Tutorials</a>
+            <a class="mega-link" href="#" data-section="knowapi" style="margin-top:4px;">Know Your API</a>
+            <a class="mega-link" href="#" data-section="glossary" style="margin-top:4px;">Glossary</a>
+            <a class="mega-link" href="#" data-section="security" style="margin-top:4px;">Security & Compliance</a>
+            <a class="mega-link" href="#" data-section="techsupport" style="margin-top:4px;">Technical Support</a>
+          </div>
+
+          <div class="mega-section" id="section-affiliates" style="min-width: 260px;">
+            <h4>Affiliates</h4>
+            <a class="mega-link" href="#" data-section="affiliate" style="margin-top:4px;">Affiliates</a>
+          </div>
+
+          <div class="mega-section" id="section-jobs" style="min-width: 260px;">
+            <h4>Jobs</h4>
+            <a class="mega-link" href="#" data-section="jobs" style="margin-top:4px;">Jobs</a>
+          </div>
+
+          <div class="mega-section" id="section-blogs" style="min-width: 260px;">
+            <h4>Blogs</h4>
+            <a class="mega-link" href="https://invisible-m.com" data-section="blogs" style="margin-top:4px;">Blogs</a>
+          </div>
+
+          <div class="mega-section" id="section-about" style="min-width: 260px;">
+            <h4>About</h4>
+            <a class="mega-link" href="#" data-section="about2" style="margin-top:4px;">About</a>
+          </div>
+
+          <div class="mega-section" id="section-tech" style="min-width: 260px;">
+            <h4>Technical Support</h4>
+            <a class="mega-link" href="#" data-section="techsupport" style="margin-top:4px;">Technical Support</a>
+          </div>
+
+          <div class="mega-section" id="section-contact" style="min-width: 260px;">
+            <h4>Contact Us</h4>
+            <a class="mega-link" href="#" data-section="contact" style="margin-top:4px;">Contact Us</a>
+          </div>
+
         </div>
       </div>
     </div>
@@ -338,14 +294,15 @@ document.addEventListener('DOMContentLoaded', () => {
         Obtain two free APIs to start with.
       </p>
 
-      <a href="get2freeapi.html" style="text-decoration:none;">
-  <button id="generateTwoApis" aria-label="Generate two free APIs" style="background:#e11d48; color:#fff; border:0; padding:12px 18px; border-radius:999px; font-weight:700;">
-    Get Two Free APIs
-  </button>
-</a>
+      <div style="margin-bottom:8px;">
+        <button id="generateTwoApis" aria-label="Generate two free APIs" style="background:#e11d48; color:#fff; border:0; padding:12px 18px; border-radius:999px; font-weight:700;">
+          Get Two Free APIs
+        </button>
+      </div>
 
       <!-- Visible area for generated keys (portal) -->
       <div id="portalKeys" aria-label="Portal generated API keys" style="min-height:40px;"></div>
+      <div id="freeApiStatus" style="margin-top:6px; color:#e5e5e5;"></div>
 
       <div class="plans-section" aria-label="Plans on homepage" style="margin-top: 6px;">
         <div class="plans-title" style="font-weight:700; color:#fff; font-family: Verdana, Geneva, sans-serif;">Available Plans</div>
@@ -417,7 +374,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <li><a href="#" class="link" data-section="signup" style="color:#fff;">Sign Up</a></li>
         <li><a href="#" class="link" data-section="verify" style="color:#fff;">Verify Email</a></li>
         <li><a href="#" class="link" data-section="dashboard" style="color:#fff;">My APIs</a></li>
-        <li><a href="#" class="link" data-section="receipt" style="color:#fff;">Receipt</a></li>
       </ul>
 
       <p style="color:#d1d5db; font-size:14px;"> Sign up with email/password, verify, and manage keys here.</p>
@@ -461,19 +417,19 @@ document.addEventListener('DOMContentLoaded', () => {
       <button id="logoutBtn" class="btn" style="margin-left: 8px; background:#e11d48; border:0; color:white;">Sign Out</button>
     </section>
 
-    <!-- Receipt (real) -->
-    <section id="receipt" class="section" aria-label="Receipt" style="padding:28px;">
+    <!-- Receipt (hidden by default) -->
+    <section id="receiptSection" class="section" aria-label="Receipt" style="padding:28px;">
       <h2>Transaction Receipt</h2>
-      <div class="receipt" aria-label="Receipt details" style="background:#fff; color:#111;">
+      <div class="receipt" aria-label="Receipt details" style="background:#fff; color:#111; padding:12px; border-radius:8px;">
         <h3 class="section-title" style="margin-top:0; text-align:center; color:#333;">Transaction Details</h3>
-        <table id="receiptDetails">
-          <tr><th>TX Hash</th><td id="txHash"></td></tr>
-          <tr><th>Block Hash</th><td id="blockHash"></td></tr>
-          <tr><th>Block Number</th><td id="blockNumber"></td></tr>
-          <tr><th>From</th><td id="from"></td></tr>
-          <tr><th>To</th><td id="to"></td></tr>
-          <tr><th>Status</th><td id="status"></td></tr>
-          <tr><th>Gas Used</th><td id="gasUsed"></td></tr>
+        <table id="receiptDetails" style="width:100%; border-collapse: collapse;">
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">TX Hash</th><td id="txHash" style="padding:6px 8px;"></td></tr>
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">Block Hash</th><td id="blockHash" style="padding:6px 8px;"></td></tr>
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">Block Number</th><td id="blockNumber" style="padding:6px 8px;"></td></tr>
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">From</th><td id="from" style="padding:6px 8px;"></td></tr>
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">To</th><td id="to" style="padding:6px 8px;"></td></tr>
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">Status</th><td id="status" style="padding:6px 8px;"></td></tr>
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">Gas Used</th><td id="gasUsed" style="padding:6px 8px;"></td></tr>
         </table>
 
         <h3 class="section-title" style="margin-top:14px; text-align:center; color:#333;">Event Logs</h3>
@@ -512,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   <script>
     // Simple in-page router: show one section at a time
-    const sections = ["portal","signup","verify","dashboard","receipt"];
+    const sections = ["portal","signup","verify","dashboard","receiptSection"];
     function showSection(name) {
       sections.forEach(n => {
         const el = document.getElementById(n);
@@ -521,17 +477,25 @@ document.addEventListener('DOMContentLoaded', () => {
       if (name) history.replaceState(null, '', '#' + name);
     }
 
-    // Menu toggle
+    // Menu toggle (top-right three-dashes)
     const menuBtn = document.getElementById('menuBtn');
     const megaMenu = document.getElementById('megaMenu');
+    function closeMenuIfOpen() {
+      if (megaMenu && megaMenu.classList.contains('active')) {
+        megaMenu.classList.remove('active');
+        menuBtn.setAttribute('aria-expanded','false');
+      }
+    }
     if (menuBtn && megaMenu) {
       menuBtn.addEventListener('click', () => {
-        megaMenu.classList.toggle('active');
+        const isOpen = megaMenu.classList.toggle('active');
+        menuBtn.setAttribute('aria-expanded', String(isOpen));
       });
       // close on outside click
       document.addEventListener('click', (e) => {
-        if (!megaMenu.contains(e.target) && e.target !== menuBtn) {
+        if (megaMenu && !megaMenu.contains(e.target) && e.target !== menuBtn) {
           megaMenu.classList.remove('active');
+          menuBtn.setAttribute('aria-expanded','false');
         }
       });
     }
@@ -541,7 +505,6 @@ document.addEventListener('DOMContentLoaded', () => {
       el.addEventListener('click', (e) => {
         const target = el.getAttribute('data-section');
         if (!target) return;
-        // Map header target to internal sections
         const map = {
           'dashboard-open': 'dashboard',
           'dashboard-myapis': 'dashboard',
@@ -571,134 +534,68 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // Simple star background (drifting)
-    (function createStars() {
-      const layer = document.getElementById('starLayer');
-      const count = 60;
-      for (let i = 0; i < count; i++) {
-        const s = document.createElement('span');
-        const size = Math.random() * 2 + 1;
-        s.style.position = 'absolute';
-        s.style.left = Math.random() * 100 + 'vw';
-        s.style.top = Math.random() * 100 + 'vh';
-        s.style.width = size + 'px';
-        s.style.height = size + 'px';
-        s.style.borderRadius = '50%';
-        s.style.background = 'white';
-        s.style.opacity = Math.random() * 0.8 + 0.2;
-        s.style.filter = 'blur(' + (Math.random()*1.5) + 'px)';
-        layer.appendChild(s);
-        // drift
-        let t = 0;
-        setInterval(() => {
-          t += 0.08;
-          const y = Math.sin(t) * 2;
-          s.style.transform = 'translateY(' + y + 'px)';
-        }, 60);
+    // Portal: free API flow (two free APIs)
+    let freeCounter = parseInt(localStorage.getItem('freeApiCounter'), 10);
+    if (isNaN(freeCounter)) freeCounter = 2; // default
+    const portalKeys = document.getElementById('portalKeys');
+    const freeApiStatus = document.getElementById('freeApiStatus');
+    const generateTwoApis = document.getElementById('generateTwoApis');
+
+    function updateFreeStatus() {
+      if (freeCounter > 0) {
+        freeApiStatus.textContent = `You have ${freeCounter} free API${freeCounter !== 1 ? 's' : ''} left`;
+      } else {
+        freeApiStatus.textContent = 'Free API limit reached. Sign up or login to purchase more.';
       }
-    })();
-
-   // Portal: free API flow
-let freeCounter = 2;
-
-const twoApisBtn = document.getElementById('generateTwoApis');
-const freeApiStatus = document.getElementById('freeApiStatus');
-const portalKeys = document.getElementById('portalKeys');
-
-if (twoApisBtn) {
-  twoApisBtn.addEventListener('click', async () => {
-
-    if (freeCounter <= 0) {
-      freeApiStatus.textContent = "Free API limit reached. Sign up or login to purchase more.";
-      return;
+      localStorage.setItem('freeApiCounter', String(freeCounter));
     }
 
-    try {
+    if (generateTwoApis) {
+      generateTwoApis.addEventListener('click', async () => {
+        if (freeCounter <= 0) {
+          updateFreeStatus();
+          return;
+        }
+        try {
+          const res = await fetch("/generate-api", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + (localStorage.getItem("token") || "")
+            }
+          });
+          const data = await res.json();
 
-      const res = await fetch("/generate-api", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + localStorage.getItem("token")
+          if (!data || !data.keys || data.keys.length < 2) {
+            portalKeys.innerHTML = '';
+            freeApiStatus.textContent = "Server failed to generate API keys";
+            return;
+          }
+
+          const key1 = data.keys[0];
+          const key2 = data.keys[1];
+
+          portalKeys.innerHTML = `
+            <div style="margin-bottom:6px; color:#fff;">Your two free API keys:</div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <code style="background:#111; color:#fff; padding:6px 8px; border-radius:6px; user-select:all;">${key1}</code>
+              <code style="background:#111; color:#fff; padding:6px 8px; border-radius:6px; user-select:all;">${key2}</code>
+            </div>
+          `;
+
+          freeCounter = Math.max(0, freeCounter - 1);
+          updateFreeStatus();
+        } catch (err) {
+          console.error(err);
+          portalKeys.innerHTML = '';
+          freeApiStatus.textContent = "Server error generating API keys";
         }
       });
-
-      const data = await res.json();
-
-      if (!data.keys || data.keys.length < 2) {
-        freeApiStatus.textContent = "Server failed to generate API keys";
-        return;
-      }
-
-      const key1 = data.keys[0];
-      const key2 = data.keys[1];
-
-      portalKeys.innerHTML = `
-        <div style="margin-bottom:6px; color:#fff;">Your two free API keys:</div>
-        <div style="display:flex; flex-direction:column; gap:6px;">
-          <code style="background:#111; color:#fff; padding:6px 8px; border-radius:6px; user-select:all;">
-            ${key1}
-          </code>
-          <code style="background:#111; color:#fff; padding:6px 8px; border-radius:6px; user-select:all;">
-            ${key2}
-          </code>
-        </div>
-      `;
-
-      freeCounter -= 1;
-
-      freeApiStatus.textContent =
-        `You have ${freeCounter} free API${freeCounter !== 1 ? "s" : ""} left`;
-
-    } catch (err) {
-      console.error(err);
-      freeApiStatus.textContent = "Server error generating API keys";
     }
 
-  });
-}
-        // render
-        fetch("/generate-api", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer " + localStorage.getItem("token")
-  }
-})
-.then(res => res.json())
-.then(data => {
+    // Do NOT auto-render keys on load anymore. The keys should come from a user-initiated action.
 
-  if (!data.keys || data.keys.length === 0) {
-    freeApiStatus.textContent = "Failed to generate API keys";
-    return;
-  }
-
-  const key1 = data.keys[0];
-  const key2 = data.keys[1];
-
-  portalKeys.innerHTML = `
-    <div style="margin-bottom:6px; color:#fff;">Your two free API keys:</div>
-    <div style="display:flex; flex-direction:column; gap:6px;">
-      <code style="background:#111; color:#fff; padding:6px 8px; border-radius:6px; display:inline-block; user-select:all;">
-        ${key1}
-      </code>
-      <code style="background:#111; color:#fff; padding:6px 8px; border-radius:6px; display:inline-block; user-select:all;">
-        ${key2}
-      </code>
-    </div>
-  `;
-
-  freeCounter -= 1;
-  freeApiStatus.textContent =
-    `You have ${freeCounter} free API${freeCounter !== 1 ? "s" : ""} left`;
-
-})
-.catch(err => {
-  console.error(err);
-  freeApiStatus.textContent = "Server error generating API keys";
-});
-
-    // Sign Up (frontend stub)
+    // Basic Sign Up flow (frontend stub)
     const signupBtn = document.getElementById('signupBtn');
     const signupStatus = document.getElementById('signupStatus');
     if (signupBtn) {
@@ -709,30 +606,26 @@ if (twoApisBtn) {
           signupStatus.textContent = "Please fill in all fields.";
           return;
         }
-     fetch("/signup", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    email: emailInput.value,
-    password: passwordInput.value
-  })
-})
-.then(res => res.json())
-.then(data => {
-  if (data.token) {
-    localStorage.setItem("token", data.token);
-    signupStatus.textContent = "Account created. Redirecting to verification...";
-    showSection("verify");
-  } else {
-    signupStatus.textContent = data.error || "Signup failed";
-  }
-})
-.catch(err => {
-  console.error(err);
-  signupStatus.textContent = "Server error";
-});
+        try {
+          const res = await fetch("/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+          });
+          const data = await res.json();
+          if (data && data.token) {
+            localStorage.setItem("token", data.token);
+            signupStatus.textContent = "Account created. Redirecting to verification...";
+            showSection('verify');
+          } else {
+            signupStatus.textContent = data?.error || "Signup failed";
+          }
+        } catch (err) {
+          console.error(err);
+          signupStatus.textContent = "Server error";
+        }
+      });
+    }
 
     // Verify (frontend stub)
     const verifyBtn = document.getElementById('verifyBtn');
@@ -743,13 +636,14 @@ if (twoApisBtn) {
         const token = localStorage.getItem('token');
         if (!token) { verifyStatus.textContent = 'No token found, please login again.'; return; }
         if (!code || code.length !== 6) { verifyStatus.textContent = 'Enter a valid 6-digit code.'; return; }
-        setTimeout(() => {
-          verifyStatus.textContent = 'Verification succeeded. You can now access your APIs.';
-          showSection('dashboard');
-          loadKeys();
-        }, 400);
+        // Simulate success
+        verifyStatus.textContent = 'Verification succeeded. You can now access your APIs.';
+        showSection('dashboard');
+        // Optionally trigger a keys load here if you have a real API
       });
     }
+
+    // Simple star background (drifting) (already simple enough)
 
     // Dashboard: load keys (mock/wired to backend in production)
     function loadKeys() {
@@ -782,20 +676,18 @@ if (twoApisBtn) {
       }
 
       async function fetchUserApis() {
-        const keysContainer = document.getElementById('api-keys');
+        const keysContainer = document.getElementById('keys');
         if (!keysContainer) return;
-
         const tokenVal = getAuthToken();
         if (!tokenVal) {
           keysContainer.innerHTML = '<div class="api">Not authenticated. Please login to view your API keys.</div>';
           return;
         }
 
-        // Show a loading state
         keysContainer.innerHTML = '<div class="api">Loading API keys…</div>';
 
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
+        const timeout = setTimeout(() => controller.abort(), 8000);
 
         try {
           const res = await fetch(API_APIS_ENDPOINT, {
@@ -810,22 +702,16 @@ if (twoApisBtn) {
 
           clearTimeout(timeout);
 
-          // Unauthorized / forbidden - force re-login
           if (res.status === 401 || res.status === 403) {
             keysContainer.innerHTML = '<div class="api">Session expired. Please login again.</div>';
             localStorage.removeItem('token');
-            // Clear cookie if you store token there as well
             document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
             return;
           }
 
           if (!res.ok) {
             let err = {};
-            try {
-              err = await res.json();
-            } catch {
-              err = {};
-            }
+            try { err = await res.json(); } catch { err = {}; }
             const message = (err && err.error) || res.statusText || 'Unknown error';
             keysContainer.innerHTML = `<div class="api">Error fetching APIs: ${escapeHtml(message)}</div>`;
             return;
@@ -848,10 +734,7 @@ if (twoApisBtn) {
         }
       }
 
-      // Optional: expose a public helper to refresh keys from elsewhere
       window.refreshUserApis = fetchUserApis;
-
-      // Call fetch on page load (adjust as needed to your app lifecycle)
       window.addEventListener('DOMContentLoaded', fetchUserApis);
     }
 
@@ -860,7 +743,6 @@ if (twoApisBtn) {
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => {
         localStorage.removeItem('token');
-        // Reset UI to unauthenticated state
         showSection('portal');
         document.getElementById('keys').innerHTML = '';
       });
@@ -884,7 +766,34 @@ if (twoApisBtn) {
       if (localStorage.getItem('token')) loadKeys();
     });
 
+    // Utility: show receipt after a successful purchase (example)
+    // In a real app, call this after your payment flow succeeds.
+    function showReceiptFromData(receiptData) {
+      // receiptData could be JSON from your backend
+      const rs = document.getElementById('receiptSection');
+      if (!rs) return;
+      // Fill in fields if present
+      if (receiptData) {
+        document.getElementById('txHash')?.textContent = receiptData.txHash || '';
+        document.getElementById('blockHash')?.textContent = receiptData.blockHash || '';
+        document.getElementById('blockNumber')?.textContent = receiptData.blockNumber || '';
+        document.getElementById('from')?.textContent = receiptData.from || '';
+        document.getElementById('to')?.textContent = receiptData.to || '';
+        document.getElementById('status')?.textContent = receiptData.status || '';
+        document.getElementById('gasUsed')?.textContent = receiptData.gasUsed || '';
+        // If you have a nested "Purchased Item" block
+        document.getElementById('productName')?.textContent = receiptData.productName || '';
+        document.getElementById('productLevel')?.textContent = receiptData.productLevel || '';
+        document.getElementById('price')?.textContent = receiptData.price || '';
+        document.getElementById('date')?.textContent = receiptData.date || '';
+        document.getElementById('buyerName')?.textContent = receiptData.buyerName || '';
+        document.getElementById('miningAmount')?.textContent = receiptData.miningAmount || '';
+      }
+      // Show the receipt section
+      showSection('receiptSection');
+      rs.classList.add('active');
+    }
+
   </script>
 </body>
 </html>
-
