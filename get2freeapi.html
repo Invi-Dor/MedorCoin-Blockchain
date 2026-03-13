@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Get 2 Free API Keys</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+  .container { max-width: 600px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
+  h1 { text-align: center; }
+  button { display: block; width: 100%; padding: 12px; font-size: 16px; margin-top: 20px; cursor: pointer; border: none; border-radius: 6px; background: #007bff; color: white;}
+  .keys { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+  code { background: #111; color: #fff; padding: 6px 8px; border-radius: 6px; user-select: all; }
+  .status { margin-top: 10px; font-weight: bold; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Get 2 Free API Keys</h1>
+    <button id="generateBtn">Generate API Keys</button>
+    <div class="status" id="status"></div>
+    <div class="keys" id="keysContainer"></div>
+  </div>
+
+  <script>
+    const generateBtn = document.getElementById('generateBtn');
+    const keysContainer = document.getElementById('keysContainer');
+    const status = document.getElementById('status');
+
+    // Track usage in localStorage
+    const STORAGE_KEY = 'freeTwoApiKeys';
+
+    function generateKey() {
+      return 'api-' + Math.random().toString(36).substring(2, 10) + '-' + Math.random().toString(36).substring(2, 10);
+    }
+
+    function getStoredKeys() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    }
+
+    function saveKeys(keys) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
+    }
+
+    function renderKeys(keys) {
+      keysContainer.innerHTML = '';
+      keys.forEach(k => {
+        const codeEl = document.createElement('code');
+        codeEl.textContent = k;
+        keysContainer.appendChild(codeEl);
+      });
+    }
+
+    generateBtn.addEventListener('click', () => {
+      const storedKeys = getStoredKeys();
+
+      if (storedKeys.length >= 2) {
+        status.textContent = "You have already generated your 2 free API keys.";
+        renderKeys(storedKeys);
+        return;
+      }
+
+      // Generate remaining keys
+      const keysToGenerate = 2 - storedKeys.length;
+      const newKeys = [];
+      for (let i = 0; i < keysToGenerate; i++) {
+        newKeys.push(generateKey());
+      }
+
+      const allKeys = storedKeys.concat(newKeys);
+      saveKeys(allKeys);
+      renderKeys(allKeys);
+
+      status.textContent = `You now have ${allKeys.length} free API key${allKeys.length !== 1 ? 's' : ''}.`;
+    });
+
+    // Auto-load existing keys on page load
+    const existingKeys = getStoredKeys();
+    if (existingKeys.length) {
+      renderKeys(existingKeys);
+      status.textContent = `You have ${existingKeys.length} free API key${existingKeys.length !== 1 ? 's' : ''}.`;
+    }
+  </script>
+</body>
+</html>
