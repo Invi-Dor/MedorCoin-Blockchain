@@ -1,4 +1,4 @@
-#include "rpc_handlers.h"
+#include "rpc_handlers.h
 #include "blockchain.h"
 #include "receipt.h"
 #include <nlohmann/json.hpp>
@@ -16,16 +16,36 @@ static std::string hexUInt(uint64_t v) {
 }
 
 // =========================
+// Helpers: common responses
+// =========================
+
+static void jsonError(nlohmann::json &res, int code, const std::string &message) {
+    res["error"] = {
+        {"code", code},
+        {"message", message}
+    };
+}
+
+// Normalize an address string by removing optional 0x prefix.
+// Returns empty string if input is empty after normalization.
+static std::string normalizeAddress(const std::string &addr) {
+    std::string a = addr;
+    if (a.rfind("0x", 0) == 0) {
+        a = a.substr(2);
+    }
+    return a;
+}
+
+// =========================
 // web3 methods
 // =========================
 
 std::string rpc_web3_clientVersion(const nlohmann::json &params, int id) {
-    nlohmann::json resp;
-    resp["jsonrpc"] = "2.0";
-    resp["id"]      = id;
-    response["result"]  = "MedorCoin/v1.0";
-    response["id"]      = id;
-    return response;
+    nlohmann::json res;
+    res["jsonrpc"] = "2.0";
+    res["id"]      = id;
+    res["result"]  = "MedorCoin/v1.0";
+    return res.dump();
 }
 
 // =========================
@@ -33,11 +53,11 @@ std::string rpc_web3_clientVersion(const nlohmann::json &params, int id) {
 // =========================
 
 std::string rpc_net_version(const nlohmann::json &params, int id) {
-    nlohmann::json resp;
-    resp["jsonrpc"] = "2.0";
-    resp["id"]      = id;
-    resp["result"]  = std::to_string(MEDOR_CHAIN_ID);
-    return response;
+    nlohmann::json res;
+    res["jsonrpc"] = "2.0";
+    res["id"]      = id;
+    res["result"]  = std::to_string(MEDOR_CHAIN_ID);
+    return res.dump();
 }
 
 // =========================
@@ -46,75 +66,129 @@ std::string rpc_net_version(const nlohmann::json &params, int id) {
 
 std::string rpc_eth_blockNumber(const nlohmann::json &params, int id) {
     extern Blockchain globalChain;
-    nlohmann::json resp;
-    resp["jsonrpc"] = "2.0";
-    resp["id"]      = id;
-    resp["result"]  = hexUInt(globalChain.chain.size() - 1);
-    return response;
+    nlohmann::json res;
+    res["jsonrpc"] = "2.0";
+    res["id"]      = id;
+
+    // Safe height calculation
+    uint64_t height = (globalChain.chain.empty() ? 0 : globalChain.chain.size() - 1);
+    res["result"] = hexUInt(height);
+    return res.dump();
 }
 
 std::string rpc_eth_getBalance(const nlohmann::json &params, int id) {
-    if (!params.is_array() || params.size() < 1) {
-        nlohmann::json r; r["jsonrpc"] = "2.0"; r["id"] = id;
-        r["error"] = {{"code",-32602},{"message","Invalid params"}};
-        return r.;
+    nlohmann::json res;
+    res["jsonrpc"] = "2.0";
+    res["id"]      = id;
+
+    // Validate params
+    if (!params.is_array() || params.size() < 1 || !params[0].is_string()) {
+        jsonError(res, -32602, "Invalid params");
+        return res.dump();
     }
+
     extern Blockchain globalChain;
     std::string addr = params[0].get<std::string>();
-    if (addr.rfind("0x",0) == 0) addr = addr.substr(2);
+    addr = normalizeAddress(addr);
+
+    if (addr.empty()) {
+        jsonError(res, -32602, "Invalid address");
+        return res.dump();
+    }
+
     uint64_t bal = globalChain.getBalance(addr);
-    nlohmann::json resp;
-    resp["jsonrpc"] = "2.0";
-    resp["id"]      = id;
-    resp["result"]  = hexUInt(bal);
-    return resp.;
+    res["result"] = hexUInt(bal);
+    return res.dump();
 }
 
 std::string rpc_eth_getTransactionCount(const nlohmann::json &params, int id) {
-    if (!params.is_array() || params.size() < 1) {
-        nlohmann::json r; r["jsonrpc"]="2.0"; r["id"]=id;
-        r["error"]={{"code",-32602},{"message","Invalid params"}};
-        return r.;
+    nlohmann::json res;
+    res["jsonrpc"] = "2.0";
+    res["id"]      = id;
+
+    if (!params.is_array() || params.size() < 1 || !params[0].is_string()) {
+        jsonError(res, -32602, "Invalid params");
+        return res.dump();
     }
+
     extern Blockchain globalChain;
     std::string addr = params[0].get<std::string>();
-    if (addr.rfind("0x",0) == 0) addr = addr.substr(2);
+    addr = normalizeAddress(addr);
+
+    if (addr.empty()) {
+        jsonError(res, -32602, "Invalid address");
+        return res.dump();
+    }
+
     uint64_t nonce = globalChain.getNonce(addr);
-    nlohmann::json resp;
-    resp["jsonrpc"]="2.0";
-    resp["id"]=id;
-    resp["result"]=hexUInt(nonce);
-    return resp.;
+    res["result"] = hexUInt(nonce);
+    return res.dump();
 }
 
-// This function adds a raw transaction to the mempool
-std::string rpc_eth_sendRawTransaction(const nlohmann::json &params, int id) {
-    nlohmann::json resp;
-    resp["jsonrpc"] = "2.0";
-    resp["id"] = id;
+// =========================
+// eth methods — transactions
+// =========================
 
-    if (!params.is_array() || params.size() < 1) {
-        resp["error"] = {{"code", -32602}, {"message", "Invalid params"}};
-        return resp.;
+std::string rpc_eth_sendRawTransaction(const nlohmann::json &params, int id) {
+    nlohmann::json res;
+    res["jsonrpc"] = "2.0";
+    res["id"]      = id;
+
+    if (!params.is_array() || params.size() < 1 || !params[0].is_string()) {
+        jsonError(res, -32602, "Invalid params");
+        return res.dump();
     }
 
     std::string rawHex = params[0].get<std::string>();
+    // Normalize: remove optional 0x
+    if (rawHex.rfind("0x", 0) == 0) rawHex = rawHex.substr(2);
+
     Transaction tx = decodeRawTransaction(rawHex);
-    
-    // Optionally, validate the transaction before adding it
+
     if (!tx.isValid()) {
-        resp["error"] = {{"code", -32000}, {"message", "Invalid transaction"}};
-        return resp.;
+        jsonError(res, -32000, "Invalid transaction");
+        return res.dump();
     }
 
-    bool ok = globalMempool.addTransaction(tx);
+    extern Blockchain globalChain;
+    bool ok = globalChain.mempool.addTransaction(tx);
+
     if (!ok) {
-        resp["error"] = {{"code", -32000}, {"message", "Failed to add transaction to mempool"}};
+        jsonError(res, -32000, "Failed to add transaction to mempool");
     } else {
-        resp["result"] = "0x" + tx.txHash; // Return transaction hash
+        // TX hash may or may not include 0x in its field; normalize for RPC
+        std::string txHash = tx.txHash;
+        if (txHash.rfind("0x", 0) != 0) res["result"] = "0x" + txHash;
+        else res["result"] = txHash;
     }
-    
-    return resp.;
+
+    return res.dump();
 }
 
-// Other methods remain unchanged...
+// =========================
+// eth methods — receipt
+// =========================
+
+std::string rpc_eth_getTransactionReceipt(const nlohmann::json &params, int id) {
+    nlohmann::json res;
+    res["jsonrpc"] = "2.0";
+    res["id"]      = id;
+
+    if (!params.is_array() || params.size() < 1 || !params[0].is_string()) {
+        jsonError(res, -32602, "Invalid params");
+        return res.dump();
+    }
+
+    std::string txHash = params[0].get<std::string>();
+    if (txHash.rfind("0x", 0) == 0) txHash = txHash.substr(2);
+
+    Receipt receipt = getReceipt(txHash);
+
+    if (!receipt.found) {
+        jsonError(res, -32000, "Receipt not found");
+        return res.dump();
+    }
+
+    res["result"] = receipt.toJson();
+    return res.dump();
+}
