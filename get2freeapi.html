@@ -11,23 +11,47 @@
   .keys { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
   code { background: #111; color: #fff; padding: 6px 8px; border-radius: 6px; user-select: all; }
   .status { margin-top: 10px; font-weight: bold; }
+  /* Dropdown panel (shown after click) */
+  .dropdown-panel {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #f8f9fa;
+  }
+  .endpoint-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .endpoint-row code { font-family: monospace; }
+  #copyEndpoint { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer; }
 </style>
 </head>
 <body>
   <div class="container">
     <h1>Get 2 Free API Keys</h1>
-    <button id="generateBtn">Generate API Keys</button>
-    <div class="status" id="status"></div>
-    <div class="keys" id="keysContainer"></div>
+    <button id="generateBtn" aria-label="Generate API Keys">Generate API Keys</button>
+    <div class="status" id="status" aria-live="polite"></div>
+
+    <!-- Dropdown panel: shows the API address on first use -->
+    <div id="endpointPanel" class="dropdown-panel" style="display:none;" aria-label="API endpoint">
+      <div class="endpoint-row">
+        <strong>API Endpoint</strong>
+        <button id="copyEndpoint" aria-label="Copy endpoint">Copy</button>
+      </div>
+      <code id="endpointCode" aria-label="Endpoint URL">https://medorcoin.invisible-m.com/api/keys</code>
+    </div>
+
+    <div class="keys" id="keysContainer" aria-label="Generated API keys"></div>
   </div>
 
   <script>
     const generateBtn = document.getElementById('generateBtn');
     const keysContainer = document.getElementById('keysContainer');
     const status = document.getElementById('status');
+    const endpointPanel = document.getElementById('endpointPanel');
+    const endpointCode = document.getElementById('endpointCode');
+    const copyEndpoint = document.getElementById('copyEndpoint');
 
-    // Track usage in localStorage
     const STORAGE_KEY = 'freeTwoApiKeys';
+    const ENDPOINT = 'https://medorcoin.invisible-m.com/api/keys';
 
     function generateKey() {
       return 'api-' + Math.random().toString(36).substring(2, 10) + '-' + Math.random().toString(36).substring(2, 10);
@@ -51,35 +75,73 @@
       });
     }
 
-    generateBtn.addEventListener('click', () => {
+    function updateStatus(msg) {
+      status.textContent = msg;
+    }
+
+    // Copy endpoint to clipboard
+    copyEndpoint.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(ENDPOINT);
+        copyEndpoint.textContent = 'Copied!';
+        setTimeout(() => { copyEndpoint.textContent = 'Copy'; }, 1200);
+      } catch {
+        // Fallback
+        window.prompt('Copy endpoint:', ENDPOINT);
+      }
+    });
+
+    // Core: Generate API Keys flow (no sign-in required)
+    generateBtn.addEventListener('click', async () => {
       const storedKeys = getStoredKeys();
 
       if (storedKeys.length >= 2) {
-        status.textContent = "You have already generated your 2 free API keys.";
+        updateStatus("You have already generated your 2 free API keys.");
         renderKeys(storedKeys);
+        endpointPanel.style.display = 'block';
         return;
       }
 
-      // Generate remaining keys
+      // Determine how many keys to create (2 minus what you already have)
       const keysToGenerate = 2 - storedKeys.length;
       const newKeys = [];
-      for (let i = 0; i < keysToGenerate; i++) {
-        newKeys.push(generateKey());
+
+      // Try to fetch real keys from backend (optional). If server blocks, fall back to fake keys.
+      try {
+        const res = await fetch("/generate-api", { method: "POST", headers: { "Content-Type": "application/json" } });
+        const data = await res.json && res.json();
+
+        if (data && Array.isArray(data.keys) && data.keys.length >= 2) {
+          const [k1, k2] = data.keys;
+          newKeys.push(k1, k2);
+        } else {
+          // Fallback to fake keys
+          newKeys.push(generateKey(), generateKey());
+        }
+      } catch {
+        // Network/server down: fallback
+        newKeys.push(generateKey(), generateKey());
       }
 
-      const allKeys = storedKeys.concat(newKeys);
+      const allKeys = storedKeys.concat(newKeys.slice(0, keysToGenerate));
       saveKeys(allKeys);
       renderKeys(allKeys);
 
-      status.textContent = `You now have ${allKeys.length} free API key${allKeys.length !== 1 ? 's' : ''}.`;
+      // Show the dropdown with the endpoint and keys
+      endpointPanel.style.display = 'block';
+      updateStatus(`You now have ${allKeys.length} free API key${allKeys.length !== 1 ? 's' : ''}.`);
     });
 
     // Auto-load existing keys on page load
     const existingKeys = getStoredKeys();
     if (existingKeys.length) {
       renderKeys(existingKeys);
-      status.textContent = `You have ${existingKeys.length} free API key${existingKeys.length !== 1 ? 's' : ''}.`;
+      updateStatus(`You have ${existingKeys.length} free API key${existingKeys.length !== 1 ? 's' : ''}.`);
+      // Show endpoint panel so users see the API address without extra clicks
+      endpointPanel.style.display = 'block';
     }
+
+    // Optional: show endpoint in header by default (kept hidden until you generate)
   </script>
 </body>
 </html>
