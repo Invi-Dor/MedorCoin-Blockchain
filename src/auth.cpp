@@ -1,67 +1,56 @@
 #include "auth.h"
-#include <unordered_map>
 #include <random>
+#include <mutex>
+#include <unordered_map>
 
-// In‑memory store for API keys — replace with DB if needed
+// Thread‑safe key storage
 static std::unordered_map<std::string, APIKey> apiKeyStore;
+static std::mutex apiKeyStoreMutex;
 
-// Generates a 32‑character random key
+// Generate a secure 32‑character random API key
 std::string generateRandomKey() {
     static const char alphanum[] =
         "0123456789"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz";
-    std::string key;
-    key.reserve(32);
 
-    std::mt19937 rng(std::random_device{}());
+    std::mt19937_64 rng(std::random_device{}());
     std::uniform_int_distribution<> dist(0, sizeof(alphanum) - 2);
 
-    for (int i = 0; i < 32; i++)
+    std::string key;
+    key.reserve(32);
+    for (int i = 0; i < 32; i++) {
         key += alphanum[dist(rng)];
-
+    }
     return key;
 }
 
-// Checks header X-API-Key, enforces 2 free uses before payment
-bool checkApiKey(const crow::request& req, crow::response& res) {
-    auto it = req.headers.find("X-API-Key");
-
-    if (it == req.headers.end()) {
-        res.code = 401;
-        res.write("{\"error\":\"API key missing\"}");
-        res.end();
-        return false;
-    }
-
-    std::string key = it->second;
-    auto found = apiKeyStore.find(key);
-
-    if (found == apiKeyStore.end()) {
-        res.code = 403;
-        res.write("{\"error\":\"Invalid API key\"}");
-        res.end();
-        return false;
-    }
-
-    APIKey &entry = found->second;
-
-    // Limit: 2 free uses then block with 429
-    if (!entry.paid && entry.usageCount >= 2) {
-        res.code = 429;
-        res.write("{\"error\":\"Free API limit reached. Upgrade needed.\"}");
-        res.end();
-        return false;
-    }
-
-    entry.usageCount++;
-    return true;
+// Find an API key in the store (returns pointer or nullptr)
+APIKey* findApiKey(const std::string &key) {
+    std::lock_guard<std::mutex> lock(apiKeyStoreMutex);
+    auto it = apiKeyStore.find(key);
+    if (it == apiKeyStore.end()) return nullptr;
+    return &it->second;
 }
 
-// Creates a new API key and stores it
-APIKey registerNewKey() {
+// Register a new **paid** key
+APIKey registerNewPaidKey() {
+    std::lock_guard<std::mutex> lock(apiKeyStoreMutex);
     APIKey k;
     k.key = generateRandomKey();
+    k.paid = true;      // Paid key
+    k.usageCount = 0;
     apiKeyStore[k.key] = k;
-    return k;
+    return apiKeyStore[k.key];
+}
+
+// Register a new **free** key
+APIKey registerNewFreeKey() {
+    std::lock_guard<std::mutex> lock(apiKeyStoreMutex);
+    APIKey k;
+    k.key = generateRandomKey();
+    k.paid = false;     // Free key (limited usage)
+    k.usageCount = 0;
+    apiKeyStore[k.key] = k;
+    return apiKeyStore[k.key];
 }
