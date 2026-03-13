@@ -101,6 +101,24 @@ app.post("/broadcast", (req, res) => {
   });
 });
 
+// GET /api/user/apis
+app.get("/api/user/apis", (req, res) => {
+  // Check for Authorization header
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Missing or invalid token' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  const user = getUserFromToken(token); // you need this function to map token -> user
+
+  if (!user) return res.status(403).json({ error: 'Invalid token' });
+
+  // Fetch API keys for the user
+  const keys = getApiKeysForUser(user.id); // implement this based on your apiKeyStore
+  res.json(keys);
+});
+
 // Start server
 server.listen(PORT, () => {
   console.log(`Medor-Blockchain API listening on port ${PORT}`);
