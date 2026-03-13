@@ -1,201 +1,129 @@
 #include "crow.h"
+#include "transaction.h"
 #include <nlohmann/json.hpp>
-#include <curl/curl.h>
-#include <ctime>
-#include <string>
+#include <chrono>
+#include <random>
+#include <cstdlib>
+#include <iostream>
 
 using json = nlohmann::json;
 
-// === Configuration ===
+// Secure API key from environment
+static const std::string API_KEY = []() {
+    const char* key = std::getenv("MEDOR_API_KEY");
+    if (!key || std::string(key).empty()) {
+        std::cerr << "[FATAL] MEDOR_API_KEY not set. Exiting." << std::endl;
+        std::exit(1);
+    }
+    return std::string(key);
+}();
 
-// Replace this with a secure configuration mechanism in production
-static const std::string API_KEY = "REPLACE_WITH_SECURE_API_KEY";
-
-// Allowed external API hosts for SSRF protection
-static bool isAllowedUrl(const std::string &url) {
-    const std::string httpsPrefix = "https://";
-    if (url.rfind(httpsPrefix, 0) != 0) return false;
-
-    size_t hostStart = httpsPrefix.size();
-    size_t pathStart = url.find('/', hostStart);
-    std::string host = (pathStart == std::string::npos)
-                           ? url.substr(hostStart)
-                           : url.substr(hostStart, pathStart - hostStart);
-
-    // Allowed upstream hosts
-    return (host == "api.1inch.io");
+// Thread-safe random nonce
+static uint64_t generateNonce() {
+    thread_local static std::mt19937_64 eng(
+        static_cast<unsigned long long>(
+            std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+    return eng();
 }
 
-// === Networking Helpers ===
-
-static size_t writeCallback(char* ptr, size_t size, size_t nmemb, std::string* data) {
-    data->append(ptr, size * nmemb);
-    return size * nmemb;
+// Get UTC timestamp in ISO8601
+static std::string utc_now_iso8601() {
+    auto now = std::chrono::system_clock::now();
+    std::time_t t = std::chrono::system_clock::to_time_t(now);
+    std::tm g = *std::gmtime(&t);
+    char buf[32];
+    std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &g);
+    return std::string(buf);
 }
 
-static std::string fetchUrl(const std::string &url) {
-    if (!isAllowedUrl(url)) return "";
-
-    CURL* curl = curl_easy_init();
-    if (!curl) return "";
-
-    std::string buffer;
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
-
-    CURLcode res = curl_easy_perform(curl);
-    curl_easy_cleanup(curl);
-
-    if (res != CURLE_OK) return "";
-    return buffer;
+// JSON error response
+static void json_error(crow::response &res, int code, const std::string &msg) {
+    res.code = code;
+    res.set_header("Content-Type", "application/json");
+    res.write(json({{"error", msg}}).dump());
+    res.end();
 }
 
-// === API Key Protection ===
-
+// Check API key header
 static bool checkApiKey(const crow::request &req, crow::response &res) {
-    const std::string providedKey = req.get_header_value("X-API-Key");
-    if (providedKey.empty() || providedKey != API_KEY) {
-        res.code = 401;
-        json err;
-        err["error"] = "Unauthorized";
-        err["message"] = "Invalid or missing API key";
-        res.set_header("Content-Type", "application/json");
-        res.write(err.dump());
-        res.end();
+    auto key = req.get_header_value("X-API-Key");
+    if (key.empty() || key != API_KEY) {
+        json_error(res, 401, "Unauthorized: Invalid API key");
         return false;
     }
     return true;
 }
 
-// === Handlers ===
+// Build a receipt from a transaction
+static json buildReceipt(const Transaction &tx,
+                         const std::string &productName,
+                         const std::string &level,
+                         double price,
+                         const std::string &buyerName) {
+    uint64_t gasUsed = (tx.gasLimit > 0) ? tx.gasLimit : 21000;
 
-// GET /api/swap/quote
-void swapQuoteHandler(const crow::request &req, crow::response &res) {
-    auto chainIdStr = req.url_params.get("chainId");
-    auto fromToken = req.url_params.get("fromTokenAddress");
-    auto toToken = req.url_params.get("toTokenAddress");
-    auto amount = req.url_params.get("amount");
-
-    if (!chainIdStr || !fromToken || !toToken || !amount) {
-        res.code = 400;
-        res.write("{\"error\":\"Missing required parameters\"}");
-        res.end();
-        return;
-    }
-
-    std::string url = "https://api.1inch.io/v5.0/" + std::string(chainIdStr) +
-                      "/quote?fromTokenAddress=" + fromToken +
-                      "&toTokenAddress=" + toToken +
-                      "&amount=" + amount;
-
-    std::string body = fetchUrl(url);
-    res.code = 200;
-    res.set_header("Content-Type", "application/json");
-    res.write(body);
-    res.end();
+    json receipt;
+    receipt["transaction"] = {
+        {"txHash", tx.txHash},
+        {"from", tx.toAddress}, // swap to match buyer/seller logic if needed
+        {"to", tx.toAddress},
+        {"value", tx.value},
+        {"gasUsed", gasUsed},
+        {"timestamp", utc_now_iso8601()}
+    };
+    receipt["purchase"] = {
+        {"productName", productName},
+        {"level", level},
+        {"price", price},
+        {"buyerName", buyerName}
+    };
+    return receipt;
 }
 
-// GET /api/swap/execute
-void swapExecuteHandler(const crow::request &req, crow::response &res) {
-    auto chainId = req.url_params.get("chainId");
-    auto fromToken = req.url_params.get("fromTokenAddress");
-    auto toToken = req.url_params.get("toTokenAddress");
-    auto amount = req.url_params.get("amount");
-    auto fromAddress = req.url_params.get("fromAddress");
-    auto slippage = req.url_params.get("slippage");
+void startAPIServer() {
+    crow::SimpleApp app;
 
-    if (!chainId || !fromToken || !toToken || !amount || !fromAddress) {
-        res.code = 400;
-        res.write("{\"error\":\"Missing required parameters\"}");
-        res.end();
-        return;
-    }
+    // GET /api/transaction/receipt?buyer=...&product=...&level=...&price=...
+    CROW_ROUTE(app, "/api/transaction/receipt")
+    ([&](const crow::request &req, crow::response &res){
+        if (!checkApiKey(req, res)) return;
 
-    std::string url = "https://api.1inch.io/v5.0/" + std::string(chainId) +
-                      "/swap?fromTokenAddress=" + fromToken +
-                      "&toTokenAddress=" + toToken +
-                      "&amount=" + amount +
-                      "&fromAddress=" + fromAddress +
-                      "&slippage=" + (slippage ? slippage : "0.5");
+        auto buyer   = req.url_params.get("buyer");
+        auto product = req.url_params.get("product");
+        auto level   = req.url_params.get("level");
+        auto priceStr = req.url_params.get("price");
 
-    std::string body = fetchUrl(url);
-    res.code = 200;
-    res.set_header("Content-Type", "application/json");
-    res.write(body);
-    res.end();
-}
+        if (!buyer || !product || !level || !priceStr) {
+            json_error(res, 400, "Missing required parameters");
+            return;
+        }
 
-// POST /api/verify/address
-void verifyAddressHandler(const crow::request &req, crow::response &res) {
-    if (!checkApiKey(req, res)) return;
+        double price = 0.0;
+        try {
+            price = std::stod(priceStr);
+            if (price < 0) throw std::invalid_argument("negative price");
+        } catch (...) {
+            json_error(res, 400, "Invalid price parameter");
+            return;
+        }
 
-    json parsed;
-    try {
-        parsed = json::parse(req.body);
-    } catch (const nlohmann::json::parse_error &) {
-        res.code = 400;
+        // Create a real Transaction object
+        Transaction tx;
+        tx.fromAddress = "0xSellerAddress"; // replace with seller or dynamic value
+        tx.toAddress   = buyer;
+        tx.value       = static_cast<uint64_t>(price * 1e18); // assume wei units
+        tx.nonce       = generateNonce();
+        tx.gasLimit    = 21000;
+        tx.calculateHash(); // fill txHash
+
+        // Build receipt
+        json receipt = buildReceipt(tx, product, level, price, buyer);
+
+        res.code = 200;
         res.set_header("Content-Type", "application/json");
-        res.write("{\"error\":\"Invalid JSON in request body\"}");
+        res.write(receipt.dump(4));
         res.end();
-        return;
-    }
+    });
 
-    std::string address = parsed.value("address", "");
-    std::string metadata = parsed.value("metadata", "");
-    std::string verifier = parsed.value("verifier", "");
-
-    if (address.empty() || metadata.empty() || verifier.empty()) {
-        res.code = 400;
-        res.write("{\"error\":\"Missing parameters (address, metadata, verifier)\"}");
-        res.end();
-        return;
-    }
-
-    bool verified = false;
-    try {
-        verified = blockchain.verifyAddress(address, metadata, verifier);
-    } catch (...) {
-        verified = false;
-    }
-
-    json resp;
-    resp["address"] = address;
-    resp["verified"] = verified;
-    resp["verifier"] = verifier;
-    resp["verifiedAt"] = static_cast<uint64_t>(time(nullptr));
-
-    res.code = verified ? 200 : 500;
-    res.set_header("Content-Type", "application/json");
-    res.write(resp.dump());
-    res.end();
-}
-
-// GET /api/address_status
-void addressStatusHandler(const crow::request &req, crow::response &res) {
-    auto addrParam = req.url_params.get("address");
-    if (!addrParam) {
-        res.code = 400;
-        res.write("{\"error\":\"Missing address parameter\"}");
-        res.end();
-        return;
-    }
-
-    bool verified = false;
-    try {
-        verified = blockchain.isAddressVerified(*addrParam);
-    } catch (...) {
-        verified = false;
-    }
-
-    json out;
-    out["address"] = *addrParam;
-    out["verified"] = verified;
-
-    res.code = 200;
-    res.set_header("Content-Type", "application/json");
-    res.write(out.dump());
-    res.end();
+    app.port(18080).multithreaded().run();
 }
