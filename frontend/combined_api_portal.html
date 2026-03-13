@@ -27,7 +27,38 @@
       color: #e5e7eb;
       overflow-x: hidden;
     }
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('langBtn');
+  const dropdown = document.getElementById('langDropdown');
 
+  // Toggle dropdown
+  btn.addEventListener('click', () => {
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+  });
+
+  // Language selection
+  document.querySelectorAll('.lang-option').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      const selected = el.getAttribute('data-lang');
+      const label = el.textContent;
+      btn.textContent = `🌍 ${label}`;
+      dropdown.style.display = 'none';
+
+      // TODO: Add real translation logic here (e.g., load translations)
+      console.log('Selected language:', selected);
+    });
+  });
+
+  // Close if clicked outside
+  document.addEventListener('click', (e) => {
+    if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+});
+</script>
     /* Background ambiance (space-ish) */
     .space {
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
@@ -88,6 +119,9 @@
     .mega-link { display: block; padding: 4px 6px; color: #d1d5db; text-decoration: none; border-radius: 4px; }
     .mega-link:hover { background: rgba(255,255,255,.08); }
 
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1189498572545023"
+     crossorigin="anonymous"></script>
+  
     /* Body */
     .container { max-width: 1100px; margin: 28px auto; padding: 0 20px; position: relative; z-index: 2; }
 
