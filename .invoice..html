@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Invoice</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 24px; }
+    .card { max-width: 800px; margin: 0 auto; padding: 16px; border: 1px solid #ddd; border-radius: 8px; }
+    h2 { margin-top: 0; }
+    ul { list-style: disc; padding-left: 20px; }
+    .row { display: flex; justify-content: space-between; padding: 6px 0; }
+    .button { padding: 12px 20px; border: none; border-radius: 6px; background: #007bff; color: white; cursor: pointer; }
+    #modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+    #confirm-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; max-width: 420px; width: 90%; }
+  </style>
+</head>
+<body>
+  <div class="card" id="invoice-card" aria-label="Invoice">
+    <h2>Invoice</h2>
+    <div id="invoice-content">
+      <!-- Filled by script from query params -->
+    </div>
+    <div class="row" style="margin-top:16px;">
+      <div>Plan total</div>
+      <div id="invoice-price" style="font-weight: bold;"></div>
+    </div>
+    <hr/>
+    <ul id="summary-list">
+      <!-- Summary items filled by script -->
+    </ul>
+    <div id="payment-section" style="margin-top:12px;">
+      <strong>Payment Method:</strong> <span id="payment-method"></span><br/>
+      <strong>Payable To:</strong> <span id="payment-address" style="font-family: monospace;"></span>
+    </div>
+    <div style="margin-top:16px;">
+      <button id="payBtn" class="button" style="background:#28a745">Proceed to Payment</button>
+      <span id="pay-hint" style="margin-left:12px; color:#888;">This will guide you to the final payment step.</span>
+    </div>
+  </div>
+
+  <div id="modal-backdrop" aria-hidden="true">
+    <div id="confirm-modal" role="dialog" aria-label="Confirm Payment">
+      <p>Are you sure you want to proceed with payment?</p>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button id="confirmNo" class="button" style="background:#6c757d">No</button>
+        <button id="confirmYes" class="button" style="background:#28a745">Yes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simple query param parser
+    function getQueryParams() {
+      const p = {};
+      location.search.replace(/^\?/, '').split('&').forEach(part => {
+        if (!part) return;
+        const [k,v] = part.split('=');
+        p[decodeURIComponent(k)] = decodeURIComponent(v || '');
+      });
+      return p;
+    }
+
+    const q = getQueryParams();
+    const product = (q.product || 'basic').toLowerCase();
+    const plan = (q.plan || 'monthly').toLowerCase();
+    const price = q.price || '';
+    const method = (q.method || '').toLowerCase();
+    const address = q.address || '';
+
+    // Fill page
+    const invoiceContent = document.getElementById('invoice-content');
+    const invoicePrice = document.getElementById('invoice-price');
+    const summaryList = document.getElementById('summary-list');
+    const paymentMethodSpan = document.getElementById('payment-method');
+    const paymentAddressSpan = document.getElementById('payment-address');
+    const payBtn = document.getElementById('payBtn');
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const confirmYes = document.getElementById('confirmYes');
+    const confirmNo = document.getElementById('confirmNo');
+
+    // Basic summary per your description
+    const summaryItems = [
+      'basic'.toLowerCase() && (product === 'basic') ? 'Basic features included' : '',
+      '100,000 APIs',
+      'historical and real-time data',
+      'REST protocol',
+      'volume discounts',
+      'WebSocket protocol',
+      'email support'
+    ].filter(Boolean);
+
+    // Set page contents
+    if (product === 'basic') {
+      invoiceContent.innerHTML = `<p><strong>Product:</strong> Basic Plan</p>
+        <p><strong>Plan:</strong> ${plan === 'yearly' ? 'Yearly' : 'Monthly'}</p>`;
+    } else if (product === 'premium') {
+      invoiceContent.innerHTML = `<p><strong>Product:</strong> Premium Plan</p>
+        <p><strong>Plan:</strong> ${plan === 'yearly' ? 'Yearly' : 'Monthly'}</p>`;
+    } else {
+      invoiceContent.innerHTML = `<p><strong>Product:</strong> ${product}</p>`;
+    }
+
+    invoicePrice.textContent = `$${price}`;
+
+    summaryList.innerHTML = summaryItems.map(it => `<li>${it}</li>`).join('');
+
+    paymentMethodSpan.textContent = method ? method.toUpperCase() : 'N/A';
+    paymentAddressSpan.textContent = address || 'N/A';
+
+    // Payment action flow
+    payBtn.addEventListener('click', () => {
+      if (!method) {
+        alert('Please select a payment method on the previous page.');
+        return;
+      }
+      modalBackdrop.style.display = 'block';
+    });
+
+    confirmYes.addEventListener('click', () => {
+      // Hide modal and simulate payment success, then redirect to dashboard
+      modalBackdrop.style.display = 'none';
+      // Simulate processing...
+      setTimeout(() => {
+        // Show success and dashboard option
+        const success = document.createElement('div');
+        success.id = 'payment-success';
+        success.style.marginTop = '16px';
+        success.style.padding = '12px';
+        success.style.border = '1px solid #28a745';
+        success.style.background = '#e6ffed';
+        success.innerHTML = `<strong>Payment Successful!</strong> Your purchase is complete. <a href="/dashboard" id="dashboardLink" style="margin-left:6px;">Go to Dashboard</a>`;
+        document.getElementById('invoice-card').appendChild(success);
+        // Optional: auto-redirect on click
+        document.getElementById('dashboardLink').addEventListener('click', (e) => {
+          // Allow default navigation
+        });
+      }, 600);
+    });
+
+    confirmNo.addEventListener('click', () => {
+      modalBackdrop.style.display = 'none';
+    });
+
+  </script>
+</body>
+</html>
