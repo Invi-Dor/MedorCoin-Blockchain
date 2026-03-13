@@ -3,23 +3,28 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
-// --- web3 namespace ---
+/**
+ * JSON‑RPC handler functions — each returns a serialized JSON string
+ * according to the JSON‑RPC 2.0 specification.
+ *
+ * @param params  A JSON array of parameters from the RPC request
+ * @param id      The JSON‑RPC request id
+ * @return        A std::string of the serialized JSON object
+ */
+
+// web3 methods
 std::string rpc_web3_clientVersion(const nlohmann::json &params, int id);
 
-// --- net namespace ---
+// net methods
 std::string rpc_net_version(const nlohmann::json &params, int id);
 
-// --- eth namespace --- core methods
+// eth core methods
 std::string rpc_eth_blockNumber(const nlohmann::json &params, int id);
 std::string rpc_eth_getBalance(const nlohmann::json &params, int id);
 std::string rpc_eth_getTransactionCount(const nlohmann::json &params, int id);
+
+// eth transactions
 std::string rpc_eth_sendRawTransaction(const nlohmann::json &params, int id);
-std::string rpc_eth_getTransactionByHash(const nlohmann::json &params, int id);
+
+// eth receipt
 std::string rpc_eth_getTransactionReceipt(const nlohmann::json &params, int id);
-
-// --- optional but common eth methods ---
-std::string rpc_eth_getCode(const nlohmann::json &params, int id);
-std::string rpc_eth_call(const nlohmann::json &params, int id);
-std::string rpc_eth_estimateGas(const nlohmann::json &params, int id);
-
-// --- additional methods can be added here as needed ---
