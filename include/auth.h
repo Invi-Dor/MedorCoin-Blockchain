@@ -1,20 +1,23 @@
 #pragma once
 
 #include <string>
-#include <crow.h>
+#include <atomic>
 
-// This holds each API key with usage count and paid status
+// Represents a stored API key entry
 struct APIKey {
-    std::string key;
-    int usageCount = 0;
-    bool paid = false;
+    std::string key;          // The API key string
+    bool paid;                // Whether the key is paid (true) or free (false)
+    std::atomic<uint64_t> usageCount{0}; // Usage counter (thread‑safe)
 };
 
-// Called inside your handlers — returns false and ends response if not valid
-bool checkApiKey(const crow::request& req, crow::response& res);
+// Register a new paid API key
+APIKey registerNewPaidKey();
 
-// Generates a new random API key string
+// Register a new free API key (if needed)
+APIKey registerNewFreeKey();
+
+// Look up an API key in the store
+APIKey* findApiKey(const std::string &key);
+
+// Generate a secure random API key string
 std::string generateRandomKey();
-
-// Registers and stores a new key — returns a record you can send to clients
-APIKey registerNewKey();
