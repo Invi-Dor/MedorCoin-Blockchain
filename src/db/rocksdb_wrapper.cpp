@@ -10,6 +10,8 @@ RocksDBWrapper::RocksDBWrapper(const std::string &path) {
     rocksdb::Status status = rocksdb::DB::Open(options, path, &db);
     if (!status.ok()) {
         db = nullptr;
+std::cerr << "[RocksDBWrapper] ERROR: Failed to open DB at '" 
+          << path << "'. Status: " << status.ToString() << std::endl;
     }
 }
 
