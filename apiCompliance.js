@@ -1,4 +1,3 @@
-// File: apiCompliance.js
 /**
  * Standard API Compliance Module
  * Industry best practices for API usage:
@@ -9,7 +8,7 @@
  * - CORS & security headers
  */
 
-const API_BASE = window.__API_BASE__ || 'https://medorcoin.invisible-m.com';
+const API_BASE = window.__API_BASE__ || 'https://medorcoin.org';
 
 /**
  * Validate input parameters to prevent injection or malformed requests
