@@ -36,7 +36,7 @@
         <strong>API Endpoint</strong>
         <button id="copyEndpoint" aria-label="Copy endpoint">Copy</button>
       </div>
-      <code id="endpointCode" aria-label="Endpoint URL">https://medorcoin.invisible-m.com/api/keys</code>
+      <code id="endpointCode" aria-label="Endpoint URL">https://medorcoin.org/api/keys</code>
     </div>
 
     <div class="keys" id="keysContainer" aria-label="Generated API keys"></div>
@@ -51,7 +51,7 @@
     const copyEndpoint = document.getElementById('copyEndpoint');
 
     const STORAGE_KEY = 'freeTwoApiKeys';
-    const ENDPOINT = 'https://medorcoin.invisible-m.com/api/keys';
+    const ENDPOINT = 'https://medorcoin.org/api/keys';
 
     function generateKey() {
       return 'api-' + Math.random().toString(36).substring(2, 10) + '-' + Math.random().toString(36).substring(2, 10);
