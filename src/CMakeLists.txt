@@ -1,3 +1,4 @@
+# File: src/CMakeLists.txt
 cmake_minimum_required(VERSION 3.19)
 
 project(MedorcoinSrc
@@ -11,7 +12,6 @@ file(GLOB_RECURSE MEDOR_SOURCES
     "${CMAKE_SOURCE_DIR}/src/*.c"
     "${CMAKE_SOURCE_DIR}/src/*.cpp"
 )
-
 
 add_executable(MedorCoin ${MEDOR_SOURCES})
 
@@ -101,13 +101,4 @@ if(PKG_CONFIG_FOUND)
     pkg_check_modules(SECP256K1 libsecp256k1)
     if(SECP256K1_FOUND)
         target_include_directories(MedorCoin PRIVATE ${SECP256K1_INCLUDE_DIRS})
-        target_link_libraries(MedorCoin PRIVATE ${SECP256K1_LIBRARIES})
-        target_compile_options(MedorCoin PRIVATE ${SECP256K1_CFLAGS_OTHER})
-        target_compile_definitions(MedirCoin PRIVATE HAVE_SECP256K1=1)
-    endif()
-endif()
-
-# ------------------------ Sanitizers/coverage ------------------------ …
-
-include(GNUInstallDirs)
-install(TARGETS medorcoin RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+       
