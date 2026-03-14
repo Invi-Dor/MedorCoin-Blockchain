@@ -45,7 +45,6 @@ void NetworkManager::initProtocols() {
 
 // Handle incoming stream (JSON message)
 void NetworkManager::handleStream(std::shared_ptr<libp2p::network::Stream> stream) {
-    // read bytes from stream, parse JSON, call callback
     auto buf = stream->read();
     nlohmann::json msg = nlohmann::json::parse(buf);
     if (messageHandler) messageHandler(msg);
