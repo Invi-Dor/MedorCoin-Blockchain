@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquidity Lock | MedorCoin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #fffaf0; /* Vanilla white */
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #d8bffb; /* Light purple */
+            color: #2b2b2b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+        }
+        .brand img {
+            height: 40px;
+            margin-right: 10px;
+        }
+        nav {
+            display: flex;
+            align-items: center;
+        }
+        nav > a, .dropdown-btn {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #2b2b2b;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        nav > a:hover, .dropdown-content a:hover {
+            text-decoration: underline;
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #f1f1f1;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .dropdown-content a {
+            color: #333;
+            padding: 10px 15px;
+            display: block;
+            text-decoration: none;
+        }
+        .dropdown-content a:hover {
+            background-color: #ddd;
+        }
+        main {
+            padding: 40px 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1, h2, h3 {
+            color: #2b2b2b;
+        }
+        section {
+            margin-bottom: 40px;
+        }
+        ul {
+            margin-left: 20px;
+        }
+        .feature, .example {
+            background-color: #e6f7ff;
+            padding: 15px;
+            border-left: 5px solid #1890ff;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .faq {
+            margin-bottom: 20px;
+        }
+        .faq-title {
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #d9f7be;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .faq-content {
+            display: none;
+            padding: 10px;
+            background-color: #f6ffed;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        button {
+            background-color: #1890ff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #096dd9;
+        }
+        a.highlight {
+            color: #1890ff;
+            text-decoration: underline;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="brand">
+        <img src="logo.png" alt="MedorCoin Logo">
+        <span>MedorCoin</span>
+    </div>
+    <nav>
+        <a class="highlight" href="#">Sign Up</a>
+        <a class="highlight" href="#">Login</a>
+        <div class="dropdown">
+            <span class="dropdown-btn">Locks</span>
+            <div class="dropdown-content">
+                <a href="#">NFT Lock</a>
+                <a href="#">Liquidity Lock</a>
+                <a href="#">Token Lock</a>
+                <a href="#">Asset Lock</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <span class="dropdown-btn">&#9776;</span>
+            <div class="dropdown-content">
+                <a href="#">Dashboard</a>
+                <a href="#">Lock Types</a>
+                <div class="dropdown">
+                    <span class="dropdown-btn">Lock Types</span>
+                    <div class="dropdown-content">
+                        <a href="#">NFT Lock</a>
+                        <a href="#">Liquidity Lock</a>
+                        <a href="#">Token Lock</a>
+                        <a href="#">Asset Lock</a>
+                    </div>
+                </div>
+                <a href="#">Settings</a>
+                <a href="#">Log Out</a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main>
+
+<section>
+    <h2>What is Liquidity Lock</h2>
+    <p>Liquidity Lock is a service provided by MedorCoin that temporarily restricts access to tokens, contracts, or other digital assets. This ensures security, builds investor confidence, and integrates seamlessly with the MedorCoin ecosystem. By locking your liquidity, you demonstrate long-term commitment and enhance trust in your project. To start, <a class="highlight" href="#">create an account</a>.</p>
+    <div class="feature">
+        <h3>Advantages of Locking Your Crypto Liquidity</h3>
+        <ul>
+            <li>Increased investor confidence</li>
+            <li>Reduced risk of sudden token dumps</li>
+            <li>Secure management of smart contracts</li>
+            <li>Absolute control over timing and access</li>
+        </ul>
+    </div>
+    <div class="example">
+        <h3>Example</h3>
+        <p>A developer locks a portion of tokens for six months. Investors see this on their dashboard, assuring them that the project team is committed to long-term stability.</p>
+    </div>
+</section>
+
+<section>
+    <h2>How to Lock Your Liquidity on MedorCoin</h2>
+    <p>MedorCoin provides multiple options for locking your digital assets. Each type offers unique security features and benefits. You can <a class="highlight" href="#">connect wallet</a> to begin.</p>
+    
+    <h3>Lock Your Tokens</h3>
+    <p>Locking tokens ensures they are temporarily inaccessible. This prevents sudden sales and demonstrates commitment to investors.</p>
+    <ul>
+        <li>Customisable lock duration</li>
+        <li>Complete control over unlocking</li>
+        <li>Integration with audited smart contracts</li>
+    </ul>
+
+    <h3>Lock Your NFTs</h3>
+    <p>Locking NFTs secures your digital collectibles or project assets while retaining full ownership.</p>
+    <ul>
+        <li>Protects from unauthorised transfers</li>
+        <li>Ideal for marketplace listings or collaborations</li>
+        <li>Access control for specific users</li>
+    </ul>
+
+    <h3>Lock Your Launch Pool</h3>
+    <p>Ensure transparency and fairness during fundraising by locking launch pools.</p>
+    <ul>
+        <li>Prevents premature withdrawals</li>
+        <li>Builds investor confidence</li>
+        <li>Compatible with MedorCoin ecosystem</li>
+    </ul>
+
+    <h3>Lock Your Contract Address</h3>
+    <p>Secure smart contracts by locking their address, preventing unauthorised edits or modifications.</p>
+    <ul>
+        <li>Ensures contract integrity</li>
+        <li>Enhances credibility for investors</li>
+        <li>Supports audits for additional security</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Who Can Lock Assets</h2>
+    
+    <h3>For Developers</h3>
+    <p>Developers can lock tokens, NFTs, contracts, or launch pools. This demonstrates commitment to investors, showing that project assets are secure and cannot be accessed prematurely. MedorCoin provides full technical support 24/7.</p>
+
+    <h3>For Investors</h3>
+    <p>Investors can lock their assets to safeguard investments, prevent losses, and ensure long-term participation in projects they trust. Locked assets are visible on the dashboard, providing transparency and reassurance.</p>
+</section>
+
+<section>
+    <h2>FAQs</h2>
+
+    <div class="faq">
+        <div class="faq-title">What is the duration for locking assets?</div>
+        <div class="faq-content">You can choose any duration when locking assets, from a few days to several years, depending on your requirements.</div>
+    </div>
+
+    <div class="faq">
+        <div class="faq-title">Can I unlock assets before the lock period ends?</div>
+        <div class="faq-content">No, assets remain inaccessible until the lock period expires to ensure security and investor trust.</div>
+    </div>
+
+    <div class="faq">
+        <div class="faq-title">Are locked assets still visible to investors?</div>
+        <div class="faq-content">Yes, investors can see locked assets on their dashboard, providing full transparency.</div>
+    </div>
+
+    <div class="faq">
+        <div class="faq-title">Is locking reversible?</div>
+        <div class="faq-content">No, once an asset is locked, it cannot be reversed until the end of the lock period.</div>
+    </div>
+
+    <div class="faq">
+        <div class="faq-title">Who can lock NFTs?</div>
+        <div class="faq-content">Developers and investors can lock NFTs to secure ownership or project assets.</div>
+    </div>
+
+    <div class="faq">
+        <div class="faq-title">Does MedorCoin provide technical support?</div>
+        <div class="faq-content">Yes, MedorCoin provides 24/7 support for all liquidity locking services.</div>
+    </div>
+
+    <div class="faq">
+        <div class="faq-title">What makes MedorCoin different?</div>
+        <div class="faq-content">MedorCoin integrates locking services within its ecosystem with secure audited smart contracts and full control for users.</div>
+    </div>
+
+    <div class="faq">
+        <div class="faq-title">Can contracts be locked?</div>
+        <div class="faq-content">Yes, developers can lock contract addresses to prevent unauthorised modifications.</div>
+    </div>
+
+    <div class="faq">
+        <div class="faq-title">Is it safe to lock launch pools?</div>
+        <div class="faq-content">Yes, locking launch pools prevents premature withdrawals and ensures fairness during fundraising.</div>
+    </div>
+
+    <div class="faq">
+        <div class="faq-title">Do investors need technical knowledge to lock assets?</div>
+        <div class="faq-content">No, MedorCoin provides an intuitive interface and support, making locking easy for all users.</div>
+    </div>
+
+</section>
+
+</main>
+
+<footer>
+    <p>&copy; 2026 MedorCoin. All rights reserved.</p>
+</footer>
+
+<script>
+    // FAQ toggle
+    const faqTitles = document.querySelectorAll('.faq-title');
+    faqTitles.forEach(title => {
+        title.addEventListener('click', () => {
+            const content = title.nextElementSibling;
+            content.style.display = content.style.display === 'block' ? 'none' : 'block';
+        });
+    });
+
+    // Dropdown toggle
+    const dropdowns = document.querySelectorAll('.dropdown-btn');
+    dropdowns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const content = btn.nextElementSibling;
+            content.style.display = content.style.display === 'block' ? 'none' : 'block';
+        });
+    });
+</script>
+
+</body>
+</html>
