@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Confirm Transaction</title>
+<title>Crypto Trading -Welcome</title>
 
 <style>
     body {
@@ -15,167 +15,77 @@
         align-items: center;
         height: 100vh;
     }
-
-    .wallet-container {
-        background: white;
-        width: 380px;
-        max-width: 95%;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-        padding: 24px;
-    }
-
-    .header {
-        text-align: center;
-        margin-bottom: 20px;
-    }
-
-    .header h2 {
-        margin: 0;
-        font-size: 20px;
-        font-weight: 600;
-    }
-
-    .network {
-        font-size: 13px;
-        color: #666;
-        margin-top: 4px;
-    }
-
-    .section {
-        margin-bottom: 18px;
-    }
-
-    .label {
-        font-size: 12px;
-        color: #888;
-        text-transform: uppercase;
-        margin-bottom: 4px;
-    }
-
-    .value {
-        font-size: 15px;
-        word-break: break-all;
-    }
-
-    .amount {
-        font-size: 22px;
-        font-weight: bold;
-    }
-
-    .fee-box {
-        background: #f9fafb;
-        border-radius: 10px;
-        padding: 12px;
-        font-size: 14px;
-    }
-
-    .warning {
-        background: #fff4e5;
-        border: 1px solid #ffd8a8;
-        color: #8a4b00;
-        padding: 12px;
-        border-radius: 10px;
-        font-size: 13px;
-        margin-top: 16px;
-    }
-
-    .buttons {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-    }
-
-    button {
-        flex: 1;
-        padding: 12px;
-        border-radius: 10px;
-        border: none;
-        font-size: 15px;
-        cursor: pointer;
-        font-weight: 600;
-    }
-
-    .reject {
-        background: #e5e7eb;
-    }
-
-    .approve {
-        background: #2563eb;
-        color: white;
-    }
-
-    .approve:hover {
-        background: #1d4ed8;
-    }
-
-    .footer-note {
-        font-size: 12px;
-        text-align: center;
-        margin-top: 18px;
-        color: #888;
-    }
-
-    @media (max-width: 420px) {
-        .wallet-container {
-            border-radius: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-    }
+<div id="crypto_calculator" data-coins="BTC" data-cards="" data-rss="" data-theme="linear-gradient(90deg, rgb(170, 119, 28) 0%, rgb(252, 246, 186) 25%, rgb(179, 135, 40) 49%, rgb(251, 245, 183) 75%, rgb(170, 119, 28) 100%)" data-text="#1a1c1b" data-button="transparent" data-vertical="false" data-coin="BTC" data-price="USD" data-crypto-amount="1" data-switch-mode="false" data-currency-amount="1" data-language="en"></div><script src="https://img.plasbit.com/widget/js/crypto-calculator.js"></script>
+<div id="crypto_table" data-coins="BTC" data-cards="" data-rss="" data-theme=" linear-gradient(90deg, rgba(0,121,189,1) 0%, rgba(0,0,113,1) 50%, rgba(0,121,189,1) 100%)" data-text="#ffffff" data-button="transparent" data-vertical="false" data-coin="BTC" data-price="USD" data-crypto-amount="1" data-switch-mode="false" data-currency-amount="1" data-language="en"></div><script src="https://img.plasbit.com/widget/js/crypto-coin-list.js"></script>
+ <style>
+  /* Target only the "Powered by" text inside the widgets */
+  #crypto_calculator a, 
+  #crypto_table a {
+    color: #0000FF !important; /* Match your page's blue background */
+    text-decoration: none !important;
+  }
 </style>
-</head>
-
-<body>
-
-<div class="wallet-container">
-
-    <div class="header">
-        <h2>Confirm Transaction</h2>
-        <div class="network">Main Network</div>
+    
+    
+    <!-- Two-column resources (General / Introduction, then Row 2) -->
+  <section class="resources" style="padding:20px 12px;">
+    <div class="ext-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
+      <!-- Column 1: General -->
+      <div class="col" aria-label="General">
+        <h3>General</h3>
+        <ul style="padding-left:20px;margin:6px 0 0;">
+          <li><a href="beware-of-scams.html">Beware of Scams</a></li>
+          <li><a href="buy-sell-medorcoin.html">Buy & Sell</a></li>
+          <li><a href="invisible-m-blog.html">Blog</a></li>
+          <li><a href="legal.html">Legal</a></li>
+          <li><a href="run-full-node.html">Full Node</a></li>
+          <li><a href="sponsor-us.html">Sponsor Us</a></li>
+        </ul>
+      </div>
+      <!-- Column 2: Introduction -->
+      <div class="col" aria-label="Introduction">
+        <h3>Introduction</h3>
+        <ul style="padding-left:20px;margin:6px 0 0;">
+          <li><a href="about-medorcoin.html">About MedorCoin</a></li>
+          <li><a href="how-it-works.html">How it Works</a></li>
+          <li><a href="important-to-know.html">Important to Know</a></li>
+          <li><a href="introduction.html">Introductionl</a></li>
+          <li><a href="white-paper.html">White Paper</a></li>
+        </ul>
+      </div>
     </div>
 
-    <div class="section">
-        <div class="label">From</div>
-        <div class="value">0xA1b2...9F34</div>
+    <div class="ext-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:24px;">
+      <!-- Row 2 Column 1: Resources -->
+      <div class="col" aria-label="Resources">
+        <h3>Resources</h3>
+        <ul style="padding-left:20px;margin:6px 0 0;">
+          <li><a href="community.html">Community</a></li>
+          <li><a href="latest-news.html">Latest News</a></li>
+          <li><a href="resources.html">Resources</a></li>
+          <li><a href="terms-and-conditions.html">Terms & Conditions</a></li>
+        </ul>
+      </div>
+      <!-- Row 2 Column 2: About MedorCoin -->
+      <div class="col" aria-label="About MedorCoin">
+        <h3>Who is it For:</h3>
+        <ul style="padding-left:20px;margin:6px 0 0;">
+          <li><a href="institutions.html">For Institutions</a></li>
+          <li><a href="investors.html">For Investors</a></li>
+          <li><a href="medorcoin-core.html">MedorCoin Core</a></li>
+        </ul>
+      </div>
     </div>
 
-    <div class="section">
-        <div class="label">To</div>
-        <div class="value">0xB4e5...3D21</div>
-    </div>
 
-    <div class="section">
-        <div class="label">Amount</div>
-        <div class="amount">2.50 MED</div>
-    </div>
-
-    <div class="section">
-        <div class="label">Network Fee</div>
-        <div class="fee-box">
-            Estimated Gas Fee: 0.0021 MED<br>
-            Max Fee: 0.0030 MED
-        </div>
-    </div>
-
-    <div class="warning">
-        You are about to authorize this transaction using your private key.
-        Always verify the recipient address and amount before approving.
-        Never share your recovery phrase or private key.
-    </div>
-
-    <div class="buttons">
-        <button class="reject">Reject</button>
-        <button class="approve">Approve</button>
-    </div>
-
-    <div class="footer-note">
-        Your private key never leaves your device.
-    </div>
-
-</div>
-
+<!-- Footer / Branding -->
+<footer class="footer" style="text-align:center;margin-top:40px;padding:12px 0;border-top:1px solid var(--border);color:#9eadb2;">
+  <div>© MedorCoin 2026</div>
+  <p style="font-size:12px;margin:6px 0 0 0;">
+    Trade responsibly. The crypto world is volatile; you are responsible for your own decisions on this platform. MedorCoin and its partners/employees are not liable for any decisions. You must be 18+ years old to use this platform.
+  </p>
+</footer>
+</body>
+</html>
 </body>
 </html>
