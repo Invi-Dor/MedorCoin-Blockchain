@@ -7,8 +7,8 @@ project(MedorCoin
 )
 
 # ── Language standards ────────────────────────────────────────────────────────
-set(CMAKE_C_STANDARD          11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD            11)
+set(CMAKE_C_STANDARD_REQUIRED   ON)
 set(CMAKE_CXX_STANDARD          20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS        OFF)
@@ -23,11 +23,11 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# ── Options ───────────────────────────────────────────────────────────────────
-option(ENABLE_WARNINGS  "Enable extra compiler warnings"          ON)
-option(ENABLE_ASAN      "Enable AddressSanitizer"                 OFF)
-option(ENABLE_UBSAN     "Enable UBSanitizer"                      OFF)
-option(ENABLE_COVERAGE  "Enable coverage instrumentation"         OFF)
+# ── Build options ─────────────────────────────────────────────────────────────
+option(ENABLE_WARNINGS  "Enable extra compiler warnings"  ON)
+option(ENABLE_ASAN      "Enable AddressSanitizer"         OFF)
+option(ENABLE_UBSAN     "Enable UBSanitizer"              OFF)
+option(ENABLE_COVERAGE  "Enable coverage instrumentation" OFF)
 
 # ── Platform flags ────────────────────────────────────────────────────────────
 if(NOT MSVC)
@@ -54,15 +54,15 @@ endif()
 # ── Global include path ───────────────────────────────────────────────────────
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-# ── Core dependencies (resolved once at root; linked in src/) ─────────────────
-find_package(Threads  REQUIRED)
-find_package(OpenSSL  REQUIRED)
+# ── Core dependencies resolved once at root; consumed in src/ ─────────────────
+find_package(Threads   REQUIRED)
+find_package(OpenSSL   REQUIRED)
 find_package(PkgConfig REQUIRED)
 
-# secp256k1
 pkg_check_modules(SECP256K1 REQUIRED libsecp256k1)
+pkg_check_modules(LEVELDB   REQUIRED libleveldb)
 
-# nlohmann/json (header-only; FetchContent if not installed system-wide)
+# nlohmann/json — system package preferred; FetchContent fallback
 find_package(nlohmann_json 3.10 QUIET)
 if(NOT nlohmann_json_FOUND)
     include(FetchContent)
@@ -73,10 +73,6 @@ if(NOT nlohmann_json_FOUND)
     FetchContent_MakeAvailable(nlohmann_json)
 endif()
 
-# LevelDB (used by BlockDB)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LEVELDB REQUIRED libleveldb)
-
 include(GNUInstallDirs)
 
 # ── Subdirectories ────────────────────────────────────────────────────────────
@@ -86,6 +82,15 @@ add_subdirectory(src)
 if(EXISTS "${CMAKE_SOURCE_DIR}/include")
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endif()
+
+# ── Install systemd service unit ──────────────────────────────────────────────
+# Installed only when the prefix is a real system path so that developer
+# builds under ~/build do not pollute /lib/systemd.
+if(CMAKE_INSTALL_PREFIX STREQUAL "/usr" OR
+   CMAKE_INSTALL_PREFIX STREQUAL "/usr/local")
+    install(FILES ${CMAKE_SOURCE_DIR}/medorcoin-blockchain.service
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
 endif()
 
 # ── Self-update target (explicit invocation only) ─────────────────────────────
@@ -107,8 +112,8 @@ BUILD=\"${CMAKE_BINARY_DIR}\"
 echo \"[self-update] branch=\$BRANCH interval=\${INTERVAL}s\"
 while true; do
   cd \"\$REPO\"
-  ${GIT_EXECUTABLE} fetch --tags origin          || true
-  ${GIT_EXECUTABLE} checkout \"\$BRANCH\"        || true
+  ${GIT_EXECUTABLE} fetch --tags origin               || true
+  ${GIT_EXECUTABLE} checkout \"\$BRANCH\"             || true
   ${GIT_EXECUTABLE} pull --ff-only origin \"\$BRANCH\" || true
   cmake -S \"\$REPO\" -B \"\$BUILD\" -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
   cmake --build \"\$BUILD\" -j
@@ -116,14 +121,13 @@ while true; do
   sleep \"\$INTERVAL\"
 done
 ")
-    execute_process(
-        COMMAND chmod +x "${_SU_SCRIPT}"
-    )
+    execute_process(COMMAND chmod +x "${_SU_SCRIPT}")
+
     add_custom_target(self_update_forever
         COMMAND "${_SU_SCRIPT}"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         USES_TERMINAL
-        COMMENT "Infinite self-update loop: fetch → reconfigure → rebuild → sleep"
+        COMMENT "Infinite self-update: fetch → reconfigure → rebuild → sleep"
     )
 else()
     message(STATUS "git not found — self_update_forever target disabled")
