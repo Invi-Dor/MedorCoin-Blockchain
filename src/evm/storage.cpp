@@ -1,85 +1,107 @@
-#include “storage.h”
-#include <stdexcept>
-#include <mutex>
+#include "storage.h"
 
-static std::mutex storageMutex;
+#include <cctype>
+#include <cstring>
+#include <functional>
+#include <iostream>
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Layout constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+static constexpr size_t ADDR_HEX_LEN  = 40;   // 20 bytes  → 40 hex chars
+static constexpr size_t SLOT_HEX_LEN  = 64;   // 32 bytes  → 64 hex chars
+static constexpr size_t BALANCE_BYTES = 32;    // 256-bit   → 32 raw bytes
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constructor
+// ─────────────────────────────────────────────────────────────────────────────
 
 EVMStorage::EVMStorage(const std::string &dbPath)
-: rocksdb(dbPath)
+    : rocksdb(dbPath)
 {
+    if (!rocksdb.isOpen()) {
+        // RocksDBWrapper already logged the error; surface it here too so the
+        // owning object knows it was constructed in a degraded state.
+        std::cerr << "[EVMStorage] WARNING: underlying RocksDB failed to open at '"
+                  << dbPath << "'. All operations will fail safely.\n";
+    }
 }
 
-bool EVMStorage::putContractCode(const std::string &addr,
-const std::vector<uint8_t> &code)
+// ─────────────────────────────────────────────────────────────────────────────
+// Stripe selection
+// ─────────────────────────────────────────────────────────────────────────────
+
+size_t EVMStorage::stripeFor(const std::string &addrHex) const noexcept
 {
-if (addr.empty()) return false;
-std::lock_guard<std::mutex> lock(storageMutex);
-// Store raw bytes directly — key prefixed to avoid collision
-rocksdb::WriteOptions wo;
-wo.sync = true;
-std::string value(code.begin(), code.end());
-return rocksdb.put(“code:” + addr, value);
+    return std::hash<std::string>{}(addrHex) % MUTEX_STRIPES;
 }
 
-std::vector<uint8_t> EVMStorage::getContractCode(const std::string &addr)
+// ─────────────────────────────────────────────────────────────────────────────
+// Validation helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+bool EVMStorage::isValidHex(const std::string &s, size_t requiredLen) noexcept
 {
-if (addr.empty()) return {};
-std::lock_guard<std::mutex> lock(storageMutex);
-std::string value;
-if (!rocksdb.get(“code:” + addr, value)) {
-return {};
-}
-return std::vector<uint8_t>(value.begin(), value.end());
+    if (s.size() != requiredLen) return false;
+    for (unsigned char c : s)
+        if (!std::isxdigit(c)) return false;
+    return true;
 }
 
-bool EVMStorage::putContractStorage(const std::string &addr,
-const std::string &key,
-const std::string &value)
+bool EVMStorage::isValidAddrHex(const std::string &s) noexcept
 {
-if (addr.empty() || key.empty()) return false;
-std::lock_guard<std::mutex> lock(storageMutex);
-return rocksdb.put(“storage:” + addr + “:” + key, value);
+    return isValidHex(s, ADDR_HEX_LEN);
 }
 
-std::string EVMStorage::getContractStorage(const std::string &addr,
-const std::string &key)
+bool EVMStorage::isValidSlotHex(const std::string &s) noexcept
 {
-if (addr.empty() || key.empty()) return “”;
-std::lock_guard<std::mutex> lock(storageMutex);
-std::string value;
-if (!rocksdb.get(“storage:” + addr + “:” + key, value)) {
-return “”;
-}
-return value;
+    return isValidHex(s, SLOT_HEX_LEN);
 }
 
-bool EVMStorage::deleteContractStorage(const std::string &addr,
-const std::string &key)
+// ─────────────────────────────────────────────────────────────────────────────
+// Contract Code
+// ─────────────────────────────────────────────────────────────────────────────
+
+bool EVMStorage::putContractCode(const std::string &addrHex,
+                                  const std::vector<uint8_t> &code)
 {
-if (addr.empty() || key.empty()) return false;
-std::lock_guard<std::mutex> lock(storageMutex);
-return rocksdb.del(“storage:” + addr + “:” + key);
+    if (!isValidAddrHex(addrHex)) {
+        std::cerr << "[EVMStorage] putContractCode: invalid address '"
+                  << addrHex << "' (must be " << ADDR_HEX_LEN << " hex chars)\n";
+        return false;
+    }
+    // Empty bytecode is legal (e.g. EOA receiving a deploy that reverts),
+    // so we do not reject code.empty() here.
+
+    const std::string value(reinterpret_cast<const char *>(code.data()),
+                             code.size());
+
+    std::unique_lock<std::shared_mutex> lock(stripes[stripeFor(addrHex)]);
+    bool ok = rocksdb.put(codeKey(addrHex), value, /*sync=*/true);
+    if (!ok)
+        std::cerr << "[EVMStorage] putContractCode: DB write failed for "
+                  << addrHex << "\n";
+    return ok;
 }
 
-bool EVMStorage::putBalance(const std::string &addr, uint64_t balance)
+EVMStorage::ReadStatus EVMStorage::getContractCode(const std::string &addrHex,
+                                                    std::vector<uint8_t> &codeOut)
 {
-if (addr.empty()) return false;
-std::lock_guard<std::mutex> lock(storageMutex);
-std::string val = std::to_string(balance);
-return rocksdb.put(“balance:” + addr, val);
-}
+    codeOut.clear();
 
-uint64_t EVMStorage::getBalance(const std::string &addr)
-{
-if (addr.empty()) return 0ULL;
-std::lock_guard<std::mutex> lock(storageMutex);
-std::string val;
-if (!rocksdb.get(“balance:” + addr, val)) {
-return 0ULL;
-}
-try {
-return std::stoull(val);
-} catch (…) {
-return 0ULL;
-}
-}
+    if (!isValidAddrHex(addrHex)) {
+        std::cerr << "[EVMStorage] getContractCode: invalid address '"
+                  << addrHex << "'\n";
+        return ReadStatus::DB_ERROR;
+    }
+
+    std::shared_lock<std::shared_mutex> lock(stripes[stripeFor(addrHex)]);
+
+    std::string raw;
+    if (!rocksdb.get(codeKey(addrHex), raw))
+        return ReadStatus::NOT_FOUND;
+
+    // A stored key that maps to an empty string is a corruption signal —
+    // legitimate empty bytecode should not be written via putContractCode
+    // for​​​​​​​​​​​​​​​​
