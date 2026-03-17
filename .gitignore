@@ -1,9 +1,11 @@
-# Node.js dependencies
+# ── Node.js dependencies ──────────────────────────────────────────────────────
 node_modules/
 npm-debug.log
 yarn-error.log
 
-# Environment & secrets
+# ── Environment and secrets ───────────────────────────────────────────────────
+# .env.example is intentionally NOT ignored — it is a safe template that
+# should remain in version control.
 .env
 .env.local
 .env.*.local
@@ -27,15 +29,27 @@ apikey
 *password.txt
 *token*
 
-# Build / artifacts
-build/
-dist/
-out/
-coverage/
-*.tgz
-*.zip
+# ── Key rotation artefacts ────────────────────────────────────────────────────
+# Backup directories created by rotate_admin_key.sh
+.key_rotation_backup_*/
 
-# C/C++ / native modules
+# ── RocksDB and LevelDB data directories ─────────────────────────────────────
+# All runtime database files — these must never be committed
+data/
+data/receipts/
+data/receipts_backup/
+data/api_keys/
+data/api_keys_backup/
+*.sst
+*.ldb
+*.log
+MANIFEST-*
+CURRENT
+LOCK
+OPTIONS-*
+*.wal
+
+# ── C and C++ build artefacts ─────────────────────────────────────────────────
 *.o
 *.obj
 *.so
@@ -43,16 +57,44 @@ coverage/
 *.dll
 *.exe
 *.bin
+build/
 build/Release/
+build/Debug/
+build/RelWithDebInfo/
+rocksdb_build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+compile_commands.json
+_CPack_Packages/
+*.cmake
+!CMakeLists.txt
+
+# ── Native Node.js addon build output ────────────────────────────────────────
+# Built by node-gyp via bindings.gyp — never committed
+build/Release/MedorCoin.node
+build/Debug/MedorCoin.node
 node_modules/.cache/
 
-# Logs
+# ── API server compiled binaries ─────────────────────────────────────────────
+MedorCoin
+MedorAPI
+
+# ── Build and dist artefacts ──────────────────────────────────────────────────
+dist/
+out/
+coverage/
+*.tgz
+*.zip
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
 *.log
 logs/
 .tmp/
 .temp/
 
-# Editors / IDE
+# ── Editor and IDE files ──────────────────────────────────────────────────────
 .vscode/
 .idea/
 .suo
@@ -61,21 +103,34 @@ logs/
 *.sublime-project
 *.sublime-workspace
 
-# OS metadata
+# ── Operating system metadata ────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Caches / tooling
+# ── Caches and tooling ────────────────────────────────────────────────────────
 .cache/
-*.cache/
+*.cache
 *.swp
 *.swo
 
-# Docker / CI
+# ── Docker and CI configuration ───────────────────────────────────────────────
+# These are ignored by default in the original file but should be reviewed —
+# docker-compose.yaml is often safe to commit for development environments.
+# Remove these lines if you want Docker and CI files tracked.
 docker-compose.yaml
 .dockerignore
 .gitlab-ci.yml
-.github/
 
-# Additional patterns
+# ── Packaging artefacts ───────────────────────────────────────────────────────
 *.bak
+*.tar.gz
+*.deb
+*.rpm
+
+# ── Protocol and wallet configuration ────────────────────────────────────────
+# These may contain sensitive chain configuration or private key material
+protocal.private.json
+protocol.json
+keys/
+*.wallet
