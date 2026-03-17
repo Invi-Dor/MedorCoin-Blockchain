@@ -134,3 +134,5 @@ protocal.private.json
 protocol.json
 keys/
 *.wallet
+echo "git_commit_all.sh" >> .gitignore
+
