@@ -24,9 +24,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # ── Build options ─────────────────────────────────────────────────────────────
+# ENABLE_ASAN and ENABLE_UBSAN are ON during development to catch memory
+# and undefined-behaviour errors at runtime. Disable both for the final
+# production deployment build by passing -DENABLE_ASAN=OFF -DENABLE_UBSAN=OFF
+# to cmake at that point.
 option(ENABLE_WARNINGS  "Enable extra compiler warnings"  ON)
-option(ENABLE_ASAN      "Enable AddressSanitizer"         OFF)
-option(ENABLE_UBSAN     "Enable UBSanitizer"              OFF)
+option(ENABLE_ASAN      "Enable AddressSanitizer"         ON)
+option(ENABLE_UBSAN     "Enable UBSanitizer"              ON)
 option(ENABLE_COVERAGE  "Enable coverage instrumentation" OFF)
 
 # ── Platform flags ────────────────────────────────────────────────────────────
@@ -54,7 +58,32 @@ endif()
 # ── Global include path ───────────────────────────────────────────────────────
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-# ── Core dependencies resolved once at root; consumed in src/ ─────────────────
+# ── RocksDB configuration ─────────────────────────────────────────────────────
+# All optional libraries are enabled for maximum storage performance.
+# jemalloc reduces memory fragmentation under concurrent write load.
+# liburing reduces I/O latency on Linux kernels that support io_uring.
+# gflags enables the ldb and sst_dump diagnostic tools.
+# Snappy provides fast lightweight compression for RocksDB block data.
+# These must be set before add_subdirectory(src) is called so they are
+# visible when src/CMakeLists.txt processes the RocksDB submodule.
+set(WITH_TESTS               OFF CACHE BOOL "" FORCE)
+set(WITH_TOOLS               ON  CACHE BOOL "" FORCE)
+set(WITH_BENCHMARK_TOOLS     OFF CACHE BOOL "" FORCE)
+set(WITH_CORE_TOOLS          ON  CACHE BOOL "" FORCE)
+set(WITH_GFLAGS              ON  CACHE BOOL "" FORCE)
+set(WITH_SNAPPY              ON  CACHE BOOL "" FORCE)
+set(WITH_LZ4                 ON  CACHE BOOL "" FORCE)
+set(WITH_ZLIB                ON  CACHE BOOL "" FORCE)
+set(WITH_ZSTD                ON  CACHE BOOL "" FORCE)
+set(WITH_BZ2                 ON  CACHE BOOL "" FORCE)
+set(WITH_JEMALLOC            ON  CACHE BOOL "" FORCE)
+set(WITH_LIBURING            ON  CACHE BOOL "" FORCE)
+set(ROCKSDB_BUILD_SHARED     OFF CACHE BOOL "" FORCE)
+set(FAIL_ON_WARNINGS         OFF CACHE BOOL "" FORCE)
+set(USE_RTTI                 ON  CACHE BOOL "" FORCE)
+set(PORTABLE                 ON  CACHE BOOL "" FORCE)
+
+# ── Core dependencies resolved once at root; consumed in src/ ────────────────
 find_package(Threads   REQUIRED)
 find_package(OpenSSL   REQUIRED)
 find_package(PkgConfig REQUIRED)
@@ -84,16 +113,16 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/include")
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif()
 
-# ── Install systemd service unit ──────────────────────────────────────────────
-# Installed only when the prefix is a real system path so that developer
-# builds under ~/build do not pollute /lib/systemd.
+# ── Install systemd service unit ─────────────────────────────────────────────
 if(CMAKE_INSTALL_PREFIX STREQUAL "/usr" OR
    CMAKE_INSTALL_PREFIX STREQUAL "/usr/local")
-    install(FILES ${CMAKE_SOURCE_DIR}/medorcoin-blockchain.service
-            DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
+    if(EXISTS "${CMAKE_SOURCE_DIR}/medorcoin-blockchain.service")
+        install(FILES ${CMAKE_SOURCE_DIR}/medorcoin-blockchain.service
+                DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
+    endif()
 endif()
 
-# ── Self-update target (explicit invocation only) ─────────────────────────────
+# ── Self-update target ────────────────────────────────────────────────────────
 find_program(GIT_EXECUTABLE git)
 if(GIT_EXECUTABLE)
     set(SELF_UPDATE_BRANCH           "main" CACHE STRING
@@ -127,7 +156,7 @@ done
         COMMAND "${_SU_SCRIPT}"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         USES_TERMINAL
-        COMMENT "Infinite self-update: fetch → reconfigure → rebuild → sleep"
+        COMMENT "Infinite self-update: fetch -> reconfigure -> rebuild -> sleep"
     )
 else()
     message(STATUS "git not found — self_update_forever target disabled")
