@@ -1,18 +1,12 @@
+cat > /workspaces/MedorCoin-Blockchain/src/CMakeLists.txt << 'EOF'
 cmake_minimum_required(VERSION 3.19)
 
-# ── RocksDB embedded submodule ────────────────────────────────────────────────
 set(ROCKSDB_ROOT "${CMAKE_SOURCE_DIR}/src/rocksdb")
 
 if(NOT EXISTS "${ROCKSDB_ROOT}/CMakeLists.txt")
-    message(FATAL_ERROR
-        "RocksDB source not found at ${ROCKSDB_ROOT}.\n"
-        "Initialise the submodule with:\n"
-        "  git submodule update --init --recursive")
+    message(FATAL_ERROR "RocksDB source not found at ${ROCKSDB_ROOT}. Run: git submodule update --init --recursive")
 endif()
 
-# All RocksDB capability flags are set here to match the root CMakeLists.txt.
-# Tests and benchmark tools are disabled to keep build times reasonable.
-# All performance and diagnostic libraries are enabled for production capability.
 set(WITH_TESTS               OFF CACHE BOOL "" FORCE)
 set(WITH_TOOLS               ON  CACHE BOOL "" FORCE)
 set(WITH_BENCHMARK_TOOLS     OFF CACHE BOOL "" FORCE)
@@ -32,9 +26,6 @@ set(PORTABLE                 ON  CACHE BOOL "" FORCE)
 
 add_subdirectory(${ROCKSDB_ROOT} rocksdb_build EXCLUDE_FROM_ALL)
 
-# ═════════════════════════════════════════════════════════════════════════════
-# medor_link_common — applied to every target in this file
-# ═════════════════════════════════════════════════════════════════════════════
 macro(medor_link_common TARGET)
 
     target_compile_features(${TARGET} PUBLIC cxx_std_20)
@@ -44,14 +35,11 @@ macro(medor_link_common TARGET)
             target_compile_options(${TARGET} PRIVATE /W4 /permissive-)
         else()
             target_compile_options(${TARGET} PRIVATE
-                -Wall -Wextra -Wpedantic
-                -Wconversion -Wshadow -Wundef
-                -Wno-unused-parameter
-            )
+                -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Wundef -Wno-unused-parameter)
         endif()
     endif()
 
-    target_include_directories(${TARGET} PRIVATE
+    target_include_directories(${TARGET} PUBLIC
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/src/abi
@@ -68,7 +56,7 @@ macro(medor_link_common TARGET)
         ${SECP256K1_INCLUDE_DIRS}
     )
 
-    target_link_libraries(${TARGET} PRIVATE
+    target_link_libraries(${TARGET} PUBLIC
         Threads::Threads
         OpenSSL::SSL
         OpenSSL::Crypto
@@ -78,91 +66,69 @@ macro(medor_link_common TARGET)
         nlohmann_json::nlohmann_json
     )
 
-    target_compile_options(${TARGET} PRIVATE
-        ${LEVELDB_CFLAGS_OTHER}
-        ${SECP256K1_CFLAGS_OTHER}
-    )
-
-    target_compile_definitions(${TARGET} PRIVATE
+    target_compile_definitions(${TARGET} PUBLIC
         HAVE_ROCKSDB=1
         HAVE_SECP256K1=1
     )
 
-    # ── Compression backends ──────────────────────────────────────────────────
+    find_package(PkgConfig REQUIRED)
+
     find_package(ZLIB QUIET)
     if(ZLIB_FOUND)
-        target_link_libraries(${TARGET} PRIVATE ZLIB::ZLIB)
-        target_compile_definitions(${TARGET} PRIVATE HAVE_LIB_Z=1)
+        target_link_libraries(${TARGET} PUBLIC ZLIB::ZLIB)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_Z=1)
     endif()
 
     find_package(BZip2 QUIET)
     if(BZIP2_FOUND)
-        target_link_libraries(${TARGET} PRIVATE BZip2::BZip2)
-        target_compile_definitions(${TARGET} PRIVATE HAVE_LIB_BZ2=1)
+        target_link_libraries(${TARGET} PUBLIC BZip2::BZip2)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_BZ2=1)
     endif()
-
-    find_package(PkgConfig REQUIRED)
 
     pkg_check_modules(LZ4 QUIET liblz4)
     if(LZ4_FOUND)
-        target_include_directories(${TARGET} PRIVATE ${LZ4_INCLUDE_DIRS})
-        target_link_libraries(${TARGET} PRIVATE ${LZ4_LIBRARIES})
-        target_compile_definitions(${TARGET} PRIVATE HAVE_LIB_LZ4=1)
+        target_include_directories(${TARGET} PUBLIC ${LZ4_INCLUDE_DIRS})
+        target_link_libraries(${TARGET} PUBLIC ${LZ4_LIBRARIES})
+        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_LZ4=1)
     endif()
 
-    find_package(Snappy QUIET)
-    if(Snappy_FOUND)
-        target_link_libraries(${TARGET} PRIVATE Snappy::Snappy)
-        target_compile_definitions(${TARGET} PRIVATE HAVE_LIB_SNAPPY=1)
+    pkg_check_modules(SNAPPY QUIET snappy)
+    if(SNAPPY_FOUND)
+        target_include_directories(${TARGET} PUBLIC ${SNAPPY_INCLUDE_DIRS})
+        target_link_libraries(${TARGET} PUBLIC ${SNAPPY_LIBRARIES})
+        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_SNAPPY=1)
+    else()
+        find_library(SNAPPY_LIB snappy)
+        find_path(SNAPPY_INCLUDE snappy.h)
+        if(SNAPPY_LIB AND SNAPPY_INCLUDE)
+            target_include_directories(${TARGET} PUBLIC ${SNAPPY_INCLUDE})
+            target_link_libraries(${TARGET} PUBLIC ${SNAPPY_LIB})
+            target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_SNAPPY=1)
+        endif()
     endif()
 
     pkg_check_modules(ZSTD QUIET libzstd)
     if(ZSTD_FOUND)
-        target_include_directories(${TARGET} PRIVATE ${ZSTD_INCLUDE_DIRS})
-        target_link_libraries(${TARGET} PRIVATE ${ZSTD_LIBRARIES})
-        target_compile_definitions(${TARGET} PRIVATE HAVE_LIB_ZSTD=1)
+        target_include_directories(${TARGET} PUBLIC ${ZSTD_INCLUDE_DIRS})
+        target_link_libraries(${TARGET} PUBLIC ${ZSTD_LIBRARIES})
+        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_ZSTD=1)
     endif()
 
-    # ── EVMC ─────────────────────────────────────────────────────────────────
     find_package(evmc QUIET)
     if(evmc_FOUND)
-        target_link_libraries(${TARGET} PRIVATE evmc::evmc)
-        target_compile_definitions(${TARGET} PRIVATE HAVE_EVMC=1)
+        target_link_libraries(${TARGET} PUBLIC evmc::evmc)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_EVMC=1)
     endif()
 
-    # ── jemalloc ─────────────────────────────────────────────────────────────
-    find_package(PkgConfig REQUIRED)
     pkg_check_modules(JEMALLOC QUIET jemalloc)
     if(JEMALLOC_FOUND)
-        target_include_directories(${TARGET} PRIVATE ${JEMALLOC_INCLUDE_DIRS})
-        target_link_libraries(${TARGET} PRIVATE ${JEMALLOC_LIBRARIES})
-        target_compile_definitions(${TARGET} PRIVATE HAVE_JEMALLOC=1)
-    endif()
-
-    # ── Sanitiser and coverage link flags ─────────────────────────────────────
-    if(NOT MSVC)
-        if(ENABLE_ASAN)
-            target_compile_options(${TARGET} PRIVATE
-                -fsanitize=address -fno-omit-frame-pointer)
-            target_link_options(${TARGET} PRIVATE -fsanitize=address)
-        endif()
-        if(ENABLE_UBSAN)
-            target_compile_options(${TARGET} PRIVATE
-                -fsanitize=undefined -fno-omit-frame-pointer)
-            target_link_options(${TARGET} PRIVATE -fsanitize=undefined)
-        endif()
-        if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-            target_compile_options(${TARGET} PRIVATE
-                --coverage -fprofile-arcs -ftest-coverage -O0)
-            target_link_options(${TARGET} PRIVATE --coverage)
-        endif()
+        target_include_directories(${TARGET} PUBLIC ${JEMALLOC_INCLUDE_DIRS})
+        target_link_libraries(${TARGET} PUBLIC ${JEMALLOC_LIBRARIES})
+        target_compile_definitions(${TARGET} PUBLIC HAVE_JEMALLOC=1)
     endif()
 
 endmacro()
 
-# ═════════════════════════════════════════════════════════════════════════════
-# MedorCore — static library compiled once, linked by every binary
-# ═════════════════════════════════════════════════════════════════════════════
 set(MEDOR_CORE_SOURCES
     ${CMAKE_SOURCE_DIR}/src/bip39.cpp
     ${CMAKE_SOURCE_DIR}/src/block.cpp
@@ -203,12 +169,9 @@ set(MEDOR_CORE_SOURCES
 )
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/src/storage/EVMStorage.cpp")
-    list(APPEND MEDOR_CORE_SOURCES
-        ${CMAKE_SOURCE_DIR}/src/storage/EVMStorage.cpp)
+    list(APPEND MEDOR_CORE_SOURCES ${CMAKE_SOURCE_DIR}/src/storage/EVMStorage.cpp)
 endif()
 
 add_library(MedorCore STATIC ${MEDOR_CORE_SOURCES})
 medor_link_common(MedorCore)
-
-# ═════════════════════════════════════════════════════════════════════════════
-# Target 1 — MedorC​​​​​​​​​​​​​​​​
+EOF
