@@ -2,64 +2,80 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <optional>
+#include <span>
+#include <secp256k1.h>
 
-/**
- * secp256k1_wrapper
- *
- * Production wrapper around libsecp256k1 for Ethereum-compatible signing,
- * verification, and public key recovery.
- *
- * Design guarantees:
- *  - CSPRNG uses /dev/urandom on POSIX and BCryptGenRandom on Windows so
- *    the library is portable across both platforms.
- *  - The secp256k1 context is created once and shared for the process
- *    lifetime; it is never destroyed and is safe for concurrent reads.
- *  - Every function validates its inputs and returns std::nullopt or false
- *    rather than invoking undefined behaviour on bad input.
- *  - No function throws. All failures are communicated via return values.
- *  - getCtx() is exposed in the header so verify_signature.cpp can reuse
- *    the shared context without creating its own.
- */
 namespace crypto {
 
+// =============================================================================
+// STRUCTURED LOGGER
+// Install once at node startup. Receives (level, function, message).
+// Level: 0=error, 1=warning, 2=debug. Default discards all messages.
+// Thread-safe.
+// =============================================================================
+using WrapperLogCallback = std::function<void(int, const char*, const char*)>;
+void setWrapperLogger(WrapperLogCallback cb);
+
+// =============================================================================
+// DATA TYPES
+// =============================================================================
 struct Secp256k1Keypair {
-    std::array<uint8_t, 32> privkey{};
-    std::array<uint8_t, 65> pubkey_uncompressed{};
+    std::array<uint8_t, 32> privkey;
+    std::array<uint8_t, 33> pubkey_compressed;
+    std::array<uint8_t, 65> pubkey_uncompressed;
 };
 
 struct Secp256k1Signature {
-    std::array<uint8_t, 32> r{};
-    std::array<uint8_t, 32> s{};
+    std::array<uint8_t, 32> r;
+    std::array<uint8_t, 32> s;
     int                     recid = 0;
 };
 
-// Returns the process-wide secp256k1 context.
-// Exposed publicly so sibling translation units can share it.
-struct secp256k1_context_struct *getCtx() noexcept;
+// =============================================================================
+// getCtx
+// Returns the shared secp256k1 context. Thread-safe via std::call_once.
+// On failure logs the error and throws std::runtime_error rather than
+// calling std::terminate, allowing the node to handle startup failures
+// gracefully.
+// =============================================================================
+secp256k1_context* getCtx();
 
-// Generate a keypair using a CSPRNG.
-// Returns std::nullopt if the platform RNG is unavailable or if a valid
-// key cannot be produced in 32 attempts (astronomically rare).
+// =============================================================================
+// generateKeypair
+// Generates a secp256k1 keypair using OS CSPRNG with fallbacks.
+// Returns both compressed and uncompressed public keys.
+// Returns nullopt on failure with a logged reason.
+// =============================================================================
 std::optional<Secp256k1Keypair> generateKeypair() noexcept;
 
-// Sign a 32-byte hash and return a recoverable signature.
-// Returns std::nullopt if hash is null, privkey is invalid, or signing fails.
+// =============================================================================
+// signRecoverable
+// Signs a 32-byte hash. Buffer size enforced at compile time via std::span.
+// Returns nullopt on failure with a logged reason.
+// recid is always 0 or 1 for standard secp256k1 signatures.
+// =============================================================================
 std::optional<Secp256k1Signature> signRecoverable(
-    const uint8_t               hash32[32],
-    const std::array<uint8_t, 32> &privkey) noexcept;
+    std::span<const uint8_t, 32> hash32,
+    std::span<const uint8_t, 32> privkey) noexcept;
 
-// Recover the uncompressed public key (65 bytes) from a recoverable signature.
-// Returns std::nullopt on any failure.
-std::optional<std::array<uint8_t, 65>> recoverPubkey(
-    const uint8_t              hash32[32],
-    const Secp256k1Signature  &sig) noexcept;
+// =============================================================================
+// recoverPubkeyUncompressed
+// Recovers the 65-byte uncompressed public key from a recoverable signature.
+// recoveryId must be 0-3 per secp256k1 spec.
+// =============================================================================
+std::optional<std::array<uint8_t, 65>> recoverPubkeyUncompressed(
+    std::span<const uint8_t, 32> hash32,
+    const Secp256k1Signature&    sig) noexcept;
 
-// Verify a compact 64-byte signature against an uncompressed (65-byte) or
-// compressed (33-byte) public key. Applies low-S normalisation (EIP-2).
-bool verifySignature(const uint8_t hash32[32],
-                     const uint8_t *pubkeyBytes,
-                     size_t         pubkeyLen,
-                     const uint8_t  sig64[64]) noexcept;
+// =============================================================================
+// recoverPubkeyCompressed
+// Recovers the 33-byte compressed public key from a recoverable signature.
+// recoveryId must be 0-3 per secp256k1 spec.
+// =============================================================================
+std::optional<std::array<uint8_t, 33>> recoverPubkeyCompressed(
+    std::span<const uint8_t, 32> hash32,
+    const Secp256k1Signature&    sig) noexcept;
 
 } // namespace crypto
