@@ -4,42 +4,42 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gold Plan — MedorCoin API</title>
+  <title>Premium Plan — MedorCoin API</title>
   <style>
-    :root{--bg:#0b1020;--border:rgba(255,255,255,.1);--accent:#0a4bd3;--text:#e5e7eb;--muted:#9ca3af;--success:#10b981;--gold:#f5c518;--mono:'Courier New',monospace;--display:Verdana,Geneva,sans-serif;--radius:10px;}
+    :root{--bg:#0b1020;--border:rgba(255,255,255,.1);--accent:#0a4bd3;--text:#e5e7eb;--muted:#9ca3af;--success:#10b981;--mono:'Courier New',monospace;--display:Verdana,Geneva,sans-serif;--radius:10px;}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     body{background:var(--bg);color:var(--text);font-family:var(--display);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
     body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.05) 0 2px,transparent 2px),radial-gradient(circle at 70% 60%,rgba(255,255,255,.03) 0 2px,transparent 2px);background-size:100px 100px,180px 180px;pointer-events:none;}
-    .card{background:linear-gradient(135deg,rgba(15,23,42,0.98) 60%,rgba(30,20,5,0.95));border:1px solid rgba(245,197,24,.25);border-radius:14px;padding:36px;max-width:520px;width:100%;position:relative;z-index:1;}
+    .card{background:rgba(255,255,255,.04);border:1px solid rgba(167,139,250,.3);border-radius:14px;padding:36px;max-width:520px;width:100%;position:relative;z-index:1;background:linear-gradient(135deg,rgba(15,23,42,0.98) 60%,rgba(26,13,48,0.95));}
     .back{font-family:var(--mono);font-size:0.72rem;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;transition:color 0.2s;}
     .back:hover{color:var(--text);}
-    .plan-badge{display:inline-block;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:0.1em;background:var(--gold);color:#000;margin-bottom:10px;}
-    .plan-label{font-size:0.7rem;letter-spacing:0.12em;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:6px;}
+    .plan-badge{display:inline-block;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:0.1em;background:#7c3aed;color:#fff;margin-bottom:10px;}
+    .plan-label{font-size:0.7rem;letter-spacing:0.12em;color:#a78bfa;font-weight:700;text-transform:uppercase;margin-bottom:6px;}
     h1{font-size:1.8rem;font-weight:700;margin-bottom:4px;color:#fff;}
-    .price-display{font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--gold);margin-bottom:2px;}
+    .price-display{font-family:var(--mono);font-size:2rem;font-weight:700;color:#a78bfa;margin-bottom:2px;}
     .price-note{font-size:0.78rem;color:var(--muted);margin-bottom:24px;}
     .section-label{display:block;font-size:0.82rem;font-weight:700;margin-bottom:10px;color:var(--text);}
     .billing-section{margin-bottom:24px;}
     .options{display:flex;gap:10px;flex-wrap:wrap;}
     .option{flex:1;min-width:150px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color 0.2s,background 0.2s;display:flex;align-items:center;gap:10px;font-size:0.82rem;color:var(--text);}
-    .option:hover{border-color:var(--gold);}
-    .option.selected{border-color:var(--gold);background:rgba(245,197,24,.06);}
-    .option input{accent-color:var(--gold);}
+    .option:hover{border-color:#a78bfa;}
+    .option.selected{border-color:#a78bfa;background:rgba(167,139,250,0.07);}
+    .option input{accent-color:#7c3aed;}
     .features{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:24px;}
     .features p{font-size:0.7rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;font-weight:700;margin-bottom:10px;}
     .features ul{list-style:none;display:flex;flex-direction:column;gap:7px;}
     .features ul li{font-size:0.82rem;color:var(--text);display:flex;gap:8px;align-items:flex-start;}
-    .features ul li::before{content:'→';color:var(--gold);font-family:var(--mono);flex-shrink:0;}
-    .features ul li.highlight{font-weight:700;color:var(--gold);}
-    .limit-notice{background:rgba(245,197,24,.07);border:1px solid rgba(245,197,24,.2);border-radius:var(--radius);padding:12px 14px;font-size:0.78rem;color:#fde68a;font-family:var(--mono);margin-bottom:24px;}
+    .features ul li::before{content:'→';color:#a78bfa;font-family:var(--mono);flex-shrink:0;}
+    .features ul li.highlight{font-weight:700;color:#a78bfa;}
+    .limit-notice{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:var(--radius);padding:12px 14px;font-size:0.78rem;color:#c4b5fd;font-family:var(--mono);margin-bottom:24px;}
     .payment-section{margin-bottom:24px;}
     .method{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;margin-bottom:8px;transition:border-color 0.2s,background 0.2s;}
-    .method:hover{border-color:var(--gold);}
-    .method.selected{border-color:var(--gold);background:rgba(245,197,24,.05);}
-    .method input{accent-color:var(--gold);margin-top:3px;}
+    .method:hover{border-color:#a78bfa;}
+    .method.selected{border-color:#a78bfa;background:rgba(167,139,250,.05);}
+    .method input{accent-color:#7c3aed;margin-top:3px;}
     .method-name{font-size:0.88rem;font-weight:700;color:var(--text);}
     .method-addr{font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:3px;word-break:break-all;}
-    .btn{width:100%;font-family:var(--display);font-weight:700;font-size:0.95rem;padding:14px;border-radius:var(--radius);border:none;cursor:pointer;background:var(--gold);color:#000;letter-spacing:0.02em;transition:opacity 0.2s,transform 0.15s;}
+    .btn{width:100%;font-family:var(--display);font-weight:700;font-size:0.95rem;padding:14px;border-radius:var(--radius);border:none;cursor:pointer;background:#7c3aed;color:#fff;letter-spacing:0.02em;transition:opacity 0.2s,transform 0.15s;}
     .btn:hover{opacity:0.88;transform:translateY(-1px);}
     .btn:disabled{background:#374151;color:#6b7280;cursor:not-allowed;transform:none;opacity:1;}
     .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;backdrop-filter:blur(4px);align-items:center;justify-content:center;}
@@ -51,7 +51,7 @@
     .confirm-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:0.84rem;}
     .confirm-row .lbl{color:var(--muted);}
     .confirm-row .val{font-family:var(--mono);font-weight:700;color:var(--text);}
-    .confirm-row .val.total{color:var(--gold);font-size:1rem;}
+    .confirm-row .val.total{color:#a78bfa;font-size:1rem;}
     .modal-actions{display:flex;gap:10px;margin-top:24px;}
     .btn-no{flex:1;font-family:var(--display);font-weight:700;font-size:0.88rem;padding:12px;border-radius:var(--radius);border:none;cursor:pointer;background:#1f2937;color:var(--text);}
     .btn-yes{flex:1;font-family:var(--display);font-weight:700;font-size:0.88rem;padding:12px;border-radius:var(--radius);border:none;cursor:pointer;background:var(--success);color:#000;}
@@ -60,22 +60,22 @@
 <body>
 <div class="card">
   <a class="back" href="combined_api_portal.html">← Back to API Portal</a>
-  <div class="plan-badge">ENTERPRISE</div>
-  <div class="plan-label">Gold Plan</div>
-  <h1>Gold API Plan</h1>
-  <div class="price-display" id="display-price">$150</div>
+  <div class="plan-badge">MOST POPULAR</div>
+  <div class="plan-label">Premium Plan</div>
+  <h1>Premium API Plan</h1>
+  <div class="price-display" id="display-price">$45</div>
   <div class="price-note" id="display-note">per month</div>
 
   <div class="billing-section">
     <label class="section-label">Billing Period</label>
     <div class="options">
       <label class="option selected" onclick="setBilling('monthly',this)">
-        <input type="radio" name="billing" value="monthly" data-price="150" checked />
-        $150 / month
+        <input type="radio" name="billing" value="monthly" data-price="45" checked />
+        $45 / month
       </label>
       <label class="option" onclick="setBilling('yearly',this)">
-        <input type="radio" name="billing" value="yearly" data-price="900" />
-        $900 / year <span style="color:#10b981;font-size:0.72rem;margin-left:4px;">Save $900</span>
+        <input type="radio" name="billing" value="yearly" data-price="297" />
+        $297 / year <span style="color:#10b981;font-size:0.72rem;margin-left:4px;">Save $243</span>
       </label>
     </div>
   </div>
@@ -83,14 +83,16 @@
   <div class="features">
     <p>What's Included</p>
     <ul>
-      <li class="highlight">12,000 REST credits / day</li>
-      <li class="highlight">130 GB tier 1 data / day</li>
+      <li class="highlight">1,000 REST credits / day</li>
+      <li class="highlight">40 GB tier 1 data / day</li>
       <li class="highlight">2 GB tier 2 data / day</li>
-      <li>All Premium plan benefits</li>
+      <li>All Basic plan benefits</li>
+      <li>Fixed API access</li>
+      <li>Exclusive support</li>
     </ul>
   </div>
 
-  <div class="limit-notice">⚠ This plan includes 12,000 REST credits and 130 GB tier 1 data per day. All limits are enforced server-side. Upgrade to Silver for maximum throughput.</div>
+  <div class="limit-notice">⚠ This plan includes 1,000 REST credits and 40 GB tier 1 data per day. Limits are enforced server-side. Upgrade to Gold for higher throughput.</div>
 
   <div class="payment-section">
     <label class="section-label">Payment Method</label>
@@ -116,9 +118,9 @@
   <div class="modal">
     <button class="modal-close" onclick="closeConfirm()">✕</button>
     <h2>Confirm Purchase</h2>
-    <div class="confirm-row"><span class="lbl">Plan</span><span class="val">Gold</span></div>
-    <div class="confirm-row"><span class="lbl">REST Credits / Day</span><span class="val">12,000</span></div>
-    <div class="confirm-row"><span class="lbl">Tier 1 Data / Day</span><span class="val">130 GB</span></div>
+    <div class="confirm-row"><span class="lbl">Plan</span><span class="val">Premium</span></div>
+    <div class="confirm-row"><span class="lbl">REST Credits / Day</span><span class="val">1,000</span></div>
+    <div class="confirm-row"><span class="lbl">Tier 1 Data / Day</span><span class="val">40 GB</span></div>
     <div class="confirm-row"><span class="lbl">Billing</span><span class="val" id="confirm-billing"></span></div>
     <div class="confirm-row"><span class="lbl">Payment via</span><span class="val" id="confirm-method"></span></div>
     <div class="confirm-row"><span class="lbl">Total Due</span><span class="val total" id="confirm-total"></span></div>
@@ -131,16 +133,57 @@
 
 <script>
 (function(){
-  const PRICES={monthly:150,yearly:900};
+  const PRICES={monthly:45,yearly:297};
   let billing='monthly';
+
   function checkSession(){try{return JSON.parse(localStorage.getItem('medorSession')||'null');}catch{return null;}}
   if(!checkSession()){alert('Please log in or sign up before purchasing a plan.');window.location.href='api-login.html';}
-  function updateCheckout(){const b=document.querySelector('input[name="billing"]:checked');const m=document.querySelector('input[name="method"]:checked');document.getElementById('checkoutBtn').disabled=!(b&&m);}
-  window.setBilling=function(mode,el){billing=mode;document.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');el.querySelector('input').checked=true;document.getElementById('display-price').textContent='$'+PRICES[mode];document.getElementById('display-note').textContent=mode==='monthly'?'per month':'per year';updateCheckout();};
-  window.selectMethod=function(el){document.querySelectorAll('.method').forEach(m=>m.classList.remove('selected'));el.classList.add('selected');el.querySelector('input').checked=true;updateCheckout();};
-  window.openConfirm=function(){const m=document.querySelector('input[name="method"]:checked');if(!m)return;document.getElementById('confirm-billing').textContent=billing==='monthly'?'Monthly ($150/mo)':'Yearly ($900/yr)';document.getElementById('confirm-method').textContent=m.value.toUpperCase();document.getElementById('confirm-total').textContent='$'+PRICES[billing];document.getElementById('confirm-modal').classList.add('open');};
+
+  function updateCheckout(){
+    const b=document.querySelector('input[name="billing"]:checked');
+    const m=document.querySelector('input[name="method"]:checked');
+    document.getElementById('checkoutBtn').disabled=!(b&&m);
+  }
+
+  window.setBilling=function(mode,el){
+    billing=mode;
+    document.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked=true;
+    document.getElementById('display-price').textContent='$'+PRICES[mode];
+    document.getElementById('display-note').textContent=mode==='monthly'?'per month':'per year';
+    updateCheckout();
+  };
+
+  window.selectMethod=function(el){
+    document.querySelectorAll('.method').forEach(m=>m.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked=true;
+    updateCheckout();
+  };
+
+  window.openConfirm=function(){
+    const m=document.querySelector('input[name="method"]:checked');
+    if(!m)return;
+    document.getElementById('confirm-billing').textContent=billing==='monthly'?'Monthly ($45/mo)':'Yearly ($297/yr)';
+    document.getElementById('confirm-method').textContent=m.value.toUpperCase();
+    document.getElementById('confirm-total').textContent='$'+PRICES[billing];
+    document.getElementById('confirm-modal').classList.add('open');
+  };
+
   window.closeConfirm=function(){document.getElementById('confirm-modal').classList.remove('open');};
-  window.proceedToPayment=function(){const m=document.querySelector('input[name="method"]:checked');const url=new URL(window.location.origin+'/invoice.html');url.searchParams.set('product','gold');url.searchParams.set('plan',billing);url.searchParams.set('price',PRICES[billing]);url.searchParams.set('method',m.value);url.searchParams.set('address',m.dataset.address);window.location.href=url.toString();};
+
+  window.proceedToPayment=function(){
+    const m=document.querySelector('input[name="method"]:checked');
+    const url=new URL(window.location.origin+'/invoice.html');
+    url.searchParams.set('product','premium');
+    url.searchParams.set('plan',billing);
+    url.searchParams.set('price',PRICES[billing]);
+    url.searchParams.set('method',m.value);
+    url.searchParams.set('address',m.dataset.address);
+    window.location.href=url.toString();
+  };
+
   updateCheckout();
 })();
 </script>
