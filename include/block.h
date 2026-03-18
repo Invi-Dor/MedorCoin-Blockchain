@@ -4,7 +4,7 @@
 #include <vector>
 #include <ctime>
 
-struct Transaction;
+#include "transaction.h"
 
 class Block {
 public:
