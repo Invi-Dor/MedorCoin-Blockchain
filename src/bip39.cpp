@@ -113,6 +113,7 @@ static void sha256(
     if (!ok) throw std::runtime_error("SHA-256 computation failed");
 }
 
+[[maybe_unused]]
 static void ripemd160(
     const unsigned char* in, size_t inLen,
     unsigned char out[20])
@@ -136,6 +137,7 @@ static void ripemd160(
 static const char BASE58_CHARS[] =
     "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
+[[maybe_unused]]
 static std::string base58check(const std::vector<unsigned char>& payload) {
     unsigned char h1[SHA256_DIGEST_LENGTH], h2[SHA256_DIGEST_LENGTH];
     sha256(payload.data(), payload.size(), h1);
@@ -170,6 +172,7 @@ struct MasterKey {
     SecureBuffer<32> chainCode;
 };
 
+[[maybe_unused]]
 static MasterKey deriveMaster(const std::vector<unsigned char>& seed) {
     const unsigned char hmacKey[] = "Bitcoin seed";
     unsigned char out[64];
@@ -336,13 +339,25 @@ std::string BIP39::toHex(const std::vector<unsigned char>& data) {
 
 BIP39::WalletInfo BIP39::deriveFromMnemonic(
     const std::string& mnemonic,
-    const std::string& passphrase)
+    const std::string& passphrase,
+    uint32_t           account,
+    uint32_t           addressIndex,
+    uint32_t           coinType,
+    uint32_t           change,
+    uint8_t            versionByte)
 {
     checkLength(mnemonic,   MAX_MNEMONIC_LEN,   "mnemonic");
     checkLength(passphrase, MAX_PASSPHRASE_LEN, "passphrase");
 
     WalletInfo w;
-    w.mnemonic = mnemonic;
+    w.mnemonic      = mnemonic;
+    w.accountIndex  = account;
+    w.addressIndex  = addressIndex;
+    w.derivationPath =
+        "m/44'/" + std::to_string(coinType) + "'/" +
+        std::to_string(account) + "'/" +
+        std::to_string(change)  + "/" +
+        std::to_string(addressIndex);
 
     auto seed = mnemonicToSeed(mnemonic, passphrase);
     w.seedHex = toHex(seed);
@@ -353,13 +368,13 @@ BIP39::WalletInfo BIP39::deriveFromMnemonic(
     ChildKey lvl1 = deriveChild(
         master.privKey.data, master.chainCode.data, 0x8000002Cu);
     ChildKey lvl2 = deriveChild(
-        lvl1.privKey.data, lvl1.chainCode.data, 0x80000000u);
+        lvl1.privKey.data, lvl1.chainCode.data, coinType | 0x80000000u);
     ChildKey lvl3 = deriveChild(
-        lvl2.privKey.data, lvl2.chainCode.data, 0x80000000u);
+        lvl2.privKey.data, lvl2.chainCode.data, account | 0x80000000u);
     ChildKey lvl4 = deriveChild(
-        lvl3.privKey.data, lvl3.chainCode.data, 0u);
+        lvl3.privKey.data, lvl3.chainCode.data, change);
     ChildKey lvl5 = deriveChild(
-        lvl4.privKey.data, lvl4.chainCode.data, 0u);
+        lvl4.privKey.data, lvl4.chainCode.data, addressIndex);
 
     secp256k1_pubkey pubkey;
     if (secp256k1_ec_pubkey_create(
@@ -370,6 +385,11 @@ BIP39::WalletInfo BIP39::deriveFromMnemonic(
     size_t pubCompLen = 33;
     secp256k1_ec_pubkey_serialize(
         getCtx(), pubComp, &pubCompLen, &pubkey, SECP256K1_EC_COMPRESSED);
+
+    if (pubCompLen != 33) {
+        secureWipe(pubComp, sizeof(pubComp));
+        throw std::runtime_error("Pubkey serialization returned wrong length");
+    }
 
     w.masterPrivKey = toHex({lvl5.privKey.data, lvl5.privKey.data + 32});
     w.masterPubKey  = toHex({pubComp, pubComp + pubCompLen});
@@ -384,7 +404,7 @@ BIP39::WalletInfo BIP39::deriveFromMnemonic(
 
     std::vector<unsigned char> versioned;
     versioned.reserve(21);
-    versioned.push_back(0x00);
+    versioned.push_back(versionByte);
     versioned.insert(versioned.end(), ripeOut, ripeOut + 20);
     secureWipe(ripeOut, sizeof(ripeOut));
 
@@ -392,4 +412,10 @@ BIP39::WalletInfo BIP39::deriveFromMnemonic(
     secureWipe(versioned.data(), versioned.size());
 
     return w;
+}
+
+void BIP39::wipeWalletInfo(WalletInfo& w) {
+    if (!w.seedHex.empty())      { secureWipe(&w.seedHex[0],      w.seedHex.size());      w.seedHex.clear(); }
+    if (!w.masterPrivKey.empty()){ secureWipe(&w.masterPrivKey[0], w.masterPrivKey.size()); w.masterPrivKey.clear(); }
+    if (!w.mnemonic.empty())     { secureWipe(&w.mnemonic[0],      w.mnemonic.size());      w.mnemonic.clear(); }
 }
