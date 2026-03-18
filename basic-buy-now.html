@@ -1,172 +1,802 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Basic Plan — MedorCoin API</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+  <title>MedorCoin API Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root{--bg:#080c10;--surface:#0e1520;--border:#1a2535;--accent:#00e5ff;--text:#e8edf5;--muted:#5a6a82;--success:#10b981;--mono:'Space Mono',monospace;--display:'Syne',sans-serif;--radius:10px;}
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    body{background:var(--bg);color:var(--text);font-family:var(--display);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
-    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;}
-    .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:36px;max-width:520px;width:100%;position:relative;z-index:1;}
-    .back{font-family:var(--mono);font-size:0.72rem;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;transition:color 0.2s;}
-    .back:hover{color:var(--text);}
-    .plan-label{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.12em;color:var(--accent);margin-bottom:8px;}
-    h1{font-size:1.8rem;font-weight:800;margin-bottom:4px;}
-    .price{font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--accent);margin-bottom:4px;}
-    .price-note{font-size:0.78rem;color:var(--muted);margin-bottom:24px;}
-    .billing-section{margin-bottom:24px;}
-    .billing-section label{display:block;font-size:0.82rem;font-weight:600;margin-bottom:10px;}
-    .options{display:flex;gap:10px;flex-wrap:wrap;}
-    .option{flex:1;min-width:140px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color 0.2s;display:flex;align-items:center;gap:10px;font-size:0.82rem;}
-    .option:hover{border-color:var(--accent);}
-    .option input{accent-color:var(--accent);}
-    .option.selected{border-color:var(--accent);background:rgba(0,229,255,0.04);}
-    .features{background:#0a0f18;border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:24px;}
-    .features p{font-family:var(--mono);font-size:0.7rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;}
-    .features ul{list-style:none;display:flex;flex-direction:column;gap:7px;}
-    .features ul li{font-size:0.82rem;color:var(--text);display:flex;gap:8px;}
-    .features ul li::before{content:'→';color:var(--accent);font-family:var(--mono);}
-    .payment-section{margin-bottom:24px;}
-    .payment-section label{display:block;font-size:0.82rem;font-weight:600;margin-bottom:10px;}
-    .method{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;margin-bottom:8px;transition:border-color 0.2s;}
-    .method:hover{border-color:var(--accent);}
-    .method.selected{border-color:var(--accent);background:rgba(0,229,255,0.05);}
-    .method input{accent-color:var(--accent);}
-    .method-name{font-size:0.88rem;font-weight:600;}
-    .method-addr{font-family:var(--mono);font-size:0.66rem;color:var(--muted);margin-top:2px;word-break:break-all;}
-    .btn{width:100%;font-family:var(--display);font-weight:700;font-size:0.95rem;padding:14px;border-radius:var(--radius);border:none;cursor:pointer;background:var(--accent);color:#000;letter-spacing:0.04em;transition:opacity 0.2s,transform 0.15s;}
-    .btn:hover{opacity:0.88;transform:translateY(-1px);}
-    .btn:disabled{background:var(--muted);color:var(--bg);cursor:not-allowed;transform:none;}
-    .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;backdrop-filter:blur(4px);align-items:center;justify-content:center;}
-    .modal-backdrop.open{display:flex;}
-    .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:36px;max-width:460px;width:90%;position:relative;}
-    .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;}
-    .modal-close:hover{color:var(--text);}
-    .confirm-text{font-size:0.92rem;color:var(--text);margin-bottom:20px;line-height:1.6;}
-    .confirm-text strong{color:var(--accent);}
-    .modal-actions{display:flex;gap:10px;}
-    .modal-actions .btn-no{flex:1;font-family:var(--display);font-weight:700;font-size:0.88rem;padding:12px;border-radius:var(--radius);border:none;cursor:pointer;background:var(--border);color:var(--text);}
-    .modal-actions .btn-yes{flex:1;font-family:var(--display);font-weight:700;font-size:0.88rem;padding:12px;border-radius:var(--radius);border:none;cursor:pointer;background:var(--success);color:#000;}
+    :root {
+      --bg: #0b1020;
+      --surface: #ffffff;
+      --text: #111;
+      --muted: #6b7280;
+      --brand: #0b52d2;
+      --card: rgba(255,255,255,.95);
+      --cardText: #111;
+      --blue: #0a4bd3;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Verdana, Geneva, sans-serif;
+      background: var(--bg);
+      color: #e5e7eb;
+      overflow-x: hidden;
+    }
+
+    /* Background ambiance (space-ish) */
+    .space {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(circle at 20% 20%, rgba(255,255,255,.08) 0 2px, transparent 2px),
+                  radial-gradient(circle at 70% 60%, rgba(255,255,255,.05) 0 2px, transparent 2px);
+      background-size: 100px 100px, 180px 180px;
+      opacity: .7;
+    }
+    #starLayer { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+
+    /* Header */
+    .header {
+      position: sticky; top: 0; z-index: 1000;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 20px;
+      background: rgba(2,8,23,.92);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { width: 38px; height: 38px; border-radius: 6px;
+      background: linear-gradient(135deg, #ffd34d 0%, #f8b800 100%);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 700; color: #1a1a1a; font-family: Verdana;
+    }
+    .brand-name { font-weight: 700; font-family: Verdana; font-size: 14px; color: #fff; }
+
+    nav { display: flex; align-items: center; gap: 8px; }
+
+    .btn, .link {
+      background: transparent; color: white; text-decoration: none;
+      border: 1px solid rgba(255,255,255,.25);
+      padding: 10px 14px; border-radius: 6px;
+      font-weight: 700; cursor: pointer;
+    }
+    .btn.primary { background: var(--blue); border-color: rgba(255,255,255,.4); color: white; }
+    .cta-area { display: flex; align-items: center; gap: 8px; position: relative; }
+
+    /* Three-dashes dropdown */
+    .menu { position: relative; display: inline-block; }
+    .menu-btn {
+      width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 8px; border: 1px solid rgba(255,255,255,.25);
+      background: rgba(255,255,255,.08); color: #fff; font-size: 18px;
+    }
+    .mega-menu {
+      position: absolute; top: 52px; right: 0;
+      width: 700px; max-width: calc(100vw - 20px);
+      background: rgba(15,23,42,.98);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 12px; padding: 14px;
+      display: none; color: #e5e7eb;
+      box-shadow: 0 8px 28px rgba(0,0,0,.4);
+    }
+    .mega-menu.active { display: block; }
+    .mega-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .mega-section { padding: 8px 6px; border-right: 1px solid rgba(255,255,255,.1); }
+    .mega-section h4 { margin: 6px 0 6px; font-size: 14px; color: #e2e8f0; font-family: Verdana; }
+    .mega-link { display: block; padding: 4px 6px; color: #d1d5db; text-decoration: none; border-radius: 4px; }
+    .mega-link:hover { background: rgba(255,255,255,.08); }
+
+    /* Body */
+    .container { max-width: 1100px; margin: 28px auto; padding: 0 20px; position: relative; z-index: 2; }
+
+    h1, h2 { color: white; font-family: Verdana, Geneva, sans-serif; }
+    h1 { font-size: 2.2rem; margin: 0 0 8px; }
+    h2 { font-size: 1.25rem; margin: 0.75rem 0; }
+
+    section { display: none; padding: 20px; border-radius: 12px; background: rgba(255,255,255,.04); margin-bottom: 20px; }
+    section.active { display: block; }
+
+    /* Hero */
+    .hero { font-family: Verdana, Geneva, sans-serif; font-size: 2.2rem; color: #fff; margin-bottom: 6px; }
+    .lead { color: #d1d5db; max-width: 70ch; line-height: 1.5; }
+
+    .free-area { display: inline-flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px;
+                  border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.04); }
+    #generateTwoApis { background: #0a4bd3; color: white; border: none; padding: 12px 18px; border-radius: 999px; font-weight: 700; cursor: pointer; }
+    #freeApiStatus { margin: 0; color: #e5e5e5; }
+
+    /* Portal keys area (visible) */
+    #portalKeys { margin-top: 8px; padding: 8px; border-radius: 8px; background: rgba(255,255,255,.08); color: #e5e7eb; }
+
+    /* Plans on homepage (grid) */
+    .plans-section { margin-top: 12px; }
+    .plans-title { color: #fff; font-family: Verdana, Geneva, sans-serif; font-size: 1.2rem; margin: 12px 0; }
+    .plan-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .plan { background: var(--card); color: var(--cardText); border-radius: 12px; padding: 16px; border: 1px solid rgba(0,0,0,.06); }
+    .plan h3 { margin: 0 0 6px; font-family: Verdana, Geneva, sans-serif; }
+    .plan .price { font-size: 22px; font-weight: 700; margin: 6px 0 4px; }
+    .plan .per { font-size: 12px; color: #555; margin-left: 6px; }
+    .plan .yearly { font-size: 13px; color: #555; margin-bottom: 6px; }
+    .plan .buy { background: var(--blue); border: none; color: white; padding: 8px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .plan ul { padding-left: 16px; margin: 6px 0 0 0; color: #1f2937; }
+    .plan li { margin: 4px 0; }
+
+    @media (max-width: 800px) {
+      .plan-grid { grid-template-columns: 1fr; }
+      .mega-menu { width: calc(100vw - 20px); left: 10px; right: 10px; }
+    }
+
+    /* Receipt (hidden by default) */
+    #receiptSection { display: none; padding: 0; margin: 0; }
+    #receiptSection.active { display: block; }
+
+    /* Footer */
+    footer { text-align: center; color: #aaa; padding: 40px 0; }
+
+    .muted { color: #cbd5e1; }
   </style>
 </head>
 <body>
-<div class="card">
-  <a class="back" href="get-api.html">← Back to API Portal</a>
-  <div class="plan-label">Basic PLAN</div>
-  <h1>Basic API Plan</h1>
-  <div class="price" id="display-price">$9</div>
-  <div class="price-note" id="display-note">per month</div>
 
-  <div class="billing-section">
-    <label>Billing Period</label>
-    <div class="options">
-      <label class="option selected" id="opt-monthly" onclick="setBilling('monthly',this)">
-        <input type="radio" name="billing" value="monthly" checked /> $9 / month
-      </label>
-      <label class="option" id="opt-yearly" onclick="setBilling('yearly',this)">
-        <input type="radio" name="billing" value="yearly" /> $59 / year <span style="color:var(--success);font-size:0.72rem;margin-left:4px;">Save $49</span>
-      </label>
+  <div class="space" aria-hidden="true"></div>
+  <div id="starLayer"></div>
+
+  <header class="header" role="banner" aria-label="Top navigation">
+    <div class="brand" aria-label="MEDOR brand">
+      <div class="logo" aria-label="MEDOR logo">M</div>
+      <div class="brand-name" aria-label="MEDOR coin API">MEDOR coin API</div>
     </div>
-  </div>
 
-  <div class="features">
-    <p>What's Included</p>
-    <ul>
-      <li><strong>10 API Keys</strong></li>
-      <li>10,000/day requests</li>
-      <li>Balance &amp; UTXO endpoints</li>
-<li>Transaction history</li>
-<li>Email support</li>
-<li>Standard rate limits</li>
-    </ul>
-  </div>
+    <div class="cta-area">
+      <a href="combined_api_portal.html" id="getApiBtn" class="btn primary" aria-label="Get API">
+        Get API
+      </a>
+    </div>
 
-  <div class="payment-section">
-    <label>Payment Method</label>
-    <label class="method" onclick="selectMethod(this)">
-      <input type="radio" name="method" value="eth" />
-      <div>
-        <div class="method-name">Ethereum (ETH)</div>
-        <div class="method-addr">0xDEc0a1234567890abcdef1234567890abcdef1234</div>
+    <div class="menu" aria-label="Main navigation">
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">☰</button>
+      <div id="megaMenu" class="mega-menu" role="menu" aria-label="Portal menu">
+        <div class="mega-grid">
+          <div class="mega-section" id="section-dashboard" style="min-width: 260px;">
+            <h4>Dashboard</h4>
+            <a class="mega-link" href="crypto-dashboard.html" data-section="dashboard-open" style="margin-top:4px;">Dashboard</a>
+            <a class="mega-link" href="my-apis.html" data-section="dashboard-myapis" style="margin-top:4px;">My APIs</a>
+            <a class="mega-link" href="jobs.html" data-section="dashboard-jobs" style="margin-top:4px;">Jobs</a>
+            <a class="mega-link" href="https://invisible-m.com" data-section="dashboard-blogs" style="margin-top:4px;">Blogs</a>
+            <a class="mega-link" href="about-us.html" data-section="dashboard-about" style="margin-top:4px;">About</a>
+            <a class="mega-link" href="technical-support.html" data-section="dashboard-tech" style="margin-top:4px;">Technical Support</a>
+            <a class="mega-link" href="contact-us.html" data-section="dashboard-contact" style="margin-top:4px; margin-bottom:6px;">Contact Us</a>
+          </div>
+
+          <div class="mega-section" id="section-plans" style="min-width: 260px;">
+            <h4>C Plans</h4>
+            <details style="margin-top:6px;">
+              <summary>Basic Plan</summary>
+              <div style="padding:6px 0 6px 8px;">
+                <div class="price" style="font-size:14px; margin-bottom:6px;">$15 <span class="per">per month</span></div>
+                <div class="yearly" style="margin-bottom:6px;">Pay $99/year (Save $72)</div>
+                <button class="buy" onclick="location.href='basic-buy-now.html'" style="background:#0a4bd3; color:white; border:0; padding:6px 10px; border-radius:6px; font-weight:700;">Buy Now</button>
+                <ul style="margin:6px 0 0 0;">
+                  <li>100,000 APIs</li>
+                  <li>Historical & Real-Time Data</li>
+                  <li>REST Protocol</li>
+                  <li>Volume Discounts</li>
+                  <li>WebSocket Protocol</li>
+                  <li>Email support</li>
+                </ul>
+              </div>
+            </details>
+
+            <details style="margin-top:6px;">
+              <summary>Premium Plan </summary>
+              <div style="padding:6px 0 6px 8px;">
+                <div class="price" style="font-size:14px; margin-bottom:6px;">$45 <span class="per">per month</span></div>
+                <div class="yearly" style="margin-bottom:6px;">Pay $297/year (Save $243)</div>
+                <button class="buy" onclick="location.href='premium-buy-now.html'" style="background:#0a4bd3; color:white; border:0; padding:6px 10px; border-radius:6px; font-weight:700;">Buy Now</button>
+                <ul style="margin:6px 0 0 0;">
+                  <li>All Basic benefits</li>
+                  <li>1K REST credits/day</li>
+                  <li>40 GB tier 1 data/day</li>
+                  <li>2 GB tier 2 data/day</li>
+                  <li>Exclusive support</li>
+                  <li>Fixed API</li>
+                </ul>
+              </div>
+            </details>
+
+            <details style="margin-top:6px;">
+              <summary>Gold Plan</summary>
+              <div style="padding:6px 0 6px 8px;">
+                <div class="price" style="font-size:14px; margin-bottom:6px;">$150 <span class="per">per month</span></div>
+                <div class="yearly" style="margin-bottom:6px;">Pay $900/year (Save $900)</div>
+                <button class="buy" onclick="location.href='gold-buy-now.html'" style="background:#0a4bd3; color:white; border:0; padding:6px 10px; border-radius:6px; font-weight:700;">Buy Now</button>
+                <ul style="margin:6px 0 0 0;">
+                  <li>All Premium benefits</li>
+                  <li>12,000 REST credits/day</li>
+                  <li>130 GB tier 1 data/day</li>
+                  <li>2 GB tier 2 data/day</li>
+                </ul>
+              </div>
+            </details>
+
+            <details style="margin-top:6px;">
+              <summary>Silver</summary>
+              <div style="padding:6px 0 6px 8px;">
+                <div class="price" style="font-size:14px; margin-bottom:6px;">$350 <span class="per">per month</span></div>
+                <div class="yearly" style="margin-bottom:6px;">Pay $2,300/year (Save 55%)</div>
+                <button class="buy" onclick="location.href='silver-buy-now.html'" style="background:#0a4bd3; color:white; border:0; padding:6px 10px; border-radius:6px; font-weight:700;">Buy Now</button>
+                <ul style="margin:6px 0 0 0;">
+                  <li>All Gold benefits</li>
+                  <li>512 GB tier 1 data/day</li>
+                  <li>120K REST credits/day</li>
+                  <li>64 GB tier 2 data/day</li>
+                  <li>Exclusive support</li>
+                  <li>Fixed API</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+
+          <div class="mega-section" id="section-resources" style="min-width: 260px;">
+            <h4>Settings</h4>
+            <a class="mega-link" href="#" data-section="sdk" style="margin-top:4px;">SDKs</a>
+            <a class="mega-link" href="#" data-section="docs-resources" style="margin-top:4px;">API Documentation</a>
+            <a class="mega-link" href="#" data-section="changelog" style="margin-top:4px;">Change Log</a>
+            <a class="mega-link" href="#" data-section="tutorials" style="margin-top:4px;">Tutorials</a>
+            <a class="mega-link" href="#" data-section="knowapi" style="margin-top:4px;">Know Your API</a>
+            <a class="mega-link" href="#" data-section="glossary" style="margin-top:4px;">Glossary</a>
+            <a class="mega-link" href="#" data-section="security" style="margin-top:4px;">Security & Compliance</a>
+            <a class="mega-link" href="#" data-section="techsupport" style="margin-top:4px;">Technical Support</a>
+          </div>
+
+          <div class="mega-section" id="section-affiliates" style="min-width: 260px;">
+            <h4>Affiliates</h4>
+            <a class="mega-link" href="#" data-section="affiliate" style="margin-top:4px;">Affiliates</a>
+          </div>
+
+          <div class="mega-section" id="section-jobs" style="min-width: 260px;">
+            <h4>Jobs</h4>
+            <a class="mega-link" href="#" data-section="jobs" style="margin-top:4px;">Jobs</a>
+          </div>
+
+          <div class="mega-section" id="section-blogs" style="min-width: 260px;">
+            <h4>Blogs</h4>
+            <a class="mega-link" href="https://invisible-m.com" data-section="blogs" style="margin-top:4px;">Blogs</a>
+          </div>
+
+          <div class="mega-section" id="section-about" style="min-width: 260px;">
+            <h4>About Us</h4>
+            <a class="mega-link" href="#" data-section="about2" style="margin-top:4px;">About</a>
+          </div>
+
+          <div class="mega-section" id="section-tech" style="min-width: 260px;">
+            <h4>Technical Support</h4>
+            <a class="mega-link" href="technical-support.html" data-section="techsupport" style="margin-top:4px;">Technical Support</a>
+          </div>
+
+          <div class="mega-section" id="section-contact" style="min-width: 260px;">
+            <h4>Contact Us</h4>
+            <a class="mega-link" href="contact-us.html" data-section="contact" style="margin-top:4px;">Contact Us</a>
+          </div>
+
+        </div>
       </div>
-    </label>
-    <label class="method" onclick="selectMethod(this)">
-      <input type="radio" name="method" value="btc" />
-      <div>
-        <div class="method-name">Bitcoin (BTC)</div>
-        <div class="method-addr">1BoatSLRHtKNngkdXEeobR76b53LETtpyT</div>
-      </div>
-    </label>
-    <label class="method" onclick="selectMethod(this)">
-      <input type="radio" name="method" value="bnb" />
-      <div>
-        <div class="method-name">BNB Chain (BNB)</div>
-        <div class="method-addr">bnb1exampleaddress0000000000000000</div>
-      </div>
-    </label>
-  </div>
+    </div>
+  </header>
 
-<button class="btn" id="checkoutBtn" disabled onclick="openConfirm()">Checkout</button>
+  <!-- Main content -->
+  <main class="container" id="main">
+    <!-- Portal/Hero -->
+    <section id="portal" class="section active" aria-label="API portal hub" style="padding:28px;">
+      <h1 class="hero" style="color:white; font-family: Verdana, Geneva, sans-serif;">Buy, Get two free APIs</h1>
+      <p class="lead" style="color:#d1d5db;">
+        Medor Coin API enables institutions and individuals to access secure, scalable crypto data via a unified API.
+        Obtain two free APIs to start with.
+      </p>
 
+     <div style="margin-bottom:8px;">
+  <a href="get2freeapi.html" style="text-decoration:none;">
+    <button id="generateTwoApis" aria-label="Generate two free APIs" 
+      style="background:#e11d48; color:#fff; border:0; padding:12px 18px; border-radius:999px; font-weight:700;">
+      Get Two Free APIs
+    </button>
+  </a>
 </div>
 
-<div class="modal-backdrop" id="confirm-modal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeConfirm()">✕</button>
-    <div class="confirm-text">
-      You are purchasing the <strong>Basic Plan</strong> for <strong id="confirm-price"></strong> via <strong id="confirm-method"></strong>.<br><br>
-      Are you sure you want to proceed?
+      <!-- Visible area for generated keys (portal) -->
+      <div id="portalKeys" aria-label="Portal generated API keys" style="min-height:40px;"></div>
+      <div id="freeApiStatus" style="margin-top:6px; color:#e5e5e5;"></div>
+
+      <div class="plans-section" aria-label="Plans on homepage" style="margin-top: 6px;">
+        <div class="plans-title" style="font-weight:700; color:#fff; font-family: Verdana, Geneva, sans-serif;">Available Plans</div>
+        <div class="plan-grid">
+          <div class="plan" aria-label="Basic plan card">
+            <h3>Basic Plan</h3>
+            <div class="price">$15 <span class="per">per month</span></div>
+            <div class="yearly" style="margin-bottom:6px;">Pay $99/year (Save $72)</div>
+            <button class="buy" onclick="location.href='basic-buy-now.html'" style="margin-bottom:6px;">Buy Now</button>
+            <ul class="benefits" style="margin-top:6px;">
+              <li>100,000 APIs</li>
+              <li>Historical & Real-Time Data</li>
+              <li>REST Protocol</li>
+              <li>Volume Discounts</li>
+              <li>WebSocket Protocol</li>
+              <li>Email support</li>
+            </ul>
+          </div>
+
+          <div class="plan" aria-label="Premium plan card">
+            <h3>Premium Plan</h3>
+            <div class="price">$45 <span class="per">per month</span></div>
+            <div class="yearly" style="margin-bottom:6px;">Pay $297/year (Save $243)</div>
+            <button class="buy" onclick="location.href='premium-buy-now.html'" style="margin-bottom:6px;">Buy Now</button>
+            <ul class="benefits" style="margin-top:6px;">
+              <li>All Basic benefits</li>
+              <li>1K REST credits/day</li>
+              <li>40 GB tier 1 data/day</li>
+              <li>2 GB tier 2 data/day</li>
+              <li>Exclusive support</li>
+              <li>Fixed API</li>
+            </ul>
+          </div>
+
+          <div class="plan" aria-label="Gold plan card">
+            <h3>Gold</h3>
+            <div class="price">$150 <span class="per">per month</span></div>
+            <div class="yearly" style="margin-bottom:6px;">Pay $900/year (Save $900)</div>
+            <button class="buy" onclick="location.href='/checkout?planId=gold'" style="margin-bottom:6px;">Buy Now</button>
+            <ul class="benefits" style="margin-top:6px;">
+              <li>All Premium benefits</li>
+              <li>12,000 REST credits/day</li>
+              <li>130 GB tier 1 data/day</li>
+              <li>2 GB tier 2 data/day</li>
+            </ul>
+          </div>
+
+          <div class="plan" aria-label="Silver plan card">
+            <h3>Silver</h3>
+            <div class="price">$350 <span class="per">per month</span></div>
+            <div class="yearly" style="margin-bottom:6px;">Pay $2,300/year (Save 55%)</div>
+            <button class="buy" onclick="location.href='/checkout?planId=silver'" style="margin-bottom:6px;">Buy Now</button>
+            <ul class="benefits" style="margin-top:6px;">
+              <li>All Gold benefits</li>
+              <li>512 GB tier 1 data/day</li>
+              <li>120K REST credits/day</li>
+              <li>64 GB tier 2 data/day</li>
+              <li>Exclusive support</li>
+              <li>Fixed API</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <hr style="border:0;border-top:1px solid rgba(255,255,255,.2);" />
+
+      <h2 style="color:white; margin-top:6px; font-family: Verdana, Geneva, sans-serif;">Unified Navigation</h2>
+      <ul style="color:#e5e5e5; padding-left:1.2rem;">
+        <li><a href="#" class="link" data-section="signup" style="color:#fff;">Sign Up</a></li>
+        <li><a href="#" class="link" data-section="verify" style="color:#fff;">Verify Email</a></li>
+        <li><a href="#" class="link" data-section="dashboard" style="color:#fff;">My APIs</a></li>
+      </ul>
+
+      <p style="color:#d1d5db; font-size:14px;"> Sign up with email/password, verify, and manage keys here.</p>
+    </section>
+
+    <!-- Sign Up -->
+    <section id="signup" class="section" aria-label="Sign up" style="padding:28px;">
+      <h2>Sign Up</h2>
+      <form id="signupForm" autocomplete="off">
+        <div class="field">
+          <label for="signupEmail" style="font-size:14px; color:#e5e5e5;">Email</label>
+          <input id="signupEmail" type="email" placeholder="you@example.com" required />
+        </div>
+        <div class="field">
+          <label for="signupPassword" style="font-size:14px; color:#e5e5e5;">Password</label>
+          <input id="signupPassword" type="password" placeholder="Password" required />
+        </div>
+        <button type="button" id="signupBtn" class="btn primary" style="width:fit-content;">Create Account</button>
+      </form>
+      <p class="note" style="margin-top:8px;">Tip: Email/password flow. </p>
+      <div id="signupStatus" style="margin-top:8px; color:#e5e5e5;"></div>
+    </section>
+
+    <!-- Verify -->
+    <section id="verify" class="section" aria-label="Email verification" style="padding:28px;">
+      <h2>Email Verification</h2>
+      <p style="color:#d1d5db;">Enter the 6-digit code you received in your email.</p>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input id="verifyCode" placeholder="123456" maxlength="6" style="padding:12px; border-radius:6px; border:1px solid #ddd;" />
+        <button id="verifyBtn" class="btn" style="padding:12px 16px; font-weight:700;">Verify</button>
+      </div>
+      <div id="verifyStatus" class="note" style="margin-top:8px;"></div>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="dashboard" class="section" aria-label="My APIs and keys" style="padding:28px;">
+      <h2>Your API Keys</h2>
+      <div id="keys" style="margin: 6px 0 12px 0;"></div>
+      <button id="buyMoreBtn" class="btn" style="margin-right:8px;">Buy More APIs</button>
+      <button id="refreshKeysBtn" class="btn" style="background:#374151;">Refresh</button>
+      <button id="logoutBtn" class="btn" style="margin-left: 8px; background:#e11d48; border:0; color:white;">Sign Out</button>
+    </section>
+
+    <!-- Receipt (hidden by default) -->
+    <section id="receiptSection" class="section" aria-label="Receipt" style="padding:28px;">
+      <h2>Transaction Receipt</h2>
+      <div class="receipt" aria-label="Receipt details" style="background:#fff; color:#111; padding:12px; border-radius:8px;">
+        <h3 class="section-title" style="margin-top:0; text-align:center; color:#333;">Transaction Details</h3>
+        <table id="receiptDetails" style="width:100%; border-collapse: collapse;">
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">TX Hash</th><td id="txHash" style="padding:6px 8px;"></td></tr>
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">Block Hash</th><td id="blockHash" style="padding:6px 8px;"></td></tr>
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">Block Number</th><td id="blockNumber" style="padding:6px 8px;"></td></tr>
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">From</th><td id="from" style="padding:6px 8px;"></td></tr>
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">To</th><td id="to" style="padding:6px 8px;"></td></tr>
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">Status</th><td id="status" style="padding:6px 8px;"></td></tr>
+          <tr><th style="text-align:left; padding:6px 8px; border-bottom:1px solid #ddd;">Gas Used</th><td id="gasUsed" style="padding:6px 8px;"></td></tr>
+        </table>
+
+        <h3 class="section-title" style="margin-top:14px; text-align:center; color:#333;">Event Logs</h3>
+        <table id="logsTable" style="width:100%; border-collapse: collapse;">
+          <tr><th>#</th><th>Address</th><th>Topics</th><th>Data</th></tr>
+        </table>
+
+        <h3 class="section-title" style="margin-top:14px; text-align:center; color:#333;">Purchased Item</h3>
+        <table id="product" style="width:100%; border-collapse: collapse;">
+          <tr><th>Product</th><td id="productName"></td></tr>
+          <tr><th>Level</th><td id="productLevel"></td></tr>
+          <tr><th>Price</th><td id="price"></td></tr>
+          <tr><th>Date</th><td id="date"></td></tr>
+          <tr><th>Buyer</th><td id="buyerName"></td></tr>
+          <tr><th>Mining Power</th><td id="miningAmount"></td></tr>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container" style="max-width:1100px;">
+      <div style="color:#aaa; font-size:12px;">Follow us: X | LinkedIn | GitHub | Facebook</div>
+      <div style="margin-top:8px;">
+        <a href="#" class="link" style="color:#fff;">Other products</a> | 
+        <a href="#" class="link" style="color:#fff;">About</a> | 
+        <a href="#" class="link" style="color:#fff;">Developers</a> | 
+        <a href="#" class="link" style="color:#fff;">Help</a>
+      </div>
+      <div style="color:#aaa; font-size:12px; margin-top:6px;">
+        © MedorCoin 2026. All rights reserved.
+      </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn-no" onclick="closeConfirm()">Cancel</button>
-      <button class="btn-yes" onclick="proceedToPayment()">Yes, Proceed</button>
-    </div>
-  </div>
-</div>
+  </footer>
 
-<script>
-  let billing = 'monthly';
+  <script>
+    // Simple in-page router: show one section at a time
+    const sections = ["portal","signup","verify","dashboard","receiptSection"];
+    function showSection(name) {
+      sections.forEach(n => {
+        const el = document.getElementById(n);
+        if (el) el.style.display = (n === name) ? "block" : "none";
+      });
+      if (name) history.replaceState(null, '', '#' + name);
+    }
 
-  function setBilling(mode, el) {
-    billing = mode;
-    document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
-    el.classList.add('selected');
-    el.querySelector('input').checked = true;
-    document.getElementById('display-price').textContent = mode === 'monthly' ? '$9' : '$59';
-    document.getElementById('display-note').textContent  = mode === 'monthly' ? 'per month' : 'per year';
-  }
+    // Menu toggle (top-right three-dashes)
+    const menuBtn = document.getElementById('menuBtn');
+    const megaMenu = document.getElementById('megaMenu');
+    function closeMenuIfOpen() {
+      if (megaMenu && megaMenu.classList.contains('active')) {
+        megaMenu.classList.remove('active');
+        menuBtn.setAttribute('aria-expanded','false');
+      }
+    }
+    if (menuBtn && megaMenu) {
+      menuBtn.addEventListener('click', () => {
+        const isOpen = megaMenu.classList.toggle('active');
+        menuBtn.setAttribute('aria-expanded', String(isOpen));
+      });
+      // close on outside click
+      document.addEventListener('click', (e) => {
+        if (megaMenu && !megaMenu.contains(e.target) && e.target !== menuBtn) {
+          megaMenu.classList.remove('active');
+          menuBtn.setAttribute('aria-expanded','false');
+        }
+      });
+    }
 
-  function selectMethod(el) {
-    document.querySelectorAll('.method').forEach(m => m.classList.remove('selected'));
-    el.classList.add('selected');
-    el.querySelector('input').checked = true;
-    document.getElementById('checkoutBtn').disabled = false;
-  }
+    // Header navigation
+    document.querySelectorAll('[data-section]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        const target = el.getAttribute('data-section');
+        if (!target) return;
+        const map = {
+          'dashboard-open': 'dashboard',
+          'dashboard-myapis': 'dashboard',
+          'dashboard-tech': 'dashboard',
+          'signup': 'signup',
+          'login': 'signup',
+          'docs': 'portal',
+          'aboutus': 'portal',
+          'compliance': 'portal',
+          'jobs': 'portal',
+          'contact': 'portal',
+          'sdk': 'portal',
+          'docs-resources': 'portal',
+          'changelog': 'portal',
+          'tutorials': 'portal',
+          'knowapi': 'portal',
+          'glossary': 'portal',
+          'security': 'portal',
+          'techsupport': 'portal',
+          'affiliate': 'dashboard',
+          'jobs': 'dashboard',
+          'blogs': 'dashboard',
+          'about2': 'dashboard',
+          'techsupport': 'portal'
+        };
+        showSection(map[target] || target);
+      });
+    });
 
-  function openConfirm() {
-    const method = document.querySelector('input[name="method"]:checked');
-    if (!method) return;
-    const price = billing === 'monthly' ? '$9/mo' : '$59/yr';
-    document.getElementById('confirm-price').textContent  = price;
-    document.getElementById('confirm-method').textContent = method.value.toUpperCase();
-    document.getElementById('confirm-modal').classList.add('open');
-  }
+    // Portal: free API flow (two free APIs)
+    let freeCounter = parseInt(localStorage.getItem('freeApiCounter'), 10);
+    if (isNaN(freeCounter)) freeCounter = 2; // default
+    const portalKeys = document.getElementById('portalKeys');
+    const freeApiStatus = document.getElementById('freeApiStatus');
+    const generateTwoApis = document.getElementById('generateTwoApis');
 
-  function closeConfirm() {
-    document.getElementById('confirm-modal').classList.remove('open');
-  }
+    function updateFreeStatus() {
+      if (freeCounter > 0) {
+        freeApiStatus.textContent = `You have ${freeCounter} free API${freeCounter !== 1 ? 's' : ''} left`;
+      } else {
+        freeApiStatus.textContent = 'Free API limit reached. Sign up or login to purchase more.';
+      }
+      localStorage.setItem('freeApiCounter', String(freeCounter));
+    }
 
-  function proceedToPayment() {
-    const method = document.querySelector('input[name="method"]:checked').value;
-    const amount = billing === 'monthly' ? '9' : '59';
-    const params = new URLSearchParams({ plan: 'basic', billing, amount, method });
-    window.location.href = method + '-payment.html?' + params.toString();
-  }
-</script>
+    if (generateTwoApis) {
+      generateTwoApis.addEventListener('click', async () => {
+        if (freeCounter <= 0) {
+          updateFreeStatus();
+          return;
+        }
+        try {
+          const res = await fetch("/generate-api", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + (localStorage.getItem("token") || "")
+            }
+          });
+          const data = await res.json();
 
+          if (!data || !data.keys || data.keys.length < 2) {
+            portalKeys.innerHTML = '';
+            freeApiStatus.textContent = "Server failed to generate API keys";
+            return;
+          }
+
+          const key1 = data.keys[0];
+          const key2 = data.keys[1];
+
+          portalKeys.innerHTML = `
+            <div style="margin-bottom:6px; color:#fff;">Your two free API keys:</div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <code style="background:#111; color:#fff; padding:6px 8px; border-radius:6px; user-select:all;">${key1}</code>
+              <code style="background:#111; color:#fff; padding:6px 8px; border-radius:6px; user-select:all;">${key2}</code>
+            </div>
+          `;
+
+          freeCounter = Math.max(0, freeCounter - 1);
+          updateFreeStatus();
+        } catch (err) {
+          console.error(err);
+          portalKeys.innerHTML = '';
+          freeApiStatus.textContent = "Server error generating API keys";
+        }
+      });
+    }
+
+    // Do NOT auto-render keys on load anymore. The keys should come from a user-initiated action.
+
+    // Basic Sign Up flow (frontend stub)
+    const signupBtn = document.getElementById('signupBtn');
+    const signupStatus = document.getElementById('signupStatus');
+    if (signupBtn) {
+      signupBtn.addEventListener('click', async () => {
+        const email = document.getElementById('signupEmail').value.trim();
+        const password = document.getElementById('signupPassword').value;
+        if (!email || !password) {
+          signupStatus.textContent = "Please fill in all fields.";
+          return;
+        }
+        try {
+          const res = await fetch("/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+          });
+          const data = await res.json();
+          if (data && data.token) {
+            localStorage.setItem("token", data.token);
+            signupStatus.textContent = "Account created. Redirecting to verification...";
+            showSection('verify');
+          } else {
+            signupStatus.textContent = data?.error || "Signup failed";
+          }
+        } catch (err) {
+          console.error(err);
+          signupStatus.textContent = "Server error";
+        }
+      });
+    }
+
+    // Verify (frontend stub)
+    const verifyBtn = document.getElementById('verifyBtn');
+    const verifyStatus = document.getElementById('verifyStatus');
+    if (verifyBtn) {
+      verifyBtn.addEventListener('click', () => {
+        const code = document.getElementById('verifyCode').value.trim();
+        const token = localStorage.getItem('token');
+        if (!token) { verifyStatus.textContent = 'No token found, please login again.'; return; }
+        if (!code || code.length !== 6) { verifyStatus.textContent = 'Enter a valid 6-digit code.'; return; }
+        // Simulate success
+        verifyStatus.textContent = 'Verification succeeded. You can now access your APIs.';
+        showSection('dashboard');
+        // Optionally trigger a keys load here if you have a real API
+      });
+    }
+
+    // Simple star background (drifting) (already simple enough)
+
+    // Dashboard: load keys (mock/wired to backend in production)
+    function loadKeys() {
+      const token = localStorage.getItem('token');
+      const keysContainer = document.getElementById('keys');
+      if (!token) {
+        keysContainer.innerHTML = '<div class="api">Please sign in to view your API keys.</div>';
+        return;
+      }
+
+      // If you have a real API, set API_BASE accordingly
+      const API_BASE = window.__API_BASE__ || 'https://medorcoin.org';
+      const API_APIS_ENDPOINT = `${API_BASE}/api/user/apis`;
+
+      function escapeHtml(s) {
+        return ('' + s).replace(/[&<>"']/g, (c) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        }[c]));
+      }
+
+      function getAuthToken() {
+        const tokenFromStorage = localStorage.getItem('token');
+        if (tokenFromStorage) return tokenFromStorage;
+        const match = document.cookie.match(/(?:^|;\s*)token=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : null;
+      }
+
+      async function fetchUserApis() {
+        const keysContainer = document.getElementById('keys');
+        if (!keysContainer) return;
+        const tokenVal = getAuthToken();
+        if (!tokenVal) {
+          keysContainer.innerHTML = '<div class="api">Not authenticated. Please login to view your API keys.</div>';
+          return;
+        }
+
+        keysContainer.innerHTML = '<div class="api">Loading API keys…</div>';
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+
+        try {
+          const res = await fetch(API_APIS_ENDPOINT, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${tokenVal}`,
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            signal: controller.signal
+          });
+
+          clearTimeout(timeout);
+
+          if (res.status === 401 || res.status === 403) {
+            keysContainer.innerHTML = '<div class="api">Session expired. Please login again.</div>';
+            localStorage.removeItem('token');
+            document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            return;
+          }
+
+          if (!res.ok) {
+            let err = {};
+            try { err = await res.json(); } catch { err = {}; }
+            const message = (err && err.error) || res.statusText || 'Unknown error';
+            keysContainer.innerHTML = `<div class="api">Error fetching APIs: ${escapeHtml(message)}</div>`;
+            return;
+          }
+
+          const apiKeys = await res.json();
+          if (Array.isArray(apiKeys) && apiKeys.length > 0) {
+            keysContainer.innerHTML = apiKeys
+              .map((k, i) => `<div class="api">API ${i + 1}: <span class="masked">${escapeHtml(k)}</span></div>`)
+              .join('');
+          } else {
+            keysContainer.innerHTML = '<div class="api">No API keys found. Generate one from the portal.</div>';
+          }
+        } catch (err) {
+          if (err.name === 'AbortError') {
+            keysContainer.innerHTML = '<div class="api">Request timed out. Please try again.</div>';
+          } else {
+            keysContainer.innerHTML = `<div class="api">Network error: ${escapeHtml(err.message || 'Unknown error')}</div>`;
+          }
+        }
+      }
+
+      window.refreshUserApis = fetchUserApis;
+      window.addEventListener('DOMContentLoaded', fetchUserApis);
+    }
+
+    // Sign Out
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        showSection('portal');
+        document.getElementById('keys').innerHTML = '';
+      });
+    }
+
+    // Refresh keys
+    const refreshKeysBtn = document.getElementById('refreshKeysBtn');
+    if (refreshKeysBtn) {
+      refreshKeysBtn.addEventListener('click', loadKeys);
+    }
+
+    // Init: show portal by default
+    window.addEventListener('DOMContentLoaded', () => {
+      const hash = location.hash.replace('#','');
+      if (hash && sections.includes(hash)) {
+        showSection(hash);
+      } else {
+        showSection('portal');
+      }
+      // if logged in, load keys
+      if (localStorage.getItem('token')) loadKeys();
+    });
+
+    // Utility: show receipt after a successful purchase (example)
+    // In a real app, call this after your payment flow succeeds.
+    function showReceiptFromData(receiptData) {
+      // receiptData could be JSON from your backend
+      const rs = document.getElementById('receiptSection');
+      if (!rs) return;
+      // Fill in fields if present
+      if (receiptData) {
+        document.getElementById('txHash')?.textContent = receiptData.txHash || '';
+        document.getElementById('blockHash')?.textContent = receiptData.blockHash || '';
+        document.getElementById('blockNumber')?.textContent = receiptData.blockNumber || '';
+        document.getElementById('from')?.textContent = receiptData.from || '';
+        document.getElementById('to')?.textContent = receiptData.to || '';
+        document.getElementById('status')?.textContent = receiptData.status || '';
+        document.getElementById('gasUsed')?.textContent = receiptData.gasUsed || '';
+        // If you have a nested "Purchased Item" block
+        document.getElementById('productName')?.textContent = receiptData.productName || '';
+        document.getElementById('productLevel')?.textContent = receiptData.productLevel || '';
+        document.getElementById('price')?.textContent = receiptData.price || '';
+        document.getElementById('date')?.textContent = receiptData.date || '';
+        document.getElementById('buyerName')?.textContent = receiptData.buyerName || '';
+        document.getElementById('miningAmount')?.textContent = receiptData.miningAmount || '';
+      }
+      // Show the receipt section
+      showSection('receiptSection');
+      rs.classList.add('active');
+    }
+
+  </script>
 </body>
 </html>
