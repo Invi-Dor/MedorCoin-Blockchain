@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Silver Plan — MedorCoin API</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root{--bg:#080c10;--surface:#0e1520;--border:#1a2535;--accent:#b0b8c1;--text:#e8edf5;--muted:#5a6a82;--success:#10b981;--mono:'Space Mono',monospace;--display:'Syne',sans-serif;--radius:10px;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:var(--display);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:36px;max-width:520px;width:100%;position:relative;z-index:1;}
+    .back{font-family:var(--mono);font-size:0.72rem;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;transition:color 0.2s;}
+    .back:hover{color:var(--text);}
+    .plan-label{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.12em;color:var(--accent);margin-bottom:8px;}
+    h1{font-size:1.8rem;font-weight:800;margin-bottom:4px;}
+    .price{font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--accent);margin-bottom:4px;}
+    .price-note{font-size:0.78rem;color:var(--muted);margin-bottom:24px;}
+    .billing-section{margin-bottom:24px;}
+    .billing-section label{display:block;font-size:0.82rem;font-weight:600;margin-bottom:10px;}
+    .options{display:flex;gap:10px;flex-wrap:wrap;}
+    .option{flex:1;min-width:140px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color 0.2s;display:flex;align-items:center;gap:10px;font-size:0.82rem;}
+    .option:hover{border-color:var(--accent);}
+    .option input{accent-color:var(--accent);}
+    .option.selected{border-color:var(--accent);background:rgba(0,229,255,0.04);}
+    .features{background:#0a0f18;border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:24px;}
+    .features p{font-family:var(--mono);font-size:0.7rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;}
+    .features ul{list-style:none;display:flex;flex-direction:column;gap:7px;}
+    .features ul li{font-size:0.82rem;color:var(--text);display:flex;gap:8px;}
+    .features ul li::before{content:'→';color:var(--accent);font-family:var(--mono);}
+    .payment-section{margin-bottom:24px;}
+    .payment-section label{display:block;font-size:0.82rem;font-weight:600;margin-bottom:10px;}
+    .method{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;margin-bottom:8px;transition:border-color 0.2s;}
+    .method:hover{border-color:var(--accent);}
+    .method.selected{border-color:var(--accent);background:rgba(0,229,255,0.05);}
+    .method input{accent-color:var(--accent);}
+    .method-name{font-size:0.88rem;font-weight:600;}
+    .method-addr{font-family:var(--mono);font-size:0.66rem;color:var(--muted);margin-top:2px;word-break:break-all;}
+    .btn{width:100%;font-family:var(--display);font-weight:700;font-size:0.95rem;padding:14px;border-radius:var(--radius);border:none;cursor:pointer;background:var(--accent);color:#000;letter-spacing:0.04em;transition:opacity 0.2s,transform 0.15s;}
+    .btn:hover{opacity:0.88;transform:translateY(-1px);}
+    .btn:disabled{background:var(--muted);color:var(--bg);cursor:not-allowed;transform:none;}
+    .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+    .modal-backdrop.open{display:flex;}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:36px;max-width:460px;width:90%;position:relative;}
+    .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;}
+    .modal-close:hover{color:var(--text);}
+    .confirm-text{font-size:0.92rem;color:var(--text);margin-bottom:20px;line-height:1.6;}
+    .confirm-text strong{color:var(--accent);}
+    .modal-actions{display:flex;gap:10px;}
+    .modal-actions .btn-no{flex:1;font-family:var(--display);font-weight:700;font-size:0.88rem;padding:12px;border-radius:var(--radius);border:none;cursor:pointer;background:var(--border);color:var(--text);}
+    .modal-actions .btn-yes{flex:1;font-family:var(--display);font-weight:700;font-size:0.88rem;padding:12px;border-radius:var(--radius);border:none;cursor:pointer;background:var(--success);color:#000;}
+  </style>
+</head>
+<body>
+<div class="card">
+  <a class="back" href="get-api.html">← Back to API Portal</a>
+  <div class="plan-label">Silver PLAN</div>
+  <h1>Silver API Plan</h1>
+  <div class="price" id="display-price">$19</div>
+  <div class="price-note" id="display-note">per month</div>
+
+  <div class="billing-section">
+    <label>Billing Period</label>
+    <div class="options">
+      <label class="option selected" id="opt-monthly" onclick="setBilling('monthly',this)">
+        <input type="radio" name="billing" value="monthly" checked /> $19 / month
+      </label>
+      <label class="option" id="opt-yearly" onclick="setBilling('yearly',this)">
+        <input type="radio" name="billing" value="yearly" /> $119 / year <span style="color:var(--success);font-size:0.72rem;margin-left:4px;">Save $109</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="features">
+    <p>What's Included</p>
+    <ul>
+      <li><strong>25 API Keys</strong></li>
+      <li>50,000/day requests</li>
+      <li>All Basic endpoints</li>
+<li>Fee estimation</li>
+<li>Broadcast transactions</li>
+<li>Priority email support</li>
+    </ul>
+  </div>
+
+  <div class="payment-section">
+    <label>Payment Method</label>
+    <label class="method" onclick="selectMethod(this)">
+      <input type="radio" name="method" value="eth" />
+      <div>
+        <div class="method-name">Ethereum (ETH)</div>
+        <div class="method-addr">0xDEc0a1234567890abcdef1234567890abcdef1234</div>
+      </div>
+    </label>
+    <label class="method" onclick="selectMethod(this)">
+      <input type="radio" name="method" value="btc" />
+      <div>
+        <div class="method-name">Bitcoin (BTC)</div>
+        <div class="method-addr">1BoatSLRHtKNngkdXEeobR76b53LETtpyT</div>
+      </div>
+    </label>
+    <label class="method" onclick="selectMethod(this)">
+      <input type="radio" name="method" value="bnb" />
+      <div>
+        <div class="method-name">BNB Chain (BNB)</div>
+        <div class="method-addr">bnb1exampleaddress0000000000000000</div>
+      </div>
+    </label>
+  </div>
+
+<button class="btn" id="checkoutBtn" disabled onclick="openConfirm()">Checkout</button>
+
+</div>
+
+<div class="modal-backdrop" id="confirm-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeConfirm()">✕</button>
+    <div class="confirm-text">
+      You are purchasing the <strong>Silver Plan</strong> for <strong id="confirm-price"></strong> via <strong id="confirm-method"></strong>.<br><br>
+      Are you sure you want to proceed?
+    </div>
+    <div class="modal-actions">
+      <button class="btn-no" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-yes" onclick="proceedToPayment()">Yes, Proceed</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let billing = 'monthly';
+
+  function setBilling(mode, el) {
+    billing = mode;
+    document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+    document.getElementById('display-price').textContent = mode === 'monthly' ? '$19' : '$119';
+    document.getElementById('display-note').textContent  = mode === 'monthly' ? 'per month' : 'per year';
+  }
+
+  function selectMethod(el) {
+    document.querySelectorAll('.method').forEach(m => m.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+    document.getElementById('checkoutBtn').disabled = false;
+  }
+
+  function openConfirm() {
+    const method = document.querySelector('input[name="method"]:checked');
+    if (!method) return;
+    const price = billing === 'monthly' ? '$19/mo' : '$119/yr';
+    document.getElementById('confirm-price').textContent  = price;
+    document.getElementById('confirm-method').textContent = method.value.toUpperCase();
+    document.getElementById('confirm-modal').classList.add('open');
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirm-modal').classList.remove('open');
+  }
+
+  function proceedToPayment() {
+    const method = document.querySelector('input[name="method"]:checked').value;
+    const amount = billing === 'monthly' ? '19' : '119';
+    const params = new URLSearchParams({ plan: 'silver', billing, amount, method });
+    window.location.href = method + '-payment.html?' + params.toString();
+  }
+</script>
+
+</body>
+</html>
