@@ -1,94 +1,1313 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>API Portal — Get API</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedorCoin API Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #080c10;
+      --surface: #0e1520;
+      --border: #1a2535;
+      --accent: #00e5ff;
+      --accent2: #7c3aed;
+      --gold: #f5c518;
+      --silver: #b0b8c1;
+      --text: #e8edf5;
+      --muted: #5a6a82;
+      --success: #10b981;
+      --danger: #ef4444;
+      --radius: 10px;
+      --mono: 'Space Mono', monospace;
+      --display: 'Syne', sans-serif;
+    }
+
+```
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--display);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Background grid */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* HEADER */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(8,12,16,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.logo {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+nav a, nav button {
+  font-family: var(--display);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: color 0.2s, background 0.2s;
+  letter-spacing: 0.04em;
+}
+
+nav a:hover, nav button:hover {
+  color: var(--text);
+  background: var(--border);
+}
+
+nav a.active {
+  color: var(--accent);
+}
+
+.nav-cta {
+  background: var(--accent) !important;
+  color: #000 !important;
+  font-weight: 700 !important;
+}
+
+.nav-cta:hover {
+  background: #00c4db !important;
+  color: #000 !important;
+}
+
+#nav-logout {
+  color: var(--danger) !important;
+  display: none;
+}
+
+/* HERO */
+.hero {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 80px 24px 48px;
+}
+
+.hero-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.12em;
+  margin-bottom: 20px;
+  opacity: 0.85;
+}
+
+.hero h1 {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--text) 40%, var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero p {
+  font-size: 1rem;
+  color: var(--muted);
+  max-width: 560px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+}
+
+/* FREE API SECTION */
+.free-section {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  margin: 0 auto 72px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 32px;
+  text-align: center;
+}
+
+.free-section h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.free-section p {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin-bottom: 24px;
+}
+
+.free-counter {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.pip {
+  width: 48px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  transition: background 0.3s;
+}
+
+.pip.active { background: var(--accent); }
+
+#freeApiBtn {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  padding: 14px 32px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: background 0.2s, transform 0.15s;
+}
+
+#freeApiBtn:hover { background: #00c4db; transform: translateY(-1px); }
+#freeApiBtn:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+
+.key-display {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.key-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #0a0f18;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+
+.key-row code {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+  word-break: break-all;
+  text-align: left;
+}
+
+.copy-btn {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  background: var(--border);
+  color: var(--text);
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.copy-btn:hover { background: var(--accent); color: #000; }
+
+.status-msg {
+  margin-top: 12px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
+/* PLANS SECTION */
+.plans-section {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto 80px;
+  padding: 0 24px;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.section-sub {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin-bottom: 40px;
+}
+
+.billing-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 40px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden;
+}
+
+.billing-toggle button {
+  font-family: var(--display);
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  color: var(--muted);
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  letter-spacing: 0.04em;
+}
+
+.billing-toggle button.active {
+  background: var(--accent);
+  color: #000;
+}
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.plan-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.plan-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+}
+
+.plan-card.featured {
+  border-color: var(--accent2);
+  background: linear-gradient(135deg, #0e1520 60%, #1a0d30);
+}
+
+.plan-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.badge-premium { background: var(--accent2); color: #fff; }
+.badge-gold { background: var(--gold); color: #000; }
+.badge-silver { background: var(--silver); color: #000; }
+
+.plan-name {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.plan-name.basic { color: var(--accent); }
+.plan-name.premium { color: #a78bfa; }
+.plan-name.gold { color: var(--gold); }
+.plan-name.silver { color: var(--silver); }
+
+.plan-price {
+  font-family: var(--mono);
+}
+
+.plan-price .amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.plan-price .period {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+.plan-price .yearly-note {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--success);
+  margin-top: 4px;
+}
+
+.plan-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.plan-features li {
+  font-size: 0.82rem;
+  color: var(--muted);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+}
+
+.plan-features li::before {
+  content: '→';
+  color: var(--accent);
+  font-family: var(--mono);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.plan-features li.highlight {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.plan-btn {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: opacity 0.2s, transform 0.15s;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+}
+
+.plan-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+.btn-basic   { background: var(--accent); color: #000; }
+.btn-premium { background: var(--accent2); color: #fff; }
+.btn-gold    { background: var(--gold); color: #000; }
+.btn-silver  { background: var(--silver); color: #000; }
+
+/* INVOICE MODAL */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 200;
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 36px;
+  max-width: 520px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.3rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.modal-close:hover { color: var(--text); }
+
+.modal h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.modal-sub {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.invoice-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.invoice-row:last-of-type { border-bottom: none; }
+
+.invoice-row .label { color: var(--muted); }
+.invoice-row .value { font-family: var(--mono); color: var(--text); font-weight: 600; }
+.invoice-row .value.total { color: var(--accent); font-size: 1.1rem; }
+
+.invoice-features {
+  background: #0a0f18;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin: 16px 0;
+}
+
+.invoice-features p {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+
+.invoice-features ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.invoice-features ul li {
+  font-size: 0.8rem;
+  color: var(--text);
+  display: flex;
+  gap: 8px;
+}
+
+.invoice-features ul li::before {
+  content: '✓';
+  color: var(--success);
+}
+
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.payment-method:hover { border-color: var(--accent); }
+.payment-method.selected { border-color: var(--accent); background: rgba(0,229,255,0.05); }
+
+.payment-method input[type="radio"] { accent-color: var(--accent); }
+
+.payment-method .method-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.payment-method .method-address {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 2px;
+  word-break: break-all;
+}
+
+.confirm-btn {
+  width: 100%;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  background: var(--accent);
+  color: #000;
+  letter-spacing: 0.04em;
+  transition: background 0.2s;
+  margin-top: 8px;
+}
+
+.confirm-btn:hover { background: #00c4db; }
+.confirm-btn:disabled { background: var(--muted); cursor: not-allowed; }
+
+/* RECEIPT */
+#receipt-modal .modal {
+  background: linear-gradient(135deg, #0e1520 60%, #001a1f);
+  border-color: var(--success);
+}
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.receipt-check {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.receipt-header h2 {
+  color: var(--success);
+}
+
+.receipt-id {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: #0a0f18;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 16px 0;
+  word-break: break-all;
+  text-align: center;
+}
+
+.receipt-keys {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* FAQ */
+.faq-section {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  margin: 0 auto 80px;
+  padding: 0 24px;
+}
+
+.faq-item {
+  border-bottom: 1px solid var(--border);
+}
+
+.faq-q {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--display);
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 18px 0;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  transition: color 0.2s;
+}
+
+.faq-q:hover { color: var(--accent); }
+
+.faq-q .arrow {
+  color: var(--muted);
+  font-size: 0.8rem;
+  transition: transform 0.25s;
+}
+
+.faq-q.open .arrow { transform: rotate(180deg); }
+
+.faq-a {
+  font-size: 0.84rem;
+  color: var(--muted);
+  line-height: 1.7;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s;
+}
+
+.faq-a.open {
+  max-height: 200px;
+  padding-bottom: 16px;
+}
+
+/* FOOTER */
+footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--border);
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+footer p {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
+footer nav {
+  gap: 4px;
+}
+
+footer nav a {
+  font-size: 0.78rem;
+  color: var(--muted);
+  padding: 4px 8px;
+}
+
+@media (max-width: 600px) {
+  header { padding: 0 16px; }
+  .hero { padding: 60px 16px 32px; }
+  .plans-grid { grid-template-columns: 1fr; }
+  footer { flex-direction: column; text-align: center; }
+}
+```
+
+  </style>
 </head>
 <body>
 
-<header class="header">
-  <h1>API</h1>
+<!-- HEADER -->
+
+<header>
+  <a class="logo" href="get-api.html">MEDORCOIN // API</a>
   <nav>
-    <a href="signup.html">Sign Up</a> |
-    <a href="login.html">Login</a>
+    <a href="get-api.html" class="active">Get API</a>
+    <a href="get2freeapi.html">Free Keys</a>
+    <a href="my-apis.html" id="nav-myapis">My APIs</a>
+    <a href="api-login.html" id="nav-login" class="nav-cta">Login</a>
+    <a href="api-signup.html" id="nav-signup">Sign Up</a>
+    <button id="nav-logout" onclick="handleLogout()">Logout</button>
   </nav>
 </header>
 
-<main class="api-portal">
-  <h2>Welcome to the API Portal</h2>
-  <p>The API Portal is your login for everything you do with API including Webstore, ICP Portal, myCerts, and Developer tools.</p>
+<!-- HERO -->
 
-  <div class="free-api-section">
-    <button id="generateApiBtn">Get Your Free API</button>
-    <p id="freeApiStatus">You have 2 free APIs available</p>
+<section class="hero">
+  <div class="hero-badge">POWERED BY MEDORCOIN BLOCKCHAIN</div>
+  <h1>The MedorCoin<br>API Portal</h1>
+  <p>Your gateway to blockchain data, transactions, and wallet tools. Start free — no account required for your first two API keys.</p>
+</section>
+
+<!-- FREE API SECTION -->
+
+<section class="free-section">
+  <h2>Get 2 Free API Keys</h2>
+  <p>No sign-up needed. One device, two keys. Test our full API suite instantly.</p>
+
+  <div class="free-counter">
+    <div class="pip" id="pip1"></div>
+    <div class="pip" id="pip2"></div>
   </div>
 
-  <div id="message"></div>
+<button id="freeApiBtn">Generate Free API Key</button>
 
-  <hr>
+  <div class="key-display" id="keyDisplay"></div>
+  <div class="status-msg" id="freeStatus"></div>
+</section>
 
-  <section class="faq">
-    <h3>FAQ</h3>
-    <div class="faq-item">
-      <button class="faq-question">What is this API used for?</button>
-      <div class="faq-answer">It lets you interact with MedorCoin features programmatically.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-question">How many free APIs can I get?</button>
-      <div class="faq-answer">You can generate up to 2 free API keys per device/network.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-question">Do I have to sign up?</button>
-      <div class="faq-answer">Only if you want more than 2 APIs, or want to manage them in your account.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-question">Is this secure?</button>
-      <div class="faq-answer">Yes — powered with Cloudflare verification.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-question">How do I upgrade?</button>
-      <div class="faq-answer">Login and purchase more APIs in your account page.</div>
-    </div>
-  </section>
-</main>
+<!-- PLANS SECTION -->
 
-<footer class="footer">
-  Privacy • Help • <a href="login.html">Login/Register</a> • Forgot Email?
+<section class="plans-section">
+  <h2 class="section-title">Choose a Plan</h2>
+  <p class="section-sub">Upgrade for higher limits, priority support, and advanced endpoints.</p>
+
+  <div class="billing-toggle">
+    <button class="active" id="toggleMonthly" onclick="setBilling('monthly')">Monthly</button>
+    <button id="toggleYearly" onclick="setBilling('yearly')">Yearly <span style="color:var(--success);font-size:0.72rem;"> Save 45%</span></button>
+  </div>
+
+  <div class="plans-grid">
+
+```
+<!-- BASIC -->
+<div class="plan-card">
+  <div>
+    <div class="plan-name basic">BASIC</div>
+    <div class="plan-price">
+      <span class="amount" id="basic-price">$9</span>
+      <span class="period" id="basic-period">/mo</span>
+      <span class="yearly-note" id="basic-yearly" style="display:none">$59/yr — save $49</span>
+    </div>
+  </div>
+  <ul class="plan-features">
+    <li class="highlight">10 API Keys</li>
+    <li>10,000 requests/day</li>
+    <li>Balance & UTXO endpoints</li>
+    <li>Transaction history</li>
+    <li>Email support</li>
+    <li>Standard rate limits</li>
+  </ul>
+  <button class="plan-btn btn-basic" onclick="openInvoice('basic')">Buy Now</button>
+</div>
+
+<!-- SILVER -->
+<div class="plan-card">
+  <div class="plan-badge badge-silver">SILVER</div>
+  <div>
+    <div class="plan-name silver">SILVER</div>
+    <div class="plan-price">
+      <span class="amount" id="silver-price">$19</span>
+      <span class="period" id="silver-period">/mo</span>
+      <span class="yearly-note" id="silver-yearly" style="display:none">$119/yr — save $109</span>
+    </div>
+  </div>
+  <ul class="plan-features">
+    <li class="highlight">25 API Keys</li>
+    <li>50,000 requests/day</li>
+    <li>All Basic endpoints</li>
+    <li>Fee estimation</li>
+    <li>Broadcast transactions</li>
+    <li>Priority email support</li>
+  </ul>
+  <button class="plan-btn btn-silver" onclick="openInvoice('silver')">Buy Now</button>
+</div>
+
+<!-- PREMIUM -->
+<div class="plan-card featured">
+  <div class="plan-badge badge-premium">MOST POPULAR</div>
+  <div>
+    <div class="plan-name premium">PREMIUM</div>
+    <div class="plan-price">
+      <span class="amount" id="premium-price">$45</span>
+      <span class="period" id="premium-period">/mo</span>
+      <span class="yearly-note" id="premium-yearly" style="display:none">$297/yr — save $243</span>
+    </div>
+  </div>
+  <ul class="plan-features">
+    <li class="highlight">100 API Keys</li>
+    <li>500,000 requests/day</li>
+    <li>All Silver endpoints</li>
+    <li>Receipt generation</li>
+    <li>Webhook support</li>
+    <li>Dedicated support</li>
+    <li>SLA guarantee</li>
+  </ul>
+  <button class="plan-btn btn-premium" onclick="openInvoice('premium')">Buy Now</button>
+</div>
+
+<!-- GOLD -->
+<div class="plan-card">
+  <div class="plan-badge badge-gold">ENTERPRISE</div>
+  <div>
+    <div class="plan-name gold">GOLD</div>
+    <div class="plan-price">
+      <span class="amount" id="gold-price">$99</span>
+      <span class="period" id="gold-period">/mo</span>
+      <span class="yearly-note" id="gold-yearly" style="display:none">$649/yr — save $539</span>
+    </div>
+  </div>
+  <ul class="plan-features">
+    <li class="highlight">Unlimited API Keys</li>
+    <li>Unlimited requests</li>
+    <li>All Premium endpoints</li>
+    <li>Custom integrations</li>
+    <li>Private RPC access</li>
+    <li>24/7 phone support</li>
+    <li>Custom SLA</li>
+  </ul>
+  <button class="plan-btn btn-gold" onclick="openInvoice('gold')">Buy Now</button>
+</div>
+```
+
+  </div>
+</section>
+
+<!-- FAQ -->
+
+<section class="faq-section">
+  <h2 class="section-title" style="margin-bottom:32px;">FAQ</h2>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      What is the free API for? <span class="arrow">▼</span>
+    </button>
+    <div class="faq-a">The 2 free API keys let you test all core MedorCoin endpoints including balance checks, UTXOs, and transaction lookup — no signup required.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Do I need an account to get free keys? <span class="arrow">▼</span>
+    </button>
+    <div class="faq-a">No. Free keys are issued per device with no registration. You can generate up to 2 keys immediately. For paid plans you will need to create an account.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      How do I pay for a plan? <span class="arrow">▼</span>
+    </button>
+    <div class="faq-a">All plans are paid with cryptocurrency — Bitcoin, Ethereum, or BNB. Once payment is confirmed on-chain, your API keys are delivered instantly to your account.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Can I switch plans later? <span class="arrow">▼</span>
+    </button>
+    <div class="faq-a">Yes. You can upgrade or downgrade at any time. Upgrades take effect immediately and your billing is prorated.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Is the API secure? <span class="arrow">▼</span>
+    </button>
+    <div class="faq-a">Yes. All endpoints require your API key via the X-API-Key header. Keys are rotatable at any time from your dashboard. Traffic is encrypted via HTTPS and filtered by Cloudflare.</div>
+  </div>
+</section>
+
+<!-- INVOICE MODAL -->
+
+<div class="modal-backdrop" id="invoice-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('invoice-modal')">✕</button>
+    <h2 id="inv-title">Invoice</h2>
+    <div class="modal-sub" id="inv-id"></div>
+
+```
+<div class="invoice-features" id="inv-features"></div>
+
+<div class="invoice-row">
+  <span class="label">Plan</span>
+  <span class="value" id="inv-plan"></span>
+</div>
+<div class="invoice-row">
+  <span class="label">Billing</span>
+  <span class="value" id="inv-billing"></span>
+</div>
+<div class="invoice-row">
+  <span class="label">API Keys Included</span>
+  <span class="value" id="inv-keys"></span>
+</div>
+<div class="invoice-row">
+  <span class="label">Daily Requests</span>
+  <span class="value" id="inv-requests"></span>
+</div>
+<div class="invoice-row">
+  <span class="label" style="font-weight:700;">Total Due</span>
+  <span class="value total" id="inv-total"></span>
+</div>
+
+<div class="payment-methods" id="inv-payment-methods">
+  <label class="payment-method" onclick="selectMethod(this)">
+    <input type="radio" name="paymethod" value="eth" />
+    <div>
+      <div class="method-name">Ethereum (ETH)</div>
+      <div class="method-address">0xDEc0a1234567890abcdef1234567890abcdef1234</div>
+    </div>
+  </label>
+  <label class="payment-method" onclick="selectMethod(this)">
+    <input type="radio" name="paymethod" value="btc" />
+    <div>
+      <div class="method-name">Bitcoin (BTC)</div>
+      <div class="method-address">1BoatSLRHtKNngkdXEeobR76b53LETtpyT</div>
+    </div>
+  </label>
+  <label class="payment-method" onclick="selectMethod(this)">
+    <input type="radio" name="paymethod" value="bnb" />
+    <div>
+      <div class="method-name">BNB Chain (BNB)</div>
+      <div class="method-address">bnb1exampleaddress0000000000000000</div>
+    </div>
+  </label>
+</div>
+
+<button class="confirm-btn" id="inv-confirm-btn" onclick="confirmPayment()" disabled>
+  Confirm & Proceed to Payment
+</button>
+```
+
+  </div>
+</div>
+
+<!-- RECEIPT MODAL -->
+
+<div class="modal-backdrop" id="receipt-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('receipt-modal')">✕</button>
+    <div class="receipt-header">
+      <div class="receipt-check">✓</div>
+      <h2>Payment Confirmed</h2>
+      <p style="color:var(--muted);font-size:0.82rem;margin-top:6px;">Your API keys are ready</p>
+    </div>
+
+```
+<div class="receipt-id" id="receipt-txid"></div>
+
+<div class="invoice-row">
+  <span class="label">Plan</span>
+  <span class="value" id="receipt-plan"></span>
+</div>
+<div class="invoice-row">
+  <span class="label">Amount Paid</span>
+  <span class="value" id="receipt-amount"></span>
+</div>
+<div class="invoice-row">
+  <span class="label">Date</span>
+  <span class="value" id="receipt-date"></span>
+</div>
+<div class="invoice-row">
+  <span class="label">Payment Method</span>
+  <span class="value" id="receipt-method"></span>
+</div>
+
+<div class="receipt-keys" id="receipt-keys"></div>
+
+<button class="confirm-btn" style="background:var(--success);margin-top:20px;" onclick="closeModal('receipt-modal')">
+  Done — Go to My APIs
+</button>
+```
+
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 MedorCoin Blockchain. All rights reserved.</p>
+  <nav>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Help</a>
+    <a href="api-login.html">Login</a>
+    <a href="api-signup.html">Register</a>
+  </nav>
 </footer>
 
 <script>
-// FAQ Accordion behavior
-document.querySelectorAll(".faq-question").forEach(btn => {
-  btn.addEventListener("click", () => {
-    btn.nextElementSibling.classList.toggle("show");
+// ── Auth state ────────────────────────────────────────────────────────────────
+function getSession() {
+  try { return JSON.parse(localStorage.getItem('medorSession') || 'null'); } catch { return null; }
+}
+
+function updateNav() {
+  const session = getSession();
+  const login   = document.getElementById('nav-login');
+  const signup  = document.getElementById('nav-signup');
+  const logout  = document.getElementById('nav-logout');
+  const myapis  = document.getElementById('nav-myapis');
+  if (session && session.email) {
+    login.style.display  = 'none';
+    signup.style.display = 'none';
+    logout.style.display = 'inline-block';
+    myapis.style.display = 'inline-block';
+  } else {
+    login.style.display  = 'inline-block';
+    signup.style.display = 'inline-block';
+    logout.style.display = 'none';
+  }
+}
+
+function handleLogout() {
+  localStorage.removeItem('medorSession');
+  updateNav();
+  window.location.href = 'api-login.html';
+}
+
+// ── Free API keys ─────────────────────────────────────────────────────────────
+const FREE_KEY  = 'medor_free_keys_v1';
+const MAX_FREE  = 2;
+
+function getFreeKeys()       { try { return JSON.parse(localStorage.getItem(FREE_KEY) || '[]'); } catch { return []; } }
+function saveFreeKeys(keys)  { localStorage.setItem(FREE_KEY, JSON.stringify(keys)); }
+function genKey()            { return 'mdr_' + crypto.randomUUID().replace(/-/g,'').substring(0,24); }
+
+async function tryFetchKey() {
+  try {
+    const res  = await fetch('/generate-api', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    const data = await res.json();
+    if (data && data.apiKey) return data.apiKey;
+  } catch {}
+  return genKey();
+}
+
+function renderFreeKeys() {
+  const keys    = getFreeKeys();
+  const display = document.getElementById('keyDisplay');
+  const status  = document.getElementById('freeStatus');
+  const btn     = document.getElementById('freeApiBtn');
+  const pip1    = document.getElementById('pip1');
+  const pip2    = document.getElementById('pip2');
+
+  pip1.className = keys.length >= 1 ? 'pip active' : 'pip';
+  pip2.className = keys.length >= 2 ? 'pip active' : 'pip';
+
+  display.innerHTML = '';
+  keys.forEach((k, i) => {
+    const row = document.createElement('div');
+    row.className = 'key-row';
+    row.innerHTML = `<code>KEY ${i+1}: ${k}</code><button class="copy-btn" onclick="copyText('${k}', this)">Copy</button>`;
+    display.appendChild(row);
   });
+
+  if (keys.length >= MAX_FREE) {
+    btn.disabled   = true;
+    btn.textContent = 'Free Keys Generated';
+    status.textContent = 'You have used both free API keys. Sign up to get more.';
+  } else {
+    btn.disabled   = false;
+    btn.textContent = `Generate Free API Key (${MAX_FREE - keys.length} remaining)`;
+    status.textContent = keys.length > 0 ? `${keys.length}/${MAX_FREE} free key used.` : '';
+  }
+}
+
+document.getElementById('freeApiBtn').addEventListener('click', async () => {
+  const keys = getFreeKeys();
+  if (keys.length >= MAX_FREE) return;
+  const btn = document.getElementById('freeApiBtn');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+  const newKey = await tryFetchKey();
+  keys.push(newKey);
+  saveFreeKeys(keys);
+  renderFreeKeys();
 });
 
-// Free API generation
-let freeCounter = 2;
-document.getElementById("generateApiBtn").addEventListener("click", async () => {
-  if (freeCounter <= 0) {
-    document.getElementById("message").innerText = "Free API limit reached. Please sign up or login to purchase more.";
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1400);
+  }).catch(() => window.prompt('Copy:', text));
+}
+
+// ── Billing toggle ────────────────────────────────────────────────────────────
+let currentBilling = 'monthly';
+
+const PRICES = {
+  basic:   { monthly: '$9',   yearly: '$59'  },
+  silver:  { monthly: '$19',  yearly: '$119' },
+  premium: { monthly: '$45',  yearly: '$297' },
+  gold:    { monthly: '$99',  yearly: '$649' }
+};
+
+function setBilling(mode) {
+  currentBilling = mode;
+  document.getElementById('toggleMonthly').className = mode === 'monthly' ? 'active' : '';
+  document.getElementById('toggleYearly').className  = mode === 'yearly'  ? 'active' : '';
+
+  ['basic','silver','premium','gold'].forEach(plan => {
+    document.getElementById(plan + '-price').textContent  = PRICES[plan][mode];
+    document.getElementById(plan + '-period').textContent = mode === 'monthly' ? '/mo' : '/yr';
+    const yearlyNote = document.getElementById(plan + '-yearly');
+    if (yearlyNote) yearlyNote.style.display = mode === 'yearly' ? 'block' : 'none';
+  });
+}
+
+// ── Plan data ─────────────────────────────────────────────────────────────────
+const PLANS = {
+  basic: {
+    name: 'Basic',
+    keys: '10 API Keys',
+    requests: '10,000 / day',
+    features: ['Balance & UTXO endpoints','Transaction history','Email support','Standard rate limits'],
+    monthly: { amount: '$9',   label: 'Monthly' },
+    yearly:  { amount: '$59',  label: 'Yearly (Save $49)' }
+  },
+  silver: {
+    name: 'Silver',
+    keys: '25 API Keys',
+    requests: '50,000 / day',
+    features: ['All Basic endpoints','Fee estimation','Broadcast transactions','Priority email support'],
+    monthly: { amount: '$19',  label: 'Monthly' },
+    yearly:  { amount: '$119', label: 'Yearly (Save $109)' }
+  },
+  premium: {
+    name: 'Premium',
+    keys: '100 API Keys',
+    requests: '500,000 / day',
+    features: ['All Silver endpoints','Receipt generation','Webhook support','Dedicated support','SLA guarantee'],
+    monthly: { amount: '$45',  label: 'Monthly' },
+    yearly:  { amount: '$297', label: 'Yearly (Save $243)' }
+  },
+  gold: {
+    name: 'Gold',
+    keys: 'Unlimited',
+    requests: 'Unlimited',
+    features: ['All Premium endpoints','Custom integrations','Private RPC access','24/7 phone support','Custom SLA'],
+    monthly: { amount: '$99',  label: 'Monthly' },
+    yearly:  { amount: '$649', label: 'Yearly (Save $539)' }
+  }
+};
+
+let currentPlan = null;
+
+function openInvoice(planKey) {
+  // Require login for paid plans
+  const session = getSession();
+  if (!session || !session.email) {
+    alert('Please log in or sign up before purchasing a plan.');
+    window.location.href = 'api-login.html';
     return;
   }
 
-  const response = await fetch("/api/apikey/new", { method: "POST" });
-  const data = await response.json();
+  currentPlan = planKey;
+  const plan   = PLANS[planKey];
+  const billing = PLANS[planKey][currentBilling];
+  const invoiceId = 'INV-' + Date.now().toString(36).toUpperCase();
 
-  freeCounter--;
-  document.getElementById("freeApiStatus").innerText =
-    `You have ${freeCounter} free API${freeCounter !== 1 ? "s" : ""} left`;
+  document.getElementById('inv-title').textContent   = `Invoice — ${plan.name} Plan`;
+  document.getElementById('inv-id').textContent      = `Invoice ID: ${invoiceId} · ${new Date().toUTCString()}`;
+  document.getElementById('inv-plan').textContent    = plan.name;
+  document.getElementById('inv-billing').textContent = billing.label;
+  document.getElementById('inv-keys').textContent    = plan.keys;
+  document.getElementById('inv-requests').textContent = plan.requests;
+  document.getElementById('inv-total').textContent   = billing.amount;
 
-  document.getElementById("message").innerText =
-    "Here is your free API: " + data.apiKey;
+  const featHtml = `<p>Included Features</p><ul>${plan.features.map(f => `<li>${f}</li>`).join('')}</ul>`;
+  document.getElementById('inv-features').innerHTML  = featHtml;
+
+  // Reset payment method
+  document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('input[name="paymethod"]').forEach(el => el.checked = false);
+  document.getElementById('inv-confirm-btn').disabled = true;
+
+  openModal('invoice-modal');
+}
+
+function selectMethod(el) {
+  document.querySelectorAll('.payment-method').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input[type="radio"]').checked = true;
+  document.getElementById('inv-confirm-btn').disabled = false;
+}
+
+function confirmPayment() {
+  const plan     = PLANS[currentPlan];
+  const billing  = plan[currentBilling];
+  const method   = document.querySelector('input[name="paymethod"]:checked');
+  if (!method) return;
+
+  const txHash = '0x' + crypto.randomUUID().replace(/-/g,'');
+
+  closeModal('invoice-modal');
+
+  // Build receipt
+  document.getElementById('receipt-txid').textContent    = `TX Hash: ${txHash}`;
+  document.getElementById('receipt-plan').textContent    = plan.name;
+  document.getElementById('receipt-amount').textContent  = billing.amount;
+  document.getElementById('receipt-date').textContent    = new Date().toUTCString();
+  document.getElementById('receipt-method').textContent  = method.value.toUpperCase();
+
+  // Generate keys based on plan
+  const keyCount = { basic: 10, silver: 25, premium: 100, gold: 5 }[currentPlan] || 3;
+  const keysToShow = Math.min(keyCount, 3); // show first 3, rest available in dashboard
+  const keysDiv = document.getElementById('receipt-keys');
+  keysDiv.innerHTML = `<p style="font-size:0.78rem;color:var(--muted);font-family:var(--mono);margin-bottom:8px;">YOUR FIRST ${keysToShow} API KEYS:</p>`;
+  for (let i = 0; i < keysToShow; i++) {
+    const k = genKey();
+    keysDiv.innerHTML += `<div class="key-row"><code>${k}</code><button class="copy-btn" onclick="copyText('${k}', this)">Copy</button></div>`;
+  }
+
+  openModal('receipt-modal');
+}
+
+// ── Modal helpers ─────────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+  backdrop.addEventListener('click', e => {
+    if (e.target === backdrop) backdrop.classList.remove('open');
+  });
 });
-</script>
 
-<style>
-  .faq-answer { display: none; }
-  .faq-answer.show { display: block; }
-</style>
+// ── FAQ ───────────────────────────────────────────────────────────────────────
+function toggleFaq(btn) {
+  const answer = btn.nextElementSibling;
+  const isOpen = answer.classList.contains('open');
+  document.querySelectorAll('.faq-a').forEach(a => a.classList.remove('open'));
+  document.querySelectorAll('.faq-q').forEach(b => b.classList.remove('open'));
+  if (!isOpen) {
+    answer.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+updateNav();
+renderFreeKeys();
+</script>
 
 </body>
 </html>

@@ -1,113 +1,195 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Basic Buy Now</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basic Plan — MedorCoin API</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 24px; }
-    .card { max-width: 600px; margin: 0 auto; padding: 16px; border: 1px solid #ddd; border-radius: 8px; }
-    h1 { margin-top: 0; }
-    .section { margin-bottom: 16px; }
-    .options { display: flex; gap: 16px; flex-wrap: wrap; }
-    .option { padding: 10px; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; }
-    .option input { margin-right: 6px; }
-    .button { padding: 12px 20px; border: none; border-radius: 6px; background: #007bff; color: white; cursor: pointer; }
-    .button:disabled { opacity: 0.5; cursor: not-allowed; }
-    /* modal */
-    #modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-    #confirm-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; max-width: 420px; width: 90%; }
+    :root{--bg:#0b1020;--surface:#0e1520;--border:rgba(255,255,255,.1);--accent:#0a4bd3;--text:#e5e7eb;--muted:#9ca3af;--success:#10b981;--danger:#e11d48;--mono:'Courier New',monospace;--display:Verdana,Geneva,sans-serif;--radius:10px;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:var(--display);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.05) 0 2px,transparent 2px),radial-gradient(circle at 70% 60%,rgba(255,255,255,.03) 0 2px,transparent 2px);background-size:100px 100px,180px 180px;pointer-events:none;}
+    .card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:14px;padding:36px;max-width:520px;width:100%;position:relative;z-index:1;}
+    .back{font-family:var(--mono);font-size:0.72rem;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;transition:color 0.2s;}
+    .back:hover{color:var(--text);}
+    .plan-label{font-size:0.7rem;letter-spacing:0.12em;color:#60a5fa;font-weight:700;text-transform:uppercase;margin-bottom:6px;}
+    h1{font-size:1.8rem;font-weight:700;margin-bottom:4px;color:#fff;}
+    .price-display{font-family:var(--mono);font-size:2rem;font-weight:700;color:#60a5fa;margin-bottom:2px;}
+    .price-note{font-size:0.78rem;color:var(--muted);margin-bottom:24px;}
+    .section-label{display:block;font-size:0.82rem;font-weight:700;margin-bottom:10px;color:var(--text);}
+    .billing-section{margin-bottom:24px;}
+    .options{display:flex;gap:10px;flex-wrap:wrap;}
+    .option{flex:1;min-width:150px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color 0.2s,background 0.2s;display:flex;align-items:center;gap:10px;font-size:0.82rem;color:var(--text);}
+    .option:hover{border-color:#60a5fa;}
+    .option.selected{border-color:#60a5fa;background:rgba(96,165,250,0.07);}
+    .option input{accent-color:var(--accent);}
+    .features{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:24px;}
+    .features p{font-size:0.7rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;font-weight:700;margin-bottom:10px;}
+    .features ul{list-style:none;display:flex;flex-direction:column;gap:7px;}
+    .features ul li{font-size:0.82rem;color:var(--text);display:flex;gap:8px;align-items:flex-start;}
+    .features ul li::before{content:'→';color:#60a5fa;font-family:var(--mono);flex-shrink:0;}
+    .features ul li.highlight{font-weight:700;color:#60a5fa;}
+    .limit-notice{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);border-radius:var(--radius);padding:12px 14px;font-size:0.78rem;color:#93c5fd;font-family:var(--mono);margin-bottom:24px;}
+    .payment-section{margin-bottom:24px;}
+    .method{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;margin-bottom:8px;transition:border-color 0.2s,background 0.2s;}
+    .method:hover{border-color:#60a5fa;}
+    .method.selected{border-color:#60a5fa;background:rgba(96,165,250,.05);}
+    .method input{accent-color:var(--accent);margin-top:3px;}
+    .method-name{font-size:0.88rem;font-weight:700;color:var(--text);}
+    .method-addr{font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:3px;word-break:break-all;}
+    .btn{width:100%;font-family:var(--display);font-weight:700;font-size:0.95rem;padding:14px;border-radius:var(--radius);border:none;cursor:pointer;background:var(--accent);color:#fff;letter-spacing:0.02em;transition:opacity 0.2s,transform 0.15s;}
+    .btn:hover{opacity:0.88;transform:translateY(-1px);}
+    .btn:disabled{background:#374151;color:#6b7280;cursor:not-allowed;transform:none;opacity:1;}
+    .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+    .modal-backdrop.open{display:flex;}
+    .modal{background:#0e1520;border:1px solid var(--border);border-radius:14px;padding:36px;max-width:460px;width:90%;position:relative;}
+    .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;transition:color 0.2s;}
+    .modal-close:hover{color:var(--text);}
+    .modal h2{font-size:1.2rem;font-weight:700;margin-bottom:16px;color:#fff;}
+    .confirm-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:0.84rem;}
+    .confirm-row .lbl{color:var(--muted);}
+    .confirm-row .val{font-family:var(--mono);font-weight:700;color:var(--text);}
+    .confirm-row .val.total{color:#60a5fa;font-size:1rem;}
+    .modal-actions{display:flex;gap:10px;margin-top:24px;}
+    .btn-no{flex:1;font-family:var(--display);font-weight:700;font-size:0.88rem;padding:12px;border-radius:var(--radius);border:none;cursor:pointer;background:#1f2937;color:var(--text);}
+    .btn-yes{flex:1;font-family:var(--display);font-weight:700;font-size:0.88rem;padding:12px;border-radius:var(--radius);border:none;cursor:pointer;background:var(--success);color:#000;}
   </style>
 </head>
 <body>
-  <div class="card" aria-label="Basic Buy Now">
-    <h1>Basic Plan</h1>
-    <p>Price: <strong>$15 per month</strong></p>
+<div class="card">
+  <a class="back" href="combined_api_portal.html">← Back to API Portal</a>
+  <div class="plan-label">Basic Plan</div>
+  <h1>Basic API Plan</h1>
+  <div class="price-display" id="display-price">$15</div>
+  <div class="price-note" id="display-note">per month</div>
 
-    <div class="section" id="billing-section">
-      <strong>Select billing period:</strong><br/>
-      <label class="option">
-        <input type="radio" name="billing" value="monthly" checked> $15 per month
+  <div class="billing-section">
+    <label class="section-label">Billing Period</label>
+    <div class="options">
+      <label class="option selected" onclick="setBilling('monthly',this)">
+        <input type="radio" name="billing" value="monthly" data-price="15" checked />
+        $15 / month
       </label>
-      <label class="option">
-        <input type="radio" name="billing" value="yearly"> $99 per year
+      <label class="option" onclick="setBilling('yearly',this)">
+        <input type="radio" name="billing" value="yearly" data-price="99" />
+        $99 / year <span style="color:#10b981;font-size:0.72rem;margin-left:4px;">Save $72</span>
       </label>
-    </div>
-
-    <div class="section" id="payment-section">
-      <strong>Choose payment method:</strong><br/>
-      <label class="option">
-        <input type="radio" name="method" value="eth" data-address="0xDEc0a1234567890abcdef1234567890abcdef1234"> Ethereum
-      </label>
-      <label class="option">
-        <input type="radio" name="method" value="btc" data-address="1BoatSLRHtKNngkdXEeobR76b53LETtpyT"> Bitcoin
-      </label>
-      <label class="option">
-        <input type="radio" name="method" value="bnb" data-address="bnb1exampleaddress0000000000000000"> BNB
-      </label>
-    </div>
-
-    <button id="checkoutBtn" class="button" disabled>Checkout</button>
-  </div>
-
-  <!-- Confirmation modal -->
-  <div id="modal-backdrop" aria-hidden="true">
-    <div id="confirm-modal" role="dialog" aria-label="Confirm Purchase">
-      <p>Are you sure you are buying this?</p>
-      <div style="display:flex; gap:8px; justify-content:flex-end;">
-        <button id="modalNo" class="button" style="background:#6c757d">No</button>
-        <button id="modalYes" class="button" style="background:#28a745">Yes</button>
-      </div>
     </div>
   </div>
 
-  <script src="basic-buy-now-backend.js" defer></script>
-</body>
-</html>
+  <div class="features">
+    <p>What's Included</p>
+    <ul>
+      <li class="highlight">100,000 API calls</li>
+      <li>Historical &amp; Real-Time Data</li>
+      <li>REST Protocol</li>
+      <li>WebSocket Protocol</li>
+      <li>Volume Discounts</li>
+      <li>Email support</li>
+    </ul>
+  </div>
 
-• basic-buy-now-backend.js
+  <div class="limit-notice">⚠ This plan is capped at 100,000 API calls. The server enforces this limit automatically. Upgrade to Premium for higher limits.</div>
 
-// Basic Buy Now backend logic (UI flow and navigation)
+  <div class="payment-section">
+    <label class="section-label">Payment Method</label>
+    <label class="method" onclick="selectMethod(this)">
+      <input type="radio" name="method" value="eth" data-address="0xDEc0a1234567890abcdef1234567890abcdef1234" />
+      <div><div class="method-name">Ethereum (ETH)</div><div class="method-addr">0xDEc0a1234567890abcdef1234567890abcdef1234</div></div>
+    </label>
+    <label class="method" onclick="selectMethod(this)">
+      <input type="radio" name="method" value="btc" data-address="1BoatSLRHtKNngkdXEeobR76b53LETtpyT" />
+      <div><div class="method-name">Bitcoin (BTC)</div><div class="method-addr">1BoatSLRHtKNngkdXEeobR76b53LETtpyT</div></div>
+    </label>
+    <label class="method" onclick="selectMethod(this)">
+      <input type="radio" name="method" value="bnb" data-address="bnb1exampleaddress0000000000000000" />
+      <div><div class="method-name">BNB Chain (BNB)</div><div class="method-addr">bnb1exampleaddress0000000000000000</div></div>
+    </label>
+  </div>
+
+<button class="btn" id="checkoutBtn" disabled onclick="openConfirm()">Checkout</button>
+
+</div>
+
+<div class="modal-backdrop" id="confirm-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeConfirm()">✕</button>
+    <h2>Confirm Purchase</h2>
+    <div class="confirm-row"><span class="lbl">Plan</span><span class="val">Basic</span></div>
+    <div class="confirm-row"><span class="lbl">API Call Limit</span><span class="val">100,000 calls</span></div>
+    <div class="confirm-row"><span class="lbl">Billing</span><span class="val" id="confirm-billing"></span></div>
+    <div class="confirm-row"><span class="lbl">Payment via</span><span class="val" id="confirm-method"></span></div>
+    <div class="confirm-row"><span class="lbl">Total Due</span><span class="val total" id="confirm-total"></span></div>
+    <div class="modal-actions">
+      <button class="btn-no" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-yes" onclick="proceedToPayment()">Yes, Proceed</button>
+    </div>
+  </div>
+</div>
+
+<script>
 (function(){
-  const billingRadios = document.querySelectorAll('input[name="billing"]');
-  const methodRadios = document.querySelectorAll('input[name="method"]');
-  const checkoutBtn = document.getElementById('checkoutBtn');
-  const modalBackdrop = document.getElementById('modal-backdrop');
-  const modalYes = document.getElementById('modalYes');
-  const modalNo = document.getElementById('modalNo');
+  const PRICES = { monthly: 15, yearly: 99 };
+  const API_CALL_LIMIT = 100000;
+  let billing = 'monthly';
 
-  function updateCheckoutState() {
-    const billingSelected = document.querySelector('input[name="billing"]:checked');
-    const methodSelected = document.querySelector('input[name="method"]:checked');
-    checkoutBtn.disabled = !(billingSelected && methodSelected);
+  function checkSession(){
+    try{ return JSON.parse(localStorage.getItem('medorSession')||'null'); }catch{ return null; }
+  }
+  if(!checkSession()){ alert('Please log in or sign up before purchasing a plan.'); window.location.href='api-login.html'; }
+
+  function updateCheckout(){
+    const b = document.querySelector('input[name="billing"]:checked');
+    const m = document.querySelector('input[name="method"]:checked');
+    document.getElementById('checkoutBtn').disabled = !(b && m);
   }
 
-  // Attach events
-  billingRadios.forEach(r => r.addEventListener('change', updateCheckoutState));
-  methodRadios.forEach(r => r.addEventListener('change', updateCheckoutState));
-  checkoutBtn.addEventListener('click', () => {
-    // show confirm modal
-    modalBackdrop.style.display = 'block';
-  });
-  modalNo.addEventListener('click', () => {
-    modalBackdrop.style.display = 'none';
-  });
-  modalYes.addEventListener('click', () => {
-    modalBackdrop.style.display = 'none';
-    // Build invoice URL and navigate
-    const billing = document.querySelector('input[name="billing"]:checked')?.value;
-    const method = document.querySelector('input[name="method"]:checked')?.value;
-    const address = document.querySelector('input[name="method"]:checked')?.dataset?.address;
+  window.setBilling = function(mode, el){
+    billing = mode;
+    document.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+    document.getElementById('display-price').textContent = '$'+PRICES[mode];
+    document.getElementById('display-note').textContent = mode==='monthly'?'per month':'per year';
+    updateCheckout();
+  };
 
-    const price = billing === 'monthly' ? 15 : 99;
-    const url = new URL(window.location.origin + '/invoice.html');
-    url.searchParams.set('product', 'basic');
-    url.searchParams.set('plan', billing);
-    url.searchParams.set('price', price);
-    url.searchParams.set('method', method);
-    url.searchParams.set('address', address);
+  window.selectMethod = function(el){
+    document.querySelectorAll('.method').forEach(m=>m.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+    updateCheckout();
+  };
+
+  window.openConfirm = function(){
+    const m = document.querySelector('input[name="method"]:checked');
+    if(!m) return;
+    document.getElementById('confirm-billing').textContent = billing==='monthly'?'Monthly ($15/mo)':'Yearly ($99/yr)';
+    document.getElementById('confirm-method').textContent = m.value.toUpperCase();
+    document.getElementById('confirm-total').textContent = '$'+PRICES[billing];
+    document.getElementById('confirm-modal').classList.add('open');
+  };
+
+  window.closeConfirm = function(){
+    document.getElementById('confirm-modal').classList.remove('open');
+  };
+
+  window.proceedToPayment = function(){
+    const m = document.querySelector('input[name="method"]:checked');
+    const url = new URL(window.location.origin+'/'+m.value+'-payment.html');
+    url.searchParams.set('product','basic');
+    url.searchParams.set('plan',billing);
+    url.searchParams.set('price',PRICES[billing]);
+    url.searchParams.set('method',m.value);
+    url.searchParams.set('address',m.dataset.address);
+    url.searchParams.set('api_limit',API_CALL_LIMIT);
     window.location.href = url.toString();
-  });
+  };
 
-  // Init state
-  updateCheckoutState();
+  updateCheckout();
 })();
+</script>
+
+</body>
+</html>
