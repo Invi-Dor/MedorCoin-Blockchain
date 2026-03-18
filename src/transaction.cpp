@@ -1,63 +1,41 @@
 #include "transaction.h"
-#include "crypto/rlp.h"
-#include "crypto/keccak/keccak.h"
-
+#include "crypto/keccak256.h"
 #include <sstream>
 #include <iomanip>
 
-static std::string toHex(const std::vector<uint8_t> &bytes) {
-    std::ostringstream ss;
-    ss << std::hex << std::setfill('0');
-    for (auto b : bytes) {
-        ss << std::setw(2) << (int)b;
+bool Transaction::calculateHash() {
+    try {
+        std::ostringstream ss;
+        ss << chainId << nonce << maxPriorityFeePerGas
+           << maxFeePerGas << gasLimit << toAddress << value;
+        for (const auto& b : data)
+            ss << std::hex << std::setw(2) << std::setfill('0')
+               << static_cast<int>(b);
+        for (const auto& in : inputs)
+            ss << in.prevTxHash << in.outputIndex;
+        for (const auto& out : outputs)
+            ss << out.value << out.address;
+
+        std::string raw = ss.str();
+        crypto::Keccak256Digest digest{};
+        if (!crypto::Keccak256(
+                reinterpret_cast<const uint8_t*>(raw.data()),
+                raw.size(), digest))
+            return false;
+
+        std::ostringstream hexss;
+        for (auto byte : digest)
+            hexss << std::hex << std::setw(2) << std::setfill('0')
+                  << static_cast<int>(byte);
+        txHash = hexss.str();
+        return true;
+    } catch (...) {
+        return false;
     }
-    return ss.str();
 }
 
-void Transaction::calculateHash() {
-    using namespace rlp;
-
-    // Encode transaction fields in the correct order
-    auto encChainId  = encodeUInt(chainId);
-    auto encNonce    = encodeUInt(nonce);
-    auto encMaxPri   = encodeUInt(maxPriorityFeePerGas);
-    auto encMaxFee   = encodeUInt(maxFeePerGas);
-    auto encGasLimit = encodeUInt(gasLimit);
-
-    // Encode "to" address as bytes
-    std::vector<uint8_t> toBytes(toAddress.begin(), toAddress.end());
-    auto encTo       = encodeBytes(toBytes);
-
-    auto encValue    = encodeUInt(value);
-    auto encData     = encodeBytes(data);
-
-    // Encode the signature components
-    auto encV        = encodeUInt(v);
-    auto encR        = encodeBytes(std::vector<uint8_t>(r.begin(), r.end()));
-    auto encS        = encodeBytes(std::vector<uint8_t>(s.begin(), s.end()));
-
-    // Put all encoded fields into a list
-    std::vector<std::vector<uint8_t>> items = {
-        encChainId,
-        encNonce,
-        encMaxPri,
-        encMaxFee,
-        encGasLimit,
-        encTo,
-        encValue,
-        encData,
-        encV,
-        encR,
-        encS
-    };
-
-    std::vector<uint8_t> raw = encodeList(items);
-
-    // Compute Keccak‑256 hash (transaction hash)
-    uint8_t hashOut[32];
-    keccak(raw.data(), raw.size(), hashOut, 32);
-    std::vector<uint8_t> hashBytes(hashOut, hashOut + 32);
-
-    // Store as hex string
-    txHash = toHex(hashBytes);
+bool Transaction::isValid() const {
+    if (txHash.empty())  return false;
+    if (txHash.size() != 64) return false;
+    return true;
 }
