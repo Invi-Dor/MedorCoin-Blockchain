@@ -14,6 +14,15 @@
 # EXTERNAL cache entries
 ########################
 
+//Path to a program.
+APT_GET:FILEPATH=/usr/bin/apt-get
+
+//build with assert status checked
+ASSERT_STATUS_CHECKED:BOOL=OFF
+
+//the time we first built rocksdb
+BUILD_DATE:STRING=2026-03-18 18:30:42
+
 //Path to a file.
 BZIP2_INCLUDE_DIR:PATH=/usr/include
 
@@ -24,14 +33,42 @@ BZIP2_LIBRARY_DEBUG:FILEPATH=BZIP2_LIBRARY_DEBUG-NOTFOUND
 BZIP2_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libbz2.so
 
 //Path to a program.
+CCACHE_FOUND:FILEPATH=CCACHE_FOUND-NOTFOUND
+
+//Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
 
 //Path to a program.
 CMAKE_AR:FILEPATH=/usr/bin/ar
 
-//Choose the type of build, options are: None Debug Release RelWithDebInfo
-// MinSizeRel ...
-CMAKE_BUILD_TYPE:STRING=
+//ASM compiler
+CMAKE_ASM_COMPILER:FILEPATH=/usr/bin/cc
+
+//A wrapper around 'ar' adding the appropriate '--plugin' option
+// for the GCC compiler
+CMAKE_ASM_COMPILER_AR:FILEPATH=/usr/bin/gcc-ar
+
+//A wrapper around 'ranlib' adding the appropriate '--plugin' option
+// for the GCC compiler
+CMAKE_ASM_COMPILER_RANLIB:FILEPATH=/usr/bin/gcc-ranlib
+
+//Flags used by the ASM compiler during all build types.
+CMAKE_ASM_FLAGS:STRING=
+
+//Flags used by the ASM compiler during DEBUG builds.
+CMAKE_ASM_FLAGS_DEBUG:STRING=-g
+
+//Flags used by the ASM compiler during MINSIZEREL builds.
+CMAKE_ASM_FLAGS_MINSIZEREL:STRING=-Os -DNDEBUG
+
+//Flags used by the ASM compiler during RELEASE builds.
+CMAKE_ASM_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
+
+//Flags used by the ASM compiler during RELWITHDEBINFO builds.
+CMAKE_ASM_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
+
+//Build type
+CMAKE_BUILD_TYPE:STRING=RelWithDebInfo
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
@@ -199,13 +236,13 @@ CMAKE_OBJCOPY:FILEPATH=/usr/bin/objcopy
 CMAKE_OBJDUMP:FILEPATH=/usr/bin/objdump
 
 //Value Computed by CMake
-CMAKE_PROJECT_DESCRIPTION:STATIC=Medorcoin core sources
+CMAKE_PROJECT_DESCRIPTION:STATIC=MedorCoin blockchain node
 
 //Value Computed by CMake
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=Medorcoin
+CMAKE_PROJECT_NAME:STATIC=MedorCoin
 
 //Value Computed by CMake
 CMAKE_PROJECT_VERSION:STATIC=0.1.0
@@ -287,10 +324,61 @@ CMAKE_TAPI:FILEPATH=CMAKE_TAPI-NOTFOUND
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
+//Enable to build Debian packages
+CPACK_BINARY_DEB:BOOL=OFF
+
+//Enable to build FreeBSD packages
+CPACK_BINARY_FREEBSD:BOOL=OFF
+
+//Enable to build IFW packages
+CPACK_BINARY_IFW:BOOL=OFF
+
+//Enable to build NSIS packages
+CPACK_BINARY_NSIS:BOOL=OFF
+
+//Enable to build RPM packages
+CPACK_BINARY_RPM:BOOL=OFF
+
+//Enable to build STGZ packages
+CPACK_BINARY_STGZ:BOOL=ON
+
+//Enable to build TBZ2 packages
+CPACK_BINARY_TBZ2:BOOL=OFF
+
+//Enable to build TGZ packages
+CPACK_BINARY_TGZ:BOOL=ON
+
+//Enable to build TXZ packages
+CPACK_BINARY_TXZ:BOOL=OFF
+
+//Enable to build TZ packages
+CPACK_BINARY_TZ:BOOL=ON
+
+//Enable to build RPM source packages
+CPACK_SOURCE_RPM:BOOL=OFF
+
+//Enable to build TBZ2 source packages
+CPACK_SOURCE_TBZ2:BOOL=ON
+
+//Enable to build TGZ source packages
+CPACK_SOURCE_TGZ:BOOL=ON
+
+//Enable to build TXZ source packages
+CPACK_SOURCE_TXZ:BOOL=ON
+
+//Enable to build TZ source packages
+CPACK_SOURCE_TZ:BOOL=ON
+
+//Enable to build ZIP source packages
+CPACK_SOURCE_ZIP:BOOL=OFF
+
+//Build with stall notifications
+DISABLE_STALL_NOTIF:BOOL=OFF
+
 //Enable AddressSanitizer
 ENABLE_ASAN:BOOL=ON
 
-//Enable coverage instrumentation (GCC/Clang)
+//Enable coverage instrumentation
 ENABLE_COVERAGE:BOOL=OFF
 
 //Enable UBSanitizer
@@ -298,6 +386,36 @@ ENABLE_UBSAN:BOOL=ON
 
 //Enable extra compiler warnings
 ENABLE_WARNINGS:BOOL=ON
+
+//Treat compile warnings as errors
+FAIL_ON_WARNINGS:BOOL=OFF
+
+//Use gflags import target with namespace.
+GFLAGS_USE_TARGET_NAMESPACE:BOOL=ON
+
+//Git command line client
+GIT_EXECUTABLE:FILEPATH=/usr/local/bin/git
+
+//Path to a file.
+JeMalloc_INCLUDE_DIRS:PATH=/usr/include
+
+//Path to a library.
+JeMalloc_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/libjemalloc.so
+
+//Path to a file.
+LEVELDB_INCLUDE:PATH=/usr/include
+
+//Path to a library.
+LEVELDB_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libleveldb.so
+
+//Value Computed by CMake
+MedorCoin_BINARY_DIR:STATIC=/workspaces/MedorCoin-Blockchain/build
+
+//Value Computed by CMake
+MedorCoin_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+MedorCoin_SOURCE_DIR:STATIC=/workspaces/MedorCoin-Blockchain
 
 //Value Computed by CMake
 MedorcoinSrc_BINARY_DIR:STATIC=/workspaces/MedorCoin-Blockchain/build/src
@@ -326,13 +444,18 @@ OPENSSL_INCLUDE_DIR:PATH=/usr/include
 //Path to a library.
 OPENSSL_SSL_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libssl.so
 
+//Build optimized debug build with MSVC
+OPTDBG:BOOL=OFF
+
 //Arguments to supply to pkg-config
 PKG_CONFIG_ARGN:STRING=
 
 //pkg-config executable
 PKG_CONFIG_EXECUTABLE:FILEPATH=/usr/bin/pkg-config
 
-//Build RocksDB shared library
+PORTABLE:BOOL=ON
+
+//Build shared versions of the RocksDB libraries
 ROCKSDB_BUILD_SHARED:BOOL=OFF
 
 //Disable rocksdb tests
@@ -340,6 +463,106 @@ ROCKSDB_BUILD_TESTS:BOOL=OFF
 
 //Disable install for embedded build
 ROCKSDB_INSTALL:BOOL=OFF
+
+//Path to a file.
+SECP256K1_INCLUDE:PATH=/usr/include
+
+//Path to a library.
+SECP256K1_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libsecp256k1.so
+
+//The directory containing a CMake configuration file for Snappy.
+Snappy_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/Snappy
+
+USE_RTTI:BOOL=ON
+
+//Accelerate build speed and reduce build artifect size for github
+// CI with MSVC
+WIN_CI:BOOL=OFF
+
+//Build all test, rather than a small subset
+WITH_ALL_TESTS:BOOL=ON
+
+//build with ASAN
+WITH_ASAN:BOOL=OFF
+
+//build benchmark tests
+WITH_BENCHMARK:BOOL=OFF
+
+//build with benchmarks
+WITH_BENCHMARK_TOOLS:BOOL=OFF
+
+//build with bzip2
+WITH_BZ2:BOOL=ON
+
+//build with ldb and sst_dump
+WITH_CORE_TOOLS:BOOL=ON
+
+//build with dynamic extension support
+WITH_DYNAMIC_EXTENSION:BOOL=OFF
+
+//build with examples
+WITH_EXAMPLES:BOOL=OFF
+
+//build with fallocate
+WITH_FALLOCATE:BOOL=ON
+
+//build with GFlags
+WITH_GFLAGS:BOOL=ON
+
+//Enable IO stats context
+WITH_IOSTATS_CONTEXT:BOOL=ON
+
+//build with JeMalloc
+WITH_JEMALLOC:BOOL=ON
+
+//build with JNI
+WITH_JNI:BOOL=OFF
+
+//build with liburing
+WITH_LIBURING:BOOL=ON
+
+//build with lz4
+WITH_LZ4:BOOL=ON
+
+//build with MD
+WITH_MD_LIBRARY:BOOL=ON
+
+//build with NUMA policy support
+WITH_NUMA:BOOL=OFF
+
+//Enable perf context
+WITH_PERF_CONTEXT:BOOL=ON
+
+//build with debug version of runtime library
+WITH_RUNTIME_DEBUG:BOOL=ON
+
+//build with SNAPPY
+WITH_SNAPPY:BOOL=ON
+
+//build with Threading Building Blocks (TBB)
+WITH_TBB:BOOL=OFF
+
+//build with tools
+WITH_TOOLS:BOOL=ON
+
+//build with trace tools
+WITH_TRACE_TOOLS:BOOL=ON
+
+//build with TSAN
+WITH_TSAN:BOOL=OFF
+
+//build with UBSAN
+WITH_UBSAN:BOOL=OFF
+
+//use UTF8 as characterset for opening files, regardles of the
+// system code page
+WITH_WINDOWS_UTF8_FILENAMES:BOOL=OFF
+
+//build with zlib
+WITH_ZLIB:BOOL=ON
+
+//build with zstd
+WITH_ZSTD:BOOL=ON
 
 //Path to a file.
 ZLIB_INCLUDE_DIR:PATH=/usr/include
@@ -350,6 +573,27 @@ ZLIB_LIBRARY_DEBUG:FILEPATH=ZLIB_LIBRARY_DEBUG-NOTFOUND
 //Path to a library.
 ZLIB_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libz.so
 
+//The directory containing a CMake configuration file for evmc.
+evmc_DIR:PATH=evmc_DIR-NOTFOUND
+
+//The directory containing a CMake configuration file for gflags.
+gflags_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/gflags
+
+//Path to a file.
+lz4_INCLUDE_DIRS:PATH=/usr/include
+
+//Path to a library.
+lz4_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/liblz4.so
+
+//The directory containing a CMake configuration file for nlohmann_json.
+nlohmann_json_DIR:PATH=/opt/conda/share/cmake/nlohmann_json
+
+//Path to a library.
+pkgcfg_lib_JEMALLOC_jemalloc:FILEPATH=/usr/lib/x86_64-linux-gnu/libjemalloc.so
+
+//Path to a library.
+pkgcfg_lib_LZ4_lz4:FILEPATH=/usr/lib/x86_64-linux-gnu/liblz4.so
+
 //Path to a library.
 pkgcfg_lib_ROCKSDB_rocksdb:FILEPATH=/usr/lib/x86_64-linux-gnu/librocksdb.so
 
@@ -357,16 +601,39 @@ pkgcfg_lib_ROCKSDB_rocksdb:FILEPATH=/usr/lib/x86_64-linux-gnu/librocksdb.so
 pkgcfg_lib_SECP256K1_secp256k1:FILEPATH=/usr/lib/x86_64-linux-gnu/libsecp256k1.so
 
 //Path to a library.
+pkgcfg_lib_SNAPPY_snappy:FILEPATH=/usr/lib/x86_64-linux-gnu/libsnappy.so
+
+//Path to a library.
+pkgcfg_lib_ZSTD_zstd:FILEPATH=/usr/lib/x86_64-linux-gnu/libzstd.so
+
+//Path to a library.
 pkgcfg_lib__OPENSSL_crypto:FILEPATH=/usr/lib/x86_64-linux-gnu/libcrypto.so
 
 //Path to a library.
 pkgcfg_lib__OPENSSL_ssl:FILEPATH=/usr/lib/x86_64-linux-gnu/libssl.so
+
+//Value Computed by CMake
+rocksdb_BINARY_DIR:STATIC=/workspaces/MedorCoin-Blockchain/build/src/rocksdb_build
+
+//Value Computed by CMake
+rocksdb_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+rocksdb_SOURCE_DIR:STATIC=/workspaces/MedorCoin-Blockchain/src/rocksdb
+
+//Path to a file.
+uring_INCLUDE_DIR:PATH=/usr/include
+
+//Path to a library.
+uring_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/liburing.a
 
 
 ########################
 # INTERNAL cache entries
 ########################
 
+//Test BUILTIN_ATOMIC
+BUILTIN_ATOMIC:INTERNAL=1
 //ADVANCED property for variable: BZIP2_INCLUDE_DIR
 BZIP2_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: BZIP2_LIBRARY_DEBUG
@@ -379,6 +646,25 @@ BZIP2_NEED_PREFIX:INTERNAL=1
 CMAKE_ADDR2LINE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_AR
 CMAKE_AR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_ASM_COMPILER
+CMAKE_ASM_COMPILER-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_ASM_COMPILER_AR
+CMAKE_ASM_COMPILER_AR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_ASM_COMPILER_RANLIB
+CMAKE_ASM_COMPILER_RANLIB-ADVANCED:INTERNAL=1
+CMAKE_ASM_COMPILER_WORKS:INTERNAL=1
+//ADVANCED property for variable: CMAKE_ASM_FLAGS
+CMAKE_ASM_FLAGS-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_ASM_FLAGS_DEBUG
+CMAKE_ASM_FLAGS_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_ASM_FLAGS_MINSIZEREL
+CMAKE_ASM_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_ASM_FLAGS_RELEASE
+CMAKE_ASM_FLAGS_RELEASE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_ASM_FLAGS_RELWITHDEBINFO
+CMAKE_ASM_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
+//STRINGS property for variable: CMAKE_BUILD_TYPE
+CMAKE_BUILD_TYPE-STRINGS:INTERNAL=Debug;Release;RelWithDebInfo;MinSizeRel
 //This is the directory where this CMakeCache.txt was created
 CMAKE_CACHEFILE_DIR:INTERNAL=/workspaces/MedorCoin-Blockchain/build
 //Major version of cmake used to create the current loaded cache
@@ -509,7 +795,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=2
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=5
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -554,12 +840,150 @@ CMAKE_TAPI-ADVANCED:INTERNAL=1
 CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_BINARY_DEB
+CPACK_BINARY_DEB-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_BINARY_FREEBSD
+CPACK_BINARY_FREEBSD-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_BINARY_IFW
+CPACK_BINARY_IFW-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_BINARY_NSIS
+CPACK_BINARY_NSIS-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_BINARY_RPM
+CPACK_BINARY_RPM-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_BINARY_STGZ
+CPACK_BINARY_STGZ-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_BINARY_TBZ2
+CPACK_BINARY_TBZ2-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_BINARY_TGZ
+CPACK_BINARY_TGZ-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_BINARY_TXZ
+CPACK_BINARY_TXZ-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_BINARY_TZ
+CPACK_BINARY_TZ-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_SOURCE_RPM
+CPACK_SOURCE_RPM-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_SOURCE_TBZ2
+CPACK_SOURCE_TBZ2-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_SOURCE_TGZ
+CPACK_SOURCE_TGZ-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_SOURCE_TXZ
+CPACK_SOURCE_TXZ-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_SOURCE_TZ
+CPACK_SOURCE_TZ-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CPACK_SOURCE_ZIP
+CPACK_SOURCE_ZIP-ADVANCED:INTERNAL=1
+//Details about finding BZip2
+FIND_PACKAGE_MESSAGE_DETAILS_BZip2:INTERNAL=[/usr/lib/x86_64-linux-gnu/libbz2.so][/usr/include][v1.0.8()]
+//Details about finding Git
+FIND_PACKAGE_MESSAGE_DETAILS_Git:INTERNAL=[/usr/local/bin/git][v2.52.0()]
+//Details about finding JeMalloc
+FIND_PACKAGE_MESSAGE_DETAILS_JeMalloc:INTERNAL=[/usr/lib/x86_64-linux-gnu/libjemalloc.so][/usr/include][v()]
 //Details about finding OpenSSL
 FIND_PACKAGE_MESSAGE_DETAILS_OpenSSL:INTERNAL=[/usr/lib/x86_64-linux-gnu/libcrypto.so][/usr/include][c ][v3.0.13()]
 //Details about finding PkgConfig
 FIND_PACKAGE_MESSAGE_DETAILS_PkgConfig:INTERNAL=[/usr/bin/pkg-config][v1.8.1()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
+//Details about finding ZLIB
+FIND_PACKAGE_MESSAGE_DETAILS_ZLIB:INTERNAL=[/usr/lib/x86_64-linux-gnu/libz.so][/usr/include][c ][v1.3()]
+//Details about finding lz4
+FIND_PACKAGE_MESSAGE_DETAILS_lz4:INTERNAL=[/usr/lib/x86_64-linux-gnu/liblz4.so][/usr/include][v()]
+//Details about finding uring
+FIND_PACKAGE_MESSAGE_DETAILS_uring:INTERNAL=[/usr/lib/x86_64-linux-gnu/liburing.a][/usr/include][v()]
+//Details about finding zstd
+FIND_PACKAGE_MESSAGE_DETAILS_zstd:INTERNAL=[zstd][/usr/include][v()]
+//ADVANCED property for variable: GIT_EXECUTABLE
+GIT_EXECUTABLE-ADVANCED:INTERNAL=1
+//Have symbol getauxval
+HAVE_AUXV_GETAUXVAL:INTERNAL=1
+//Test HAVE_FALLOCATE
+HAVE_FALLOCATE:INTERNAL=1
+//Have symbol F_FULLFSYNC
+HAVE_FULLFSYNC:INTERNAL=
+//Have symbol malloc_usable_size
+HAVE_MALLOC_USABLE_SIZE:INTERNAL=1
+//Test HAVE_OMIT_LEAF_FRAME_POINTER
+HAVE_OMIT_LEAF_FRAME_POINTER:INTERNAL=1
+//Test HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
+HAVE_PTHREAD_MUTEX_ADAPTIVE_NP:INTERNAL=1
+//Have symbol sched_getcpu
+HAVE_SCHED_GETCPU:INTERNAL=1
+//Test HAVE_SYNC_FILE_RANGE_WRITE
+HAVE_SYNC_FILE_RANGE_WRITE:INTERNAL=1
+JEMALLOC_CFLAGS:INTERNAL=-I/usr/include
+JEMALLOC_CFLAGS_I:INTERNAL=
+JEMALLOC_CFLAGS_OTHER:INTERNAL=
+JEMALLOC_FOUND:INTERNAL=1
+JEMALLOC_INCLUDEDIR:INTERNAL=/usr/include
+JEMALLOC_INCLUDE_DIRS:INTERNAL=/usr/include
+JEMALLOC_LDFLAGS:INTERNAL=-L/usr/lib/x86_64-linux-gnu;-ljemalloc
+JEMALLOC_LDFLAGS_OTHER:INTERNAL=
+JEMALLOC_LIBDIR:INTERNAL=/usr/lib/x86_64-linux-gnu
+JEMALLOC_LIBRARIES:INTERNAL=jemalloc
+JEMALLOC_LIBRARY_DIRS:INTERNAL=/usr/lib/x86_64-linux-gnu
+JEMALLOC_LIBS:INTERNAL=
+JEMALLOC_LIBS_L:INTERNAL=
+JEMALLOC_LIBS_OTHER:INTERNAL=
+JEMALLOC_LIBS_PATHS:INTERNAL=
+JEMALLOC_MODULE_NAME:INTERNAL=jemalloc
+JEMALLOC_PREFIX:INTERNAL=/usr
+JEMALLOC_STATIC_CFLAGS:INTERNAL=-I/usr/include
+JEMALLOC_STATIC_CFLAGS_I:INTERNAL=
+JEMALLOC_STATIC_CFLAGS_OTHER:INTERNAL=
+JEMALLOC_STATIC_INCLUDE_DIRS:INTERNAL=/usr/include
+JEMALLOC_STATIC_LDFLAGS:INTERNAL=-L/usr/lib/x86_64-linux-gnu;-ljemalloc
+JEMALLOC_STATIC_LDFLAGS_OTHER:INTERNAL=
+JEMALLOC_STATIC_LIBDIR:INTERNAL=
+JEMALLOC_STATIC_LIBRARIES:INTERNAL=jemalloc
+JEMALLOC_STATIC_LIBRARY_DIRS:INTERNAL=/usr/lib/x86_64-linux-gnu
+JEMALLOC_STATIC_LIBS:INTERNAL=
+JEMALLOC_STATIC_LIBS_L:INTERNAL=
+JEMALLOC_STATIC_LIBS_OTHER:INTERNAL=
+JEMALLOC_STATIC_LIBS_PATHS:INTERNAL=
+JEMALLOC_VERSION:INTERNAL=5.3.0_0
+JEMALLOC_jemalloc_INCLUDEDIR:INTERNAL=
+JEMALLOC_jemalloc_LIBDIR:INTERNAL=
+JEMALLOC_jemalloc_PREFIX:INTERNAL=
+JEMALLOC_jemalloc_VERSION:INTERNAL=
+//ADVANCED property for variable: JeMalloc_INCLUDE_DIRS
+JeMalloc_INCLUDE_DIRS-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: JeMalloc_LIBRARIES
+JeMalloc_LIBRARIES-ADVANCED:INTERNAL=1
+LZ4_CFLAGS:INTERNAL=-I/usr/include
+LZ4_CFLAGS_I:INTERNAL=
+LZ4_CFLAGS_OTHER:INTERNAL=
+LZ4_FOUND:INTERNAL=1
+LZ4_INCLUDEDIR:INTERNAL=/usr/include
+LZ4_INCLUDE_DIRS:INTERNAL=/usr/include
+LZ4_LDFLAGS:INTERNAL=-L/usr/lib/x86_64-linux-gnu;-llz4
+LZ4_LDFLAGS_OTHER:INTERNAL=
+LZ4_LIBDIR:INTERNAL=/usr/lib/x86_64-linux-gnu
+LZ4_LIBRARIES:INTERNAL=lz4
+LZ4_LIBRARY_DIRS:INTERNAL=/usr/lib/x86_64-linux-gnu
+LZ4_LIBS:INTERNAL=
+LZ4_LIBS_L:INTERNAL=
+LZ4_LIBS_OTHER:INTERNAL=
+LZ4_LIBS_PATHS:INTERNAL=
+LZ4_MODULE_NAME:INTERNAL=liblz4
+LZ4_PREFIX:INTERNAL=/usr
+LZ4_STATIC_CFLAGS:INTERNAL=-I/usr/include
+LZ4_STATIC_CFLAGS_I:INTERNAL=
+LZ4_STATIC_CFLAGS_OTHER:INTERNAL=
+LZ4_STATIC_INCLUDE_DIRS:INTERNAL=/usr/include
+LZ4_STATIC_LDFLAGS:INTERNAL=-L/usr/lib/x86_64-linux-gnu;-llz4
+LZ4_STATIC_LDFLAGS_OTHER:INTERNAL=
+LZ4_STATIC_LIBDIR:INTERNAL=
+LZ4_STATIC_LIBRARIES:INTERNAL=lz4
+LZ4_STATIC_LIBRARY_DIRS:INTERNAL=/usr/lib/x86_64-linux-gnu
+LZ4_STATIC_LIBS:INTERNAL=
+LZ4_STATIC_LIBS_L:INTERNAL=
+LZ4_STATIC_LIBS_OTHER:INTERNAL=
+LZ4_STATIC_LIBS_PATHS:INTERNAL=
+LZ4_VERSION:INTERNAL=1.9.4
+LZ4_liblz4_INCLUDEDIR:INTERNAL=
+LZ4_liblz4_LIBDIR:INTERNAL=
+LZ4_liblz4_PREFIX:INTERNAL=
+LZ4_liblz4_VERSION:INTERNAL=
 //ADVANCED property for variable: OPENSSL_CRYPTO_LIBRARY
 OPENSSL_CRYPTO_LIBRARY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: OPENSSL_INCLUDE_DIR
@@ -640,12 +1064,90 @@ SECP256K1_libsecp256k1_INCLUDEDIR:INTERNAL=
 SECP256K1_libsecp256k1_LIBDIR:INTERNAL=
 SECP256K1_libsecp256k1_PREFIX:INTERNAL=
 SECP256K1_libsecp256k1_VERSION:INTERNAL=
+SNAPPY_CFLAGS:INTERNAL=-I/usr/include
+SNAPPY_CFLAGS_I:INTERNAL=
+SNAPPY_CFLAGS_OTHER:INTERNAL=
+SNAPPY_FOUND:INTERNAL=1
+SNAPPY_INCLUDEDIR:INTERNAL=/usr/include
+SNAPPY_INCLUDE_DIRS:INTERNAL=/usr/include
+SNAPPY_LDFLAGS:INTERNAL=-L/usr/lib/x86_64-linux-gnu;-lsnappy
+SNAPPY_LDFLAGS_OTHER:INTERNAL=
+SNAPPY_LIBDIR:INTERNAL=/usr/lib/x86_64-linux-gnu
+SNAPPY_LIBRARIES:INTERNAL=snappy
+SNAPPY_LIBRARY_DIRS:INTERNAL=/usr/lib/x86_64-linux-gnu
+SNAPPY_LIBS:INTERNAL=
+SNAPPY_LIBS_L:INTERNAL=
+SNAPPY_LIBS_OTHER:INTERNAL=
+SNAPPY_LIBS_PATHS:INTERNAL=
+SNAPPY_MODULE_NAME:INTERNAL=snappy
+SNAPPY_PREFIX:INTERNAL=/usr
+SNAPPY_STATIC_CFLAGS:INTERNAL=-I/usr/include
+SNAPPY_STATIC_CFLAGS_I:INTERNAL=
+SNAPPY_STATIC_CFLAGS_OTHER:INTERNAL=
+SNAPPY_STATIC_INCLUDE_DIRS:INTERNAL=/usr/include
+SNAPPY_STATIC_LDFLAGS:INTERNAL=-L/usr/lib/x86_64-linux-gnu;-lsnappy
+SNAPPY_STATIC_LDFLAGS_OTHER:INTERNAL=
+SNAPPY_STATIC_LIBDIR:INTERNAL=
+SNAPPY_STATIC_LIBRARIES:INTERNAL=snappy
+SNAPPY_STATIC_LIBRARY_DIRS:INTERNAL=/usr/lib/x86_64-linux-gnu
+SNAPPY_STATIC_LIBS:INTERNAL=
+SNAPPY_STATIC_LIBS_L:INTERNAL=
+SNAPPY_STATIC_LIBS_OTHER:INTERNAL=
+SNAPPY_STATIC_LIBS_PATHS:INTERNAL=
+SNAPPY_VERSION:INTERNAL=1.1.10
+SNAPPY_snappy_INCLUDEDIR:INTERNAL=
+SNAPPY_snappy_LIBDIR:INTERNAL=
+SNAPPY_snappy_PREFIX:INTERNAL=
+SNAPPY_snappy_VERSION:INTERNAL=
+//STRINGS property for variable: USE_RTTI
+USE_RTTI-STRINGS:INTERNAL=AUTO;ON;OFF
+//build with tests
+WITH_TESTS:INTERNAL=OFF
 //ADVANCED property for variable: ZLIB_INCLUDE_DIR
 ZLIB_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: ZLIB_LIBRARY_DEBUG
 ZLIB_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: ZLIB_LIBRARY_RELEASE
 ZLIB_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
+ZSTD_CFLAGS:INTERNAL=-I/usr/include
+ZSTD_CFLAGS_I:INTERNAL=
+ZSTD_CFLAGS_OTHER:INTERNAL=
+ZSTD_FOUND:INTERNAL=1
+ZSTD_INCLUDEDIR:INTERNAL=/usr/include
+//ADVANCED property for variable: ZSTD_INCLUDE_DIRS
+ZSTD_INCLUDE_DIRS-ADVANCED:INTERNAL=1
+ZSTD_INCLUDE_DIRS:INTERNAL=/usr/include
+ZSTD_LDFLAGS:INTERNAL=-L/usr/lib;-lzstd
+ZSTD_LDFLAGS_OTHER:INTERNAL=
+ZSTD_LIBDIR:INTERNAL=/usr/lib
+//ADVANCED property for variable: ZSTD_LIBRARIES
+ZSTD_LIBRARIES-ADVANCED:INTERNAL=1
+ZSTD_LIBRARIES:INTERNAL=zstd
+ZSTD_LIBRARY_DIRS:INTERNAL=/usr/lib
+ZSTD_LIBS:INTERNAL=
+ZSTD_LIBS_L:INTERNAL=
+ZSTD_LIBS_OTHER:INTERNAL=
+ZSTD_LIBS_PATHS:INTERNAL=
+ZSTD_MODULE_NAME:INTERNAL=libzstd
+ZSTD_PREFIX:INTERNAL=/usr
+ZSTD_STATIC_CFLAGS:INTERNAL=-I/usr/include
+ZSTD_STATIC_CFLAGS_I:INTERNAL=
+ZSTD_STATIC_CFLAGS_OTHER:INTERNAL=
+ZSTD_STATIC_INCLUDE_DIRS:INTERNAL=/usr/include
+ZSTD_STATIC_LDFLAGS:INTERNAL=-L/usr/lib;-lzstd;-pthread
+ZSTD_STATIC_LDFLAGS_OTHER:INTERNAL=-pthread
+ZSTD_STATIC_LIBDIR:INTERNAL=
+ZSTD_STATIC_LIBRARIES:INTERNAL=zstd
+ZSTD_STATIC_LIBRARY_DIRS:INTERNAL=/usr/lib
+ZSTD_STATIC_LIBS:INTERNAL=
+ZSTD_STATIC_LIBS_L:INTERNAL=
+ZSTD_STATIC_LIBS_OTHER:INTERNAL=
+ZSTD_STATIC_LIBS_PATHS:INTERNAL=
+ZSTD_VERSION:INTERNAL=1.5.5
+ZSTD_libzstd_INCLUDEDIR:INTERNAL=
+ZSTD_libzstd_LIBDIR:INTERNAL=
+ZSTD_libzstd_PREFIX:INTERNAL=
+ZSTD_libzstd_VERSION:INTERNAL=
 //linker supports push/pop state
 _CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED:INTERNAL=TRUE
 //CMAKE_INSTALL_PREFIX during last run
@@ -685,19 +1187,43 @@ _OPENSSL_openssl_INCLUDEDIR:INTERNAL=
 _OPENSSL_openssl_LIBDIR:INTERNAL=
 _OPENSSL_openssl_PREFIX:INTERNAL=
 _OPENSSL_openssl_VERSION:INTERNAL=
+__pkg_config_arguments_JEMALLOC:INTERNAL=QUIET;jemalloc
+__pkg_config_arguments_LZ4:INTERNAL=QUIET;liblz4
 __pkg_config_arguments_ROCKSDB:INTERNAL=REQUIRED;rocksdb
 __pkg_config_arguments_SECP256K1:INTERNAL=REQUIRED;libsecp256k1
+__pkg_config_arguments_SNAPPY:INTERNAL=QUIET;snappy
+__pkg_config_arguments_ZSTD:INTERNAL=QUIET;libzstd
 __pkg_config_arguments__OPENSSL:INTERNAL=QUIET;openssl
+__pkg_config_checked_JEMALLOC:INTERNAL=1
+__pkg_config_checked_LZ4:INTERNAL=1
 __pkg_config_checked_ROCKSDB:INTERNAL=1
 __pkg_config_checked_SECP256K1:INTERNAL=1
+__pkg_config_checked_SNAPPY:INTERNAL=1
+__pkg_config_checked_ZSTD:INTERNAL=1
 __pkg_config_checked__OPENSSL:INTERNAL=1
+//ADVANCED property for variable: lz4_INCLUDE_DIRS
+lz4_INCLUDE_DIRS-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: lz4_LIBRARIES
+lz4_LIBRARIES-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: pkgcfg_lib_JEMALLOC_jemalloc
+pkgcfg_lib_JEMALLOC_jemalloc-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: pkgcfg_lib_LZ4_lz4
+pkgcfg_lib_LZ4_lz4-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib_ROCKSDB_rocksdb
 pkgcfg_lib_ROCKSDB_rocksdb-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib_SECP256K1_secp256k1
 pkgcfg_lib_SECP256K1_secp256k1-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: pkgcfg_lib_SNAPPY_snappy
+pkgcfg_lib_SNAPPY_snappy-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: pkgcfg_lib_ZSTD_zstd
+pkgcfg_lib_ZSTD_zstd-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib__OPENSSL_crypto
 pkgcfg_lib__OPENSSL_crypto-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib__OPENSSL_ssl
 pkgcfg_lib__OPENSSL_ssl-ADVANCED:INTERNAL=1
 prefix_result:INTERNAL=/usr/lib/x86_64-linux-gnu
+//ADVANCED property for variable: uring_INCLUDE_DIR
+uring_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: uring_LIBRARIES
+uring_LIBRARIES-ADVANCED:INTERNAL=1
 

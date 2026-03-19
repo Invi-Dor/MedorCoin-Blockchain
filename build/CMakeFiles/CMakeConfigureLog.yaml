@@ -594,3 +594,321 @@ events:
         
       exitCode: 0
 ...
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1131 (message)"
+      - "/usr/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "src/rocksdb/CMakeLists.txt:41 (project)"
+    message: |
+      Checking whether the ASM compiler is GNU using "--version" matched "(GNU assembler)|(GCC)|(Free Software Foundation)":
+      cc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
+      Copyright (C) 2023 Free Software Foundation, Inc.
+      This is free software; see the source for copying conditions.  There is NO
+      warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/usr/share/cmake-3.28/Modules/CheckCXXCompilerFlag.cmake:34 (cmake_check_compiler_flag)"
+      - "src/rocksdb/CMakeLists.txt:240 (CHECK_CXX_COMPILER_FLAG)"
+    checks:
+      - "Performing Test HAVE_OMIT_LEAF_FRAME_POINTER"
+    directories:
+      source: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-LHgkvD"
+      binary: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-LHgkvD"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer"
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/workspaces/MedorCoin-Blockchain/src/rocksdb/cmake/modules/"
+    buildResult:
+      variable: "HAVE_OMIT_LEAF_FRAME_POINTER"
+      cached: true
+      stdout: |
+        Change Dir: '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-LHgkvD'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_51b13/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_51b13.dir/build.make CMakeFiles/cmTC_51b13.dir/build
+        gmake[1]: Entering directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-LHgkvD'
+        Building CXX object CMakeFiles/cmTC_51b13.dir/src.cxx.o
+        /usr/bin/c++ -DHAVE_OMIT_LEAF_FRAME_POINTER  -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer  -std=c++20   -momit-leaf-frame-pointer -o CMakeFiles/cmTC_51b13.dir/src.cxx.o -c /workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-LHgkvD/src.cxx
+        Linking CXX executable cmTC_51b13
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_51b13.dir/link.txt --verbose=1
+        /usr/bin/c++  -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer  CMakeFiles/cmTC_51b13.dir/src.cxx.o -o cmTC_51b13 
+        gmake[1]: Leaving directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-LHgkvD'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/CheckCXXSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "src/rocksdb/CMakeLists.txt:334 (CHECK_CXX_SOURCE_COMPILES)"
+    checks:
+      - "Performing Test BUILTIN_ATOMIC"
+    directories:
+      source: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-sclUSN"
+      binary: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-sclUSN"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer"
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/workspaces/MedorCoin-Blockchain/src/rocksdb/cmake/modules/"
+    buildResult:
+      variable: "BUILTIN_ATOMIC"
+      cached: true
+      stdout: |
+        Change Dir: '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-sclUSN'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_b2dea/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_b2dea.dir/build.make CMakeFiles/cmTC_b2dea.dir/build
+        gmake[1]: Entering directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-sclUSN'
+        Building CXX object CMakeFiles/cmTC_b2dea.dir/src.cxx.o
+        /usr/bin/c++ -DBUILTIN_ATOMIC  -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -msse4.2 -mpclmul -std=c++20 -o CMakeFiles/cmTC_b2dea.dir/src.cxx.o -c /workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-sclUSN/src.cxx
+        Linking CXX executable cmTC_b2dea
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b2dea.dir/link.txt --verbose=1
+        /usr/bin/c++  -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -msse4.2 -mpclmul CMakeFiles/cmTC_b2dea.dir/src.cxx.o -o cmTC_b2dea 
+        gmake[1]: Leaving directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-sclUSN'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/CheckCXXSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "src/rocksdb/CMakeLists.txt:545 (CHECK_CXX_SOURCE_COMPILES)"
+    checks:
+      - "Performing Test HAVE_FALLOCATE"
+    directories:
+      source: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-J7aHca"
+      binary: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-J7aHca"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -DROCKSDB_USE_RTTI"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/workspaces/MedorCoin-Blockchain/src/rocksdb/cmake/modules/"
+    buildResult:
+      variable: "HAVE_FALLOCATE"
+      cached: true
+      stdout: |
+        Change Dir: '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-J7aHca'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_ff1f9/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_ff1f9.dir/build.make CMakeFiles/cmTC_ff1f9.dir/build
+        gmake[1]: Entering directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-J7aHca'
+        Building CXX object CMakeFiles/cmTC_ff1f9.dir/src.cxx.o
+        /usr/bin/c++ -DHAVE_FALLOCATE  -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp  -std=c++20 -o CMakeFiles/cmTC_ff1f9.dir/src.cxx.o -c /workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-J7aHca/src.cxx
+        Linking CXX executable cmTC_ff1f9
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ff1f9.dir/link.txt --verbose=1
+        /usr/bin/c++  -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp  CMakeFiles/cmTC_ff1f9.dir/src.cxx.o -o cmTC_ff1f9 
+        gmake[1]: Leaving directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-J7aHca'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/CheckCXXSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "src/rocksdb/CMakeLists.txt:558 (CHECK_CXX_SOURCE_COMPILES)"
+    checks:
+      - "Performing Test HAVE_SYNC_FILE_RANGE_WRITE"
+    directories:
+      source: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-JBBnlo"
+      binary: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-JBBnlo"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -DROCKSDB_USE_RTTI"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/workspaces/MedorCoin-Blockchain/src/rocksdb/cmake/modules/"
+    buildResult:
+      variable: "HAVE_SYNC_FILE_RANGE_WRITE"
+      cached: true
+      stdout: |
+        Change Dir: '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-JBBnlo'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_c212a/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_c212a.dir/build.make CMakeFiles/cmTC_c212a.dir/build
+        gmake[1]: Entering directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-JBBnlo'
+        Building CXX object CMakeFiles/cmTC_c212a.dir/src.cxx.o
+        /usr/bin/c++ -DHAVE_SYNC_FILE_RANGE_WRITE  -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp  -std=c++20 -o CMakeFiles/cmTC_c212a.dir/src.cxx.o -c /workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-JBBnlo/src.cxx
+        Linking CXX executable cmTC_c212a
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c212a.dir/link.txt --verbose=1
+        /usr/bin/c++  -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp  CMakeFiles/cmTC_c212a.dir/src.cxx.o -o cmTC_c212a 
+        gmake[1]: Leaving directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-JBBnlo'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/CheckCXXSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "src/rocksdb/CMakeLists.txt:569 (CHECK_CXX_SOURCE_COMPILES)"
+    checks:
+      - "Performing Test HAVE_PTHREAD_MUTEX_ADAPTIVE_NP"
+    directories:
+      source: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-dRW44l"
+      binary: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-dRW44l"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -DROCKSDB_USE_RTTI"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/workspaces/MedorCoin-Blockchain/src/rocksdb/cmake/modules/"
+    buildResult:
+      variable: "HAVE_PTHREAD_MUTEX_ADAPTIVE_NP"
+      cached: true
+      stdout: |
+        Change Dir: '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-dRW44l'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_f1cee/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_f1cee.dir/build.make CMakeFiles/cmTC_f1cee.dir/build
+        gmake[1]: Entering directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-dRW44l'
+        Building CXX object CMakeFiles/cmTC_f1cee.dir/src.cxx.o
+        /usr/bin/c++ -DHAVE_PTHREAD_MUTEX_ADAPTIVE_NP  -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp  -std=c++20 -o CMakeFiles/cmTC_f1cee.dir/src.cxx.o -c /workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-dRW44l/src.cxx
+        Linking CXX executable cmTC_f1cee
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f1cee.dir/link.txt --verbose=1
+        /usr/bin/c++  -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp  CMakeFiles/cmTC_f1cee.dir/src.cxx.o -o cmTC_f1cee 
+        gmake[1]: Leaving directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-dRW44l'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/CheckSymbolExists.cmake:140 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/CheckCXXSymbolExists.cmake:72 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "src/rocksdb/CMakeLists.txt:583 (check_cxx_symbol_exists)"
+    checks:
+      - "Looking for malloc_usable_size"
+    directories:
+      source: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-YQX43A"
+      binary: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-YQX43A"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -DROCKSDB_USE_RTTI"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/workspaces/MedorCoin-Blockchain/src/rocksdb/cmake/modules/"
+    buildResult:
+      variable: "HAVE_MALLOC_USABLE_SIZE"
+      cached: true
+      stdout: |
+        Change Dir: '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-YQX43A'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_46a26/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_46a26.dir/build.make CMakeFiles/cmTC_46a26.dir/build
+        gmake[1]: Entering directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-YQX43A'
+        Building CXX object CMakeFiles/cmTC_46a26.dir/CheckSymbolExists.cxx.o
+        /usr/bin/c++   -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp  -std=c++20 -o CMakeFiles/cmTC_46a26.dir/CheckSymbolExists.cxx.o -c /workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-YQX43A/CheckSymbolExists.cxx
+        Linking CXX executable cmTC_46a26
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_46a26.dir/link.txt --verbose=1
+        /usr/bin/c++  -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp  CMakeFiles/cmTC_46a26.dir/CheckSymbolExists.cxx.o -o cmTC_46a26 
+        gmake[1]: Leaving directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-YQX43A'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/CheckSymbolExists.cmake:140 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/CheckCXXSymbolExists.cmake:72 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "src/rocksdb/CMakeLists.txt:589 (check_cxx_symbol_exists)"
+    checks:
+      - "Looking for sched_getcpu"
+    directories:
+      source: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-dZi6IH"
+      binary: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-dZi6IH"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -DROCKSDB_USE_RTTI"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/workspaces/MedorCoin-Blockchain/src/rocksdb/cmake/modules/"
+    buildResult:
+      variable: "HAVE_SCHED_GETCPU"
+      cached: true
+      stdout: |
+        Change Dir: '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-dZi6IH'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_4ccc3/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_4ccc3.dir/build.make CMakeFiles/cmTC_4ccc3.dir/build
+        gmake[1]: Entering directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-dZi6IH'
+        Building CXX object CMakeFiles/cmTC_4ccc3.dir/CheckSymbolExists.cxx.o
+        /usr/bin/c++   -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp  -std=c++20 -o CMakeFiles/cmTC_4ccc3.dir/CheckSymbolExists.cxx.o -c /workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-dZi6IH/CheckSymbolExists.cxx
+        Linking CXX executable cmTC_4ccc3
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_4ccc3.dir/link.txt --verbose=1
+        /usr/bin/c++  -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp  CMakeFiles/cmTC_4ccc3.dir/CheckSymbolExists.cxx.o -o cmTC_4ccc3 
+        gmake[1]: Leaving directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-dZi6IH'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/CheckSymbolExists.cmake:140 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/CheckCXXSymbolExists.cmake:72 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "src/rocksdb/CMakeLists.txt:594 (check_cxx_symbol_exists)"
+    checks:
+      - "Looking for getauxval"
+    directories:
+      source: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-Ktmnth"
+      binary: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-Ktmnth"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -DROCKSDB_USE_RTTI"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/workspaces/MedorCoin-Blockchain/src/rocksdb/cmake/modules/"
+    buildResult:
+      variable: "HAVE_AUXV_GETAUXVAL"
+      cached: true
+      stdout: |
+        Change Dir: '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-Ktmnth'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_72a26/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_72a26.dir/build.make CMakeFiles/cmTC_72a26.dir/build
+        gmake[1]: Entering directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-Ktmnth'
+        Building CXX object CMakeFiles/cmTC_72a26.dir/CheckSymbolExists.cxx.o
+        /usr/bin/c++   -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp  -std=c++20 -o CMakeFiles/cmTC_72a26.dir/CheckSymbolExists.cxx.o -c /workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-Ktmnth/CheckSymbolExists.cxx
+        Linking CXX executable cmTC_72a26
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_72a26.dir/link.txt --verbose=1
+        /usr/bin/c++  -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp  CMakeFiles/cmTC_72a26.dir/CheckSymbolExists.cxx.o -o cmTC_72a26 
+        gmake[1]: Leaving directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-Ktmnth'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/CheckSymbolExists.cmake:140 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/CheckCXXSymbolExists.cmake:72 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "src/rocksdb/CMakeLists.txt:599 (check_cxx_symbol_exists)"
+    checks:
+      - "Looking for F_FULLFSYNC"
+    directories:
+      source: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-ggV5M2"
+      binary: "/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-ggV5M2"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -DROCKSDB_USE_RTTI"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/workspaces/MedorCoin-Blockchain/src/rocksdb/cmake/modules/"
+    buildResult:
+      variable: "HAVE_FULLFSYNC"
+      cached: true
+      stdout: |
+        Change Dir: '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-ggV5M2'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_f2442/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_f2442.dir/build.make CMakeFiles/cmTC_f2442.dir/build
+        gmake[1]: Entering directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-ggV5M2'
+        Building CXX object CMakeFiles/cmTC_f2442.dir/CheckSymbolExists.cxx.o
+        /usr/bin/c++   -W -Wextra -Wall -pthread -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing -Wno-invalid-offsetof -fno-omit-frame-pointer -momit-leaf-frame-pointer -fno-builtin-memcmp  -std=c++20 -o CMakeFiles/cmTC_f2442.dir/CheckSymbolExists.cxx.o -c /workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-ggV5M2/CheckSymbolExists.cxx
+        /workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-ggV5M2/CheckSymbolExists.cxx: In function ‘int main(int, char**)’:
+        /workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-ggV5M2/CheckSymbolExists.cxx:8:19: error: ‘F_FULLFSYNC’ was not declared in this scope
+            8 |   return ((int*)(&F_FULLFSYNC))[argc];
+              |                   ^~~~~~~~~~~
+        gmake[1]: *** [CMakeFiles/cmTC_f2442.dir/build.make:78: CMakeFiles/cmTC_f2442.dir/CheckSymbolExists.cxx.o] Error 1
+        gmake[1]: Leaving directory '/workspaces/MedorCoin-Blockchain/build/CMakeFiles/CMakeScratch/TryCompile-ggV5M2'
+        gmake: *** [Makefile:127: cmTC_f2442/fast] Error 2
+        
+      exitCode: 2
+...
