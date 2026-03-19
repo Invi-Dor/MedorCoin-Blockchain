@@ -10,6 +10,8 @@ struct TxInput {
     int         outputIndex = 0;
 };
 
+// TxOutput is defined here only.
+// utxo.h includes transaction.h instead of redefining TxOutput.
 struct TxOutput {
     uint64_t    value   = 0;
     std::string address;
@@ -26,21 +28,15 @@ public:
     uint64_t             value                = 0;
     std::vector<uint8_t> data;
 
-    // UTXO-style inputs and outputs
     std::vector<TxInput>  inputs;
     std::vector<TxOutput> outputs;
 
-    // Signature fields
     uint64_t                v = 0;
     std::array<uint8_t, 32> r{};
     std::array<uint8_t, 32> s{};
 
-    // Computed transaction hash
     std::string txHash;
 
-    // Returns true on success, false on failure
     bool calculateHash();
-
-    // Validates the transaction fields are internally consistent
     bool isValid() const;
 };
