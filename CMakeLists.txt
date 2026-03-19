@@ -6,6 +6,9 @@ project(MedorCoin
     LANGUAGES C CXX
 )
 
+# =============================================================================
+# AUTO-INSTALL SYSTEM DEPENDENCIES
+# =============================================================================
 find_program(APT_GET apt-get)
 if(APT_GET)
     message(STATUS "Ensuring all system dependencies are installed...")
@@ -28,6 +31,7 @@ if(APT_GET)
             libjemalloc-dev
             liburing-dev
             nlohmann-json3-dev
+            libpoll-dev
         RESULT_VARIABLE APT_RESULT
     )
     if(NOT APT_RESULT EQUAL 0)
@@ -37,6 +41,9 @@ if(APT_GET)
     message(STATUS "System dependencies ready.")
 endif()
 
+# =============================================================================
+# LANGUAGE STANDARDS
+# =============================================================================
 set(CMAKE_C_STANDARD            11)
 set(CMAKE_C_STANDARD_REQUIRED   ON)
 set(CMAKE_CXX_STANDARD          20)
@@ -52,6 +59,9 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# =============================================================================
+# BUILD OPTIONS
+# =============================================================================
 option(ENABLE_WARNINGS  "Enable extra compiler warnings"  ON)
 option(ENABLE_ASAN      "Enable AddressSanitizer"         OFF)
 option(ENABLE_UBSAN     "Enable UBSanitizer"              OFF)
@@ -75,8 +85,14 @@ else()
     add_compile_options(/bigobj)
 endif()
 
+# =============================================================================
+# GLOBAL INCLUDE
+# =============================================================================
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
+# =============================================================================
+# ROCKSDB OPTIONS — passed to src/CMakeLists.txt via add_subdirectory
+# =============================================================================
 set(WITH_TESTS               OFF CACHE BOOL "" FORCE)
 set(WITH_TOOLS               ON  CACHE BOOL "" FORCE)
 set(WITH_BENCHMARK_TOOLS     OFF CACHE BOOL "" FORCE)
@@ -94,6 +110,9 @@ set(FAIL_ON_WARNINGS         OFF CACHE BOOL "" FORCE)
 set(USE_RTTI                 ON  CACHE BOOL "" FORCE)
 set(PORTABLE                 ON  CACHE BOOL "" FORCE)
 
+# =============================================================================
+# FIND PACKAGES
+# =============================================================================
 find_package(Threads   REQUIRED)
 find_package(OpenSSL   REQUIRED)
 find_package(PkgConfig REQUIRED)
@@ -103,7 +122,8 @@ find_library(SECP256K1_LIB secp256k1
 find_path(SECP256K1_INCLUDE secp256k1.h
     PATHS /usr/include /usr/local/include)
 if(NOT SECP256K1_LIB OR NOT SECP256K1_INCLUDE)
-    message(FATAL_ERROR "secp256k1 not found. Run: sudo apt-get install -y libsecp256k1-dev")
+    message(FATAL_ERROR
+        "secp256k1 not found. Run: sudo apt-get install -y libsecp256k1-dev")
 endif()
 set(SECP256K1_LIBRARIES    ${SECP256K1_LIB})
 set(SECP256K1_INCLUDE_DIRS ${SECP256K1_INCLUDE})
@@ -113,7 +133,8 @@ find_library(LEVELDB_LIB leveldb
 find_path(LEVELDB_INCLUDE leveldb/db.h
     PATHS /usr/include /usr/local/include)
 if(NOT LEVELDB_LIB OR NOT LEVELDB_INCLUDE)
-    message(FATAL_ERROR "LevelDB not found. Run: sudo apt-get install -y libleveldb-dev")
+    message(FATAL_ERROR
+        "LevelDB not found. Run: sudo apt-get install -y libleveldb-dev")
 endif()
 set(LEVELDB_LIBRARIES    ${LEVELDB_LIB})
 set(LEVELDB_INCLUDE_DIRS ${LEVELDB_INCLUDE})
@@ -128,10 +149,15 @@ if(NOT nlohmann_json_FOUND)
     FetchContent_MakeAvailable(nlohmann_json)
 endif()
 
+# =============================================================================
+# SUBDIRECTORY
+# =============================================================================
 include(GNUInstallDirs)
-
 add_subdirectory(src)
 
+# =============================================================================
+# INSTALL HEADERS
+# =============================================================================
 if(EXISTS "${CMAKE_SOURCE_DIR}/include")
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
@@ -145,6 +171,9 @@ if(CMAKE_INSTALL_PREFIX STREQUAL "/usr" OR
     endif()
 endif()
 
+# =============================================================================
+# CPACK
+# =============================================================================
 set(CPACK_PACKAGE_NAME        "MedorCoin")
 set(CPACK_PACKAGE_VERSION     ${PROJECT_VERSION})
 set(CPACK_PACKAGE_DESCRIPTION "MedorCoin blockchain node")
