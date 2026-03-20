@@ -532,9 +532,11 @@ bool Blockchain::addBlock(const std::string       &minerAddr,
 
     // ── Mine (PoW) ─────────────────────────────────────────────────────────
     {
-        ProofOfWork pow(cfg_.initialMedor);
-        pow.mineBlock(newBlock);
+        if (!ProofOfWork::validateHash(block)) {
+    r.reason = "PoW hash does not meet difficulty target";
+    return r;
     }
+
 
     // ── Persist to BlockDB ─────────────────────────────────────────────────
     auto writeResult = blockDB_.writeBlock(newBlock);
