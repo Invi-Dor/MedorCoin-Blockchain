@@ -1,91 +1,82 @@
-#include "block.h"
-#include "crypto/keccak256.h"
-#include <sstream>
-#include <iomanip>
+#pragma once
 
-Block::Block()
-    : previousHash(""), data(""), difficulty(0),
-      minerAddress(""), timestamp(time(nullptr)),
-      nonce(0), reward(0), baseFee(0), gasUsed(0),
-      hash(""), signature("") {}
+#include "transaction.h"
 
-Block::Block(const std::string& prevHash,
-             const std::string& blockData,
-             unsigned int diff,
-             const std::string& minerAddr)
-    : previousHash(prevHash),
-      data(blockData),
-      difficulty(diff),
-      minerAddress(minerAddr),
-      timestamp(time(nullptr)),
-      nonce(0),
-      reward(0),
-      baseFee(0),
-      gasUsed(0),
-      hash(""),
-      signature("") {}
+#include <cstdint>
+#include <ctime>
+#include <limits>
+#include <optional>
+#include <string>
+#include <vector>
 
-std::string Block::headerToString() const {
-    std::ostringstream ss;
-    ss << previousHash << timestamp << nonce
-       << difficulty << minerAddress
-       << baseFee << gasUsed;
-    return ss.str();
-}
+// =============================================================================
+// BLOCK SERIALIZATION VERSION
+// =============================================================================
+static constexpr uint32_t BLOCK_SERIAL_VERSION = 2;
 
-std::vector<uint8_t> Block::serializeHeader() const {
-    std::string h = headerToString();
-    return std::vector<uint8_t>(h.begin(), h.end());
-}
+// =============================================================================
+// BLOCK
+// =============================================================================
+class Block {
+public:
+    std::string              previousHash;
+    std::string              data;
+    uint32_t                 difficulty   = 0;
+    std::string              minerAddress;
+    uint64_t                 timestamp    = 0;
+    uint64_t                 nonce        = 0;
+    uint64_t                 reward       = 0;
+    uint64_t                 baseFee      = 0;
+    uint64_t                 gasUsed      = 0;
+    uint64_t                 gasLimit     = 0;
+    std::string              hash;
+    std::string              signature;
+    std::vector<Transaction> transactions;
 
-std::string Block::serialize() const {
-    std::ostringstream ss;
-    ss << previousHash << "|"
-       << data         << "|"
-       << difficulty   << "|"
-       << minerAddress << "|"
-       << timestamp    << "|"
-       << nonce        << "|"
-       << reward       << "|"
-       << baseFee      << "|"
-       << gasUsed      << "|"
-       << hash         << "|"
-       << signature    << "|"
-       << transactions.size();
-    for (const auto& tx : transactions)
-        ss << "|" << tx.txHash
-           << "|" << tx.toAddress
-           << "|" << tx.value
-           << "|" << tx.nonce;
-    return ss.str();
-}
+    // =========================================================================
+    // CONSTRUCTORS
+    // Default and parameterized are allowed.
+    // Copy constructor deleted — use clone() for intentional copies.
+    // Move constructor allowed — zero-cost transfer of ownership.
+    // =========================================================================
+    Block();
+    Block(const std::string& prevHash,
+          const std::string& blockData,
+          uint32_t           diff,
+          const std::string& minerAddr);
 
-void Block::deserialize(const std::string& raw) {
-    std::istringstream ss(raw);
-    std::string token;
-    auto next = [&]() -> std::string {
-        std::getline(ss, token, '|');
-        return token;
-    };
-    previousHash = next();
-    data         = next();
-    difficulty   = static_cast<unsigned int>(std::stoul(next()));
-    minerAddress = next();
-    timestamp    = static_cast<time_t>(std::stoll(next()));
-    nonce        = std::stoul(next());
-    reward       = std::stoull(next());
-    baseFee      = std::stoull(next());
-    gasUsed      = std::stoull(next());
-    hash         = next();
-    signature    = next();
-    size_t txCount = std::stoull(next());
-    transactions.clear();
-    for (size_t i = 0; i < txCount; i++) {
-        Transaction tx;
-        tx.txHash    = next();
-        tx.toAddress = next();
-        tx.value     = std::stoull(next());
-        tx.nonce     = std::stoull(next());
-        transactions.push_back(tx);
-    }
-}
+    Block(const Block&)            = delete;
+    Block& operator=(const Block&) = delete;
+
+    Block(Block&&)            = default;
+    Block& operator=(Block&&) = default;
+
+    // Explicit clone — caller knows they are paying the copy cost
+    Block clone() const;
+
+    // =========================================================================
+    // HASH LIFECYCLE
+    // =========================================================================
+    void clearHash() noexcept { hash.clear(); signature.clear(); }
+    bool hasHash()   const noexcept { return !hash.empty(); }
+
+    // =========================================================================
+    // VALIDATION
+    // =========================================================================
+    bool isValid() const noexcept;
+
+    // =========================================================================
+    // SERIALIZATION
+    // =========================================================================
+    std::string          headerToString()  const;
+    std::vector<uint8_t> serializeHeader() const;
+    std::string          serialize()       const;
+    bool                 deserialize(const std::string& raw);
+
+    // =========================================================================
+    // LIMITS
+    // =========================================================================
+    static constexpr size_t   MAX_TRANSACTIONS = 10000;
+    static constexpr uint32_t MAX_DIFFICULTY   = 64;
+    static constexpr uint64_t MAX_GAS_LIMIT    = 30'000'000;
+};
