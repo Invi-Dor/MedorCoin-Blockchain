@@ -554,7 +554,7 @@ bool Blockchain::addBlock(const std::string       &minerAddr,
         return false;
     }
 
-    chain_.push_back(newBlock);
+    chain_.push_back(std::move(newBlock));
 
     totalSupply_.fetch_add(reward);
     adjustBaseFee(newBlock.gasUsed, cfg_.targetGasPerBlock);
@@ -584,7 +584,8 @@ void Blockchain::mineBlockAsync(const std::string       &minerAddr,
         Block minedBlock;
         if (success) {
             std::shared_lock<std::shared_mutex> lock(rwMutex_);
-            if (!chain_.empty()) minedBlock = chain_.back();
+            if (!chain_.empty()) minedBlock = chain_.back().clone();
+
         }
         if (cb) {
             try { cb(success, std::move(minedBlock)); }
