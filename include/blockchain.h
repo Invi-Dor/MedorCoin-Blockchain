@@ -1,7 +1,7 @@
 #pragma once
 
 #include "accountdb.h"
-#include "db/accountdb.h"
+#include "blockdb.h"
 #include "utxo.h"
 #include "block.h"
 #include "transaction.h"
