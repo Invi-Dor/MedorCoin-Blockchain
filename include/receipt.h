@@ -16,6 +16,7 @@
 #include <rocksdb/write_batch.h>
 #include <rocksdb/utilities/backup_engine.h>
 #include <nlohmann/json.hpp>
+#include <queue>
 
 // =============================================================================
 // RECEIPT LOG
