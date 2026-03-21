@@ -8,6 +8,7 @@
 #include <nlohmann/json.hpp>
 #include <atomic>
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <limits>
 #include <string>
@@ -71,24 +72,40 @@ static Blockchain::Config netTestConfig(const std::string &suffix = "")
     return cfg;
 }
 
+// Returns true if the slow performance tests should be skipped.
+// Set environment variable MEDOR_SKIP_SLOW_TESTS=1 when running
+// locally to skip them. On CI leave the variable unset so every
+// test runs.
+static bool skipSlowTests()
+{
+    const char *env = std::getenv("MEDOR_SKIP_SLOW_TESTS");
+    return env != nullptr && std::string(env) == "1";
+}
+
 // =============================================================================
-// FIXTURE -- blockchain context
+// FIXTURE
 // =============================================================================
 
 class NetworkTest : public ::testing::Test {
 protected:
-    void SetUp() override {
+    void SetUp() override
+    {
         static std::atomic<int> counter{0};
         suffix_ = std::to_string(++counter);
         bc   = std::make_unique<Blockchain>(netTestConfig(suffix_));
         utxo = std::make_unique<UTXOSet>();
     }
-    void TearDown() override {
+
+    void TearDown() override
+    {
         bc.reset();
         utxo.reset();
-        std::filesystem::remove_all("/tmp/test_net_blockdb"   + suffix_);
-        std::filesystem::remove_all("/tmp/test_net_accountdb" + suffix_);
+        std::filesystem::remove_all(
+            "/tmp/test_net_blockdb"   + suffix_);
+        std::filesystem::remove_all(
+            "/tmp/test_net_accountdb" + suffix_);
     }
+
     std::unique_ptr<Blockchain> bc;
     std::unique_ptr<UTXOSet>    utxo;
     std::string                 suffix_;
@@ -121,14 +138,12 @@ TEST_F(NetworkTest, SerializeTxContainsChainId) {
 TEST_F(NetworkTest, SerializeTxContainsNonce) {
     Transaction tx = makeTx(1, 99);
     json j = serializeTx(tx);
-    EXPECT_TRUE(j.contains("nonce"));
     EXPECT_EQ(j["nonce"].get<uint64_t>(), 99ULL);
 }
 
 TEST_F(NetworkTest, SerializeTxContainsValue) {
     Transaction tx = makeTx(1, 1, 777);
     json j = serializeTx(tx);
-    EXPECT_TRUE(j.contains("value"));
     EXPECT_EQ(j["value"].get<uint64_t>(), 777ULL);
 }
 
@@ -152,8 +167,6 @@ TEST_F(NetworkTest, SerializeTxInputFieldsCorrect) {
     Transaction tx = makeTx(1, 7);
     json j = serializeTx(tx);
     auto &in = j["inputs"][0];
-    EXPECT_TRUE(in.contains("prevTxHash"));
-    EXPECT_TRUE(in.contains("outputIndex"));
     EXPECT_EQ(in["prevTxHash"].get<std::string>(), "prevhash7");
     EXPECT_EQ(in["outputIndex"].get<int>(), 0);
 }
@@ -162,8 +175,6 @@ TEST_F(NetworkTest, SerializeTxOutputFieldsCorrect) {
     Transaction tx = makeTx(1, 1, 500, "targetAddr");
     json j = serializeTx(tx);
     auto &out = j["outputs"][0];
-    EXPECT_TRUE(out.contains("value"));
-    EXPECT_TRUE(out.contains("address"));
     EXPECT_EQ(out["value"].get<uint64_t>(),      500ULL);
     EXPECT_EQ(out["address"].get<std::string>(), "targetAddr");
 }
@@ -197,8 +208,10 @@ TEST_F(NetworkTest, DeserializeTxInputsPreserved) {
     json j = serializeTx(tx);
     Transaction tx2 = deserializeTx(j);
     ASSERT_EQ(tx2.inputs.size(), 1U);
-    EXPECT_EQ(tx2.inputs[0].prevTxHash,  tx.inputs[0].prevTxHash);
-    EXPECT_EQ(tx2.inputs[0].outputIndex, tx.inputs[0].outputIndex);
+    EXPECT_EQ(tx2.inputs[0].prevTxHash,
+              tx.inputs[0].prevTxHash);
+    EXPECT_EQ(tx2.inputs[0].outputIndex,
+              tx.inputs[0].outputIndex);
 }
 
 TEST_F(NetworkTest, DeserializeTxOutputsPreserved) {
@@ -226,7 +239,8 @@ TEST_F(NetworkTest, DeserializeTxMultipleInputs) {
     Transaction tx2 = deserializeTx(j);
     ASSERT_EQ(tx2.inputs.size(), 5U);
     for (int i = 0; i < 5; ++i) {
-        EXPECT_EQ(tx2.inputs[i].prevTxHash,  "hash" + std::to_string(i));
+        EXPECT_EQ(tx2.inputs[i].prevTxHash,
+                  "hash" + std::to_string(i));
         EXPECT_EQ(tx2.inputs[i].outputIndex, i);
     }
 }
@@ -249,14 +263,14 @@ TEST_F(NetworkTest, DeserializeTxMultipleOutputs) {
     for (int i = 0; i < 3; ++i) {
         EXPECT_EQ(tx2.outputs[i].value,
                   static_cast<uint64_t>((i + 1) * 100));
-        EXPECT_EQ(tx2.outputs[i].address, "addr" + std::to_string(i));
+        EXPECT_EQ(tx2.outputs[i].address,
+                  "addr" + std::to_string(i));
     }
 }
 
 TEST_F(NetworkTest, DeserializeTxNoInputsNoOutputs) {
     Transaction tx;
-    tx.chainId = 1;
-    tx.nonce   = 42;
+    tx.chainId = 1; tx.nonce = 42;
     tx.calculateHash();
     json j = serializeTx(tx);
     Transaction tx2 = deserializeTx(j);
@@ -270,9 +284,7 @@ TEST_F(NetworkTest, DeserializeTxNoInputsNoOutputs) {
 // =============================================================================
 
 TEST_F(NetworkTest, DeserializeTxMissingTxHashThrows) {
-    json j;
-    j["chainId"] = 1;
-    j["nonce"]   = 1;
+    json j; j["chainId"] = 1; j["nonce"] = 1;
     EXPECT_THROW(deserializeTx(j), SerializationError);
 }
 
@@ -291,18 +303,22 @@ TEST_F(NetworkTest, DeserializeTxWrongTypeThrows) {
 }
 
 TEST_F(NetworkTest, DeserializeTxEmptyJsonThrows) {
-    json j = json::object();
-    EXPECT_THROW(deserializeTx(j), SerializationError);
+    EXPECT_THROW(deserializeTx(json::object()),
+                 SerializationError);
 }
 
+// Issue 1 fix: nullptr implicitly converts to json(nullptr_t)
+// in nlohmann which is a valid JSON null value. Using json(nullptr)
+// explicitly makes the intent clear and avoids implementation-specific
+// ambiguity about how nullptr is handled as a function argument.
 TEST_F(NetworkTest, DeserializeTxNullJsonThrows) {
-    json j = nullptr;
-    EXPECT_THROW(deserializeTx(j), SerializationError);
+    EXPECT_THROW(deserializeTx(json(nullptr)),
+                 SerializationError);
 }
 
 TEST_F(NetworkTest, DeserializeTxArrayJsonThrows) {
-    json j = json::array();
-    EXPECT_THROW(deserializeTx(j), SerializationError);
+    EXPECT_THROW(deserializeTx(json::array()),
+                 SerializationError);
 }
 
 TEST_F(NetworkTest, DeserializeTxMissingGasLimitThrows) {
@@ -325,10 +341,10 @@ TEST_F(NetworkTest, DeserializeTxNegativeOutputIndexThrows) {
 
 TEST_F(NetworkTest, MaxUint64ValuePreserved) {
     Transaction tx = makeTx(1, 1,
-        std::numeric_limits<uint64_t>::max(), "addr");
-    json j = serializeTx(tx);
-    Transaction tx2 = deserializeTx(j);
-    EXPECT_EQ(tx2.value, std::numeric_limits<uint64_t>::max());
+        std::numeric_limits<uint64_t>::max());
+    Transaction tx2 = deserializeTx(serializeTx(tx));
+    EXPECT_EQ(tx2.value,
+              std::numeric_limits<uint64_t>::max());
 }
 
 TEST_F(NetworkTest, MaxUint64NoncePreserved) {
@@ -336,55 +352,59 @@ TEST_F(NetworkTest, MaxUint64NoncePreserved) {
     tx.chainId = 1;
     tx.nonce   = std::numeric_limits<uint64_t>::max();
     tx.calculateHash();
-    json j = serializeTx(tx);
-    Transaction tx2 = deserializeTx(j);
-    EXPECT_EQ(tx2.nonce, std::numeric_limits<uint64_t>::max());
+    Transaction tx2 = deserializeTx(serializeTx(tx));
+    EXPECT_EQ(tx2.nonce,
+              std::numeric_limits<uint64_t>::max());
 }
 
 TEST_F(NetworkTest, MaxUint64GasLimitPreserved) {
     Transaction tx;
-    tx.chainId  = 1;
-    tx.nonce    = 1;
+    tx.chainId  = 1; tx.nonce = 1;
     tx.gasLimit = std::numeric_limits<uint64_t>::max();
     tx.calculateHash();
-    json j = serializeTx(tx);
-    Transaction tx2 = deserializeTx(j);
-    EXPECT_EQ(tx2.gasLimit, std::numeric_limits<uint64_t>::max());
+    Transaction tx2 = deserializeTx(serializeTx(tx));
+    EXPECT_EQ(tx2.gasLimit,
+              std::numeric_limits<uint64_t>::max());
 }
 
 TEST_F(NetworkTest, MaxUint64MaxFeePerGasPreserved) {
     Transaction tx;
-    tx.chainId      = 1;
-    tx.nonce        = 1;
+    tx.chainId      = 1; tx.nonce = 1;
     tx.maxFeePerGas = std::numeric_limits<uint64_t>::max();
     tx.calculateHash();
-    json j = serializeTx(tx);
-    Transaction tx2 = deserializeTx(j);
-    EXPECT_EQ(tx2.maxFeePerGas, std::numeric_limits<uint64_t>::max());
+    Transaction tx2 = deserializeTx(serializeTx(tx));
+    EXPECT_EQ(tx2.maxFeePerGas,
+              std::numeric_limits<uint64_t>::max());
+}
+
+TEST_F(NetworkTest, MaxUint64ChainIdPreserved) {
+    Transaction tx;
+    tx.chainId = std::numeric_limits<uint64_t>::max();
+    tx.nonce   = 1;
+    tx.calculateHash();
+    Transaction tx2 = deserializeTx(serializeTx(tx));
+    EXPECT_EQ(tx2.chainId,
+              std::numeric_limits<uint64_t>::max());
 }
 
 TEST_F(NetworkTest, ZeroValuePreserved) {
-    Transaction tx = makeTx(1, 1, 0, "addr");
-    json j = serializeTx(tx);
-    Transaction tx2 = deserializeTx(j);
+    Transaction tx = makeTx(1, 1, 0);
+    Transaction tx2 = deserializeTx(serializeTx(tx));
     EXPECT_EQ(tx2.value, 0ULL);
 }
 
 TEST_F(NetworkTest, ZeroNoncePreserved) {
     Transaction tx;
-    tx.chainId = 1;
-    tx.nonce   = 0;
+    tx.chainId = 1; tx.nonce = 0;
     tx.calculateHash();
-    json j = serializeTx(tx);
-    Transaction tx2 = deserializeTx(j);
+    Transaction tx2 = deserializeTx(serializeTx(tx));
     EXPECT_EQ(tx2.nonce, 0ULL);
 }
 
 TEST_F(NetworkTest, VeryLongAddressPreserved) {
     std::string longAddr(512, 'x');
     Transaction tx = makeTx(1, 1, 100, longAddr);
-    json j = serializeTx(tx);
-    Transaction tx2 = deserializeTx(j);
+    Transaction tx2 = deserializeTx(serializeTx(tx));
     EXPECT_EQ(tx2.toAddress, longAddr);
     ASSERT_FALSE(tx2.outputs.empty());
     EXPECT_EQ(tx2.outputs[0].address, longAddr);
@@ -400,8 +420,7 @@ TEST_F(NetworkTest, VeryLongPrevTxHashPreserved) {
     TxOutput out; out.value = 100; out.address = "addr";
     tx.outputs.push_back(out);
     tx.calculateHash();
-    json j = serializeTx(tx);
-    Transaction tx2 = deserializeTx(j);
+    Transaction tx2 = deserializeTx(serializeTx(tx));
     ASSERT_FALSE(tx2.inputs.empty());
     EXPECT_EQ(tx2.inputs[0].prevTxHash.size(), 256U);
 }
@@ -409,35 +428,20 @@ TEST_F(NetworkTest, VeryLongPrevTxHashPreserved) {
 TEST_F(NetworkTest, LargeOutputIndexPreserved) {
     Transaction tx;
     tx.chainId = 1; tx.nonce = 1;
-    TxInput in;
-    in.prevTxHash  = "prev";
-    in.outputIndex = 9999;
+    TxInput in; in.prevTxHash = "prev"; in.outputIndex = 9999;
     tx.inputs.push_back(in);
     TxOutput out; out.value = 100; out.address = "addr";
     tx.outputs.push_back(out);
     tx.calculateHash();
-    json j = serializeTx(tx);
-    Transaction tx2 = deserializeTx(j);
+    Transaction tx2 = deserializeTx(serializeTx(tx));
     EXPECT_EQ(tx2.inputs[0].outputIndex, 9999);
-}
-
-TEST_F(NetworkTest, MaxUint64ChainIdPreserved) {
-    Transaction tx;
-    tx.chainId = std::numeric_limits<uint64_t>::max();
-    tx.nonce   = 1;
-    tx.calculateHash();
-    json j = serializeTx(tx);
-    Transaction tx2 = deserializeTx(j);
-    EXPECT_EQ(tx2.chainId, std::numeric_limits<uint64_t>::max());
 }
 
 TEST_F(NetworkTest, EmptyDataFieldPreserved) {
     Transaction tx;
     tx.chainId = 1; tx.nonce = 1;
-    EXPECT_TRUE(tx.data.empty());
     tx.calculateHash();
-    json j = serializeTx(tx);
-    Transaction tx2 = deserializeTx(j);
+    Transaction tx2 = deserializeTx(serializeTx(tx));
     EXPECT_TRUE(tx2.data.empty());
 }
 
@@ -446,8 +450,7 @@ TEST_F(NetworkTest, LargeDataFieldPreserved) {
     tx.chainId = 1; tx.nonce = 1;
     tx.data.resize(10000, 0xAB);
     tx.calculateHash();
-    json j = serializeTx(tx);
-    Transaction tx2 = deserializeTx(j);
+    Transaction tx2 = deserializeTx(serializeTx(tx));
     EXPECT_EQ(tx2.data.size(), 10000U);
     EXPECT_EQ(tx2.data[0],    0xAB);
     EXPECT_EQ(tx2.data[9999], 0xAB);
@@ -461,11 +464,8 @@ TEST_F(NetworkTest, TamperedValueInvalidatesHash) {
     Transaction tx = makeTx(1, 1, 100);
     json j = serializeTx(tx);
     std::string originalHash = j["txHash"];
-
-    // Tamper with value post-serialization
     j["value"] = 99999;
     Transaction tx2 = deserializeTx(j);
-    // Recalculate hash from tampered tx -- must differ from original
     tx2.calculateHash();
     EXPECT_NE(tx2.txHash, originalHash);
 }
@@ -474,7 +474,6 @@ TEST_F(NetworkTest, TamperedNonceInvalidatesHash) {
     Transaction tx = makeTx(1, 5, 100);
     json j = serializeTx(tx);
     std::string originalHash = j["txHash"];
-
     j["nonce"] = 999;
     Transaction tx2 = deserializeTx(j);
     tx2.calculateHash();
@@ -485,7 +484,6 @@ TEST_F(NetworkTest, TamperedOutputAddressInvalidatesHash) {
     Transaction tx = makeTx(1, 1, 100, "honest");
     json j = serializeTx(tx);
     std::string originalHash = j["txHash"];
-
     j["outputs"][0]["address"] = "attacker";
     Transaction tx2 = deserializeTx(j);
     tx2.calculateHash();
@@ -496,22 +494,17 @@ TEST_F(NetworkTest, TamperedOutputValueInvalidatesHash) {
     Transaction tx = makeTx(1, 1, 100, "addr");
     json j = serializeTx(tx);
     std::string originalHash = j["txHash"];
-
     j["outputs"][0]["value"] = 99999999;
     Transaction tx2 = deserializeTx(j);
     tx2.calculateHash();
     EXPECT_NE(tx2.txHash, originalHash);
 }
 
-TEST_F(NetworkTest, TamperedBlockHashDetected) {
+TEST_F(NetworkTest, TamperedBlockRewardDetected) {
     Block b = makeBlock();
     json j = serializeBlock(b);
-    std::string originalHash = j["hash"];
-
     j["reward"] = 99999;
     Block b2 = deserializeBlock(j);
-    // Hash field in b2 still holds the original hash from JSON
-    // but reward was changed -- if recomputed it should differ
     EXPECT_NE(b2.reward, b.reward);
 }
 
@@ -545,7 +538,8 @@ TEST_F(NetworkTest, SerializeBlockContainsAllRequiredFields) {
 TEST_F(NetworkTest, SerializeBlockVersionMatchesConstant) {
     Block b = makeBlock();
     json j = serializeBlock(b);
-    EXPECT_EQ(j["version"].get<uint32_t>(), SERIALIZATION_VERSION);
+    EXPECT_EQ(j["version"].get<uint32_t>(),
+              SERIALIZATION_VERSION);
 }
 
 // =============================================================================
@@ -554,8 +548,7 @@ TEST_F(NetworkTest, SerializeBlockVersionMatchesConstant) {
 
 TEST_F(NetworkTest, DeserializeBlockRoundTrip) {
     Block b = makeBlock();
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
+    Block b2 = deserializeBlock(serializeBlock(b));
     EXPECT_EQ(b2.hash,         b.hash);
     EXPECT_EQ(b2.previousHash, b.previousHash);
     EXPECT_EQ(b2.timestamp,    b.timestamp);
@@ -572,18 +565,18 @@ TEST_F(NetworkTest, DeserializeBlockWithTransactions) {
     Block b = makeBlock();
     b.transactions.push_back(makeTx(1, 1, 100, "addr1"));
     b.transactions.push_back(makeTx(1, 2, 200, "addr2"));
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
+    Block b2 = deserializeBlock(serializeBlock(b));
     EXPECT_EQ(b2.transactions.size(), 2U);
-    EXPECT_EQ(b2.transactions[0].txHash, b.transactions[0].txHash);
-    EXPECT_EQ(b2.transactions[1].txHash, b.transactions[1].txHash);
+    EXPECT_EQ(b2.transactions[0].txHash,
+              b.transactions[0].txHash);
+    EXPECT_EQ(b2.transactions[1].txHash,
+              b.transactions[1].txHash);
 }
 
 TEST_F(NetworkTest, DeserializeBlockTransactionValuesPreserved) {
     Block b = makeBlock();
     b.transactions.push_back(makeTx(1, 1, 999, "richAddr"));
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
+    Block b2 = deserializeBlock(serializeBlock(b));
     ASSERT_EQ(b2.transactions.size(), 1U);
     ASSERT_FALSE(b2.transactions[0].outputs.empty());
     EXPECT_EQ(b2.transactions[0].outputs[0].value,   999ULL);
@@ -592,8 +585,7 @@ TEST_F(NetworkTest, DeserializeBlockTransactionValuesPreserved) {
 
 TEST_F(NetworkTest, DeserializeBlockEmptyTransactions) {
     Block b = makeBlock();
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
+    Block b2 = deserializeBlock(serializeBlock(b));
     EXPECT_TRUE(b2.transactions.empty());
 }
 
@@ -604,72 +596,65 @@ TEST_F(NetworkTest, DeserializeBlockEmptyTransactions) {
 TEST_F(NetworkTest, BlockMaxUint64RewardPreserved) {
     Block b = makeBlock();
     b.reward = std::numeric_limits<uint64_t>::max();
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
+    Block b2 = deserializeBlock(serializeBlock(b));
     EXPECT_EQ(b2.reward, std::numeric_limits<uint64_t>::max());
 }
 
 TEST_F(NetworkTest, BlockMaxUint64NoncePreserved) {
     Block b = makeBlock();
-    b.nonce  = std::numeric_limits<uint64_t>::max();
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
+    b.nonce = std::numeric_limits<uint64_t>::max();
+    Block b2 = deserializeBlock(serializeBlock(b));
     EXPECT_EQ(b2.nonce, std::numeric_limits<uint64_t>::max());
 }
 
 TEST_F(NetworkTest, BlockMaxUint64TimestampPreserved) {
     Block b = makeBlock();
     b.timestamp = std::numeric_limits<uint64_t>::max();
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
-    EXPECT_EQ(b2.timestamp, std::numeric_limits<uint64_t>::max());
+    Block b2 = deserializeBlock(serializeBlock(b));
+    EXPECT_EQ(b2.timestamp,
+              std::numeric_limits<uint64_t>::max());
 }
 
 TEST_F(NetworkTest, BlockZeroRewardPreserved) {
     Block b = makeBlock();
     b.reward = 0;
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
+    Block b2 = deserializeBlock(serializeBlock(b));
     EXPECT_EQ(b2.reward, 0ULL);
 }
 
 TEST_F(NetworkTest, BlockZeroNoncePreserved) {
     Block b = makeBlock();
-    b.nonce  = 0;
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
+    b.nonce = 0;
+    Block b2 = deserializeBlock(serializeBlock(b));
     EXPECT_EQ(b2.nonce, 0ULL);
 }
 
 TEST_F(NetworkTest, BlockMaxGasLimitPreserved) {
     Block b = makeBlock();
     b.gasLimit = std::numeric_limits<uint64_t>::max();
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
-    EXPECT_EQ(b2.gasLimit, std::numeric_limits<uint64_t>::max());
+    Block b2 = deserializeBlock(serializeBlock(b));
+    EXPECT_EQ(b2.gasLimit,
+              std::numeric_limits<uint64_t>::max());
 }
 
 TEST_F(NetworkTest, BlockVeryLongMinerAddressPreserved) {
     Block b = makeBlock();
     b.minerAddress = std::string(512, 'm');
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
+    Block b2 = deserializeBlock(serializeBlock(b));
     EXPECT_EQ(b2.minerAddress, std::string(512, 'm'));
 }
 
 TEST_F(NetworkTest, BlockEmptyPreviousHashPreserved) {
     Block b = makeBlock();
     b.previousHash = "";
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
+    Block b2 = deserializeBlock(serializeBlock(b));
     EXPECT_TRUE(b2.previousHash.empty());
 }
 
 TEST_F(NetworkTest, BlockMaxDifficultyPreserved) {
     Block b = makeBlock();
     b.difficulty = Block::MAX_DIFFICULTY;
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
+    Block b2 = deserializeBlock(serializeBlock(b));
     EXPECT_EQ(b2.difficulty, Block::MAX_DIFFICULTY);
 }
 
@@ -713,8 +698,8 @@ TEST_F(NetworkTest, DeserializeBlockMissingDifficultyThrows) {
 }
 
 TEST_F(NetworkTest, DeserializeBlockEmptyJsonThrows) {
-    json j = json::object();
-    EXPECT_THROW(deserializeBlock(j), SerializationError);
+    EXPECT_THROW(deserializeBlock(json::object()),
+                 SerializationError);
 }
 
 TEST_F(NetworkTest, DeserializeBlockWrongVersionThrows) {
@@ -731,9 +716,10 @@ TEST_F(NetworkTest, DeserializeBlockWrongTypeThrows) {
     EXPECT_THROW(deserializeBlock(j), SerializationError);
 }
 
+// Issue 1 fix: same as tx -- use json(nullptr) explicitly
 TEST_F(NetworkTest, DeserializeBlockNullJsonThrows) {
-    json j = nullptr;
-    EXPECT_THROW(deserializeBlock(j), SerializationError);
+    EXPECT_THROW(deserializeBlock(json(nullptr)),
+                 SerializationError);
 }
 
 // =============================================================================
@@ -766,7 +752,7 @@ TEST_F(NetworkTest, MissingVersionThrows) {
 }
 
 // =============================================================================
-// BLOCKCHAIN CONTEXT -- serialized tx integrates with chain
+// BLOCKCHAIN CONTEXT
 // =============================================================================
 
 TEST_F(NetworkTest, SerializedTxHashMatchesBlockchainTxHash) {
@@ -774,10 +760,8 @@ TEST_F(NetworkTest, SerializedTxHashMatchesBlockchainTxHash) {
     auto latest = bc->getLatestBlock();
     ASSERT_TRUE(latest.has_value());
     ASSERT_FALSE(latest->transactions.empty());
-
     const Transaction &cbTx = latest->transactions.front();
-    json j = serializeTx(cbTx);
-    Transaction tx2 = deserializeTx(j);
+    Transaction tx2 = deserializeTx(serializeTx(cbTx));
     EXPECT_EQ(tx2.txHash, cbTx.txHash);
 }
 
@@ -785,9 +769,7 @@ TEST_F(NetworkTest, SerializedBlockHashMatchesBlockchainHash) {
     EXPECT_TRUE(bc->addBlock("miner1", {}));
     auto latest = bc->getLatestBlock();
     ASSERT_TRUE(latest.has_value());
-
-    json j = serializeBlock(*latest);
-    Block b2 = deserializeBlock(j);
+    Block b2 = deserializeBlock(serializeBlock(*latest));
     EXPECT_EQ(b2.hash, latest->hash);
 }
 
@@ -796,9 +778,7 @@ TEST_F(NetworkTest, SerializedBlockRoundTripPreservesChainLink) {
     EXPECT_TRUE(bc->addBlock("miner1", {}));
     auto latest = bc->getLatestBlock();
     ASSERT_TRUE(latest.has_value());
-
-    json j = serializeBlock(*latest);
-    Block b2 = deserializeBlock(j);
+    Block b2 = deserializeBlock(serializeBlock(*latest));
     EXPECT_FALSE(b2.previousHash.empty());
     EXPECT_EQ(b2.previousHash, latest->previousHash);
 }
@@ -808,39 +788,34 @@ TEST_F(NetworkTest, SerializedCoinbaseTxOutputMatchesUTXO) {
     auto latest = bc->getLatestBlock();
     ASSERT_TRUE(latest.has_value());
     ASSERT_FALSE(latest->transactions.empty());
-
     const Transaction &cbTx = latest->transactions.front();
-    json j = serializeTx(cbTx);
-    Transaction tx2 = deserializeTx(j);
-
+    Transaction tx2 = deserializeTx(serializeTx(cbTx));
     ASSERT_FALSE(tx2.outputs.empty());
     EXPECT_EQ(tx2.outputs[0].address, "miner_net_test");
     EXPECT_EQ(tx2.outputs[0].value,   (55ULL * 90) / 100);
 }
 
-TEST_F(NetworkTest, UTXOFromSerializedBlockIsSpendable) {
+TEST_F(NetworkTest, UTXOFromSerializedBlockIsAccessible) {
     EXPECT_TRUE(bc->addBlock("net_utxo_miner", {}));
     auto latest = bc->getLatestBlock();
     ASSERT_TRUE(latest.has_value());
-
-    json j = serializeBlock(*latest);
-    Block b2 = deserializeBlock(j);
-
+    Block b2 = deserializeBlock(serializeBlock(*latest));
     ASSERT_FALSE(b2.transactions.empty());
-    const std::string &cbHash = b2.transactions.front().txHash;
+    const std::string &cbHash =
+        b2.transactions.front().txHash;
     auto utxoOpt = bc->getUTXO(cbHash, 0);
     ASSERT_TRUE(utxoOpt.has_value());
     EXPECT_EQ(utxoOpt->address, "net_utxo_miner");
 }
 
-TEST_F(NetworkTest, MultipleBlocksSerializeAndDeserializeCorrectly) {
+TEST_F(NetworkTest, MultipleBlocksSerializeCorrectly) {
     std::vector<std::string> hashes;
     for (int i = 0; i < 5; ++i) {
-        EXPECT_TRUE(bc->addBlock("miner" + std::to_string(i), {}));
+        EXPECT_TRUE(
+            bc->addBlock("miner" + std::to_string(i), {}));
         auto latest = bc->getLatestBlock();
         ASSERT_TRUE(latest.has_value());
-        json j   = serializeBlock(*latest);
-        Block b2 = deserializeBlock(j);
+        Block b2 = deserializeBlock(serializeBlock(*latest));
         EXPECT_EQ(b2.hash, latest->hash);
         hashes.push_back(b2.hash);
     }
@@ -849,21 +824,19 @@ TEST_F(NetworkTest, MultipleBlocksSerializeAndDeserializeCorrectly) {
             EXPECT_NE(hashes[i], hashes[k]);
 }
 
-TEST_F(NetworkTest, ChainValidatesAfterSerializeDeserializeCycle) {
+TEST_F(NetworkTest,
+       ChainValidatesAfterSerializeDeserializeCycle) {
     for (int i = 0; i < 3; ++i)
         EXPECT_TRUE(bc->addBlock("miner1", {}));
-    auto result = bc->validateChain();
-    EXPECT_TRUE(result.ok);
+    EXPECT_TRUE(bc->validateChain().ok);
 }
 
 // =============================================================================
-// BLOCKCHAIN CONTEXT -- UTXO
+// UTXO INTEGRATION
 // =============================================================================
 
 TEST_F(NetworkTest, UTXOBalanceReflectsSerializedOutputValue) {
-    TxOutput out;
-    out.value   = 777;
-    out.address = "netUtxoAddr";
+    TxOutput out; out.value = 777; out.address = "netUtxoAddr";
     EXPECT_TRUE(utxo->addUTXO(out, "netTx1", 0, 1, false));
 
     Transaction tx;
@@ -874,10 +847,8 @@ TEST_F(NetworkTest, UTXOBalanceReflectsSerializedOutputValue) {
     tx.outputs.push_back(txOut);
     tx.calculateHash();
 
-    json j = serializeTx(tx);
-    Transaction tx2 = deserializeTx(j);
+    Transaction tx2 = deserializeTx(serializeTx(tx));
     EXPECT_EQ(tx2.inputs[0].prevTxHash, "netTx1");
-
     auto bal = utxo->getBalance("netUtxoAddr");
     ASSERT_TRUE(bal.has_value());
     EXPECT_EQ(bal.value(), 777ULL);
@@ -888,43 +859,60 @@ TEST_F(NetworkTest, UTXOBalanceReflectsSerializedOutputValue) {
 // =============================================================================
 
 TEST_F(NetworkTest, SerializationErrorCodeMissingField) {
-    SerializationError e(SerializationErrorCode::MissingField, "test");
+    SerializationError e(SerializationErrorCode::MissingField,
+                         "test");
     EXPECT_EQ(e.code, SerializationErrorCode::MissingField);
     EXPECT_STREQ(e.what(), "test");
 }
 
 TEST_F(NetworkTest, SerializationErrorCodeTypeMismatch) {
-    SerializationError e(SerializationErrorCode::TypeMismatch, "type");
+    SerializationError e(SerializationErrorCode::TypeMismatch,
+                         "type");
     EXPECT_EQ(e.code, SerializationErrorCode::TypeMismatch);
 }
 
 TEST_F(NetworkTest, SerializationErrorCodeVersionMismatch) {
-    SerializationError e(SerializationErrorCode::VersionMismatch, "ver");
+    SerializationError e(
+        SerializationErrorCode::VersionMismatch, "ver");
     EXPECT_EQ(e.code, SerializationErrorCode::VersionMismatch);
 }
 
 TEST_F(NetworkTest, SerializationErrorCodeHashMismatch) {
-    SerializationError e(SerializationErrorCode::HashMismatch, "hash");
+    SerializationError e(SerializationErrorCode::HashMismatch,
+                         "hash");
     EXPECT_EQ(e.code, SerializationErrorCode::HashMismatch);
 }
 
 TEST_F(NetworkTest, SerializationErrorInheritsRuntimeError) {
-    SerializationError e(SerializationErrorCode::InternalError, "msg");
+    SerializationError e(SerializationErrorCode::InternalError,
+                         "msg");
     const std::runtime_error &re = e;
     EXPECT_STREQ(re.what(), "msg");
 }
 
 TEST_F(NetworkTest, AllErrorCodesAreDistinct) {
-    EXPECT_NE(static_cast<uint8_t>(SerializationErrorCode::MissingField),
-              static_cast<uint8_t>(SerializationErrorCode::TypeMismatch));
-    EXPECT_NE(static_cast<uint8_t>(SerializationErrorCode::VersionMismatch),
-              static_cast<uint8_t>(SerializationErrorCode::HashMismatch));
-    EXPECT_NE(static_cast<uint8_t>(SerializationErrorCode::None),
-              static_cast<uint8_t>(SerializationErrorCode::InternalError));
+    EXPECT_NE(
+        static_cast<uint8_t>(
+            SerializationErrorCode::MissingField),
+        static_cast<uint8_t>(
+            SerializationErrorCode::TypeMismatch));
+    EXPECT_NE(
+        static_cast<uint8_t>(
+            SerializationErrorCode::VersionMismatch),
+        static_cast<uint8_t>(
+            SerializationErrorCode::HashMismatch));
+    EXPECT_NE(
+        static_cast<uint8_t>(SerializationErrorCode::None),
+        static_cast<uint8_t>(
+            SerializationErrorCode::InternalError));
 }
 
 // =============================================================================
 // METRICS
+// Issue 2 fix: metrics tests are all single-threaded. The concurrent
+// tests below do NOT assert on metrics because getSerializationMetrics()
+// may not be fully thread-safe. Keeping metrics assertions strictly
+// sequential prevents false failures from race conditions in the counters.
 // =============================================================================
 
 TEST_F(NetworkTest, MetricsIncrementOnSuccessfulSerializeTx) {
@@ -963,45 +951,63 @@ TEST_F(NetworkTest, MetricsIncrementOnFailedDeserializeBlock) {
     auto before = getSerializationMetrics();
     try { deserializeBlock(json::object()); } catch (...) {}
     auto after = getSerializationMetrics();
-    EXPECT_GT(after.blockDeserializeErr, before.blockDeserializeErr);
+    EXPECT_GT(after.blockDeserializeErr,
+              before.blockDeserializeErr);
 }
 
 // =============================================================================
 // STRESS -- bulk serialization
+// Issue 3 fix: these tests are marked slow. They run in full on CI
+// where MEDOR_SKIP_SLOW_TESTS is not set. Locally you can skip them
+// by running: MEDOR_SKIP_SLOW_TESTS=1 ./MedorTests
+// This keeps local dev iteration fast while CI gets full coverage.
 // =============================================================================
 
 TEST_F(NetworkTest, BulkSerializeThousandTransactions) {
-    constexpr int N = 1000;
-    for (int i = 0; i < N; ++i) {
-        Transaction tx = makeTx(1, static_cast<uint64_t>(i + 1),
-                                 static_cast<uint64_t>(i * 10));
-        json j = serializeTx(tx);
-        EXPECT_FALSE(j.empty());
-        Transaction tx2 = deserializeTx(j);
+    if (skipSlowTests())
+        GTEST_SKIP()
+            << "Skipped locally -- set MEDOR_SKIP_SLOW_TESTS=0 "
+               "or unset it to run on CI";
+
+    for (int i = 0; i < 1000; ++i) {
+        Transaction tx = makeTx(
+            1,
+            static_cast<uint64_t>(i + 1),
+            static_cast<uint64_t>(i * 10));
+        Transaction tx2 = deserializeTx(serializeTx(tx));
         EXPECT_EQ(tx2.txHash, tx.txHash);
     }
 }
 
 TEST_F(NetworkTest, BulkSerializeFiveHundredBlocks) {
-    constexpr int N = 500;
-    for (int i = 0; i < N; ++i) {
+    if (skipSlowTests())
+        GTEST_SKIP()
+            << "Skipped locally -- set MEDOR_SKIP_SLOW_TESTS=0 "
+               "or unset it to run on CI";
+
+    for (int i = 0; i < 500; ++i) {
         Block b = makeBlock();
         b.nonce = static_cast<uint64_t>(i);
-        json j   = serializeBlock(b);
-        Block b2 = deserializeBlock(j);
+        Block b2 = deserializeBlock(serializeBlock(b));
         EXPECT_EQ(b2.nonce, static_cast<uint64_t>(i));
     }
 }
 
-TEST_F(NetworkTest, BlockWithManyTransactionsSerializesCorrectly) {
+TEST_F(NetworkTest,
+       BlockWithManyTransactionsSerializesCorrectly) {
+    if (skipSlowTests())
+        GTEST_SKIP()
+            << "Skipped locally -- set MEDOR_SKIP_SLOW_TESTS=0 "
+               "or unset it to run on CI";
+
     Block b = makeBlock();
     for (int i = 0; i < 200; ++i)
         b.transactions.push_back(
-            makeTx(1, static_cast<uint64_t>(i + 1),
+            makeTx(1,
+                   static_cast<uint64_t>(i + 1),
                    static_cast<uint64_t>(i * 5),
                    "addr" + std::to_string(i)));
-    json j   = serializeBlock(b);
-    Block b2 = deserializeBlock(j);
+    Block b2 = deserializeBlock(serializeBlock(b));
     EXPECT_EQ(b2.transactions.size(), 200U);
     for (int i = 0; i < 200; ++i)
         EXPECT_EQ(b2.transactions[i].txHash,
@@ -1010,10 +1016,17 @@ TEST_F(NetworkTest, BlockWithManyTransactionsSerializesCorrectly) {
 
 // =============================================================================
 // CONCURRENCY -- heavy load
+// Issue 2 note: no metrics assertions inside concurrent tests.
+// Issue 3 note: concurrent tests are also guarded by skipSlowTests().
 // =============================================================================
 
 TEST_F(NetworkTest, ConcurrentSerializeTxHeavyLoad) {
-    constexpr int THREADS = 16;
+    if (skipSlowTests())
+        GTEST_SKIP()
+            << "Skipped locally -- set MEDOR_SKIP_SLOW_TESTS=0 "
+               "or unset it to run on CI";
+
+    constexpr int THREADS    = 16;
     constexpr int PER_THREAD = 50;
     std::vector<std::thread> threads;
     std::atomic<int> errorCount{0};
@@ -1024,10 +1037,11 @@ TEST_F(NetworkTest, ConcurrentSerializeTxHeavyLoad) {
                 try {
                     Transaction tx = makeTx(
                         1,
-                        static_cast<uint64_t>(t * PER_THREAD + i + 1),
+                        static_cast<uint64_t>(
+                            t * PER_THREAD + i + 1),
                         static_cast<uint64_t>(i * 10));
-                    json j = serializeTx(tx);
-                    Transaction tx2 = deserializeTx(j);
+                    Transaction tx2 =
+                        deserializeTx(serializeTx(tx));
                     if (tx2.txHash != tx.txHash) ++errorCount;
                 } catch (...) { ++errorCount; }
             }
@@ -1038,7 +1052,12 @@ TEST_F(NetworkTest, ConcurrentSerializeTxHeavyLoad) {
 }
 
 TEST_F(NetworkTest, ConcurrentSerializeBlockHeavyLoad) {
-    constexpr int THREADS = 16;
+    if (skipSlowTests())
+        GTEST_SKIP()
+            << "Skipped locally -- set MEDOR_SKIP_SLOW_TESTS=0 "
+               "or unset it to run on CI";
+
+    constexpr int THREADS    = 16;
     constexpr int PER_THREAD = 25;
     std::vector<std::thread> threads;
     std::atomic<int> errorCount{0};
@@ -1048,9 +1067,10 @@ TEST_F(NetworkTest, ConcurrentSerializeBlockHeavyLoad) {
             for (int i = 0; i < PER_THREAD; ++i) {
                 try {
                     Block b = makeBlock();
-                    b.nonce = static_cast<uint64_t>(t * PER_THREAD + i);
-                    json j   = serializeBlock(b);
-                    Block b2 = deserializeBlock(j);
+                    b.nonce = static_cast<uint64_t>(
+                        t * PER_THREAD + i);
+                    Block b2 =
+                        deserializeBlock(serializeBlock(b));
                     if (b2.nonce != b.nonce) ++errorCount;
                 } catch (...) { ++errorCount; }
             }
@@ -1061,42 +1081,47 @@ TEST_F(NetworkTest, ConcurrentSerializeBlockHeavyLoad) {
 }
 
 TEST_F(NetworkTest, ConcurrentMixedReadsAndWrites) {
+    if (skipSlowTests())
+        GTEST_SKIP()
+            << "Skipped locally -- set MEDOR_SKIP_SLOW_TESTS=0 "
+               "or unset it to run on CI";
+
     constexpr int THREADS = 8;
     std::vector<std::thread> threads;
     std::atomic<int> errorCount{0};
     std::atomic<bool> stop{false};
 
-    // Writers: serialize transactions
     for (int t = 0; t < THREADS / 2; ++t) {
         threads.emplace_back([&, t]() {
             int i = 0;
             while (!stop.load()) {
                 try {
-                    Transaction tx = makeTx(1,
-                        static_cast<uint64_t>(t * 1000 + i++));
-                    json j = serializeTx(tx);
-                    deserializeTx(j);
+                    Transaction tx = makeTx(
+                        1,
+                        static_cast<uint64_t>(
+                            t * 1000 + i++));
+                    deserializeTx(serializeTx(tx));
                 } catch (...) { ++errorCount; }
             }
         });
     }
 
-    // Readers: serialize blocks
     for (int t = 0; t < THREADS / 2; ++t) {
         threads.emplace_back([&, t]() {
             int i = 0;
             while (!stop.load()) {
                 try {
                     Block b = makeBlock();
-                    b.nonce = static_cast<uint64_t>(t * 1000 + i++);
-                    json j   = serializeBlock(b);
-                    deserializeBlock(j);
+                    b.nonce = static_cast<uint64_t>(
+                        t * 1000 + i++);
+                    deserializeBlock(serializeBlock(b));
                 } catch (...) { ++errorCount; }
             }
         });
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(200));
     stop.store(true);
     for (auto &th : threads) th.join();
     EXPECT_EQ(errorCount.load(), 0);
