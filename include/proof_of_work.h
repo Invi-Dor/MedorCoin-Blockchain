@@ -70,8 +70,8 @@ public:
         bool        enableMetrics       = true;
     };
 
-    explicit ProofOfWork(Config cfg = {}) noexcept;
-    ~ProofOfWork() noexcept;
+    explicit ProofOfWork(Config cfg) noexcept;
+
 
     ProofOfWork(const ProofOfWork&)            = delete;
     ProofOfWork& operator=(const ProofOfWork&) = delete;
