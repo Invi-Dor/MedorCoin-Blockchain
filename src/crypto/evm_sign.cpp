@@ -11,18 +11,27 @@ namespace crypto {
 
 static std::vector<uint8_t> buildUnsignedRlp(const EvmTx &tx)
 {
-    using namespace rlp;
-    std::vector<std::vector<uint8_t>> fields;
-    fields.push_back(encodeUInt(tx.chainId));
-    fields.push_back(encodeUInt(tx.nonce));
-    fields.push_back(encodeUInt(tx.maxPriorityFeePerGas));
-    fields.push_back(encodeUInt(tx.maxFeePerGas));
-    fields.push_back(encodeUInt(tx.gasLimit));
-    fields.push_back(encodeBytes(tx.to));
-    fields.push_back(encodeBytes(tx.value));
-    fields.push_back(encodeBytes(tx.data));
-    fields.push_back(encodeUInt(0));
-    return encodeList(fields);
+    std::vector<uint8_t> chainId, nonce, maxPriority, maxFee, gasLimit,
+                         to, value, data, accessList;
+
+    rlp::encodeUInt(tx.chainId,              chainId);
+    rlp::encodeUInt(tx.nonce,                nonce);
+    rlp::encodeUInt(tx.maxPriorityFeePerGas, maxPriority);
+    rlp::encodeUInt(tx.maxFeePerGas,         maxFee);
+    rlp::encodeUInt(tx.gasLimit,             gasLimit);
+    rlp::encodeBytes(tx.to,                  to);
+    rlp::encodeBytes(tx.value,               value);
+    rlp::encodeBytes(tx.data,                data);
+    rlp::encodeUInt(0,                       accessList);  // empty access list
+
+    std::vector<std::vector<uint8_t>> fields = {
+        chainId, nonce, maxPriority, maxFee,
+        gasLimit, to, value, data, accessList
+    };
+
+    std::vector<uint8_t> out;
+    rlp::encodeList(fields, out);
+    return out;
 }
 
 std::vector<uint8_t> signEvmTransaction(
@@ -35,27 +44,37 @@ std::vector<uint8_t> signEvmTransaction(
     std::array<uint8_t, 32> hash{};
     std::copy(hashVec.begin(), hashVec.end(), hash.begin());
 
-    // signHashWithKey takes privkey directly -- no file path needed here
     auto [rArr, sArr, v] = signHashWithKey(hash, privkey);
 
     tx.r.assign(rArr.begin(), rArr.end());
     tx.s.assign(sArr.begin(), sArr.end());
     tx.v = static_cast<uint8_t>(v + 27);
 
-    using namespace rlp;
-    std::vector<std::vector<uint8_t>> finalFields;
-    finalFields.push_back(encodeUInt(tx.chainId));
-    finalFields.push_back(encodeUInt(tx.nonce));
-    finalFields.push_back(encodeUInt(tx.maxPriorityFeePerGas));
-    finalFields.push_back(encodeUInt(tx.maxFeePerGas));
-    finalFields.push_back(encodeUInt(tx.gasLimit));
-    finalFields.push_back(encodeBytes(tx.to));
-    finalFields.push_back(encodeBytes(tx.value));
-    finalFields.push_back(encodeBytes(tx.data));
-    finalFields.push_back(encodeUInt(tx.v));
-    finalFields.push_back(encodeBytes(tx.r));
-    finalFields.push_back(encodeBytes(tx.s));
-    return encodeList(finalFields);
+    std::vector<uint8_t> chainId, nonce, maxPriority, maxFee, gasLimit,
+                         to, value, data, vEnc, r, s, accessList;
+
+    rlp::encodeUInt(tx.chainId,              chainId);
+    rlp::encodeUInt(tx.nonce,                nonce);
+    rlp::encodeUInt(tx.maxPriorityFeePerGas, maxPriority);
+    rlp::encodeUInt(tx.maxFeePerGas,         maxFee);
+    rlp::encodeUInt(tx.gasLimit,             gasLimit);
+    rlp::encodeBytes(tx.to,                  to);
+    rlp::encodeBytes(tx.value,               value);
+    rlp::encodeBytes(tx.data,                data);
+    rlp::encodeUInt(0,                       accessList);
+    rlp::encodeUInt(tx.v,                    vEnc);
+    rlp::encodeBytes(tx.r,                   r);
+    rlp::encodeBytes(tx.s,                   s);
+
+    std::vector<std::vector<uint8_t>> finalFields = {
+        chainId, nonce, maxPriority, maxFee,
+        gasLimit, to, value, data, accessList,
+        vEnc, r, s
+    };
+
+    std::vector<uint8_t> out;
+    rlp::encodeList(finalFields, out);
+    return out;
 }
 
 } // namespace crypto
