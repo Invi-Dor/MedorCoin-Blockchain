@@ -1,5 +1,6 @@
 #pragma once
 
+#include "blockchain.cpp"
 #include "accountdb.h"
 #include "blockdb.h"
 #include "utxo.h"
