@@ -1,443 +1,629 @@
-#include "blockdb.h"
-#include "block.h"
+#include "accountdb.h"
+#include "crypto/keccak256.h"
 
 #include <cctype>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 #include <stdexcept>
+#include <charconv>
 
 // =============================================================================
-// CONSTRUCTOR / DESTRUCTOR
-// Issue 1: db_ is unique_ptr — closed automatically on destruction.
-// Issue 2: blockCache_ and filterPolicy_ are unique_ptr — no manual delete.
-// Issue 3: stopped_ set to true before any member is destroyed —
-//          prevents log calls after destruction.
+// KEY PREFIXES
+// All keys stored in RocksDB are namespaced by prefix to avoid collisions.
+// "bal:"    -- account balance (uint64_t as decimal string)
+// "nonce:"  -- account nonce   (uint64_t as decimal string)
+// "code:"   -- contract bytecode (hex string)
+// "store:"  -- contract storage slot (hex string)
+// "meta:"   -- block-height-tagged metadata
+// "state:"  -- state root per block height
 // =============================================================================
-BlockDB::BlockDB() = default;
+static constexpr const char* PREFIX_BAL    = "bal:";
+static constexpr const char* PREFIX_NONCE  = "nonce:";
+static constexpr const char* PREFIX_CODE   = "code:";
+static constexpr const char* PREFIX_STORE  = "store:";
+static constexpr const char* PREFIX_META   = "meta:";
+static constexpr const char* PREFIX_STATE  = "state:";
 
-BlockDB::~BlockDB() noexcept {
-    // Issue 3: signal log() to stop before destroying members
-    stopped_.store(true, std::memory_order_release);
-    close();
-    // unique_ptr members clean up automatically:
-    // db_, blockCache_, filterPolicy_ all deleted here
+// =============================================================================
+// CONSTRUCTOR
+// Fix 1: open failure is fatal -- db stays nullptr, isOpen() returns false.
+// Fix 8: health check failure is also fatal -- db reset to nullptr.
+// =============================================================================
+AccountDB::AccountDB(const std::string& path)
+{
+    if (path.empty()) {
+        std::cerr << "[AccountDB] FATAL: empty path rejected\n";
+        return;
+    }
+
+    options.create_if_missing        = true;
+    options.paranoid_checks          = true;
+    options.write_buffer_size        = 64 * 1024 * 1024;
+    options.max_open_files           = 500;
+    options.compression              = rocksdb::kSnappyCompression;
+
+    rocksdb::DB* raw = nullptr;
+    rocksdb::Status s = rocksdb::DB::Open(options, path, &raw);
+    if (!s.ok()) {
+        std::cerr << "[AccountDB] FATAL: failed to open at '"
+                  << path << "': " << s.ToString() << "\n";
+        return;
+    }
+    db = raw;
+
+    // Fix 8: health check failure is fatal
+    rocksdb::WriteOptions wo;
+    wo.sync = true;
+    rocksdb::Status hs = db->Put(wo, HEALTH_KEY, "ok");
+    if (!hs.ok()) {
+        std::cerr << "[AccountDB] FATAL: health check write failed: "
+                  << hs.ToString() << "\n";
+        delete db;
+        db = nullptr;
+        return;
+    }
+
+    log(0, "opened at '" + path + "'");
+}
+
+// =============================================================================
+// DESTRUCTOR
+// =============================================================================
+AccountDB::~AccountDB()
+{
+    if (db) {
+        delete db;
+        db = nullptr;
+    }
+}
+
+// =============================================================================
+// IS OPEN / IS HEALTHY
+// =============================================================================
+bool AccountDB::isOpen() const noexcept
+{
+    std::shared_lock<std::shared_mutex> lock(dbMutex);
+    return db != nullptr;
+}
+
+bool AccountDB::isHealthy() const noexcept
+{
+    std::shared_lock<std::shared_mutex> lock(dbMutex);
+    if (!db) return false;
+    std::string val;
+    rocksdb::Status s = db->Get(
+        rocksdb::ReadOptions(), HEALTH_KEY, &val);
+    return s.ok() && val == "ok";
 }
 
 // =============================================================================
 // LOGGING
-// Issue 3: logger copied under logMu_ then invoked outside the lock.
-//          stopped_ checked first — no log after destruction.
+// Fix 2: exceptions from logger reported to stderr, not silently swallowed.
 // =============================================================================
-void BlockDB::setLogger(LoggerFn fn) noexcept {
-    std::lock_guard<std::mutex> lk(logMu_);
-    logFn_ = std::move(fn);
-}
-
-void BlockDB::log(int level, const std::string& msg) const noexcept {
-    if (stopped_.load(std::memory_order_acquire)) return;
-
-    // Copy under lock — invoke outside lock
-    LoggerFn fn;
-    {
-        std::lock_guard<std::mutex> lk(logMu_);
-        fn = logFn_;
-    }
-
-    if (fn) {
-        try { fn(level, "[BlockDB] " + msg); }
-        catch (...) {}
+void AccountDB::log(int level, const std::string& msg) const noexcept
+{
+    if (logger) {
+        try {
+            logger(level, "[AccountDB] " + msg);
+        } catch (const std::exception& e) {
+            std::cerr << "[AccountDB] logger threw: " << e.what() << "\n";
+        } catch (...) {
+            std::cerr << "[AccountDB] logger threw unknown exception\n";
+        }
         return;
     }
     if (level >= 2)
-        std::cerr << "[BlockDB][ERROR] " << msg << "\n";
+        std::cerr << "[AccountDB][ERROR] " << msg << "\n";
     else if (level == 1)
-        std::cerr << "[BlockDB][WARN]  " << msg << "\n";
+        std::cerr << "[AccountDB][WARN]  " << msg << "\n";
     else
-        std::cout << "[BlockDB][INFO]  " << msg << "\n";
+        std::cout << "[AccountDB][INFO]  " << msg << "\n";
 }
 
 // =============================================================================
-// INTERNAL HELPERS
+// IS VALID KEY
+// Fix 3: checks length AND rejects null bytes and control characters.
+// Fix 9: conservative 4KB limit well within RocksDB internal limits.
 // =============================================================================
-BlockDB::Result BlockDB::fromStatus(const leveldb::Status& s,
-                                     const std::string&     ctx) noexcept {
-    if (s.ok())         return Result::success();
-    if (s.IsNotFound()) return Result::failure("NOT_FOUND: " + ctx);
-    return Result::failure(ctx + ": " + s.ToString());
-}
-
-// Issue 6: FORMAT-ONLY — exactly 64 lowercase hex characters.
-// Does NOT check DB existence. Use hasBlock() for that.
-bool BlockDB::isValidHash(const std::string& hash) noexcept {
-    if (hash.size() != 64) return false;
-    for (unsigned char c : hash)
-        if (!std::isxdigit(c) || std::isupper(c)) return false;
+bool AccountDB::isValidKey(const std::string& key) noexcept
+{
+    if (key.empty())              return false;
+    if (key.size() > MAX_KEY_LEN) return false;
+    for (unsigned char c : key) {
+        if (c == 0x00)            return false;
+        if (c < 0x20 && c != 0x09) return false;
+    }
     return true;
 }
 
 // =============================================================================
-// OPEN
-// Issue 1: db_ assigned via unique_ptr — no raw pointer ownership.
-// Issue 2: blockCache_ and filterPolicy_ assigned via unique_ptr.
-// Idempotent — returns success if already open.
+// FROM STATUS
+// Fix 10: structured error code prefixes for programmatic handling.
+// Prefixes: NOT_FOUND, IO_ERROR, CORRUPTION, INVALID_ARG, UNKNOWN
 // =============================================================================
-BlockDB::Result BlockDB::open(const std::string& path) noexcept {
-    std::unique_lock<std::shared_mutex> lock(rwMutex_);
-
-    if (db_)           return Result::success();
-    if (path.empty())  return Result::failure("open: empty path rejected");
-
-    try {
-        // Issue 2: construct cache and filter before DB open
-        blockCache_.reset(leveldb::NewLRUCache(64 * 1024 * 1024));
-        filterPolicy_.reset(leveldb::NewBloomFilterPolicy(10));
-
-        leveldb::Options opts;
-        opts.create_if_missing = true;
-        opts.paranoid_checks   = true;
-        opts.write_buffer_size = 16 * 1024 * 1024;
-        opts.max_open_files    = 1024;
-        opts.block_cache       = blockCache_.get();
-        opts.filter_policy     = filterPolicy_.get();
-
-        leveldb::DB* raw = nullptr;
-        leveldb::Status s = leveldb::DB::Open(opts, path, &raw);
-
-        if (!s.ok()) {
-            // Issue 2: unique_ptrs clean up cache and filter automatically
-            blockCache_.reset();
-            filterPolicy_.reset();
-            return Result::failure(
-                "open failed for '" + path + "': " + s.ToString());
-        }
-
-        // Issue 1: raw pointer immediately owned by unique_ptr
-        db_.reset(raw);
-        log(0, "opened at '" + path + "'");
-        return Result::success();
-
-    } catch (const std::exception& e) {
-        blockCache_.reset();
-        filterPolicy_.reset();
-        db_.reset();
-        return Result::failure(
-            std::string("open: exception: ") + e.what());
-    }
+AccountDB::Result AccountDB::fromStatus(
+    const rocksdb::Status& s,
+    const std::string&     ctx) noexcept
+{
+    if (s.ok())               return Result::success();
+    if (s.IsNotFound())       return Result::failure("NOT_FOUND:"   + ctx);
+    if (s.IsIOError())        return Result::failure("IO_ERROR:"    + ctx + ": " + s.ToString());
+    if (s.IsCorruption())     return Result::failure("CORRUPTION:"  + ctx + ": " + s.ToString());
+    if (s.IsInvalidArgument())return Result::failure("INVALID_ARG:" + ctx + ": " + s.ToString());
+    return                           Result::failure("UNKNOWN:"     + ctx + ": " + s.ToString());
 }
 
 // =============================================================================
-// CLOSE
-// Idempotent — safe to call multiple times.
-// Issue 1: db_.reset() triggers DBDeleter which calls delete on the DB.
+// PUT
 // =============================================================================
-void BlockDB::close() noexcept {
-    std::unique_lock<std::shared_mutex> lock(rwMutex_);
-    if (!db_) return;
-    db_.reset();
-    // Issue 2: cache and filter released after DB — correct order
-    blockCache_.reset();
-    filterPolicy_.reset();
-    log(0, "closed");
-}
-
-bool BlockDB::isOpen() const noexcept {
-    std::shared_lock<std::shared_mutex> lock(rwMutex_);
-    return db_ != nullptr;
-}
-
-// =============================================================================
-// WRITE BLOCK
-// =============================================================================
-BlockDB::Result BlockDB::writeBlock(const Block& block) noexcept {
-    if (!isValidHash(block.hash))
+AccountDB::Result AccountDB::put(
+    const std::string& key,
+    const std::string& value,
+    bool               sync) noexcept
+{
+    if (!isValidKey(key))
         return Result::failure(
-            "writeBlock: hash must be 64 lowercase hex chars, got '"
-            + block.hash + "'");
+            "INVALID_ARG:put: invalid key '" + key + "'");
 
-    std::string value;
-    try {
-        value = block.serialize();
-    } catch (const std::exception& e) {
-        return Result::failure(
-            std::string("writeBlock: serialize exception: ") + e.what());
-    }
-    if (value.empty())
-        return Result::failure(
-            "writeBlock: serialize returned empty for hash "
-            + block.hash);
-
-    leveldb::WriteOptions wo;
-    wo.sync = true;
-
-    std::unique_lock<std::shared_mutex> lock(rwMutex_);
-    if (!db_) return Result::failure("writeBlock: DB not open");
+    std::unique_lock<std::shared_mutex> lock(dbMutex);
+    if (!db) return Result::failure("IO_ERROR:put: DB not open");
 
     try {
-        leveldb::Status s = db_->Put(wo, block.hash, value);
-        Result r = fromStatus(s, "writeBlock hash=" + block.hash);
+        rocksdb::WriteOptions wo;
+        wo.sync = sync;
+        rocksdb::Status s = db->Put(wo, key, value);
+        auto r = fromStatus(s, "put key=" + key);
         if (!r) log(2, r.error);
         return r;
     } catch (const std::exception& e) {
         return Result::failure(
-            std::string("writeBlock: exception: ") + e.what());
+            std::string("INTERNAL:put exception: ") + e.what());
     }
 }
 
 // =============================================================================
-// READ BLOCK
+// GET
+// Fix 1: const-correct -- uses shared_lock, does not mutate state.
 // =============================================================================
-BlockDB::Result BlockDB::readBlock(const std::string& hash,
-                                    Block&             out) noexcept {
-    if (!isValidHash(hash))
+AccountDB::Result AccountDB::get(
+    const std::string& key,
+    std::string&       valueOut) const noexcept
+{
+    if (!isValidKey(key))
         return Result::failure(
-            "readBlock: hash must be 64 lowercase hex chars");
+            "INVALID_ARG:get: invalid key '" + key + "'");
 
-    std::shared_lock<std::shared_mutex> lock(rwMutex_);
-    if (!db_) return Result::failure("readBlock: DB not open");
-
-    std::string value;
-    try {
-        leveldb::Status s = db_->Get(
-            leveldb::ReadOptions(), hash, &value);
-        if (s.IsNotFound()) return Result::failure("NOT_FOUND");
-        if (!s.ok()) return fromStatus(s, "readBlock hash=" + hash);
-    } catch (const std::exception& e) {
-        return Result::failure(
-            std::string("readBlock: get exception: ") + e.what());
-    }
+    std::shared_lock<std::shared_mutex> lock(dbMutex);
+    if (!db) return Result::failure("IO_ERROR:get: DB not open");
 
     try {
-        if (!out.deserialize(value))
-            return Result::failure(
-                "readBlock: deserialize failed for hash " + hash);
+        rocksdb::Status s = db->Get(
+            rocksdb::ReadOptions(), key, &valueOut);
+        if (s.IsNotFound())
+            return Result::failure("NOT_FOUND:" + key);
+        return fromStatus(s, "get key=" + key);
     } catch (const std::exception& e) {
         return Result::failure(
-            "readBlock: deserialize exception for hash "
-            + hash + ": " + e.what());
+            std::string("INTERNAL:get exception: ") + e.what());
     }
-
-    return Result::success();
 }
 
 // =============================================================================
-// HAS BLOCK
-// Issue 6: this is the existence check — isValidHash() is format only.
+// DEL
 // =============================================================================
-bool BlockDB::hasBlock(const std::string& hash) noexcept {
-    if (!isValidHash(hash)) return false;
+AccountDB::Result AccountDB::del(
+    const std::string& key,
+    bool               sync) noexcept
+{
+    if (!isValidKey(key))
+        return Result::failure(
+            "INVALID_ARG:del: invalid key '" + key + "'");
 
-    std::shared_lock<std::shared_mutex> lock(rwMutex_);
-    if (!db_) return false;
+    std::unique_lock<std::shared_mutex> lock(dbMutex);
+    if (!db) return Result::failure("IO_ERROR:del: DB not open");
 
     try {
-        std::string value;
-        return db_->Get(
-            leveldb::ReadOptions(), hash, &value).ok();
-    } catch (...) {
-        return false;
+        rocksdb::WriteOptions wo;
+        wo.sync = sync;
+        rocksdb::Status s = db->Delete(wo, key);
+        auto r = fromStatus(s, "del key=" + key);
+        if (!r) log(2, r.error);
+        return r;
+    } catch (const std::exception& e) {
+        return Result::failure(
+            std::string("INTERNAL:del exception: ") + e.what());
     }
 }
 
 // =============================================================================
 // WRITE BATCH
-// Atomic write of multiple blocks in a single LevelDB WriteBatch.
+// Fix 4: validates all keys before writing any.
+// Fix 6: atomic via single RocksDB WriteBatch -- no partial commits.
 // =============================================================================
-BlockDB::Result BlockDB::writeBatch(
-    const std::vector<Block>& blocks) noexcept
+AccountDB::Result AccountDB::writeBatch(
+    const std::vector<std::pair<std::string,
+                                std::string>>& items,
+    bool sync) noexcept
 {
-    if (blocks.empty()) return Result::success();
+    if (items.empty()) return Result::success();
 
-    leveldb::WriteBatch batch;
-
-    for (size_t i = 0; i < blocks.size(); i++) {
-        const Block& b = blocks[i];
-        if (!isValidHash(b.hash))
+    for (size_t i = 0; i < items.size(); ++i) {
+        if (!isValidKey(items[i].first))
             return Result::failure(
-                "writeBatch: invalid hash at index "
-                + std::to_string(i));
-
-        std::string value;
-        try {
-            value = b.serialize();
-        } catch (const std::exception& e) {
-            return Result::failure(
-                "writeBatch: serialize exception at index "
-                + std::to_string(i) + ": " + e.what());
-        }
-        if (value.empty())
-            return Result::failure(
-                "writeBatch: empty serialization at index "
-                + std::to_string(i));
-
-        batch.Put(b.hash, value);
+                "INVALID_ARG:writeBatch: invalid key at index "
+                + std::to_string(i)
+                + " key='" + items[i].first + "'");
     }
 
-    leveldb::WriteOptions wo;
-    wo.sync = true;
-
-    std::unique_lock<std::shared_mutex> lock(rwMutex_);
-    if (!db_) return Result::failure("writeBatch: DB not open");
+    std::unique_lock<std::shared_mutex> lock(dbMutex);
+    if (!db) return Result::failure("IO_ERROR:writeBatch: DB not open");
 
     try {
-        leveldb::Status s = db_->Write(wo, &batch);
-        Result r = fromStatus(s,
-            "writeBatch (" + std::to_string(blocks.size()) + " blocks)");
+        rocksdb::WriteBatch batch;
+        for (const auto& kv : items)
+            batch.Put(kv.first, kv.second);
+        rocksdb::WriteOptions wo;
+        wo.sync = sync;
+        rocksdb::Status s = db->Write(wo, &batch);
+        auto r = fromStatus(s, "writeBatch");
         if (!r) log(2, r.error);
         return r;
     } catch (const std::exception& e) {
         return Result::failure(
-            std::string("writeBatch: exception: ") + e.what());
+            std::string("INTERNAL:writeBatch exception: ") + e.what());
     }
 }
 
 // =============================================================================
-// NEW ITERATOR
+// DELETE BATCH
+// Fix 4: validates all keys before deleting any.
+// Fix 6: atomic via single WriteBatch.
 // =============================================================================
-BlockDB::IteratorPtr BlockDB::newIterator() noexcept {
-    std::shared_lock<std::shared_mutex> lock(rwMutex_);
-    if (!db_) return nullptr;
+AccountDB::Result AccountDB::deleteBatch(
+    const std::vector<std::string>& keys,
+    bool sync) noexcept
+{
+    if (keys.empty()) return Result::success();
+
+    for (size_t i = 0; i < keys.size(); ++i) {
+        if (!isValidKey(keys[i]))
+            return Result::failure(
+                "INVALID_ARG:deleteBatch: invalid key at index "
+                + std::to_string(i)
+                + " key='" + keys[i] + "'");
+    }
+
+    std::unique_lock<std::shared_mutex> lock(dbMutex);
+    if (!db) return Result::failure("IO_ERROR:deleteBatch: DB not open");
+
     try {
-        return IteratorPtr(
-            db_->NewIterator(leveldb::ReadOptions()));
-    } catch (...) {
-        return nullptr;
+        rocksdb::WriteBatch batch;
+        for (const auto& k : keys)
+            batch.Delete(k);
+        rocksdb::WriteOptions wo;
+        wo.sync = sync;
+        rocksdb::Status s = db->Write(wo, &batch);
+        auto r = fromStatus(s, "deleteBatch");
+        if (!r) log(2, r.error);
+        return r;
+    } catch (const std::exception& e) {
+        return Result::failure(
+            std::string("INTERNAL:deleteBatch exception: ") + e.what());
     }
 }
 
 // =============================================================================
-// SCAN
-// Issue 5: returns ScanResult with explicit count, ok flag, and error.
+// ITERATE PREFIX
+// Fix 5: logs iterator creation failure.
+// Fix 7: callbacks invoked outside the lock to prevent deadlocks.
 // =============================================================================
-BlockDB::ScanResult BlockDB::scan(const ScanCallback& cb) noexcept {
-    ScanResult result;
+int64_t AccountDB::iteratePrefix(
+    const std::string&  prefix,
+    const ScanCallback& callback,
+    size_t              maxResults) noexcept
+{
+    if (!callback) { log(1, "iteratePrefix: null callback"); return 0; }
+    if (prefix.empty()) { log(1, "iteratePrefix: empty prefix"); return 0; }
 
-    if (!cb) {
-        result.ok    = false;
-        result.error = "scan: null callback rejected";
-        log(2, result.error);
-        return result;
-    }
+    std::vector<std::pair<std::string, std::string>> entries;
+    {
+        std::shared_lock<std::shared_mutex> lock(dbMutex);
+        if (!db) { log(2, "iteratePrefix: DB not open"); return 0; }
 
-    std::shared_lock<std::shared_mutex> lock(rwMutex_);
-    if (!db_) {
-        result.ok    = false;
-        result.error = "scan: DB not open";
-        log(2, result.error);
-        return result;
-    }
+        rocksdb::ReadOptions ro;
+        ro.prefix_same_as_start = true;
 
-    try {
-        IteratorPtr it(db_->NewIterator(leveldb::ReadOptions()));
+        std::unique_ptr<rocksdb::Iterator> it(db->NewIterator(ro));
+        // Fix 5: log failure instead of silently returning 0
         if (!it) {
-            result.ok    = false;
-            result.error = "scan: failed to create iterator";
-            log(2, result.error);
-            return result;
+            log(2, "iteratePrefix: failed to create iterator for '"
+                + prefix + "'");
+            return 0;
         }
 
-        for (it->SeekToFirst(); it->Valid(); it->Next()) {
-            ++result.count;
-            if (!cb(it->key().ToString(), it->value().ToString()))
+        for (it->Seek(prefix); it->Valid(); it->Next()) {
+            const std::string key = it->key().ToString();
+            if (key.size() < prefix.size() ||
+                key.substr(0, prefix.size()) != prefix)
+                break;
+            entries.emplace_back(key, it->value().ToString());
+            if (maxResults > 0 && entries.size() >= maxResults)
                 break;
         }
 
-        if (!it->status().ok()) {
-            result.ok    = false;
-            result.error = "scan: iterator error after "
-                         + std::to_string(result.count)
-                         + " entries: "
-                         + it->status().ToString();
-            log(2, result.error);
-            return result;
+        if (!it->status().ok())
+            log(2, "iteratePrefix: iterator error: "
+                + it->status().ToString());
+    }
+
+    // Fix 7: invoke callbacks outside lock
+    int64_t count = 0;
+    for (const auto& kv : entries) {
+        ++count;
+        try {
+            if (!callback(kv.first, kv.second)) break;
+        } catch (const std::exception& e) {
+            log(2, std::string("iteratePrefix: callback threw: ") + e.what());
+            break;
+        } catch (...) {
+            log(2, "iteratePrefix: callback threw unknown exception");
+            break;
         }
-
-    } catch (const std::exception& e) {
-        result.ok    = false;
-        result.error = std::string("scan: exception: ") + e.what();
-        log(2, result.error);
-        return result;
     }
-
-    return result;
+    return count;
 }
 
 // =============================================================================
-// ACQUIRE SNAPSHOT
-// Issue 4: snapshot must not outlive this BlockDB instance.
+// ACCOUNT BALANCE
+// Component 1: structured account balance stored as "bal:<address>"
 // =============================================================================
-std::unique_ptr<BlockDB::SnapshotGuard>
-BlockDB::acquireSnapshot() noexcept {
-    std::shared_lock<std::shared_mutex> lock(rwMutex_);
-    if (!db_) return nullptr;
-    try {
-        const leveldb::Snapshot* snap = db_->GetSnapshot();
-        return std::make_unique<SnapshotGuard>(db_.get(), snap);
-    } catch (...) {
-        return nullptr;
-    }
-}
-
-// =============================================================================
-// READ WITH SNAPSHOT
-// Issue 4: validates guard.valid() and DB open before any access.
-// =============================================================================
-BlockDB::Result BlockDB::readWithSnapshot(
-    const std::string&   hash,
-    Block&               out,
-    const SnapshotGuard& guard) noexcept
+uint64_t AccountDB::getBalance(const std::string& address) const noexcept
 {
-    if (!isValidHash(hash))
-        return Result::failure(
-            "readWithSnapshot: hash must be 64 lowercase hex chars");
+    std::string val;
+    auto r = get(PREFIX_BAL + address, val);
+    if (!r) return 0;
+    try { return std::stoull(val); } catch (...) { return 0; }
+}
 
-    // Issue 4: validate snapshot before use
-    if (!guard.valid())
-        return Result::failure(
-            "readWithSnapshot: invalid or expired snapshot guard");
+bool AccountDB::setBalance(const std::string& address,
+                            uint64_t           amount) noexcept
+{
+    return static_cast<bool>(
+        put(PREFIX_BAL + address, std::to_string(amount)));
+}
 
-    std::shared_lock<std::shared_mutex> lock(rwMutex_);
-    if (!db_)
-        return Result::failure("readWithSnapshot: DB not open");
-
-    leveldb::ReadOptions ro;
-    ro.snapshot = guard.get();
-
-    std::string value;
-    try {
-        leveldb::Status s = db_->Get(ro, hash, &value);
-        if (s.IsNotFound()) return Result::failure("NOT_FOUND");
-        if (!s.ok())
-            return fromStatus(s,
-                "readWithSnapshot hash=" + hash);
-    } catch (const std::exception& e) {
-        return Result::failure(
-            std::string("readWithSnapshot: get exception: ")
-            + e.what());
+bool AccountDB::addBalance(const std::string& address,
+                            uint64_t           amount) noexcept
+{
+    const uint64_t current = getBalance(address);
+    if (amount > std::numeric_limits<uint64_t>::max() - current) {
+        log(2, "addBalance: overflow for " + address);
+        return false;
     }
+    return setBalance(address, current + amount);
+}
 
-    try {
-        if (!out.deserialize(value))
-            return Result::failure(
-                "readWithSnapshot: deserialize failed for hash "
-                + hash);
-    } catch (const std::exception& e) {
-        return Result::failure(
-            "readWithSnapshot: deserialize exception: "
-            + std::string(e.what()));
+bool AccountDB::deductBalance(const std::string& address,
+                               uint64_t           amount) noexcept
+{
+    const uint64_t current = getBalance(address);
+    if (amount > current) {
+        log(2, "deductBalance: insufficient for " + address
+            + " has=" + std::to_string(current)
+            + " needs=" + std::to_string(amount));
+        return false;
     }
-
-    return Result::success();
+    return setBalance(address, current - amount);
 }
 
 // =============================================================================
-// COMPACT
+// NONCE MANAGEMENT
+// Component 4: per-account nonce stored as "nonce:<address>"
+// Prevents double-spending -- each transaction must use current nonce + 1.
 // =============================================================================
-void BlockDB::compact() noexcept {
-    std::unique_lock<std::shared_mutex> lock(rwMutex_);
-    if (!db_) { log(1, "compact: DB not open"); return; }
-    try {
-        db_->CompactRange(nullptr, nullptr);
-        log(0, "compaction complete");
-    } catch (const std::exception& e) {
-        log(2, std::string("compact: exception: ") + e.what());
+uint64_t AccountDB::getNonce(const std::string& address) const noexcept
+{
+    std::string val;
+    auto r = get(PREFIX_NONCE + address, val);
+    if (!r) return 0;
+    try { return std::stoull(val); } catch (...) { return 0; }
+}
+
+bool AccountDB::incrementNonce(const std::string& address) noexcept
+{
+    const uint64_t current = getNonce(address);
+    if (current == std::numeric_limits<uint64_t>::max()) {
+        log(2, "incrementNonce: nonce overflow for " + address);
+        return false;
     }
+    return static_cast<bool>(
+        put(PREFIX_NONCE + address,
+            std::to_string(current + 1)));
+}
+
+bool AccountDB::validateNonce(const std::string& address,
+                               uint64_t           txNonce) const noexcept
+{
+    return txNonce == getNonce(address);
+}
+
+// =============================================================================
+// SMART CONTRACT CODE
+// Component 8: contract bytecode stored as "code:<address>"
+// =============================================================================
+bool AccountDB::setContractCode(const std::string&              address,
+                                  const std::vector<uint8_t>&   code) noexcept
+{
+    std::string hex;
+    hex.reserve(code.size() * 2);
+    static const char hexChars[] = "0123456789abcdef";
+    for (uint8_t b : code) {
+        hex += hexChars[b >> 4];
+        hex += hexChars[b & 0x0F];
+    }
+    return static_cast<bool>(put(PREFIX_CODE + address, hex));
+}
+
+std::vector<uint8_t> AccountDB::getContractCode(
+    const std::string& address) const noexcept
+{
+    std::string hex;
+    auto r = get(PREFIX_CODE + address, hex);
+    if (!r || hex.empty()) return {};
+    std::vector<uint8_t> code;
+    code.reserve(hex.size() / 2);
+    for (size_t i = 0; i + 1 < hex.size(); i += 2) {
+        try {
+            code.push_back(static_cast<uint8_t>(
+                std::stoul(hex.substr(i, 2), nullptr, 16)));
+        } catch (...) { return {}; }
+    }
+    return code;
+}
+
+// =============================================================================
+// CONTRACT STORAGE
+// Component 8: per-slot contract storage "store:<address>:<slot>"
+// =============================================================================
+bool AccountDB::setStorageSlot(const std::string& address,
+                                 const std::string& slot,
+                                 const std::string& value) noexcept
+{
+    return static_cast<bool>(
+        put(PREFIX_STORE + address + ":" + slot, value));
+}
+
+std::string AccountDB::getStorageSlot(
+    const std::string& address,
+    const std::string& slot) const noexcept
+{
+    std::string val;
+    get(PREFIX_STORE + address + ":" + slot, val);
+    return val;
+}
+
+// =============================================================================
+// STATE ROOT
+// Component 3: state root per block height stored as "state:<height>"
+// Links DB state to a specific block for chain reorganisation support.
+// =============================================================================
+bool AccountDB::setStateRoot(uint64_t           blockHeight,
+                               const std::string& stateRoot) noexcept
+{
+    return static_cast<bool>(
+        put(PREFIX_STATE + std::to_string(blockHeight), stateRoot));
+}
+
+std::string AccountDB::getStateRoot(uint64_t blockHeight) const noexcept
+{
+    std::string val;
+    get(PREFIX_STATE + std::to_string(blockHeight), val);
+    return val;
+}
+
+// =============================================================================
+// BLOCK-TAGGED METADATA
+// Component 3: arbitrary metadata tagged to a block height
+// stored as "meta:<height>:<key>"
+// =============================================================================
+bool AccountDB::setMeta(uint64_t           blockHeight,
+                          const std::string& key,
+                          const std::string& value) noexcept
+{
+    return static_cast<bool>(
+        put(PREFIX_META + std::to_string(blockHeight) + ":" + key,
+            value));
+}
+
+std::string AccountDB::getMeta(uint64_t           blockHeight,
+                                 const std::string& key) const noexcept
+{
+    std::string val;
+    get(PREFIX_META + std::to_string(blockHeight) + ":" + key, val);
+    return val;
+}
+
+// =============================================================================
+// ATOMIC BLOCK STATE COMMIT
+// Component 2: all state changes for a block applied atomically.
+// If any step fails the entire batch is discarded -- no partial state.
+// Fix 6: single WriteBatch for all balance, nonce, and metadata updates.
+// =============================================================================
+AccountDB::Result AccountDB::commitBlockState(
+    uint64_t blockHeight,
+    const std::vector<std::pair<std::string, uint64_t>>& balanceChanges,
+    const std::vector<std::string>&                       nonceIncrements,
+    const std::string&                                    stateRoot) noexcept
+{
+    std::vector<std::pair<std::string, std::string>> items;
+    items.reserve(
+        balanceChanges.size() +
+        nonceIncrements.size() + 1);
+
+    // Balance updates
+    for (const auto& [addr, amount] : balanceChanges) {
+        if (!isValidKey(PREFIX_BAL + addr))
+            return Result::failure(
+                "INVALID_ARG:commitBlockState: invalid address '"
+                + addr + "'");
+        items.emplace_back(PREFIX_BAL  + addr,
+                           std::to_string(amount));
+    }
+
+    // Nonce increments -- read current under lock then stage new value
+    for (const auto& addr : nonceIncrements) {
+        const uint64_t current = getNonce(addr);
+        if (current == std::numeric_limits<uint64_t>::max())
+            return Result::failure(
+                "INVALID_ARG:commitBlockState: nonce overflow for "
+                + addr);
+        items.emplace_back(PREFIX_NONCE + addr,
+                           std::to_string(current + 1));
+    }
+
+    // State root
+    if (!stateRoot.empty())
+        items.emplace_back(
+            PREFIX_STATE + std::to_string(blockHeight), stateRoot);
+
+    return writeBatch(items);
+}
+
+// =============================================================================
+// GAS / FEE ACCOUNTING
+// Component 7: cumulative gas used per address stored as "gas:<address>"
+// =============================================================================
+bool AccountDB::addGasUsed(const std::string& address,
+                             uint64_t           gasUsed) noexcept
+{
+    std::string val;
+    uint64_t current = 0;
+    if (get("gas:" + address, val)) {
+        try { current = std::stoull(val); } catch (...) { current = 0; }
+    }
+    if (gasUsed > std::numeric_limits<uint64_t>::max() - current) {
+        log(2, "addGasUsed: overflow for " + address);
+        return false;
+    }
+    return static_cast<bool>(
+        put("gas:" + address, std::to_string(current + gasUsed)));
+}
+
+uint64_t AccountDB::getTotalGasUsed(
+    const std::string& address) const noexcept
+{
+    std::string val;
+    auto r = get("gas:" + address, val);
+    if (!r) return 0;
+    try { return std::stoull(val); } catch (...) { return 0; }
+}
+
+// =============================================================================
+// ACCOUNT EXISTS
+// =============================================================================
+bool AccountDB::accountExists(const std::string& address) const noexcept
+{
+    std::string val;
+    return static_cast<bool>(get(PREFIX_BAL + address, val));
 }
