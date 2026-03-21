@@ -5,7 +5,6 @@
 #include "utxo.h"
 #include "block.h"
 #include "transaction.h"
-#include "consensus/validator_registry.h"
 #include "crypto/keccak256.h"
 
 #include <atomic>
@@ -18,10 +17,6 @@
 #include <unordered_set>
 #include <vector>
 
-/*
- * Blockchain
- * Core MedorCoin blockchain state manager.
- */
 class Blockchain {
 public:
 
@@ -91,11 +86,10 @@ public:
     void printChain() const noexcept;
 
 private:
-    Config            cfg_;
-    BlockDB           blockDB_;
-    AccountDB         accountDB_;
-    UTXOSet           utxoSet_;
-    ValidatorRegistry validatorRegistry_;
+    Config    cfg_;
+    BlockDB   blockDB_;
+    AccountDB accountDB_;
+    UTXOSet   utxoSet_;
 
     std::vector<Block>        chain_;
     mutable std::shared_mutex rwMutex_;
