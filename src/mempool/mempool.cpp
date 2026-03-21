@@ -20,8 +20,6 @@ static uint64_t nowSecs() noexcept {
 
 // =============================================================================
 // CONSTRUCTOR
-// Fix 4: WAL sync mode configurable — default sync=true for crash safety.
-// Fix 1: background persist thread started on construction.
 // =============================================================================
 Mempool::Mempool(Config cfg, const UTXOSet& utxoSet)
     : cfg_(std::move(cfg))
@@ -33,12 +31,10 @@ Mempool::Mempool(Config cfg, const UTXOSet& utxoSet)
         opts.create_if_missing        = true;
         opts.paranoid_checks          = true;
         opts.compression              = rocksdb::kLZ4Compression;
-        opts.write_buffer_size        = 64 * 1024 * 1024;  // 64 MB
+        opts.write_buffer_size        = 64 * 1024 * 1024;
         opts.max_open_files           = 512;
         opts.max_background_jobs      = 4;
         opts.bytes_per_sync           = 1048576;
-        // Fix 4: increased write_buffer_size and enabled rate limiter
-        // to smooth out large batch writes
         opts.rate_limiter.reset(
             rocksdb::NewGenericRateLimiter(
                 static_cast<int64_t>(cfg_.persistWriteBytesPerSec)));
@@ -54,7 +50,6 @@ Mempool::Mempool(Config cfg, const UTXOSet& utxoSet)
                     + " — in-memory only");
         }
 
-        // Fix 1: start background persist worker
         persistThread_ = std::thread([this]() { runPersistWorker(); });
     }
 }
@@ -63,14 +58,12 @@ Mempool::Mempool(Config cfg, const UTXOSet& utxoSet)
 // DESTRUCTOR
 // =============================================================================
 Mempool::~Mempool() {
-    // Signal background persist thread to stop and drain queue
     {
         std::lock_guard<std::mutex> lk(persistQueueMu_);
         persistStopped_.store(true);
     }
     persistQueueCv_.notify_all();
     if (persistThread_.joinable()) persistThread_.join();
-    // db_ destructor handles RocksDB flush
 }
 
 // =============================================================================
@@ -97,14 +90,10 @@ void Mempool::slog(int level, const std::string& msg) const noexcept {
 }
 
 // =============================================================================
-// FIX 3: estimateTxBytes — precise accounting for all variable fields
-// Counts exact byte contribution of every field that could cause
-// mempool overflow or incorrect rejection if undercounted.
+// ESTIMATE TX BYTES
 // =============================================================================
 size_t Mempool::estimateTxBytes(const Transaction& tx) noexcept {
     size_t s = 0;
-
-    // Fixed-size scalar fields
     s += sizeof(tx.chainId);
     s += sizeof(tx.nonce);
     s += sizeof(tx.maxPriorityFeePerGas);
@@ -112,33 +101,24 @@ size_t Mempool::estimateTxBytes(const Transaction& tx) noexcept {
     s += sizeof(tx.gasLimit);
     s += sizeof(tx.value);
     s += sizeof(tx.v);
-
-    // Variable-length string fields — include length prefix (4 bytes each)
     s += 4 + tx.toAddress.size();
     s += 4 + tx.txHash.size();
     s += 4 + tx.data.size();
-
-    // Signature arrays r and s (fixed 32 bytes each per EIP-1559)
     s += tx.r.size();
     s += tx.s.size();
-
-    // Inputs — prevTxHash (64 bytes) + outputIndex (4 bytes) + length prefix
-    s += 4; // input count prefix
+    s += 4;
     for (const auto& in : tx.inputs)
         s += 4 + in.prevTxHash.size() + sizeof(in.outputIndex);
-
-    // Outputs — address (variable) + value (8 bytes) + length prefix
-    s += 4; // output count prefix
+    s += 4;
     for (const auto& out : tx.outputs)
         s += 4 + out.address.size() + sizeof(out.value);
-
-    // Overhead: unordered_map node overhead per entry
     s += 64;
-
     return s;
 }
 
-// EIP-1559 effective fee with full overflow guard
+// =============================================================================
+// EFFECTIVE FEE
+// =============================================================================
 uint64_t Mempool::effectiveFee(const Transaction& tx,
                                  uint64_t baseFee) noexcept {
     uint64_t tip  = tx.maxPriorityFeePerGas;
@@ -204,12 +184,7 @@ bool Mempool::checkNonceOrdering(const Transaction& tx) const noexcept {
 }
 
 // =============================================================================
-// FIX 2: STRIPE LOCK HELPER
-// High-contention operations use per-stripe locking so addTransaction
-// calls on different tx hashes rarely contend on the same stripe.
-// The main mu_ is a shared_mutex protecting entries_ map structure.
-// Stripe locks protect per-bucket operations within addTransaction
-// to reduce contention when millions of txs are processed concurrently.
+// STRIPE LOCK
 // =============================================================================
 std::mutex& Mempool::stripeFor(const std::string& txHash) noexcept {
     size_t idx = std::hash<std::string>{}(txHash) % STRIPE_COUNT;
@@ -218,13 +193,8 @@ std::mutex& Mempool::stripeFor(const std::string& txHash) noexcept {
 
 // =============================================================================
 // ADD TRANSACTION
-//
-// Fix 2: stripe lock acquired per-txHash before write lock on entries_,
-//         preventing contention on the full map for independent txs.
-// Fix 5: totalBytes_ overflow checked before any lock acquired.
 // =============================================================================
 bool Mempool::addTransaction(const Transaction& tx, uint64_t baseFee) {
-    // Pure computation — no lock needed
     if (!validateTx(tx, baseFee)) {
         metRejected.fetch_add(1, std::memory_order_relaxed);
         slog(1, "rejected invalid tx: " + tx.txHash);
@@ -233,7 +203,6 @@ bool Mempool::addTransaction(const Transaction& tx, uint64_t baseFee) {
 
     size_t txBytes = estimateTxBytes(tx);
 
-    // Fix 5: overflow check before any lock
     uint64_t curBytes = totalBytes_.load(std::memory_order_relaxed);
     if (txBytes > std::numeric_limits<uint64_t>::max() - curBytes) {
         metRejected.fetch_add(1, std::memory_order_relaxed);
@@ -241,7 +210,6 @@ bool Mempool::addTransaction(const Transaction& tx, uint64_t baseFee) {
         return false;
     }
 
-    // Fix 2: acquire stripe lock first to reduce hot-path contention
     std::lock_guard<std::mutex> stripe(stripeFor(tx.txHash));
 
     {
@@ -270,7 +238,6 @@ bool Mempool::addTransaction(const Transaction& tx, uint64_t baseFee) {
             trimToCapacity(baseFee);
             lk.lock();
 
-            // Re-check all conditions after re-lock
             if (entries_.count(tx.txHash)) {
                 metRejected.fetch_add(1, std::memory_order_relaxed);
                 return false;
@@ -303,10 +270,7 @@ bool Mempool::addTransaction(const Transaction& tx, uint64_t baseFee) {
         metAdded.fetch_add(1, std::memory_order_relaxed);
     }
 
-    // Fix 1: enqueue persist — does NOT block addTransaction
     enqueuePersist(tx);
-
-    // Fix 6: promoteOrphans releases write lock before calling addTransaction
     promoteOrphans(tx.txHash, baseFee);
 
     slog(2, "added tx: " + tx.txHash
@@ -381,6 +345,14 @@ std::vector<Transaction> Mempool::getTransactions() const noexcept {
     return result;
 }
 
+// =============================================================================
+// GET PENDING TXS
+// Alias for getTransactions() -- called by miner.cpp
+// =============================================================================
+std::vector<Transaction> Mempool::getPendingTxs() const noexcept {
+    return getTransactions();
+}
+
 std::vector<Transaction> Mempool::getSortedByFee(
     size_t maxCount, uint64_t baseFee) const noexcept
 {
@@ -417,8 +389,6 @@ uint64_t Mempool::minFee() const noexcept { return cfg_.minFeePerGas; }
 
 // =============================================================================
 // MAINTENANCE
-// Fix 2: build removal list under single shared lock — no repeated
-// lock/unlock cycling on the shared mutex.
 // =============================================================================
 void Mempool::evictStale(uint64_t) noexcept {
     const uint64_t cutoff = nowSecs() - cfg_.maxTxAgeSeconds;
@@ -537,23 +507,63 @@ void Mempool::evictStaleOrphans() noexcept {
 }
 
 // =============================================================================
-// FIX 1: BACKGROUND PERSIST WORKER
-// All disk writes happen on a dedicated background thread.
-// addTransaction and removeTransaction never block on disk I/O.
-// Large batches are drained from the queue in configurable chunk sizes.
-// Fix 4: sync mode per operation type — block persists use sync=true,
-//         tx persists use sync=false (WAL protects; sync on block confirm).
+// METRICS
+// =============================================================================
+Mempool::Metrics Mempool::getMetrics() const noexcept {
+    return Metrics{
+        metAdded.load(),
+        metRejected.load(),
+        metEvicted.load(),
+        metConfirmed.load(),
+        metDsRejected.load(),
+        metOrphansAdded.load(),
+        metOrphansEvicted.load()
+    };
+}
+
+// =============================================================================
+// SERIALIZE TX
+// =============================================================================
+std::string Mempool::serializeTx(const Transaction& tx) noexcept {
+    try {
+        std::ostringstream oss;
+        oss << tx.txHash << "|"
+            << tx.chainId << "|"
+            << tx.nonce   << "|"
+            << tx.toAddress << "|"
+            << tx.value   << "|"
+            << tx.gasLimit << "|"
+            << tx.maxFeePerGas << "|"
+            << tx.maxPriorityFeePerGas;
+        return oss.str();
+    } catch (...) {
+        return {};
+    }
+}
+
+// =============================================================================
+// LOAD FROM DISK
+// =============================================================================
+void Mempool::loadFromDisk() noexcept {
+    if (!db_) return;
+    std::unique_ptr<rocksdb::Iterator> it(
+        db_->NewIterator(rocksdb::ReadOptions()));
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+        // Minimal restore -- txHash only, full tx not stored
+        slog(0, "loaded tx key: " + it->key().ToString());
+    }
+}
+
+// =============================================================================
+// ENQUEUE PERSIST / UNPERSIST
 // =============================================================================
 void Mempool::enqueuePersist(const Transaction& tx) noexcept {
     {
         std::lock_guard<std::mutex> lk(persistQueueMu_);
-        persistQueue_.push_back(PersistJob{PersistOp::Put, tx.txHash,
-            serializeTx(tx)});
-        if (persistQueue_.size() > cfg_.maxPersistQueueSize) {
-            // Drop oldest entry to prevent unbounded memory growth
+        persistQueue_.push_back(
+            PersistJob{PersistOp::Put, tx.txHash, serializeTx(tx)});
+        if (persistQueue_.size() > cfg_.maxPersistQueueSize)
             persistQueue_.pop_front();
-            slog(1, "persist queue overflow — oldest entry dropped");
-        }
     }
     persistQueueCv_.notify_one();
 }
@@ -561,15 +571,17 @@ void Mempool::enqueuePersist(const Transaction& tx) noexcept {
 void Mempool::enqueueUnpersist(const std::string& txHash) noexcept {
     {
         std::lock_guard<std::mutex> lk(persistQueueMu_);
-        persistQueue_.push_back(PersistJob{PersistOp::Delete, txHash, {}});
-        if (persistQueue_.size() > cfg_.maxPersistQueueSize) {
+        persistQueue_.push_back(
+            PersistJob{PersistOp::Delete, txHash, {}});
+        if (persistQueue_.size() > cfg_.maxPersistQueueSize)
             persistQueue_.pop_front();
-        }
     }
     persistQueueCv_.notify_one();
 }
 
-// Background thread — drains queue in batches
+// =============================================================================
+// RUN PERSIST WORKER
+// =============================================================================
 void Mempool::runPersistWorker() noexcept {
     while (true) {
         std::vector<PersistJob> batch;
@@ -580,8 +592,33 @@ void Mempool::runPersistWorker() noexcept {
                     || persistStopped_.load();
             });
             if (persistStopped_.load() && persistQueue_.empty()) break;
-            // Drain up to cfg_.persistBatchSize entries
             size_t n = std::min(persistQueue_.size(),
                                 cfg_.persistBatchSize);
             batch.reserve(n);
-            for (size_t i = 0; i < n; i++) {​​​​​​​​​​​​​​​​
+            for (size_t i = 0; i < n; i++) {
+                batch.push_back(std::move(persistQueue_.front()));
+                persistQueue_.pop_front();
+            }
+        }
+
+        if (!db_ || batch.empty()) continue;
+
+        rocksdb::WriteBatch wb;
+        for (const auto& job : batch) {
+            if (job.op == PersistOp::Put)
+                wb.Put(job.key, job.value);
+            else
+                wb.Delete(job.key);
+        }
+
+        rocksdb::WriteOptions wo;
+        wo.sync = true;
+        rocksdb::Status s = db_->Write(wo, &wb);
+        if (!s.ok()) {
+            slog(2, "persist batch failed: " + s.ToString());
+            std::lock_guard<std::mutex> lk(persistQueueMu_);
+            for (auto it = batch.rbegin(); it != batch.rend(); ++it)
+                persistQueue_.push_front(std::move(*it));
+        }
+    }
+}
