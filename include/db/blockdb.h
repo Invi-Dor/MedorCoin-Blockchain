@@ -1,6 +1,5 @@
 #pragma once
 
-#include "db/blockdb.cpp"
 #include "block.h"
 
 #include <atomic>
@@ -27,35 +26,43 @@
 // LevelDB-backed block storage for MedorCoin.
 //
 // Thread safety:
-//   - All public methods are thread-safe via rwMutex (shared_mutex).
-//   - Read operations use shared_lock — concurrent reads never block.
-//   - Write operations use unique_lock — exclusive access for mutations.
+//   All public methods are thread-safe via rwMutex_ (shared_mutex).
+//   Reads use shared_lock -- concurrent reads never block each other.
+//   Writes use unique_lock -- exclusive access during mutations.
+//   Logger is copied under logMu_ before calling -- safe against
+//   concurrent destruction and logger replacement.
+//   stopped_ prevents log calls after destruction.
 //
-// Issue 1: db_ is wrapped in a custom unique_ptr with a LevelDB deleter.
-//          No raw pointer ownership — DB is closed automatically on
-//          destruction even if close() is never called.
+// Production / deployment:
+//   64MB LRU block cache and Bloom filter configured at open time.
+//   32MB write buffer for sustained write throughput.
+//   Up to 500 open files for large chain depths.
+//   writeBatch() for atomic multi-block commits -- no partial writes.
+//   acquireSnapshot() for consistent point-in-time reads under load.
+//   compact() to reclaim space and improve read performance on mainnet.
+//   All methods return Result -- never throw into caller code.
 //
+// Issue 1: db_ wrapped in unique_ptr with custom deleter -- DB closed
+//   automatically on destruction even if close() is never called.
 // Issue 2: blockCache_ and filterPolicy_ wrapped in unique_ptr with
-//          custom deleters — no manual delete required anywhere.
-//
-// Issue 3: logger is read under shared_lock and copied before calling.
-//          Logger is never called after destruction — stopped_ flag
-//          checked before every log call.
-//
-// Issue 4: readWithSnapshot validates guard.valid() and DB open state
-//          before accessing snapshot. Snapshot must not outlive BlockDB.
-//
+//   custom deleters -- no manual delete required anywhere.
+// Issue 3: stopped_ explicitly initialized to false in constructor.
+//   log() null-checks logFn_ before calling -- safe when no logger set.
+//   stopped_ checked before every log call -- never called after destruction.
+// Issue 4: readWithSnapshot validates guard.valid() before any DB access.
+//   Caller must not pass a guard that outlives its BlockDB instance.
 // Issue 5: scan() returns ScanResult with explicit count and status.
-//          No ambiguous int64_t return value.
-//
-// Issue 6: isValidHash() is clearly documented as format-only check.
-//          A separate hasBlock() checks existence in DB.
+// Issue 6: isValidHash() is format-only -- 64 lowercase hex characters.
+//   Use hasBlock() to check DB existence.
 // =============================================================================
+
 class BlockDB {
 public:
 
     // =========================================================================
     // RESULT
+    // Returned by all write and open operations.
+    // operator bool() allows: if (!result) { ... }
     // =========================================================================
     struct Result {
         bool        ok    = false;
@@ -73,9 +80,7 @@ public:
 
     // =========================================================================
     // SCAN RESULT
-    // Issue 5: explicit named result — no ambiguous int64_t return value.
-    // count = number of entries visited.
-    // ok    = false if iterator error occurred or DB was not open.
+    // Returned by scan() -- explicit count and status, no ambiguous return.
     // =========================================================================
     struct ScanResult {
         int64_t     count = 0;
@@ -85,8 +90,9 @@ public:
 
     // =========================================================================
     // SNAPSHOT GUARD
-    // RAII — snapshot released on destruction even if caller throws.
-    // Issue 4: must not outlive the BlockDB that created it.
+    // RAII wrapper around leveldb::Snapshot.
+    // Snapshot released automatically on destruction.
+    // Must not outlive the BlockDB instance that created it.
     // =========================================================================
     class SnapshotGuard {
     public:
@@ -107,7 +113,7 @@ public:
         bool                     valid() const noexcept {
             return db_ != nullptr && snap_ != nullptr;
         }
-        const leveldb::Snapshot* get() const noexcept { return snap_; }
+        const leveldb::Snapshot* get()   const noexcept { return snap_; }
 
     private:
         leveldb::DB*             db_;
@@ -125,6 +131,7 @@ public:
 
     // =========================================================================
     // LIFECYCLE
+    // stopped_ explicitly initialized to false in constructor.
     // =========================================================================
     BlockDB();
     ~BlockDB();
@@ -138,18 +145,18 @@ public:
 
     // =========================================================================
     // LOGGER
-    // Issue 3: logger stored under write lock.
-    //          All log calls copy the function under shared_lock then
-    //          invoke it outside the lock — safe against concurrent
-    //          destruction and logger replacement.
+    // Logger stored and invoked outside rwMutex_ so heavy log callbacks
+    // never block DB reads or writes.
+    // logFn_ default-initialized to empty -- log() handles null safely.
     // =========================================================================
     void setLogger(LoggerFn fn) noexcept;
 
     // =========================================================================
     // BLOCK OPERATIONS
-    // All hash parameters must be exactly 64 lowercase hex characters.
-    // Issue 6: isValidHash() checks FORMAT only — not DB existence.
-    //          Use hasBlock() to check existence in DB.
+    // writeBlock  -- single block atomic write
+    // readBlock   -- deserialize block by hash
+    // hasBlock    -- existence check without deserialization
+    // writeBatch  -- atomic multi-block write, no partial commits
     // =========================================================================
     Result writeBlock (const Block&              block)  noexcept;
     Result readBlock  (const std::string&        hash,
@@ -159,71 +166,32 @@ public:
 
     // =========================================================================
     // ITERATION
-    // Issue 5: scan() returns ScanResult — count + ok + error string.
+    // newIterator -- raw iterator for full chain traversal
+    // scan        -- callback-based traversal with early exit support
     // =========================================================================
-    IteratorPtr newIterator()                    noexcept;
-    ScanResult  scan(const ScanCallback& cb)     noexcept;
+    IteratorPtr newIterator()                noexcept;
+    ScanResult  scan(const ScanCallback& cb) noexcept;
 
     // =========================================================================
     // SNAPSHOT
-    // Issue 4: snapshot must not outlive this BlockDB instance.
-    //          readWithSnapshot validates guard.valid() before use.
+    // acquireSnapshot  -- point-in-time consistent read handle
+    // readWithSnapshot -- read block under an acquired snapshot
+    //   guard must remain valid for the lifetime of the call.
+    //   guard must not outlive the BlockDB instance that created it.
     // =========================================================================
-    std::unique_ptr<SnapshotGuard> acquireSnapshot()                  noexcept;
-    Result                         readWithSnapshot(
-                                       const std::string&   hash,
-                                       Block&               out,
-                                       const SnapshotGuard& guard)    noexcept;
+    std::unique_ptr<SnapshotGuard> acquireSnapshot()                       noexcept;
+    Result                         readWithSnapshot(const std::string&   hash,
+                                                     Block&               out,
+                                                     const SnapshotGuard& guard) noexcept;
 
     // =========================================================================
     // MAINTENANCE
+    // compact() triggers LevelDB range compaction to reclaim disk space
+    // and improve read latency on mainnet after heavy write periods.
     // =========================================================================
     void compact() noexcept;
 
 private:
 
-    // Issue 1: RAII DB ownership via unique_ptr with custom deleter
-    struct DBDeleter {
-        void operator()(leveldb::DB* p) const noexcept {
-            delete p;
-        }
-    };
-
-    // Issue 2: RAII cache and filter ownership
-    struct CacheDeleter {
-        void operator()(leveldb::Cache* p) const noexcept {
-            delete p;
-        }
-    };
-    struct FilterDeleter {
-        void operator()(const leveldb::FilterPolicy* p) const noexcept {
-            delete p;
-        }
-    };
-
-    std::unique_ptr<leveldb::DB,
-        DBDeleter>                         db_;
-    std::unique_ptr<leveldb::Cache,
-        CacheDeleter>                      blockCache_;
-    std::unique_ptr<const leveldb::FilterPolicy,
-        FilterDeleter>                     filterPolicy_;
-
-    mutable std::shared_mutex              rwMutex_;
-
-    // Issue 3: logger protected by logMu_ — separate from rwMutex_
-    // so logger replacement never blocks DB reads/writes.
-    mutable std::mutex                     logMu_;
-    LoggerFn                               logFn_;
-
-    // Issue 3: stopped_ prevents log calls after destruction
-    std::atomic<bool>                      stopped_{false};
-
-    // Internal helpers
-    void   log(int level, const std::string& msg) const noexcept;
-    Result fromStatus(const leveldb::Status& s,
-                       const std::string&     ctx)        noexcept;
-
-    // Issue 6: FORMAT-ONLY check — 64 lowercase hex characters.
-    // Does NOT check DB existence. Use hasBlock() for that.
-    static bool isValidHash(const std::string& hash) noexcept;
-};
+    // RAII deleters -- no manual delete anywhere in the codebase
+    struct DB​​​​​​​​​​​​​​​​
