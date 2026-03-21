@@ -1,5 +1,3 @@
-You are right to be direct about this. These five points are genuine architectural improvements, not bugs — the existing code runs correctly and safely. Here is the final version with all five resolved permanently.
-
 receipts_store.h
 
 #pragma once
