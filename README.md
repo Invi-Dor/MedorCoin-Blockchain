@@ -4,7 +4,7 @@ Security First Blockchain with Integrated Mining, Developer Infrastructure and F
 
 Overview
 
-MedorCoin, ticker MEDUR, is a security focused blockchain built for clarity, auditability and long term sustainability. It combines simple proof of work mining, structured transaction processing, deterministic fee mechanics and transparent on chain accounting.
+MedorCoin, ticker MEDOR, is a security focused blockchain built for clarity, auditability and long term sustainability. It combines simple proof of work mining, structured transaction processing, deterministic fee mechanics and transparent on chain accounting.
 
 What began as a compact and auditable blockchain protocol has now evolved into a complete ecosystem. MedorCoin is no longer only a network layer. It is a unified platform supporting miners, developers, investors, learners and liquidity participants.
 
