@@ -1,0 +1,625 @@
+{
+  "_comment": "MedorCoin Mainnet Network Peers Configuration v1.0.0 -- matches net_manager.cpp constants",
+
+  "network": "mainnet",
+  "chainId": 1,
+  "version": "1.0.0",
+  "protocolVersion": 1,
+  "minSupportedProtocolVersion": 1,
+
+  "dnsSeed": [
+    "seed1.medorcoin.io",
+    "seed2.medorcoin.io",
+    "seed3.medorcoin.io",
+    "seed4.medorcoin.io",
+    "seed5.medorcoin.io"
+  ],
+
+  "bootnodes": [
+    "node1-us-east.medorcoin.io:30303",
+    "node1-us-west.medorcoin.io:30303",
+    "node1-eu-west.medorcoin.io:30303",
+    "node1-eu-central.medorcoin.io:30303",
+    "node1-ap-southeast.medorcoin.io:30303",
+    "node1-ap-northeast.medorcoin.io:30303",
+    "node1-ap-south.medorcoin.io:30303",
+    "node1-af-south.medorcoin.io:30303",
+    "node1-sa-east.medorcoin.io:30303",
+    "node1-me-south.medorcoin.io:30303",
+    "node1-ca-central.medorcoin.io:30303",
+    "node1-au-east.medorcoin.io:30303"
+  ],
+
+  "peers": [
+    {
+      "id": "peer-us-east-1",
+      "host": "node1-us-east.medorcoin.io",
+      "port": 30303,
+      "region": "us-east",
+      "datacenter": "aws-us-east-1",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap", "validator"]
+    },
+    {
+      "id": "peer-us-east-2",
+      "host": "node2-us-east.medorcoin.io",
+      "port": 30303,
+      "region": "us-east",
+      "datacenter": "aws-us-east-2",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap"]
+    },
+    {
+      "id": "peer-us-east-3",
+      "host": "node3-us-east.medorcoin.io",
+      "port": 30303,
+      "region": "us-east",
+      "datacenter": "aws-us-east-1",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 500,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-us-west-1",
+      "host": "node1-us-west.medorcoin.io",
+      "port": 30303,
+      "region": "us-west",
+      "datacenter": "aws-us-west-2",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap", "validator"]
+    },
+    {
+      "id": "peer-us-west-2",
+      "host": "node2-us-west.medorcoin.io",
+      "port": 30303,
+      "region": "us-west",
+      "datacenter": "aws-us-west-1",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 500,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-eu-west-1",
+      "host": "node1-eu-west.medorcoin.io",
+      "port": 30303,
+      "region": "eu-west",
+      "datacenter": "aws-eu-west-1",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap", "validator"]
+    },
+    {
+      "id": "peer-eu-west-2",
+      "host": "node2-eu-west.medorcoin.io",
+      "port": 30303,
+      "region": "eu-west",
+      "datacenter": "aws-eu-west-2",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap"]
+    },
+    {
+      "id": "peer-eu-west-3",
+      "host": "node3-eu-west.medorcoin.io",
+      "port": 30303,
+      "region": "eu-west",
+      "datacenter": "aws-eu-west-3",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 500,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-eu-central-1",
+      "host": "node1-eu-central.medorcoin.io",
+      "port": 30303,
+      "region": "eu-central",
+      "datacenter": "aws-eu-central-1",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap", "validator"]
+    },
+    {
+      "id": "peer-eu-central-2",
+      "host": "node2-eu-central.medorcoin.io",
+      "port": 30303,
+      "region": "eu-central",
+      "datacenter": "aws-eu-central-2",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 500,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-eu-north-1",
+      "host": "node1-eu-north.medorcoin.io",
+      "port": 30303,
+      "region": "eu-north",
+      "datacenter": "aws-eu-north-1",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 500,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-ap-southeast-1",
+      "host": "node1-ap-southeast.medorcoin.io",
+      "port": 30303,
+      "region": "ap-southeast",
+      "datacenter": "aws-ap-southeast-1",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap", "validator"]
+    },
+    {
+      "id": "peer-ap-southeast-2",
+      "host": "node2-ap-southeast.medorcoin.io",
+      "port": 30303,
+      "region": "ap-southeast",
+      "datacenter": "aws-ap-southeast-2",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap"]
+    },
+    {
+      "id": "peer-ap-southeast-3",
+      "host": "node3-ap-southeast.medorcoin.io",
+      "port": 30303,
+      "region": "ap-southeast",
+      "datacenter": "aws-ap-southeast-3",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 500,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-ap-northeast-1",
+      "host": "node1-ap-northeast.medorcoin.io",
+      "port": 30303,
+      "region": "ap-northeast",
+      "datacenter": "aws-ap-northeast-1",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap", "validator"]
+    },
+    {
+      "id": "peer-ap-northeast-2",
+      "host": "node2-ap-northeast.medorcoin.io",
+      "port": 30303,
+      "region": "ap-northeast",
+      "datacenter": "aws-ap-northeast-2",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 500,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-ap-south-1",
+      "host": "node1-ap-south.medorcoin.io",
+      "port": 30303,
+      "region": "ap-south",
+      "datacenter": "aws-ap-south-1",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap", "validator"]
+    },
+    {
+      "id": "peer-ap-south-2",
+      "host": "node2-ap-south.medorcoin.io",
+      "port": 30303,
+      "region": "ap-south",
+      "datacenter": "aws-ap-south-2",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 500,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-af-south-1",
+      "host": "node1-af-south.medorcoin.io",
+      "port": 30303,
+      "region": "af-south",
+      "datacenter": "aws-af-south-1",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap", "validator"]
+    },
+    {
+      "id": "peer-af-south-2",
+      "host": "node2-af-south.medorcoin.io",
+      "port": 30303,
+      "region": "af-south",
+      "datacenter": "aws-af-south-2",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap"]
+    },
+    {
+      "id": "peer-af-south-3",
+      "host": "node3-af-south.medorcoin.io",
+      "port": 30303,
+      "region": "af-south",
+      "datacenter": "aws-af-south-1",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 500,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-af-west-1",
+      "host": "node1-af-west.medorcoin.io",
+      "port": 30303,
+      "region": "af-west",
+      "datacenter": "gcp-af-west-1",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 200,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-af-east-1",
+      "host": "node1-af-east.medorcoin.io",
+      "port": 30303,
+      "region": "af-east",
+      "datacenter": "gcp-af-east-1",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 200,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-af-north-1",
+      "host": "node1-af-north.medorcoin.io",
+      "port": 30303,
+      "region": "af-north",
+      "datacenter": "azure-af-north-1",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 200,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-sa-east-1",
+      "host": "node1-sa-east.medorcoin.io",
+      "port": 30303,
+      "region": "sa-east",
+      "datacenter": "aws-sa-east-1",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 500,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap"]
+    },
+    {
+      "id": "peer-sa-east-2",
+      "host": "node2-sa-east.medorcoin.io",
+      "port": 30303,
+      "region": "sa-east",
+      "datacenter": "aws-sa-east-1",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 200,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-me-south-1",
+      "host": "node1-me-south.medorcoin.io",
+      "port": 30303,
+      "region": "me-south",
+      "datacenter": "aws-me-south-1",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 500,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap"]
+    },
+    {
+      "id": "peer-me-south-2",
+      "host": "node2-me-south.medorcoin.io",
+      "port": 30303,
+      "region": "me-south",
+      "datacenter": "aws-me-south-1",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 200,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    },
+    {
+      "id": "peer-ca-central-1",
+      "host": "node1-ca-central.medorcoin.io",
+      "port": 30303,
+      "region": "ca-central",
+      "datacenter": "aws-ca-central-1",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap"]
+    },
+    {
+      "id": "peer-au-east-1",
+      "host": "node1-au-east.medorcoin.io",
+      "port": 30303,
+      "region": "au-east",
+      "datacenter": "aws-ap-southeast-2",
+      "trusted": true,
+      "priority": 1,
+      "maxBandwidthMbps": 1000,
+      "tls": true,
+      "publicKey": "",
+      "tags": ["bootstrap", "validator"]
+    },
+    {
+      "id": "peer-au-east-2",
+      "host": "node2-au-east.medorcoin.io",
+      "port": 30303,
+      "region": "au-east",
+      "datacenter": "aws-ap-southeast-2",
+      "trusted": false,
+      "priority": 2,
+      "maxBandwidthMbps": 500,
+      "tls": true,
+      "publicKey": "",
+      "tags": []
+    }
+  ],
+
+  "discovery": {
+    "enabled": true,
+    "port": 30303,
+    "maxPeers": 1000,
+    "minPeers": 10,
+    "targetOutboundPeers": 25,
+    "targetInboundPeers": 50,
+    "maxTrustedPeers": 100,
+    "maxUntrustedPeers": 900,
+    "dialTimeoutSecs": 10,
+    "pingIntervalSecs": 30,
+    "peerTimeoutSecs": 120,
+    "handshakeTimeoutSecs": 15,
+    "maxIdleTrustedSecs": 300,
+    "maxIdleUntrustedSecs": 60,
+
+    "retry": {
+      "enabled": true,
+      "maxAttempts": 5,
+      "initialDelayMs": 1000,
+      "maxDelayMs": 60000,
+      "backoffMultiplier": 2.0
+    },
+
+    "natTraversal": {
+      "enabled": true,
+      "upnp": true,
+      "stunServer": "stun.medorcoin.io:3478",
+      "externalIp": "",
+      "externalPort": 30303
+    },
+
+    "peerSelection": {
+      "preferLowLatency": true,
+      "maxLatencyMs": 500,
+      "preferHighBandwidth": true,
+      "minBandwidthMbps": 10,
+      "diversifyRegions": true,
+      "maxPeersPerRegion": 50,
+      "maxPeersPerSubnet": 10,
+      "maxPeersPerIP": 5
+    },
+
+    "dnsDiscovery": {
+      "enabled": true,
+      "refreshIntervalSecs": 300,
+      "seeds": [
+        "seed1.medorcoin.io",
+        "seed2.medorcoin.io",
+        "seed3.medorcoin.io",
+        "seed4.medorcoin.io",
+        "seed5.medorcoin.io"
+      ]
+    },
+
+    "fallback": {
+      "enabled": true,
+      "strategy": "dns_then_hardcoded",
+      "retryIntervalSecs": 60,
+      "maxFallbackAttempts": 10
+    }
+  },
+
+  "security": {
+    "tls": {
+      "enabled": true,
+      "minVersion": "1.3",
+      "requirePeerAuthentication": true,
+      "requireSignedHandshake": true,
+      "certPath": "",
+      "keyPath": ""
+    },
+    "chainIdVerification": true,
+    "networkVersionVerification": true,
+    "maxConnectionsPerIP": 5,
+    "ban": {
+      "enabled": true,
+      "defaultDurationSecs": 3600,
+      "maxDurationSecs": 86400,
+      "permanentBanThreshold": 10
+    },
+    "sybil": {
+      "enabled": true,
+      "maxPeersPerASN": 20,
+      "maxPeersPerCountry": 100,
+      "requireProofOfWork": false
+    },
+    "rateLimit": {
+      "enabled": true,
+      "maxMessagesPerSecond": 100,
+      "maxBytesPerSecond": 10485760,
+      "trustedMultiplier": 2,
+      "maxNewConnectionsPerMinute": 60
+    }
+  },
+
+  "peerPolicy": {
+    "trusted": {
+      "bypassRateLimit": true,
+      "bypassBanCheck": false,
+      "priorityQueuing": true,
+      "keepAlive": true,
+      "reconnectOnDisconnect": true,
+      "maxIdleTimeSecs": 300
+    },
+    "untrusted": {
+      "bypassRateLimit": false,
+      "bypassBanCheck": false,
+      "priorityQueuing": false,
+      "keepAlive": false,
+      "reconnectOnDisconnect": false,
+      "maxIdleTimeSecs": 60,
+      "requireHandshakeWithinSecs": 10
+    },
+    "eviction": {
+      "strategy": "lowest_score",
+      "scoreFactors": {
+        "uptime": 0.3,
+        "latency": 0.3,
+        "bandwidth": 0.2,
+        "blocksRelayed": 0.2
+      }
+    }
+  },
+
+  "protocol": {
+    "version": 1,
+    "minSupportedVersion": 1,
+    "maxMessageSizeMB": 32,
+    "handshakeTimeoutSecs": 15,
+    "compression": {
+      "enabled": true,
+      "algorithm": "snappy"
+    },
+    "messageTypes": {
+      "HELLO": 0,
+      "DISCONNECT": 1,
+      "PING": 2,
+      "PONG": 3,
+      "GET_PEERS": 4,
+      "PEERS": 5,
+      "NEW_BLOCK": 6,
+      "GET_BLOCKS": 7,
+      "BLOCKS": 8,
+      "NEW_TX": 9,
+      "GET_TXS": 10,
+      "TXS": 11,
+      "STATUS": 12,
+      "GET_RECEIPTS": 13,
+      "RECEIPTS": 14
+    }
+  },
+
+  "persistence": {
+    "enabled": true,
+    "dbPath": "/var/lib/medorcoin/peers",
+    "schemaVersion": 1,
+    "saveOnShutdown": true,
+    "loadOnStartup": true,
+    "saveBans": true,
+    "saveMetrics": true
+  },
+
+  "monitoring": {
+    "enabled": true,
+    "logConnections": true,
+    "logDisconnections": true,
+    "logBans": true,
+    "metricsEnabled": true,
+    "metricsPort": 9091,
+    "healthCheckEnabled": true,
+    "healthCheckPort": 9092,
+    "alertOnMinPeersBreach": true,
+    "minPeersAlertThreshold": 10,
+    "broadcastThreads": 8
+  },
+
+  "reservedPeers": [
+    "node1-us-east.medorcoin.io:30303",
+    "node1-eu-west.medorcoin.io:30303",
+    "node1-ap-southeast.medorcoin.io:30303",
+    "node1-af-south.medorcoin.io:30303"
+  ],
+
+  "blacklist": [],
+  "whitelist": []
+}
