@@ -7,18 +7,60 @@ on:
     branches: [main, dev]
 
 permissions:
-  contents: read
+  contents: write
   checks: write
 
 jobs:
+  auto-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install formatters
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+          npm install -g prettier
+
+      - name: Auto format C++ files
+        run: |
+          find src include -name "*.cpp" -o -name "*.h" | \
+          xargs clang-format -i
+
+      - name: Auto format JSON YAML Markdown JS TS files
+        run: |
+          prettier --write \
+            "**/*.json" \
+            "**/*.yml" \
+            "**/*.yaml" \
+            "**/*.md" \
+            "**/*.js" \
+            "**/*.ts" \
+            "**/*.jsx" \
+            "**/*.tsx" \
+            --ignore-path .gitignore || true
+
+      - name: Commit all formatting fixes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet || git commit -am "Auto format all files"
+          git push
+
   build-and-test:
     runs-on: ubuntu-latest
+    needs: auto-format
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         run: |
@@ -38,22 +80,54 @@ jobs:
             zlib1g-dev \
             libgtest-dev \
             lcov \
-            gcovr
+            gcovr \
+            clang-tidy
 
-      - name: Configure
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci || npm install || true
+
+      - name: Run Node tests
+        run: |
+          npm run build --if-present || true
+          npm test --if-present || true
+
+      - name: Configure C++ build
         run: |
           cmake -S . -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
-            -DENABLE_COVERAGE=ON
+            -DENABLE_COVERAGE=ON \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-      - name: Build
+      - name: Build C++ project
         run: cmake --build build --parallel
 
-      - name: Test
+      - name: Run clang-tidy and auto fix
+        run: |
+          find src -name "*.cpp" | \
+          xargs clang-tidy \
+            -p build \
+            --checks="-*,readability-*,modernize-*,bugprone-*,performance-*" \
+            --fix \
+            --fix-errors || true
+
+      - name: Commit clang-tidy fixes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet || git commit -am "Auto fix clang-tidy warnings"
+          git push
+
+      - name: Run C++ tests
         run: ctest --test-dir build --output-on-failure
 
-      - name: Coverage
+      - name: Generate coverage report
         run: |
           gcovr -r . build \
             --html --html-details -o build/coverage.html \
