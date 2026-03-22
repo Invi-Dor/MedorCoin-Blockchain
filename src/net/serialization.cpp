@@ -42,7 +42,9 @@ static constexpr size_t   MAX_ADDRESS_LEN       = 128;
 static constexpr size_t   MAX_HASH_LEN          = 128;
 static constexpr size_t   MAX_SIGNATURE_LEN     = 512;
 static constexpr size_t   MAX_SIG_COMPONENT_B64 = 96;
-static constexpr uint64_t MEDORCOIN_CHAIN_ID    = 0;
+
+// Fix 1: chain ID matches blockchain.h Config and all test helpers
+static constexpr uint64_t MEDORCOIN_CHAIN_ID    = 1;
 
 // =============================================================================
 // STRUCTURED LOGGER
@@ -105,7 +107,8 @@ static constexpr uint64_t REPLAY_WINDOW_SECONDS = 3600;
 
 struct ReplayCache {
     mutable std::shared_mutex               mu;
-    std::unordered_map<std::string, uint64_t> seen;
+    std::unordered_map<std::string,
+                       uint64_t>            seen;
 
     bool check(const std::string& txHash) {
         uint64_t now = static_cast<uint64_t>(
@@ -133,8 +136,6 @@ static ReplayCache g_replay_cache;
 
 // =============================================================================
 // BASE64
-// Single correct encoder. No duplicate. No broken padding logic.
-// Handles all input lengths including those not divisible by 3.
 // =============================================================================
 static const char B64_CHARS[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -192,7 +193,8 @@ static std::string b64encArr32(const std::array<uint8_t, 32>& a) {
     return b64enc(a.data(), 32);
 }
 
-static std::vector<uint8_t> b64dec(const std::string& s, const char* ctx) {
+static std::vector<uint8_t> b64dec(const std::string& s,
+                                     const char* ctx) {
     std::vector<uint8_t> result;
     result.reserve((s.size() / 4) * 3 + 3);
     uint32_t buf     = 0;
@@ -213,7 +215,8 @@ static std::vector<uint8_t> b64dec(const std::string& s, const char* ctx) {
         bits += 6;
         if (bits >= 8) {
             bits -= 8;
-            result.push_back(static_cast<uint8_t>((buf >> bits) & 0xFF));
+            result.push_back(
+                static_cast<uint8_t>((buf >> bits) & 0xFF));
         }
     }
     return result;
@@ -233,17 +236,20 @@ static void computeTxContentHash(const Transaction& tx,
 
     if (!g.p)
         throwErr(SerializationErrorCode::InternalError,
-                 "computeTxContentHash", "EVP_MD_CTX_new failed");
+                 "computeTxContentHash",
+                 "EVP_MD_CTX_new failed");
 
     auto feed = [&](const void* d, size_t n) {
         if (EVP_DigestUpdate(g.p, d, n) != 1)
             throwErr(SerializationErrorCode::InternalError,
-                     "computeTxContentHash", "EVP_DigestUpdate failed");
+                     "computeTxContentHash",
+                     "EVP_DigestUpdate failed");
     };
 
     if (EVP_DigestInit_ex(g.p, EVP_sha256(), nullptr) != 1)
         throwErr(SerializationErrorCode::InternalError,
-                 "computeTxContentHash", "EVP_DigestInit_ex failed");
+                 "computeTxContentHash",
+                 "EVP_DigestInit_ex failed");
 
     uint32_t ver = CURRENT_TX_VERSION;
     feed(&ver,                     sizeof(ver));
@@ -257,29 +263,54 @@ static void computeTxContentHash(const Transaction& tx,
     uint64_t dataLen = tx.data.size();
     feed(&dataLen,                 sizeof(dataLen));
     if (!tx.data.empty())
-        feed(tx.data.data(),       tx.data.size());
+        feed(tx.data.data(), tx.data.size());
+
+    // Fix 4: include inputs and outputs in hash
+    uint64_t inputCount = tx.inputs.size();
+    feed(&inputCount, sizeof(inputCount));
+    for (const auto& in : tx.inputs) {
+        feed(in.prevTxHash.data(), in.prevTxHash.size());
+        feed(&in.outputIndex,      sizeof(in.outputIndex));
+    }
+    uint64_t outputCount = tx.outputs.size();
+    feed(&outputCount, sizeof(outputCount));
+    for (const auto& out : tx.outputs) {
+        feed(&out.value,           sizeof(out.value));
+        feed(out.address.data(),   out.address.size());
+    }
 
     unsigned int outLen = 32;
     if (EVP_DigestFinal_ex(g.p, out32, &outLen) != 1)
         throwErr(SerializationErrorCode::InternalError,
-                 "computeTxContentHash", "EVP_DigestFinal_ex failed");
+                 "computeTxContentHash",
+                 "EVP_DigestFinal_ex failed");
 }
 
 // =============================================================================
 // FIELD VALIDATORS
 // =============================================================================
-static void requireField(const json& j, const char* field, const char* ctx) {
+static void requireField(const json& j,
+                          const char* field,
+                          const char* ctx)
+{
+    if (!j.is_object())
+        throwErr(SerializationErrorCode::TypeMismatch, ctx,
+                 std::string(ctx) + ": input is not a JSON object");
     if (!j.contains(field))
         throwErr(SerializationErrorCode::MissingField, ctx,
                  std::string(ctx) + ": missing field '" + field + "'");
 }
 
-static std::string getString(const json& j, const char* field,
-                              size_t maxLen, const char* ctx) {
+static std::string getString(const json& j,
+                              const char* field,
+                              size_t      maxLen,
+                              const char* ctx)
+{
     requireField(j, field, ctx);
     if (!j.at(field).is_string())
         throwErr(SerializationErrorCode::TypeMismatch, ctx,
-                 std::string(ctx) + ": '" + field + "' must be string");
+                 std::string(ctx) + ": '" + field
+                 + "' must be string");
     std::string val = j.at(field).get<std::string>();
     if (val.size() > maxLen)
         throwErr(SerializationErrorCode::LengthExceeded, ctx,
@@ -288,8 +319,10 @@ static std::string getString(const json& j, const char* field,
     return val;
 }
 
-static uint64_t getUint64(const json& j, const char* field,
-                           const char* ctx) {
+static uint64_t getUint64(const json& j,
+                           const char* field,
+                           const char* ctx)
+{
     requireField(j, field, ctx);
     if (!j.at(field).is_number_unsigned())
         throwErr(SerializationErrorCode::TypeMismatch, ctx,
@@ -298,8 +331,10 @@ static uint64_t getUint64(const json& j, const char* field,
     return j.at(field).get<uint64_t>();
 }
 
-static uint32_t getUint32(const json& j, const char* field,
-                           const char* ctx) {
+static uint32_t getUint32(const json& j,
+                           const char* field,
+                           const char* ctx)
+{
     requireField(j, field, ctx);
     if (!j.at(field).is_number_unsigned())
         throwErr(SerializationErrorCode::TypeMismatch, ctx,
@@ -308,12 +343,15 @@ static uint32_t getUint32(const json& j, const char* field,
     return j.at(field).get<uint32_t>();
 }
 
-static std::vector<uint8_t> getSigComp(const json& j, const char* field,
-                                        const char* ctx) {
+static std::vector<uint8_t> getSigComp(const json& j,
+                                         const char* field,
+                                         const char* ctx)
+{
     requireField(j, field, ctx);
     if (!j.at(field).is_string())
         throwErr(SerializationErrorCode::TypeMismatch, ctx,
-                 std::string(ctx) + ": '" + field + "' must be string");
+                 std::string(ctx) + ": '" + field
+                 + "' must be string");
     std::string enc = j.at(field).get<std::string>();
     if (enc.size() > MAX_SIG_COMPONENT_B64)
         throwErr(SerializationErrorCode::LengthExceeded, ctx,
@@ -322,24 +360,15 @@ static std::vector<uint8_t> getSigComp(const json& j, const char* field,
     return b64dec(enc, ctx);
 }
 
-static bool isValidHexAddress(const std::string& addr) {
-    size_t start = 0;
-    if (addr.size() >= 2 && addr[0] == '0' &&
-        (addr[1] == 'x' || addr[1] == 'X'))
-        start = 2;
-    if (addr.empty() || addr.size() - start != 40) return false;
-    for (size_t i = start; i < addr.size(); i++) {
-        char c = addr[i];
-        if (!((c >= '0' && c <= '9') ||
-              (c >= 'a' && c <= 'f') ||
-              (c >= 'A' && c <= 'F')))
-            return false;
-    }
-    return true;
+// Fix 2: MedorCoin uses Base58Check addresses not Ethereum hex
+// Validate non-empty and within length limit only
+static bool isValidAddress(const std::string& addr) {
+    return !addr.empty() && addr.size() <= MAX_ADDRESS_LEN;
 }
 
 // =============================================================================
 // TRANSACTION SERIALIZATION
+// Fix 4: inputs and outputs included
 // =============================================================================
 json serializeTx(const Transaction& tx) {
     try {
@@ -357,8 +386,31 @@ json serializeTx(const Transaction& tx) {
         j["r"]                    = b64encArr32(tx.r);
         j["s"]                    = b64encArr32(tx.s);
         j["data"]                 = b64encVec(tx.data);
+
+        // Fix 4: serialize inputs
+        json inputArr = json::array();
+        for (const auto& in : tx.inputs)
+            inputArr.push_back({
+                {"prevTxHash",  in.prevTxHash},
+                {"outputIndex", in.outputIndex}
+            });
+        j["inputs"] = std::move(inputArr);
+
+        // Fix 4: serialize outputs
+        json outputArr = json::array();
+        for (const auto& out : tx.outputs)
+            outputArr.push_back({
+                {"value",   out.value},
+                {"address", out.address}
+            });
+        j["outputs"] = std::move(outputArr);
+
         g_tx_serialize_ok.fetch_add(1, std::memory_order_relaxed);
         return j;
+
+    } catch (const SerializationError&) {
+        g_tx_serialize_err.fetch_add(1, std::memory_order_relaxed);
+        throw;
     } catch (...) {
         g_tx_serialize_err.fetch_add(1, std::memory_order_relaxed);
         throw;
@@ -367,26 +419,36 @@ json serializeTx(const Transaction& tx) {
 
 // =============================================================================
 // TRANSACTION DESERIALIZATION
+// Fix 1: chain ID = 1
+// Fix 2: address validation uses isValidAddress not isValidHexAddress
+// Fix 4: inputs and outputs deserialized
 // =============================================================================
 Transaction deserializeTx(const json& j) {
     static constexpr const char* CTX = "deserializeTx";
     Transaction tx;
     try {
+        // Reject non-object JSON including null and arrays
+        if (!j.is_object())
+            throwErr(SerializationErrorCode::TypeMismatch, CTX,
+                     "deserializeTx: input must be a JSON object");
+
         uint32_t ver = getUint32(j, "version", CTX);
         if (ver < MIN_TX_VERSION || ver > CURRENT_TX_VERSION)
             throwErr(SerializationErrorCode::VersionMismatch, CTX,
                      std::string(CTX) + ": unsupported tx version "
                      + std::to_string(ver));
 
-        tx.txHash               = getString(j, "txHash",    MAX_HASH_LEN,    CTX);
-        tx.toAddress            = getString(j, "toAddress", MAX_ADDRESS_LEN, CTX);
-        tx.value                = getUint64(j, "value",                      CTX);
-        tx.gasLimit             = getUint64(j, "gasLimit",                   CTX);
-        tx.maxFeePerGas         = getUint64(j, "maxFeePerGas",               CTX);
-        tx.maxPriorityFeePerGas = getUint64(j, "maxPriorityFeePerGas",       CTX);
-        tx.nonce                = getUint64(j, "nonce",                      CTX);
-        tx.chainId              = getUint64(j, "chainId",                    CTX);
-        tx.v                    = getUint64(j, "v",                          CTX);
+        tx.txHash               = getString(j, "txHash",
+                                            MAX_HASH_LEN,    CTX);
+        tx.toAddress            = getString(j, "toAddress",
+                                            MAX_ADDRESS_LEN, CTX);
+        tx.value                = getUint64(j, "value",                CTX);
+        tx.gasLimit             = getUint64(j, "gasLimit",             CTX);
+        tx.maxFeePerGas         = getUint64(j, "maxFeePerGas",         CTX);
+        tx.maxPriorityFeePerGas = getUint64(j, "maxPriorityFeePerGas", CTX);
+        tx.nonce                = getUint64(j, "nonce",                CTX);
+        tx.chainId              = getUint64(j, "chainId",              CTX);
+        tx.v                    = getUint64(j, "v",                    CTX);
 
         auto rv = getSigComp(j, "r", CTX);
         auto sv = getSigComp(j, "s", CTX);
@@ -402,29 +464,72 @@ Transaction deserializeTx(const json& j) {
                      "field 'data' must be string");
         tx.data = b64dec(j.at("data").get<std::string>(), CTX);
 
-        if (!isValidHexAddress(tx.toAddress))
-            throwErr(SerializationErrorCode::InvalidAddress, CTX,
-                     "toAddress is not a valid 20-byte hex address: "
-                     + tx.toAddress);
-
         if (tx.data.size() > MAX_TX_DATA_BYTES)
             throwErr(SerializationErrorCode::LengthExceeded, CTX,
                      "tx.data exceeds 128 KB limit");
 
+        // Fix 2: use MedorCoin address validation
+        if (!isValidAddress(tx.toAddress))
+            throwErr(SerializationErrorCode::InvalidAddress, CTX,
+                     "toAddress is invalid: " + tx.toAddress);
+
+        // Fix 1: chain ID 1 for mainnet
         if (tx.chainId != MEDORCOIN_CHAIN_ID) {
-            g_replay_rejected.fetch_add(1, std::memory_order_relaxed);
+            g_replay_rejected.fetch_add(
+                1, std::memory_order_relaxed);
             throwErr(SerializationErrorCode::ChainIdMismatch, CTX,
                      "chainId " + std::to_string(tx.chainId)
                      + " != network chainId "
                      + std::to_string(MEDORCOIN_CHAIN_ID));
         }
 
+        // Fix 4: deserialize inputs
+        if (j.contains("inputs") && j["inputs"].is_array()) {
+            for (const auto& in : j["inputs"]) {
+                TxInput input;
+                if (in.contains("prevTxHash")
+                 && in["prevTxHash"].is_string())
+                    input.prevTxHash =
+                        in["prevTxHash"].get<std::string>();
+                if (in.contains("outputIndex")
+                 && in["outputIndex"].is_number()) {
+                    input.outputIndex =
+                        in["outputIndex"].get<int>();
+                    if (input.outputIndex < 0)
+                        throwErr(
+                            SerializationErrorCode::TypeMismatch,
+                            CTX,
+                            "outputIndex must be non-negative");
+                }
+                tx.inputs.push_back(std::move(input));
+            }
+        }
+
+        // Fix 4: deserialize outputs
+        if (j.contains("outputs") && j["outputs"].is_array()) {
+            for (const auto& out : j["outputs"]) {
+                TxOutput output;
+                if (out.contains("value")
+                 && out["value"].is_number_unsigned())
+                    output.value =
+                        out["value"].get<uint64_t>();
+                if (out.contains("address")
+                 && out["address"].is_string())
+                    output.address =
+                        out["address"].get<std::string>();
+                tx.outputs.push_back(std::move(output));
+            }
+        }
+
+        // Replay check
         if (!g_replay_cache.check(tx.txHash)) {
-            g_replay_rejected.fetch_add(1, std::memory_order_relaxed);
+            g_replay_rejected.fetch_add(
+                1, std::memory_order_relaxed);
             throwErr(SerializationErrorCode::ReplayDetected, CTX,
                      "replay detected: txHash " + tx.txHash);
         }
 
+        // Hash verification
         unsigned char computedHash[32];
         computeTxContentHash(tx, computedHash);
 
@@ -437,7 +542,9 @@ Transaction deserializeTx(const json& j) {
             throwErr(SerializationErrorCode::HashMismatch, CTX,
                      "txHash does not match computed hash");
 
-        int recoveryId = crypto::computeRecoveryId(tx.v, tx.chainId);
+        // Signature verification
+        int recoveryId = crypto::computeRecoveryId(
+            tx.v, tx.chainId);
         if (recoveryId < 0)
             throwErr(SerializationErrorCode::SignatureInvalid, CTX,
                      "v field " + std::to_string(tx.v)
@@ -450,36 +557,46 @@ Transaction deserializeTx(const json& j) {
 
         unsigned char recoveredPubkey[33];
         if (!crypto::recoverPubkey(
-                std::span<const unsigned char, 32>(computedHash, 32),
+                std::span<const unsigned char, 32>(
+                    computedHash, 32),
                 std::span<const unsigned char, 64>(sig64, 64),
                 recoveryId,
-                std::span<unsigned char, 33>(recoveredPubkey, 33))) {
-            g_sig_verify_fail.fetch_add(1, std::memory_order_relaxed);
+                std::span<unsigned char, 33>(
+                    recoveredPubkey, 33))) {
+            g_sig_verify_fail.fetch_add(
+                1, std::memory_order_relaxed);
             throwErr(SerializationErrorCode::SignatureInvalid, CTX,
                      "failed to recover public key");
         }
 
         if (!crypto::verifyHashWithPubkey(
-                std::span<const unsigned char, 32>(computedHash, 32),
-                std::span<const unsigned char, 33>(recoveredPubkey, 33),
+                std::span<const unsigned char, 32>(
+                    computedHash, 32),
+                std::span<const unsigned char, 33>(
+                    recoveredPubkey, 33),
                 std::span<const unsigned char, 64>(sig64, 64))) {
-            g_sig_verify_fail.fetch_add(1, std::memory_order_relaxed);
+            g_sig_verify_fail.fetch_add(
+                1, std::memory_order_relaxed);
             throwErr(SerializationErrorCode::SignatureInvalid, CTX,
                      "ECDSA signature verification failed");
         }
 
-        g_tx_deserialize_ok.fetch_add(1, std::memory_order_relaxed);
+        g_tx_deserialize_ok.fetch_add(
+            1, std::memory_order_relaxed);
         return tx;
 
     } catch (const SerializationError&) {
-        g_tx_deserialize_err.fetch_add(1, std::memory_order_relaxed);
+        g_tx_deserialize_err.fetch_add(
+            1, std::memory_order_relaxed);
         throw;
     } catch (const json::exception& e) {
-        g_tx_deserialize_err.fetch_add(1, std::memory_order_relaxed);
+        g_tx_deserialize_err.fetch_add(
+            1, std::memory_order_relaxed);
         throwErr(SerializationErrorCode::InternalError, CTX,
                  std::string("JSON error: ") + e.what());
     } catch (const std::bad_alloc&) {
-        g_tx_deserialize_err.fetch_add(1, std::memory_order_relaxed);
+        g_tx_deserialize_err.fetch_add(
+            1, std::memory_order_relaxed);
         throwErr(SerializationErrorCode::OutOfMemory, CTX,
                  "out of memory during transaction deserialization");
     }
@@ -488,107 +605,47 @@ Transaction deserializeTx(const json& j) {
 
 // =============================================================================
 // BLOCK SERIALIZATION
+// Fix 3: all block fields included
 // =============================================================================
 json serializeBlock(const Block& block) {
-    json j;
-    j["version"]      = CURRENT_BLOCK_VERSION;
-    j["previousHash"] = block.previousHash;
-    j["timestamp"]    = block.timestamp;
-    j["hash"]         = block.hash;
-    j["signature"]    = block.signature;
-    j["baseFee"]      = block.baseFee;
-    j["gasUsed"]      = block.gasUsed;
-    j["reward"]       = block.reward;
+    try {
+        json j;
+        j["version"]      = CURRENT_BLOCK_VERSION;
+        j["hash"]         = block.hash;
+        j["previousHash"] = block.previousHash;
+        j["timestamp"]    = block.timestamp;
+        j["difficulty"]   = block.difficulty;
+        j["nonce"]        = block.nonce;
+        j["minerAddress"] = block.minerAddress;
+        j["reward"]       = block.reward;
+        j["baseFee"]      = block.baseFee;
+        j["gasUsed"]      = block.gasUsed;
+        j["gasLimit"]     = block.gasLimit;
+        j["signature"]    = block.signature;
+        j["data"]         = block.data;
 
-    json txArr = json::array();
-    txArr.get_ref<json::array_t&>().reserve(block.transactions.size());
-    for (const auto& tx : block.transactions)
-        txArr.push_back(serializeTx(tx));
-    j["transactions"] = std::move(txArr);
+        json txArr = json::array();
+        txArr.get_ref<json::array_t&>()
+            .reserve(block.transactions.size());
+        for (const auto& tx : block.transactions)
+            txArr.push_back(serializeTx(tx));
+        j["transactions"] = std::move(txArr);
 
-    g_block_serialize_ok.fetch_add(1, std::memory_order_relaxed);
-    return j;
+        g_block_serialize_ok.fetch_add(
+            1, std::memory_order_relaxed);
+        return j;
+
+    } catch (const SerializationError&) {
+        g_block_deserialize_err.fetch_add(
+            1, std::memory_order_relaxed);
+        throw;
+    } catch (...) {
+        g_block_deserialize_err.fetch_add(
+            1, std::memory_order_relaxed);
+        throw;
+    }
 }
 
 // =============================================================================
 // BLOCK DESERIALIZATION
-// =============================================================================
-Block deserializeBlock(const json& j) {
-    static constexpr const char* CTX = "deserializeBlock";
-    Block block;
-    try {
-        uint32_t ver = getUint32(j, "version", CTX);
-        if (ver < MIN_BLOCK_VERSION || ver > CURRENT_BLOCK_VERSION)
-            throwErr(SerializationErrorCode::VersionMismatch, CTX,
-                     std::string(CTX) + ": unsupported block version "
-                     + std::to_string(ver));
-
-        block.previousHash = getString(j, "previousHash", MAX_HASH_LEN,      CTX);
-        block.hash         = getString(j, "hash",         MAX_HASH_LEN,      CTX);
-        block.signature    = getString(j, "signature",    MAX_SIGNATURE_LEN, CTX);
-        block.timestamp    = getUint64(j, "timestamp", CTX);
-        block.baseFee      = getUint64(j, "baseFee",   CTX);
-        block.gasUsed      = getUint64(j, "gasUsed",   CTX);
-        block.reward       = getUint64(j, "reward",    CTX);
-
-        requireField(j, "transactions", CTX);
-        if (!j.at("transactions").is_array())
-            throwErr(SerializationErrorCode::TypeMismatch, CTX,
-                     "field 'transactions' must be an array");
-
-        const auto& txArr = j.at("transactions");
-        if (txArr.size() > MAX_TX_PER_BLOCK)
-            throwErr(SerializationErrorCode::BlockTooLarge, CTX,
-                     "block has " + std::to_string(txArr.size())
-                     + " transactions, max is "
-                     + std::to_string(MAX_TX_PER_BLOCK));
-
-        block.transactions.reserve(txArr.size());
-
-        std::unordered_set<std::string> seenHashes;
-        seenHashes.reserve(txArr.size());
-        std::unordered_map<std::string, uint64_t> lastNonce;
-        lastNonce.reserve(txArr.size());
-
-        for (const auto& txJson : txArr) {
-            Transaction tx = deserializeTx(txJson);
-
-            if (!seenHashes.insert(tx.txHash).second)
-                throwErr(SerializationErrorCode::DuplicateTx, CTX,
-                         "duplicate txHash: " + tx.txHash);
-
-            auto it = lastNonce.find(tx.toAddress);
-            if (it != lastNonce.end()) {
-                if (tx.nonce <= it->second)
-                    throwErr(SerializationErrorCode::NonceOrdering, CTX,
-                             "out-of-order nonce for " + tx.toAddress
-                             + " got " + std::to_string(tx.nonce)
-                             + " expected > " + std::to_string(it->second));
-                it->second = tx.nonce;
-            } else {
-                lastNonce.emplace(tx.toAddress, tx.nonce);
-            }
-
-            block.transactions.push_back(std::move(tx));
-        }
-
-        g_block_deserialize_ok.fetch_add(1, std::memory_order_relaxed);
-        return block;
-
-    } catch (const SerializationError&) {
-        g_block_deserialize_err.fetch_add(1, std::memory_order_relaxed);
-        throw;
-    } catch (const json::exception& e) {
-        g_block_deserialize_err.fetch_add(1, std::memory_order_relaxed);
-        throwErr(SerializationErrorCode::InternalError, CTX,
-                 std::string("JSON error: ") + e.what());
-    } catch (const std::bad_alloc&) {
-        g_block_deserialize_err.fetch_add(1, std::memory_order_relaxed);
-        throwErr(SerializationErrorCode::OutOfMemory, CTX,
-                 "out of memory during block deserialization");
-    }
-    return block;
-}
-
-
-Paste both files into GitHub, commit, then send Group 2.​​​​​​​​​​​​​​​​
+// Fix 3: all block fields des​​​​​​​​​​​​​​​​
