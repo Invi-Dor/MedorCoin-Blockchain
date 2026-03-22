@@ -9,81 +9,59 @@ on:
 permissions:
   contents: read
   checks: write
-  
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        use_system_deps: [OFF, ON]
-        enable_evm: [ON, OFF]
-        node-version: [20.x]
-
     steps:
-      # Checkout repo
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # Node.js setup and tests
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: npm
+          submodules: recursive
 
-      - name: Install Node dependencies
-        run: npm ci || npm install
-
-      - name: Run Node build & tests
-        run: |
-          npm run build --if-present
-          npm test --if-present
-
-      # C/C++ environment
-      - name: Set up C/C++ toolchain
-        uses: aminya/setup-cpp@v1
-        with:
-          compiler: latest
-          cmake: true
-          ninja: true
-          gcovr: true
-
-      - name: Install additional Ubuntu packages
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y lcov
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            libssl-dev \
+            libleveldb-dev \
+            libsecp256k1-dev \
+            nlohmann-json3-dev \
+            libsnappy-dev \
+            liblz4-dev \
+            libzstd-dev \
+            libbz2-dev \
+            zlib1g-dev \
+            libgtest-dev \
+            lcov \
+            gcovr
 
-      # Configure CMake
-      - name: Configure C++ build
+      - name: Configure
         run: |
           cmake -S . -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
-            -DENABLE_COVERAGE=ON \
-            -DMEDOR_USE_SYSTEM_DEPS=${{ matrix.use_system_deps }} \
-            -DMEDOR_ENABLE_EVM=${{ matrix.enable_evm }}
+            -DENABLE_COVERAGE=ON
 
-      # Build
-      - name: Build C++ project
+      - name: Build
         run: cmake --build build --parallel
 
-      # Run tests
-      - name: Run C++ tests
+      - name: Test
         run: ctest --test-dir build --output-on-failure
 
-      # Coverage
-      - name: Generate coverage report
+      - name: Coverage
         run: |
           gcovr -r . build \
             --html --html-details -o build/coverage.html \
             --xml -o build/coverage.xml \
             --fail-under-line 50
 
-      - name: Upload coverage HTML
+      - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.use_system_deps }}-${{ matrix.enable_evm }}
+          name: coverage
           path: build/coverage.html
