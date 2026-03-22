@@ -1,6 +1,3 @@
-Here are both files complete and final.
-FILE: include/net/serialization.h
-
 #pragma once
 
 #include "transaction.h"
