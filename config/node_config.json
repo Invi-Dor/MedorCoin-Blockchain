@@ -1,0 +1,287 @@
+{
+  "node": {
+    "name": "MedorCoin Node",
+    "version": "1.0.0",
+    "network": "mainnet",
+    "chainId": 1,
+    "dataDir": "/var/lib/medorcoin",
+    "logDir": "/var/log/medorcoin",
+    "logLevel": "info",
+    "maxPeers": 1000,
+    "minPeers": 10,
+    "targetOutboundPeers": 25,
+    "targetInboundPeers": 50,
+    "syncMode": "full",
+    "pruning": false
+  },
+
+  "rpc": {
+    "enabled": true,
+    "host": "0.0.0.0",
+    "port": 8545,
+    "wsPort": 8546,
+    "allowedOrigins": ["*"],
+    "maxConnections": 100,
+    "timeout": 30000,
+    "methods": [
+      "eth_blockNumber",
+      "eth_getBalance",
+      "eth_getBlockByNumber",
+      "eth_getBlockByHash",
+      "eth_sendRawTransaction",
+      "eth_getTransactionReceipt",
+      "eth_gasPrice",
+      "eth_estimateGas",
+      "eth_getUTXOs",
+      "eth_getUTXOBalance",
+      "medor_totalSupply",
+      "medor_validateChain",
+      "medor_hasBlock",
+      "medor_networkFee"
+    ]
+  },
+
+  "api": {
+    "enabled": true,
+    "host": "0.0.0.0",
+    "port": 8080,
+    "maxConnections": 1000,
+    "rateLimitPerMinute": 300,
+    "timeout": 10000,
+    "endpoints": [
+      "GET /api/balance",
+      "GET /api/utxos",
+      "GET /api/txs",
+      "GET /api/fee",
+      "POST /api/broadcast"
+    ]
+  },
+
+  "blockchain": {
+    "ownerAddress": "medor_owner",
+    "treasuryAddress": "medor_treasury",
+    "maxSupply": 50000000,
+    "initialBaseFee": 1,
+    "targetGasPerBlock": 1000000,
+    "rewardSchedule": [
+      {
+        "thresholdSeconds": 5184000,
+        "reward": 55
+      },
+      {
+        "thresholdSeconds": 18446744073709551615,
+        "reward": 30
+      }
+    ],
+    "rewardSplit": {
+      "minerPercent": 90,
+      "ownerPercent": 10
+    },
+    "networkFee": {
+      "flatFeeThreshold": 1000,
+      "flatFeeAmount": 9,
+      "percentFeeAboveThreshold": 2,
+      "exemptCoinbase": true,
+      "feeRecipient": "medor_treasury"
+    }
+  },
+
+  "mining": {
+    "enabled": false,
+    "minerAddress": "",
+    "threads": 4,
+    "difficulty": {
+      "initial": 4,
+      "min": 1,
+      "max": 64,
+      "targetBlockTimeSecs": 10,
+      "adjustmentStepPercent": 12,
+      "hashCheckInterval": 100
+    },
+    "mineWithMempool": true,
+    "abortOnNewBlock": true,
+    "logHashRateIntervalSecs": 10
+  },
+
+  "storage": {
+    "blockDBPath": "data/medorcoin_blocks",
+    "accountDBPath": "data/medorcoin_accounts",
+    "mempoolDBPath": "data/medorcoin_mempool",
+    "receiptsDBPath": "data/medorcoin_receipts",
+    "peerStoreDBPath": "data/medorcoin_peers",
+    "backupPath": "data/medorcoin_backups",
+    "blockDB": {
+      "cacheSize": 67108864,
+      "bloomFilterBits": 10,
+      "writeBufferSize": 33554432,
+      "maxOpenFiles": 500
+    },
+    "accountDB": {
+      "writeBufferSize": 67108864,
+      "maxOpenFiles": 500,
+      "compression": "snappy"
+    },
+    "receiptsDB": {
+      "maxJsonBytes": 4194304,
+      "maxBatchItems": 10000,
+      "opTimeoutMs": 10000,
+      "autoCompactAfter": 10000,
+      "backupAfterNWrites": 0,
+      "verifyOnOpen": false,
+      "timeoutWorkers": 4,
+      "verifyChunkSize": 10000
+    }
+  },
+
+  "mempool": {
+    "maxTxCount": 100000,
+    "maxTotalBytes": 268435456,
+    "minFeePerGas": 1,
+    "maxTxAgeSeconds": 3600,
+    "persistToDisk": true,
+    "orphanMaxCount": 1000,
+    "orphanMaxAgeSecs": 300,
+    "persistBatchSize": 512,
+    "maxPersistQueueSize": 50000,
+    "persistWriteBytesPerSec": 52428800
+  },
+
+  "network": {
+    "listenAddr": "/ip4/0.0.0.0/tcp/30303",
+    "port": 30303,
+    "maxPeers": 1000,
+    "minPeers": 10,
+    "targetOutboundPeers": 25,
+    "targetInboundPeers": 50,
+    "maxPeersPerIP": 5,
+    "dialTimeoutSecs": 10,
+    "pingIntervalSecs": 30,
+    "peerTimeoutSecs": 120,
+    "handshakeTimeoutSecs": 15,
+    "maxIdleTrustedSecs": 300,
+    "maxIdleUntrustedSecs": 60,
+    "broadcastThreads": 8,
+    "maxMessageBytes": 33554432,
+    "retry": {
+      "maxAttempts": 5,
+      "initialDelayMs": 1000,
+      "maxDelayMs": 60000,
+      "backoffMultiplier": 2.0
+    },
+    "rateLimit": {
+      "maxMessagesPerSecond": 100,
+      "maxBytesPerSecond": 10485760,
+      "trustedMultiplier": 2
+    },
+    "ban": {
+      "durationSecs": 3600,
+      "maxDurationSecs": 86400,
+      "permanentThreshold": 10
+    },
+    "peerStore": {
+      "enabled": true,
+      "dbPath": "data/medorcoin_peers",
+      "schemaVersion": 1,
+      "persistOnShutdown": true
+    },
+    "dnsSeed": [
+      "seed1.medorcoin.io",
+      "seed2.medorcoin.io",
+      "seed3.medorcoin.io",
+      "seed4.medorcoin.io",
+      "seed5.medorcoin.io"
+    ],
+    "bootnodes": [
+      "node1-us-east.medorcoin.io:30303",
+      "node1-eu-west.medorcoin.io:30303",
+      "node1-ap-southeast.medorcoin.io:30303"
+    ],
+    "protocol": {
+      "version": 1,
+      "minSupportedVersion": 1,
+      "compressionAlgorithm": "snappy",
+      "messageTypes": {
+        "HELLO": 0,
+        "DISCONNECT": 1,
+        "PING": 2,
+        "PONG": 3,
+        "GET_PEERS": 4,
+        "PEERS": 5,
+        "NEW_BLOCK": 6,
+        "GET_BLOCKS": 7,
+        "BLOCKS": 8,
+        "NEW_TX": 9,
+        "GET_TXS": 10,
+        "TXS": 11,
+        "STATUS": 12,
+        "GET_RECEIPTS": 13,
+        "RECEIPTS": 14
+      }
+    }
+  },
+
+  "security": {
+    "validatorKeyDir": "data/validator_keys",
+    "tls": {
+      "enabled": true,
+      "minVersion": "1.3",
+      "certPath": "",
+      "keyPath": "",
+      "requirePeerAuth": true,
+      "verifyCerts": true
+    },
+    "maxBlockSize": 1048576,
+    "maxTxSize": 65536,
+    "coinbaseMaturity": 100
+  },
+
+  "serialization": {
+    "version": 1,
+    "chainId": 1,
+    "maxTxDataBytes": 131072,
+    "maxTxPerBlock": 10000,
+    "maxAddressLen": 128,
+    "maxHashLen": 128,
+    "maxSignatureLen": 512,
+    "replayWindowSeconds": 3600,
+    "sigVerification": true,
+    "hashVerification": true,
+    "replayProtection": true
+  },
+
+  "consensus": {
+    "type": "pow",
+    "algorithm": "keccak256",
+    "initialDifficulty": 4,
+    "minDifficulty": 1,
+    "maxDifficulty": 64,
+    "targetBlockTimeSecs": 10,
+    "adjustmentInterval": 1,
+    "coinbaseMaturity": 100,
+    "maxTransactionsPerBlock": 10000,
+    "maxBlockSize": 1048576,
+    "minBaseFee": 1
+  },
+
+  "monitoring": {
+    "prometheusEnabled": true,
+    "prometheusPort": 9090,
+    "metricsInterval": 15,
+    "healthCheckEnabled": true,
+    "healthCheckPort": 9092,
+    "logPeerConnections": true,
+    "logPeerDisconnections": true,
+    "logBannedPeers": true,
+    "alertOnMinPeersBreach": true,
+    "minPeersAlertThreshold": 10
+  },
+
+  "logging": {
+    "nodeLog": "logs/node.log",
+    "transactionLog": "logs/transactions.log",
+    "errorLog": "logs/errors.log",
+    "maxFileSizeMB": 100,
+    "maxBackupFiles": 10,
+    "format": "[TIMESTAMP] [LEVEL] [MODULE] MESSAGE"
+  }
+}
