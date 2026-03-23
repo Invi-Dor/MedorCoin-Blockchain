@@ -526,7 +526,7 @@ bool Blockchain::addBlock(const std::string       &minerAddr,
     return true;
 }
 
-void Blockchain::mineBlockAsync(const std::string       &minerAddr,
+void Blockchain::mineBlockAsync(const std::string       void Blockchain::mineBlockAsync(const std::string       &minerAddr,
                                  std::vector<Transaction> transactions,
                                  MinedCallback            callback)
 {
@@ -545,3 +545,7 @@ void Blockchain::mineBlockAsync(const std::string       &minerAddr,
             try { cb(success, std::move(minedBlock)); }
             catch (...) {
                 std::cerr << "[Blockchain] mineBlockAsync: callback threw\n";
+            }
+        }
+    }).detach();
+}
