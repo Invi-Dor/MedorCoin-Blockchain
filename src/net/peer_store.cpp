@@ -30,7 +30,7 @@ PeerStore::PeerStore(const std::string &dbPath)
         return;
     }
 
-    db_ = raw;
+    db_ = raw.release();
     log(0, "Opened at '" + dbPath + "'");
 }
 
