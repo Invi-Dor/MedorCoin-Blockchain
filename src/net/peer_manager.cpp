@@ -473,7 +473,7 @@ bool PeerManager::addPeer(const PeerInfo& info) noexcept {
         if (shard.hasPeer(info.id)) return false;
         PeerInfo copy             = info;
         copy.tokenMsgBucket       = cfg_.tokenBucketBurstMsg;
-        copy.tokenByteBucket      = cfg_.tokenBucketBurstBytes;
+        copy.tokenByteBucket = static_cast<double>(cfg_.tokenBucketBurstBytes);
         copy.tokenLastRefill      = nowSecs();
         copy.dirty                = true;
         shard.peers.emplace(info.id, std::move(copy));
