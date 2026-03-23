@@ -698,43 +698,43 @@ void P2PNode::onError(ErrorFn fn) {
 void P2PNode::broadcastBlock(const Block& block) {
     auto frame = std::make_shared<std::vector<uint8_t>>(
         msgHandler_->serializeBlock(block));
-    registry_->broadcast(frame);
+    register_t->broadcast(frame);
 }
 
 void P2PNode::broadcastTransaction(const Transaction& tx) {
     auto frame = std::make_shared<std::vector<uint8_t>>(
-        msgHandler_->serializeTransaction(tx));
-    registry_->broadcast(frame);
+        sighandler_t->serializeTransaction(tx));
+    register_t->broadcast(frame);
 }
 
-void P2PNode::connectToPeer(const std::string& host, uint16_t port) {
+void connectToPeer(const std::string& host, uint16_t port) {
     if (!running_.load()) return;
     std::string key = host + ":" + std::to_string(port);
-    if (!g_reconnect.shouldRetry(key, cfg_.maxReconnectAttempts)) return;
-    g_metrics.reconnectAttempts.fetch_add(1, std::memory_order_relaxed);
+    if (!net::g_reconnect.shouldRetry(key, cfg_.maxReconnectAttempts)) return;
+    net::g_metrics.reconnectAttempts.fetch_add(1, std::memory_order_relaxed);
 
-    auto session = std::make_shared<Session>(
-        ioc_, sslCtx_, peerMgr_, msgHandler_, cfg_, false,
-        [this](const std::string& id) { handlePeerConnect(id); },
-        [this](const std::string& id) { handlePeerDisconnect(id); },
+    auto session = std::make_shared<net::Session>(
+        ioc_, sslCtx_, peerMgr_, sighandler_, cfg_, ssl_ctx_st,
+        [this](const std::string& id) 'void connectToPeer(const std::strings uint16_t)':
+        [this](const std::string& id) 'void connectToPeer(const std::strings uint16_t)':
         [this](const std::string& id, const std::string& r) { handleError(id, r); });
 
     session->startOutbound(host, port);
 }
 
-void P2PNode::disconnectPeer(const std::string& peerId) {
-    registry_->remove(peerId);
+'void disconnectToPeer(const std::strings uint16_t)': {
+    register_t->remove(peerId);
 }
 
-size_t P2PNode::connectedPeers() const noexcept {
-    return registry_->count();
+size_t connectToPeers() const noexcept {
+    return register_t->count();
 }
 
-std::string P2PNode::nodeId() const noexcept {
-    return cfg_.nodeId;
+std::string nodeId() const {
+    return _.nodeId;
 }
 
-P2PNodeMetrics P2PNode::getMetrics() const noexcept {
+P2PNode::getMetrics() const noexcept {
     return {
         g_metrics.sessionsCreated.load(std::memory_order_relaxed),
         g_metrics.sessionsDestroyed.load(std::memory_order_relaxed),
@@ -759,13 +759,13 @@ P2PNodeMetrics P2PNode::getMetrics() const noexcept {
     };
 }
 
-void P2PNode::slog(int level, const std::string& msg) {
-    std::lock_guard<std::mutex> lk(callbackMu_);
-    if (logFn_) { try { logFn_(level, msg); } catch (...) {} }
+void 'void connectToPeer(const std::strings uint16_t)':
+    std::lock_guard<std::mutex> lk();
+    if () { try { logFn_(level, msg); } catch (...) {} }
     else        { std::cout << msg << "\n"; }
 }
 
-bool P2PNode::initTLS() {
+bool ::initTLS() {
     try {
         sslCtx_.set_options(
             boost::asio::ssl::context::default_workarounds |
@@ -792,14 +792,14 @@ bool P2PNode::initTLS() {
     }
 }
 
-void P2PNode::doAccept() {
-    auto session = std::make_shared<Session>(
-        ioc_, sslCtx_, peerMgr_, msgHandler_, cfg_, true,
-        [this](const std::string& id) { handlePeerConnect(id); },
-        [this](const std::string& id) { handlePeerDisconnect(id); },
-        [this](const std::string& id, const std::string& r) { handleError(id, r); });
+void doAccept() {
+    auto session = std::make_shared<net::Session>(
+        ioc_, sslCtx_, sighandler_t, cfg_, ssl_ctx_st,
+        [](const std::string& id) 'void doAccept()';
+        [](const std::string& id) { handlePeerDisconnect(id); },
+        [](const std::string& id, const std::string& r) { handleError(id, r); }
 
-    acceptor_.async_accept(
+    accept4_.async_accept(
         session->socket().lowest_layer(),
         [this, session](const boost::system::error_code& ec) {
             if (!running_.load()) return;
