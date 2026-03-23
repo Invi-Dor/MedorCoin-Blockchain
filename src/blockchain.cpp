@@ -544,4 +544,4 @@ void Blockchain::mineBlockAsync(const std::string       &minerAddr,
         if (cb) {
             try { cb(success, std::move(minedBlock)); }
             catch (...) {
-                std::cerr << "[Blockchain] mineBlockAsync: callback threw\​​​​​​​​​​​​​​​​
+                std::cerr << "[Blockchain] mineBlockAsync: callback threw\n";
