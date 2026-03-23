@@ -1,5 +1,3 @@
-Here is the complete fixed src/net/message_handler.cpp with all warnings resolved:
-
 #include "net/message_handler.h"
 #include "crypto/keccak256.h"
 
