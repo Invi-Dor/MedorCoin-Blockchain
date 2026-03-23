@@ -1,4 +1,4 @@
-#include "net/net_manager.h"
+#include "net_manager.h"
 #include "net/net_manager.h"
 
 #include <nlohmann/json.hpp>
