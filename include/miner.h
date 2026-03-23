@@ -1,14 +1,18 @@
 #pragma once
 
 #include <string>
-#include "blockchain.h"
+#include <cstdint>
+
+class Blockchain;
+class Mempool;
 
 class Miner {
 public:
-    // Mine a MedorCoin block
-    void mineMedor(Blockchain &chain, const std::string &minerAddress);
+    static void mineMedor      (Blockchain        &chain,
+                                 const std::string &minerAddress);
 
-    // Optionally include mempool transactions
-    void mineWithMempool(Blockchain &chain,
-                         const std::string &minerAddress);
+    static void mineWithMempool(Blockchain        &chain,
+                                 const std::string &minerAddress,
+                                 Mempool           &mempool,
+                                 uint64_t           baseFee);
 };
