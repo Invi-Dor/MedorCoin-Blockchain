@@ -21,7 +21,7 @@ PeerStore::PeerStore(const std::string &dbPath)
     opts_.write_buffer_size        = 16 * 1024 * 1024;
     opts_.max_open_files           = 256;
 
-    rocksdb::DB* raw = nullptr;
+    std::unique_ptr<rocksdb::DB> raw;
     rocksdb::Status s = rocksdb::DB::Open(opts_, dbPath, &raw);
     if (!s.ok()) {
         // Fix 2: log the full RocksDB error string
