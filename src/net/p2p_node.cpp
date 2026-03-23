@@ -593,19 +593,24 @@ private:
 // =============================================================================
 // P2P NODE IMPLEMENTATION
 // =============================================================================
-P2PNode::P2PNode(Config      cfg,
-                 Blockchain& chain,
-                 Mempool&    mempool)
-    : cfg_(std::move(cfg))
-    , chain_(chain)
-    , mempool_(mempool)
-    , sslCtx_(boost::asio::ssl::context::tls)
-    , acceptor_(ioc_)
-    , pingTimer_(ioc_)
-    , reconnectTimer_(ioc_)
-    , peerPersistTimer_(ioc_)
-    , metricsTimer_(ioc_)
 {
+    PeerManagerConfig pmCfg;
+    pmCfg.networkMagic    = cfg_.networkMagic;
+    pmCfg.protocolVersion = cfg_.protocolVersion;
+    pmCfg.maxPeers        = cfg_.maxInboundPeers + cfg_.maxOutboundPeers;
+    pmCfg.peerTimeoutSecs = cfg_.peerTimeoutSecs;
+    pmCfg.banDurationSecs = cfg_.banDurationSecs;
+    pmCfg.nodeId          = cfg_.nodeId;
+    peerMgr_ = std::make_shared<PeerManager>(pmCfg);
+
+    MessageHandler::Config mhCfg;
+    mhCfg.networkMagic    = cfg_.networkMagic;
+    mhCfg.protocolVersion = cfg_.protocolVersion;
+    mhCfg.nodeId          = cfg_.nodeId;
+    msgHandler_ = std::make_shared<MessageHandler>(mhCfg, chain_, mempool_, peerMgr_);
+
+    registry_ = std::make_shared<SessionRegistry>();
+}
     peerMgr_    = std::make_shared<PeerManager>();
     msgHandler_ = std::make_shared<MessageHandler>(chain_, mempool_);
     registry_   = std::make_shared<SessionRegistry>();
