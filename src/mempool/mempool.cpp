@@ -39,10 +39,10 @@ Mempool::Mempool(Config cfg, const UTXOSet& utxoSet)
             rocksdb::NewGenericRateLimiter(
                 static_cast<int64_t>(cfg_.persistWriteBytesPerSec)));
 
-        rocksdb::DB* raw = nullptr;
+        std::unique_ptr<rocksdb::DB> raw;
         auto s = rocksdb::DB::Open(opts, cfg_.dbPath, &raw);
         if (s.ok()) {
-            db_.reset(raw);
+            db_ = std::move(raw);
             loadFromDisk();
             slog(0, "DB opened at " + cfg_.dbPath);
         } else {
