@@ -942,7 +942,7 @@ void PeerManager::markDirty(const std::string& id) noexcept {
 // =============================================================================
 // PERSISTENCE
 // =============================================================================
-void PeerManager::savePeers() const noexcept {
+void PeerManager::savePeers() noexcept {
     if (cfg_.peerStorePath.empty()) return;
     try {
         std::vector<PeerInfo> toSave;
