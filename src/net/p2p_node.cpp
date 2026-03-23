@@ -33,7 +33,6 @@ using ssl_sock = boost::asio::ssl::stream<tcp::socket>;
 
 // =============================================================================
 // METRICS
-// Issue 8: full atomic metrics exposed for monitoring / Prometheus export
 // =============================================================================
 struct P2PMetrics {
     std::atomic<uint64_t> sessionsCreated{0};
@@ -60,7 +59,8 @@ struct P2PMetrics {
     void dump(std::ostream& os) const {
         os << "[P2PMetrics]"
            << " sessions=" << sessionsCreated.load()
-           << " active="   << (sessionsCreated.load() - sessionsDestroyed.load())
+           << " active="   << (sessionsCreated.load()
+                               - sessionsDestroyed.load())
            << " sent="     << framesSent.load()
            << " recv="     << framesRecv.load()
            << " txBytes="  << bytesSent.load()
@@ -103,12 +103,10 @@ P2PNodeMetrics P2PNode::getMetrics() const noexcept {
 
 // =============================================================================
 // BUFFER POOL
-// Issue 2: reuse read/write buffers across sessions to reduce allocations
-// under high peer counts. Thread-safe via mutex.
 // =============================================================================
 class BufferPool {
 public:
-    static constexpr size_t BUFFER_SIZE = 64 * 1024; // 64 KB per buffer
+    static constexpr size_t BUFFER_SIZE = 64 * 1024;
 
     std::shared_ptr<std::vector<uint8_t>> acquire() {
         std::lock_guard<std::mutex> lk(mu_);
@@ -140,26 +138,27 @@ static BufferPool g_bufferPool;
 
 // =============================================================================
 // RECONNECT TRACKER
-// Issue 7: per-peer exponential backoff for reconnect attempts
 // =============================================================================
 struct ReconnectEntry {
-    uint32_t attempts   = 0;
+    uint32_t attempts    = 0;
     uint64_t nextRetryAt = 0;
-    uint32_t delayMs    = 1000;
+    uint32_t delayMs     = 1000;
 
     void recordFailure() {
         ++attempts;
         delayMs = std::min(delayMs * 2u, uint32_t(60'000));
         nextRetryAt = static_cast<uint64_t>(
             std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now().time_since_epoch()).count())
+                std::chrono::steady_clock::now()
+                    .time_since_epoch()).count())
             + delayMs;
     }
 
     bool readyToRetry() const {
         uint64_t now = static_cast<uint64_t>(
             std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now().time_since_epoch()).count());
+                std::chrono::steady_clock::now()
+                    .time_since_epoch()).count());
         return now >= nextRetryAt;
     }
 
@@ -194,12 +193,6 @@ static ReconnectTracker g_reconnect;
 
 // =============================================================================
 // SESSION
-// Issue 1: ioThreads tuned at P2PNode level; Session is async throughout
-// Issue 2: buffer pool used for read buffers
-// Issue 4: structured error reporting via onError callback
-// Issue 5: DH params wired at node level
-// Issue 6: send queue per session avoids global mutex on broadcast
-// Issue 7: reconnect backoff integrated via g_reconnect
 // =============================================================================
 class Session : public std::enable_shared_from_this<Session> {
 public:
@@ -226,26 +219,24 @@ public:
         , onError_(std::move(onError))
     {
         g_metrics.sessionsCreated.fetch_add(1, std::memory_order_relaxed);
-        // Issue 2: acquire read buffer from pool
         readBuf_ = g_bufferPool.acquire();
     }
 
     ~Session() {
         g_metrics.sessionsDestroyed.fetch_add(1, std::memory_order_relaxed);
-        // Issue 2: return buffer to pool
         g_bufferPool.release(readBuf_);
         disconnect("session destroyed");
     }
 
-    ssl_sock&   socket()  { return socket_; }
-    std::string peerId()  const { return peerId_; }
+    ssl_sock&   socket() { return socket_; }
+    std::string peerId() const { return peerId_; }
 
-    // Issue 6: per-session send queue — no global mutex needed for broadcast
     void send(std::shared_ptr<std::vector<uint8_t>> frame) {
         if (cancelled_.load()) return;
         boost::asio::post(
             socket_.get_executor(),
-            [this, self = shared_from_this(), frame = std::move(frame)]() {
+            [this, self = shared_from_this(),
+             frame = std::move(frame)]() {
                 bool idle = sendQueue_.empty();
                 sendQueue_.push_back(frame);
                 if (idle) doSend();
@@ -261,7 +252,7 @@ public:
                 if (ec) {
                     g_metrics.tlsHandshakeFailed.fetch_add(1,
                         std::memory_order_relaxed);
-                    reportError("TLS inbound handshake: " + ec.message());
+                    reportError("TLS inbound: " + ec.message());
                     disconnect("TLS failed");
                     return;
                 }
@@ -269,7 +260,6 @@ public:
             });
     }
 
-    // Issue 5: async resolve — no blocking
     void startOutbound(const std::string& host, uint16_t port) {
         if (cancelled_.load()) return;
         host_ = host;
@@ -286,7 +276,8 @@ public:
                 if (ec) {
                     g_metrics.connectFailed.fetch_add(1,
                         std::memory_order_relaxed);
-                    g_reconnect.recordFailure(host + ":" + std::to_string(port));
+                    g_reconnect.recordFailure(
+                        host + ":" + std::to_string(port));
                     reportError("resolve: " + ec.message());
                     return;
                 }
@@ -312,13 +303,15 @@ public:
                             {
                                 if (cancelled_.load()) return;
                                 if (ec3) {
-                                    g_metrics.tlsHandshakeFailed.fetch_add(1,
+                                    g_metrics.tlsHandshakeFailed
+                                        .fetch_add(1,
                                         std::memory_order_relaxed);
                                     g_metrics.connectFailed.fetch_add(1,
                                         std::memory_order_relaxed);
                                     g_reconnect.recordFailure(
                                         host + ":" + std::to_string(port));
-                                    reportError("TLS outbound: " + ec3.message());
+                                    reportError("TLS outbound: "
+                                                + ec3.message());
                                     return;
                                 }
                                 g_metrics.connectSuccess.fetch_add(1,
@@ -343,12 +336,11 @@ private:
     std::string                             host_;
     uint16_t                                port_ = 0;
 
-    // Issue 2: pooled buffer
     std::shared_ptr<std::vector<uint8_t>>   readBuf_;
     std::array<uint8_t, FRAME_HEADER_SIZE>  hdrBuf_{};
 
-    // Issue 6: per-session send queue — eliminates global broadcast mutex
-    std::vector<std::shared_ptr<std::vector<uint8_t>>> sendQueue_;
+    std::vector<std::shared_ptr<
+        std::vector<uint8_t>>>              sendQueue_;
 
     std::function<void(const std::string&)> onConnect_;
     std::function<void(const std::string&)> onDisconnect_;
@@ -356,13 +348,13 @@ private:
 
     static std::atomic<uint64_t> s_counter;
 
-    static std::string makePeerId(const std::string& host, uint16_t port) {
+    static std::string makePeerId(const std::string& host,
+                                   uint16_t port) {
         return host + ":" + std::to_string(port) + "#"
              + std::to_string(s_counter.fetch_add(1,
                    std::memory_order_relaxed));
     }
 
-    // Issue 4: structured error — calls onError_ callback instead of silently dropping
     void reportError(const std::string& reason) {
         if (onError_) {
             try { onError_(peerId_, reason); } catch (...) {}
@@ -408,7 +400,6 @@ private:
         readHeader();
     }
 
-    // Issue 6: serialized send queue — one async_write at a time per session
     void doSend() {
         if (cancelled_.load() || sendQueue_.empty()) return;
         auto frame = sendQueue_.front();
@@ -466,7 +457,7 @@ private:
                         std::memory_order_relaxed);
                     peerMgr_->penalizePeer(peerId_, 20.0);
                     reportError("oversized frame: "
-                                + std::to_string(payLen) + " bytes");
+                                + std::to_string(payLen));
                     disconnect("oversized frame");
                     return;
                 }
@@ -477,8 +468,6 @@ private:
     void readPayload(uint32_t payLen) {
         if (cancelled_.load()) return;
         auto self = shared_from_this();
-
-        // Issue 2: use pooled buffer, resize to needed length
         readBuf_->resize(FRAME_HEADER_SIZE + payLen);
         std::copy(hdrBuf_.begin(), hdrBuf_.end(), readBuf_->begin());
 
@@ -500,15 +489,14 @@ private:
                 g_metrics.framesRecv.fetch_add(1,
                     std::memory_order_relaxed);
                 g_metrics.bytesRecv.fetch_add(
-                    FRAME_HEADER_SIZE + n, std::memory_order_relaxed);
+                    FRAME_HEADER_SIZE + n,
+                    std::memory_order_relaxed);
 
-                // Issue 4: report exceptions rather than silently swallowing
                 try {
                     msgHandler_->handleRaw(peerId_, *readBuf_);
                 } catch (const std::exception& e) {
                     peerMgr_->penalizePeer(peerId_, 5.0);
-                    reportError("handleRaw exception: "
-                                + std::string(e.what()));
+                    reportError("handleRaw: " + std::string(e.what()));
                 } catch (...) {
                     peerMgr_->penalizePeer(peerId_, 5.0);
                     reportError("handleRaw unknown exception");
@@ -534,11 +522,256 @@ private:
 };
 
 std::atomic<uint64_t> Session::s_counter{0};
-} // namespace net
-
 
 // =============================================================================
 // SESSION REGISTRY
-// Issue 6: sharded registry to reduce lock contention on broadcast
-// The registry is split into N shards — each shard has its own mutex.
-// Broadcast iter​​​​​​​​​​​​​​​​
+// Sharded registry to reduce lock contention on broadcast.
+// The registry is split into N shards each with its own mutex.
+// Broadcast iterates all shards and sends to each session.
+// =============================================================================
+class SessionRegistry {
+public:
+    static constexpr size_t SHARD_COUNT = 32;
+
+    void add(const std::string& id,
+              std::shared_ptr<Session> session) {
+        auto& shard = shardFor(id);
+        std::lock_guard<std::mutex> lk(shard.mu);
+        shard.sessions[id] = std::move(session);
+    }
+
+    void remove(const std::string& id) {
+        auto& shard = shardFor(id);
+        std::lock_guard<std::mutex> lk(shard.mu);
+        shard.sessions.erase(id);
+    }
+
+    std::shared_ptr<Session> get(const std::string& id) {
+        auto& shard = shardFor(id);
+        std::lock_guard<std::mutex> lk(shard.mu);
+        auto it = shard.sessions.find(id);
+        if (it == shard.sessions.end()) return nullptr;
+        return it->second;
+    }
+
+    void broadcast(std::shared_ptr<std::vector<uint8_t>> frame,
+                    const std::string& excludeId = "") {
+        for (auto& shard : shards_) {
+            std::lock_guard<std::mutex> lk(shard.mu);
+            for (auto& [id, session] : shard.sessions) {
+                if (id == excludeId) continue;
+                if (session) session->send(frame);
+            }
+        }
+        g_metrics.broadcastsSent.fetch_add(1,
+            std::memory_order_relaxed);
+        g_metrics.broadcastBytes.fetch_add(frame->size(),
+            std::memory_order_relaxed);
+    }
+
+    size_t count() const {
+        size_t n = 0;
+        for (const auto& shard : shards_) {
+            std::lock_guard<std::mutex> lk(shard.mu);
+            n += shard.sessions.size();
+        }
+        return n;
+    }
+
+private:
+    struct Shard {
+        mutable std::mutex mu;
+        std::unordered_map<std::string,
+                           std::shared_ptr<Session>> sessions;
+    };
+
+    std::array<Shard, SHARD_COUNT> shards_;
+
+    Shard& shardFor(const std::string& id) {
+        return shards_[std::hash<std::string>{}(id) % SHARD_COUNT];
+    }
+};
+
+// =============================================================================
+// P2P NODE IMPLEMENTATION
+// =============================================================================
+struct P2PNode::Impl {
+    Config                           cfg;
+    boost::asio::io_context          ioc;
+    boost::asio::ssl::context        sslCtx{
+        boost::asio::ssl::context::tls};
+    tcp::acceptor                    acceptor{ioc};
+    std::vector<std::thread>         ioThreads;
+    std::shared_ptr<PeerManager>     peerMgr;
+    std::shared_ptr<MessageHandler>  msgHandler;
+    SessionRegistry                  registry;
+    std::atomic<bool>                running{false};
+
+    std::function<void(const std::string&)> onConnectCb;
+    std::function<void(const std::string&)> onDisconnectCb;
+    std::function<void(const std::string&,
+                        const std::string&)>  onErrorCb;
+
+    std::mutex cbMu;
+
+    void setupTLS() {
+        sslCtx.set_options(
+            boost::asio::ssl::context::default_workarounds |
+            boost::asio::ssl::context::no_sslv2            |
+            boost::asio::ssl::context::no_sslv3            |
+            boost::asio::ssl::context::no_tlsv1            |
+            boost::asio::ssl::context::no_tlsv1_1          |
+            boost::asio::ssl::context::single_dh_use);
+
+        if (!cfg.tlsCertPath.empty())
+            sslCtx.use_certificate_chain_file(cfg.tlsCertPath);
+        if (!cfg.tlsKeyPath.empty())
+            sslCtx.use_private_key_file(cfg.tlsKeyPath,
+                boost::asio::ssl::context::pem);
+        if (!cfg.tlsDhParamsPath.empty())
+            sslCtx.use_tmp_dh_file(cfg.tlsDhParamsPath);
+
+        sslCtx.set_verify_mode(
+            cfg.requirePeerCert
+            ? boost::asio::ssl::verify_peer
+            : boost::asio::ssl::verify_none);
+    }
+
+    std::shared_ptr<Session> makeSession(bool isInbound) {
+        return std::make_shared<Session>(
+            ioc, sslCtx, peerMgr, msgHandler, cfg,
+            isInbound,
+            [this](const std::string& id) {
+                registry.add(id, registry.get(id));
+                std::lock_guard<std::mutex> lk(cbMu);
+                if (onConnectCb) {
+                    try { onConnectCb(id); } catch (...) {}
+                }
+            },
+            [this](const std::string& id) {
+                registry.remove(id);
+                std::lock_guard<std::mutex> lk(cbMu);
+                if (onDisconnectCb) {
+                    try { onDisconnectCb(id); } catch (...) {}
+                }
+            },
+            [this](const std::string& id,
+                    const std::string& reason) {
+                std::lock_guard<std::mutex> lk(cbMu);
+                if (onErrorCb) {
+                    try { onErrorCb(id, reason); } catch (...) {}
+                }
+            });
+    }
+
+    void doAccept() {
+        auto session = makeSession(true);
+        acceptor.async_accept(
+            session->socket().lowest_layer(),
+            [this, session](const boost::system::error_code& ec) {
+                if (!running.load()) return;
+                if (!ec) {
+                    if (peerMgr->peerCount() < cfg.maxPeers) {
+                        g_metrics.acceptSuccess.fetch_add(1,
+                            std::memory_order_relaxed);
+                        session->startInbound();
+                    } else {
+                        g_metrics.acceptRejected.fetch_add(1,
+                            std::memory_order_relaxed);
+                    }
+                }
+                doAccept();
+            });
+    }
+};
+
+// =============================================================================
+// P2P NODE PUBLIC API
+// =============================================================================
+P2PNode::P2PNode(Config cfg,
+                  std::shared_ptr<PeerManager>    peerMgr,
+                  std::shared_ptr<MessageHandler> msgHandler)
+    : impl_(std::make_unique<Impl>())
+{
+    impl_->cfg        = std::move(cfg);
+    impl_->peerMgr    = std::move(peerMgr);
+    impl_->msgHandler = std::move(msgHandler);
+}
+
+P2PNode::~P2PNode() { stop(); }
+
+void P2PNode::start() {
+    if (impl_->running.exchange(true)) return;
+
+    impl_->setupTLS();
+
+    tcp::endpoint ep(tcp::v4(),
+        static_cast<uint16_t>(impl_->cfg.listenPort));
+    impl_->acceptor.open(ep.protocol());
+    impl_->acceptor.set_option(
+        boost::asio::socket_base::reuse_address(true));
+    impl_->acceptor.bind(ep);
+    impl_->acceptor.listen(
+        boost::asio::socket_base::max_listen_connections);
+
+    impl_->doAccept();
+
+    size_t threads = std::max(size_t(1), impl_->cfg.ioThreads);
+    impl_->ioThreads.reserve(threads);
+    for (size_t i = 0; i < threads; ++i) {
+        impl_->ioThreads.emplace_back([this]() {
+            impl_->ioc.run();
+        });
+    }
+
+    std::cout << "[P2PNode] Listening on port "
+              << impl_->cfg.listenPort
+              << " threads=" << threads << "\n";
+}
+
+void P2PNode::stop() {
+    if (!impl_->running.exchange(false)) return;
+    impl_->acceptor.close();
+    impl_->ioc.stop();
+    for (auto& t : impl_->ioThreads)
+        if (t.joinable()) t.join();
+    impl_->ioThreads.clear();
+    std::cout << "[P2PNode] Stopped\n";
+}
+
+void P2PNode::connect(const std::string& host, uint16_t port) {
+    if (!impl_->running.load()) return;
+    auto session = impl_->makeSession(false);
+    std::string key = host + ":" + std::to_string(port);
+    if (!g_reconnect.shouldRetry(key, impl_->cfg.maxReconnectAttempts))
+        return;
+    g_metrics.reconnectAttempts.fetch_add(1, std::memory_order_relaxed);
+    session->startOutbound(host, port);
+}
+
+void P2PNode::broadcast(std::shared_ptr<std::vector<uint8_t>> frame,
+                          const std::string& excludeId) {
+    impl_->registry.broadcast(std::move(frame), excludeId);
+}
+
+void P2PNode::onConnect(std::function<void(const std::string&)> fn) {
+    std::lock_guard<std::mutex> lk(impl_->cbMu);
+    impl_->onConnectCb = std::move(fn);
+}
+
+void P2PNode::onDisconnect(std::function<void(const std::string&)> fn) {
+    std::lock_guard<std::mutex> lk(impl_->cbMu);
+    impl_->onDisconnectCb = std::move(fn);
+}
+
+void P2PNode::onError(std::function<void(const std::string&,
+                                          const std::string&)> fn) {
+    std::lock_guard<std::mutex> lk(impl_->cbMu);
+    impl_->onErrorCb = std::move(fn);
+}
+
+size_t P2PNode::sessionCount() const noexcept {
+    return impl_->registry.count();
+}
+
+} // namespace net
