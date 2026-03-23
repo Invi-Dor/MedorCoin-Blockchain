@@ -52,6 +52,8 @@ struct PeerInfo {
     uint64_t    banExpiresAt      = 0;
     uint32_t    banCount          = 0;
     uint32_t    decodeErrorCount  = 0;
+    uint64_t    msgThisSecond     = 0;
+    uint64_t    byteThisSecond    = 0;
     double      score             = 100.0;
     bool        isBanned          = false;
     bool        isInbound         = false;
@@ -97,24 +99,25 @@ struct PeerManagerConfig {
 
 // =============================================================================
 // METRICS
+// All atomics are mutable so they can be updated from const methods
 // =============================================================================
 struct PeerManagerMetrics {
-    std::atomic<uint64_t> activePeers{0};
-    std::atomic<uint64_t> totalConnected{0};
-    std::atomic<uint64_t> totalEvicted{0};
-    std::atomic<uint64_t> banEvents{0};
-    std::atomic<uint64_t> autoBanDecodeError{0};
-    std::atomic<uint64_t> rateLimitEvents{0};
-    std::atomic<uint64_t> byteQuotaEvents{0};
-    std::atomic<uint64_t> decodeErrors{0};
-    std::atomic<uint64_t> handshakeFailed{0};
-    std::atomic<uint64_t> handshakeSuccess{0};
-    std::atomic<uint64_t> replayRejected{0};
-    std::atomic<uint64_t> peersEvicted{0};
-    std::atomic<uint64_t> shardGrowths{0};
-    std::atomic<uint64_t> saveCount{0};
-    std::atomic<uint64_t> loadCount{0};
-    std::atomic<uint64_t> incrementalSaveCount{0};
+    mutable std::atomic<uint64_t> activePeers{0};
+    mutable std::atomic<uint64_t> totalConnected{0};
+    mutable std::atomic<uint64_t> totalEvicted{0};
+    mutable std::atomic<uint64_t> banEvents{0};
+    mutable std::atomic<uint64_t> autoBanDecodeError{0};
+    mutable std::atomic<uint64_t> rateLimitEvents{0};
+    mutable std::atomic<uint64_t> byteQuotaEvents{0};
+    mutable std::atomic<uint64_t> decodeErrors{0};
+    mutable std::atomic<uint64_t> handshakeFailed{0};
+    mutable std::atomic<uint64_t> handshakeSuccess{0};
+    mutable std::atomic<uint64_t> replayRejected{0};
+    mutable std::atomic<uint64_t> peersEvicted{0};
+    mutable std::atomic<uint64_t> shardGrowths{0};
+    mutable std::atomic<uint64_t> saveCount{0};
+    mutable std::atomic<uint64_t> loadCount{0};
+    mutable std::atomic<uint64_t> incrementalSaveCount{0};
 
     struct Window {
         static constexpr size_t SLOTS = 60;
@@ -144,10 +147,10 @@ struct PeerManagerMetrics {
         Window& operator=(const Window&) = delete;
     };
 
-    Window msgIn;
-    Window msgOut;
-    Window bytesIn;
-    Window bytesOut;
+    mutable Window msgIn;
+    mutable Window msgOut;
+    mutable Window bytesIn;
+    mutable Window bytesOut;
 
     std::string toPrometheusText() const noexcept;
 
@@ -188,52 +191,50 @@ public:
     void onPeerScored       (PeerScoredFn fn)       noexcept;
     void setAlertHandler    (AlertFn fn)             noexcept;
 
-    bool                    addPeer    (const PeerInfo& info)        noexcept;
-    bool                    removePeer (const std::string& id)       noexcept;
-    bool                    banPeer    (const std::string& id)       noexcept;
+    bool                    addPeer     (const PeerInfo& info)       noexcept;
+    bool                    removePeer  (const std::string& id)      noexcept;
+    bool                    banPeer     (const std::string& id)      noexcept;
     bool                    penalizePeer(const std::string& id,
                                           double penalty)             noexcept;
     bool                    rewardPeer  (const std::string& id,
                                           double reward)              noexcept;
-    bool                    hasPeer    (const std::string& id) const noexcept;
-    bool                    isBanned   (const std::string& id) const noexcept;
-    std::optional<PeerInfo> getPeer    (const std::string& id) const noexcept;
-    std::vector<PeerInfo>   getAllPeers    () const noexcept;
-    std::vector<PeerInfo>   getActivePeers() const noexcept;
-    size_t                  peerCount     () const noexcept;
+    bool                    hasPeer     (const std::string& id) const noexcept;
+    bool                    isBanned    (const std::string& id) const noexcept;
+    std::optional<PeerInfo> getPeer     (const std::string& id) const noexcept;
+    std::vector<PeerInfo>   getAllPeers    ()                    const noexcept;
+    std::vector<PeerInfo>   getActivePeers()                    const noexcept;
+    size_t                  peerCount     ()                    const noexcept;
 
-    bool doHandshake       (const std::string& peerId, int fd)       noexcept;
-    bool checkRateLimit    (const std::string& id, size_t msgBytes)  noexcept;
-    void recordDecodeError (const std::string& id)                   noexcept;
+    bool doHandshake      (const std::string& peerId, int fd)      noexcept;
+    bool checkRateLimit   (const std::string& id, size_t msgBytes) noexcept;
+    void recordDecodeError(const std::string& id)                  noexcept;
 
-    // Fix 3: two-bucket dedup
-    bool markSeen          (const std::string& msgId)                noexcept;
-    void cleanupSeenMessages()                                        noexcept;
+    bool markSeen          (const std::string& msgId) noexcept;
+    void cleanupSeenMessages()                         noexcept;
 
     void evictStalePeers   () noexcept;
     void evictLowScorePeers() noexcept;
     void unbanExpiredPeers () noexcept;
 
-    void savePeers() const noexcept;
-    void loadPeers()       noexcept;
+    // savePeers is non-const -- updates metrics counters
+    void savePeers() noexcept;
+    void loadPeers() noexcept;
 
-    const PeerManagerMetrics& metrics()         const noexcept;
+    const PeerManagerMetrics& metrics()          const noexcept;
     std::string               getPrometheusText() const noexcept;
     void                      exportMetrics()          noexcept;
 
-    void setRateLimit               (uint32_t maxMsg, uint64_t maxBytes) noexcept;
-    void setMaxDecodeErrorsBeforeBan(uint32_t n)                         noexcept;
-    void setMaxPeers                (size_t n)                           noexcept;
+    void setRateLimit               (uint32_t maxMsg,
+                                      uint64_t maxBytes) noexcept;
+    void setMaxDecodeErrorsBeforeBan(uint32_t n)          noexcept;
+    void setMaxPeers                (size_t n)            noexcept;
 
     static uint64_t    nowSecs() noexcept;
     static uint64_t    nowMs()   noexcept;
     static std::string peerKey(const std::string& address,
-                                uint16_t port)           noexcept;
+                                uint16_t port)            noexcept;
 
 private:
-    // =========================================================================
-    // PEER SHARD
-    // =========================================================================
     struct PeerShard {
         mutable std::shared_mutex                 mu;
         std::unordered_map<std::string, PeerInfo> peers;
@@ -251,10 +252,6 @@ private:
         }
     };
 
-    // =========================================================================
-    // ASYNC LOG QUEUE
-    // Fix 4: async logging so hot paths never block on I/O or callbacks
-    // =========================================================================
     struct AsyncLogQueue {
         mutable std::mutex      mu;
         std::condition_variable cv;
@@ -303,16 +300,12 @@ private:
         }
     };
 
-    // =========================================================================
-    // WORKER POOL
-    // Fix 2: shared pool for all background tasks
-    // =========================================================================
     struct WorkerPool {
-        std::vector<std::thread>            workers;
-        std::mutex                          mu;
-        std::condition_variable             cv;
-        std::vector<std::function<void()>>  queue;
-        std::atomic<bool>                   stopped{false};
+        std::vector<std::thread>           workers;
+        std::mutex                         mu;
+        std::condition_variable            cv;
+        std::vector<std::function<void()>> queue;
+        std::atomic<bool>                  stopped{false};
 
         void start(size_t n) {
             for (size_t i = 0; i < n; i++) {
@@ -351,13 +344,8 @@ private:
         }
     };
 
-    // =========================================================================
-    // MEMBERS
-    // =========================================================================
     std::vector<std::unique_ptr<PeerShard>> shards_;
     std::atomic<size_t>                     shardCount_{1};
-
-    // Fix 1: atomic flag prevents concurrent shard growth
     std::atomic<bool>                       growthInProgress_{false};
 
     PeerShard&       shardFor(const std::string& id)       noexcept;
@@ -390,16 +378,14 @@ private:
     std::mutex              timerMu_;
     std::condition_variable timerCv_;
 
-    void runTimerLoop()       noexcept;
+    void runTimerLoop()        noexcept;
     void startBackgroundTasks();
 
-    // Fix 3: two-bucket message dedup — no full protection gap on rotation
     mutable std::mutex              seenMu_;
     std::unordered_set<std::string> seenActive_;
     std::unordered_set<std::string> seenStale_;
     static constexpr size_t         SEEN_MAX = 500000;
 
-    // Incremental save dirty tracking
     mutable std::mutex              dirtyMu_;
     std::unordered_set<std::string> dirtyIds_;
     void markDirty(const std::string& id) noexcept;
@@ -412,10 +398,9 @@ private:
     void slog(int level, const std::string& component,
               const std::string& msg) const noexcept;
 
-    void applyScore   (const std::string& id, double delta) noexcept;
-    void refillBucket (PeerInfo& peer, uint64_t nowSec)      noexcept;
+    void applyScore  (const std::string& id, double delta) noexcept;
+    void refillBucket(PeerInfo& peer, uint64_t nowSec)      noexcept;
 
-    // Fix 4: type-safe callback invoker with structured error reporting
     template<typename Fn, typename... Args>
     void invokeCallback(const char*        callbackName,
                          const std::string& peerId,
