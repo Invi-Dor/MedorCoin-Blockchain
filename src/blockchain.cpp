@@ -509,7 +509,7 @@ bool Blockchain::addBlock(const std::string       &minerAddr,
                   << writeResult.error << "\n";
         return false;
     }
-    if (!applyBlockToState(newBlock, blockHeight)) {
+        if (!applyBlockToState(newBlock, blockHeight)) {
         rollbackBlockFromState(newBlock);
         std::cerr << "[Blockchain] addBlock: state application failed "
                      "-- rolling back\n";
@@ -526,7 +526,7 @@ bool Blockchain::addBlock(const std::string       &minerAddr,
     return true;
 }
 
-void Blockchain::mineBlockAsync(const std::string       void Blockchain::mineBlockAsync(const std::string       &minerAddr,
+void Blockchain::mineBlockAsync(const std::string       &minerAddr,
                                  std::vector<Transaction> transactions,
                                  MinedCallback            callback)
 {
