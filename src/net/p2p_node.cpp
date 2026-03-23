@@ -534,6 +534,8 @@ private:
 };
 
 std::atomic<uint64_t> Session::s_counter{0};
+} // namespace net
+
 
 // =============================================================================
 // SESSION REGISTRY
