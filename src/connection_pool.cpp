@@ -663,7 +663,8 @@ void ConnectionPool::acquireAsync(const std::string &host,
 {
     if (!cb) return;
 
-    // Fast path: serve from pool without touching any worker thread
+    AcquireCallback cbCopy = cb;
+
     const std::string k      = makeKey(host, port);
     const uint64_t    cutoff = nowSecs() - cfg_.idleTimeoutSecs;
     auto bucket              = getBucket(k);
@@ -677,9 +678,6 @@ void ConnectionPool::acquireAsync(const std::string &host,
                 metEvicted_.fetch_add(1, std::memory_order_relaxed);
                 continue;
             }
-            // Deliver on a DNS worker thread so this function is truly
-            // non-blocking for the caller and the callback is always
-            // invoked asynchronously regardless of path taken.
             metAcquired_.fetch_add(1, std::memory_order_relaxed);
             const int pooledFd = slot.fd;
             {
@@ -687,12 +685,22 @@ void ConnectionPool::acquireAsync(const std::string &host,
                 DnsRequest req2;
                 req2.host = std::string{};
                 req2.port = 0;
-                req2.cb   = [pooledFd, cb = std::move(cb)](){ cb(pooledFd); };
+                req2.cb   = [pooledFd, cbCopy](){ cbCopy(pooledFd); };
                 dnsQueue_.push(std::move(req2));
             }
             dnsCv_.notify_one();
             return;
         }
+    }
+
+    {
+        std::unique_lock<std::mutex> lock(dnsMutex_);
+        dnsQueue_.push({ host, port, std::move(cb) });
+        metAsyncDepth_.fetch_add(1, std::memory_order_relaxed);
+    }
+    dnsCv_.notify_one();
+}
+
     }
 
     // Slow path: open a new connection via the reactor (non-blocking connect)
