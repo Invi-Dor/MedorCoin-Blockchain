@@ -668,6 +668,7 @@ void ConnectionPool::acquireAsync(const std::string &host,
     const std::string k      = makeKey(host, port);
     const uint64_t    cutoff = nowSecs() - cfg_.idleTimeoutSecs;
     auto bucket              = getBucket(k);
+
     {
         std::unique_lock<std::mutex> lock(bucket->mtx);
         while (!bucket->slots.empty()) {
@@ -692,6 +693,14 @@ void ConnectionPool::acquireAsync(const std::string &host,
             return;
         }
     }
+
+    {
+        std::unique_lock<std::mutex> lock(dnsMutex_);
+        dnsQueue_.push({ host, port, std::move(cb) });
+        metAsyncDepth_.fetch_add(1, std::memory_order_relaxed);
+    }
+    dnsCv_.notify_one();
+}
 
     {
         std::unique_lock<std::mutex> lock(dnsMutex_);
