@@ -684,8 +684,11 @@ void ConnectionPool::acquireAsync(const std::string &host,
             const int pooledFd = slot.fd;
             {
                 std::unique_lock<std::mutex> qlock(dnsMutex_);
-                dnsQueue_.push({ std::string{}, 0,
-                    [pooledFd, cb = std::move(cb)](){ cb(pooledFd); } });
+                DnsRequest req2;
+                req2.host = std::string{};
+                req2.port = 0;
+                req2.cb   = [pooledFd, cb = std::move(cb)](){ cb(pooledFd); };
+                dnsQueue_.push(std::move(req2));
             }
             dnsCv_.notify_one();
             return;
