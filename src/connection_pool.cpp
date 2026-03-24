@@ -662,7 +662,7 @@ void ConnectionPool::acquireAsync(const std::string &host,
                 DnsRequest req2;
                 req2.host = std::string{};
                 req2.port = 0;
-                req2.cb   = [pooledFd, cbCopy](){ cbCopy(pooledFd); };
+                req2.cb   = [pooledFd, cbCopy](int){ cbCopy(pooledFd); };
                 dnsQueue_.push(std::move(req2));
             }
             dnsCv_.notify_one();
