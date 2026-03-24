@@ -59,9 +59,9 @@ void ConnectionPool::joinWithTimeout(std::thread &t, uint32_t ms) noexcept
     if (!t.joinable()) return;
     auto p = std::make_shared<std::promise<void>>();
     auto f = p->get_future();
-    std::thread helper([th = std::move(t), pp = p]() mutable {
-        th.join(); pp->set_value();
-    });
+    std::thread helper([th = std::move(t), pp]() mutable {
+    th.join(); pp->set_value();
+});
     helper.detach();
     f.wait_for(std::chrono::milliseconds(ms));
 }
@@ -329,7 +329,7 @@ void ConnectionPool::openAsync(const std::string &host,
     bool registered = false;
 
     for (struct addrinfo *ai = res; ai && !registered; ai = ai->ai_next) {
-        guard = FdGuard guard(::socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol));
+        FdGuard guard(::socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol));
 
         int flags = ::fcntl(guard.fd, F_GETFL, 0);
         if (flags < 0) continue;
