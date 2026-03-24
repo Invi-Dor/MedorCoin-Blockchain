@@ -330,7 +330,7 @@ void ConnectionPool::openAsync(const std::string &host,
 
     for (struct addrinfo *ai = res; ai && !registered; ai = ai->ai_next) {
         guard = FdGuard(::socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol));
-        if (guard.fd < 0) continue;
+        guard.fd = ::socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 
         int flags = ::fcntl(guard.fd, F_GETFL, 0);
         if (flags < 0) continue;
