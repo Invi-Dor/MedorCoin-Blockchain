@@ -593,332 +593,183 @@ private:
 // =============================================================================
 // P2P NODE IMPLEMENTATION
 // =============================================================================
-{
-    PeerManagerConfig pmCfg;
-    pmCfg.networkMagic    = cfg_.networkMagic;
-    pmCfg.protocolVersion = cfg_.protocolVersion;
-    pmCfg.maxPeers        = cfg_.maxInboundPeers + cfg_.maxOutboundPeers;
-    pmCfg.peerTimeoutSecs = cfg_.peerTimeoutSecs;
-    pmCfg.banDurationSecs = cfg_.banDurationSecs;
-    pmCfg.nodeId          = cfg_.nodeId;
-    peerMgr_ = std::make_shared<PeerManager>(pmCfg);
+struct P2PNode::Impl {
+    Config                           cfg;
+    boost::asio::io_context          ioc;
+    boost::asio::ssl::context        sslCtx{
+        boost::asio::ssl::context::tls};
+    tcp::acceptor                    acceptor{ioc};
+    std::vector<std::thread>         ioThreads;
+    std::shared_ptr<PeerManager>     peerMgr;
+    std::shared_ptr<MessageHandler>  msgHandler;
+    SessionRegistry                  registry;
+    std::atomic<bool>                running{false};
 
-    MessageHandler::Config mhCfg;
-    mhCfg.networkMagic    = cfg_.networkMagic;
-    mhCfg.protocolVersion = cfg_.protocolVersion;
-    mhCfg.nodeId          = cfg_.nodeId;
-    msgHandler_ = std::make_shared<MessageHandler>(mhCfg, chain_, mempool_, peerMgr_);
+    std::function<void(const std::string&)> onConnectCb;
+    std::function<void(const std::string&)> onDisconnectCb;
+    std::function<void(const std::string&,
+                        const std::string&)> onErrorCb;
 
-    registry_ = std::make_shared<SessionRegistry>();
-}
-    peerMgr_    = std::make_shared<PeerManager>();
-    msgHandler_ = std::make_shared<MessageHandler>(chain_, mempool_);
-    registry_   = std::make_shared<SessionRegistry>();
-}
+    std::mutex cbMu;
 
-P2PNode::~P2PNode() { stop(); }
-
-bool P2PNode::start() {
-    if (running_.exchange(true)) return false;
-    if (!initTLS()) { running_ = false; return false; }
-
-    tcp::endpoint ep(tcp::v4(), cfg_.listenPort);
-    acceptor_.open(ep.protocol());
-    acceptor_.set_option(boost::asio::socket_base::reuse_address(true));
-    acceptor_.bind(ep);
-    acceptor_.listen(boost::asio::socket_base::max_listen_connections);
-
-    work_ = std::make_unique<boost::asio::executor_work_guard<
-        boost::asio::io_context::executor_type>>(ioc_.get_executor());
-
-    doAccept();
-    schedulePing();
-    scheduleReconnect();
-    schedulePeerPersist();
-    scheduleMetricsDump();
-    loadPersistedPeers();
-
-    size_t n = cfg_.ioThreads == 0
-        ? std::max(1u, std::thread::hardware_concurrency())
-        : cfg_.ioThreads;
-
-    ioThreads_.reserve(n);
-    for (size_t i = 0; i < n; ++i)
-        ioThreads_.emplace_back([this]{ ioc_.run(); });
-
-    slog(0, "[P2PNode] started port=" + std::to_string(cfg_.listenPort)
-            + " threads=" + std::to_string(n));
-    return true;
-}
-
-void P2PNode::stop() {
-    if (!running_.exchange(false)) return;
-    work_.reset();
-    boost::system::error_code ec;
-    acceptor_.close(ec);
-    pingTimer_.cancel();
-    reconnectTimer_.cancel();
-    peerPersistTimer_.cancel();
-    metricsTimer_.cancel();
-    persistPeers();
-    ioc_.stop();
-    for (auto& t : ioThreads_)
-        if (t.joinable()) t.join();
-    ioThreads_.clear();
-    slog(0, "[P2PNode] stopped");
-}
-
-bool P2PNode::isRunning() const noexcept { return running_.load(); }
-
-void P2PNode::setLogger(LogFn fn) {
-    std::lock_guard<std::mutex> lk(callbackMu_);
-    logFn_ = std::move(fn);
-}
-void P2PNode::onBlockReceived(BlockFn fn) {
-    std::lock_guard<std::mutex> lk(callbackMu_);
-    blockFn_ = std::move(fn);
-}
-void P2PNode::onTxReceived(TxFn fn) {
-    std::lock_guard<std::mutex> lk(callbackMu_);
-    txFn_ = std::move(fn);
-}
-void P2PNode::onPeerConnected(PeerEventFn fn) {
-    std::lock_guard<std::mutex> lk(callbackMu_);
-    peerConnFn_ = std::move(fn);
-}
-void P2PNode::onPeerDisconnected(PeerEventFn fn) {
-    std::lock_guard<std::mutex> lk(callbackMu_);
-    peerDiscFn_ = std::move(fn);
-}
-void P2PNode::onError(ErrorFn fn) {
-    std::lock_guard<std::mutex> lk(callbackMu_);
-    errorFn_ = std::move(fn);
-}
-
-void P2PNode::broadcastBlock(const Block& block) {
-    auto frame = std::make_shared<std::vector<uint8_t>>(
-        msgHandler_->serializeBlock(block));
-    register_t->broadcast(frame);
-}
-
-void P2PNode::broadcastTransaction(const Transaction& tx) {
-    auto frame = std::make_shared<std::vector<uint8_t>>(
-        sighandler_t->serializeTransaction(tx));
-    register_t->broadcast(frame);
-}
-
-void connectToPeer(const std::string& host, uint16_t port) {
-    if (!running_.load()) return;
-    std::string key = host + ":" + std::to_string(port);
-    if (!net::g_reconnect.shouldRetry(key, cfg_.maxReconnectAttempts)) return;
-    net::g_metrics.reconnectAttempts.fetch_add(1, std::memory_order_relaxed);
-
-    auto session = std::make_shared<net::Session>(
-        ioc_, sslCtx_, peerMgr_, sighandler_, cfg_, ssl_ctx_st,
-        [this](const std::string& id) 'void connectToPeer(const std::strings uint16_t)':
-        [this](const std::string& id) 'void connectToPeer(const std::strings uint16_t)':
-        [this](const std::string& id, const std::string& r) { handleError(id, r); });
-
-    session->startOutbound(host, port);
-}
-
-'void disconnectToPeer(const std::strings uint16_t)': {
-    register_t->remove(peerId);
-}
-
-size_t connectToPeers() const noexcept {
-    return register_t->count();
-}
-
-std::string nodeId() const {
-    return _.nodeId;
-}
-
-P2PNode::getMetrics() const noexcept {
-    return {
-        g_metrics.sessionsCreated.load(std::memory_order_relaxed),
-        g_metrics.sessionsDestroyed.load(std::memory_order_relaxed),
-        g_metrics.connectAttempts.load(std::memory_order_relaxed),
-        g_metrics.connectSuccess.load(std::memory_order_relaxed),
-        g_metrics.connectFailed.load(std::memory_order_relaxed),
-        g_metrics.acceptSuccess.load(std::memory_order_relaxed),
-        g_metrics.acceptRejected.load(std::memory_order_relaxed),
-        g_metrics.framesSent.load(std::memory_order_relaxed),
-        g_metrics.framesRecv.load(std::memory_order_relaxed),
-        g_metrics.bytesSent.load(std::memory_order_relaxed),
-        g_metrics.bytesRecv.load(std::memory_order_relaxed),
-        g_metrics.sendErrors.load(std::memory_order_relaxed),
-        g_metrics.recvErrors.load(std::memory_order_relaxed),
-        g_metrics.oversizedFrames.load(std::memory_order_relaxed),
-        g_metrics.tlsHandshakeFailed.load(std::memory_order_relaxed),
-        g_metrics.reconnectAttempts.load(std::memory_order_relaxed),
-        g_metrics.peersBanned.load(std::memory_order_relaxed),
-        g_metrics.peersEvicted.load(std::memory_order_relaxed),
-        g_metrics.broadcastsSent.load(std::memory_order_relaxed),
-        g_metrics.broadcastBytes.load(std::memory_order_relaxed)
-    };
-}
-
-void 'void connectToPeer(const std::strings uint16_t)':
-    std::lock_guard<std::mutex> lk();
-    if () { try { logFn_(level, msg); } catch (...) {} }
-    else        { std::cout << msg << "\n"; }
-}
-
-bool ::initTLS() {
-    try {
-        sslCtx_.set_options(
+    void setupTLS() {
+        sslCtx.set_options(
             boost::asio::ssl::context::default_workarounds |
             boost::asio::ssl::context::no_sslv2            |
             boost::asio::ssl::context::no_sslv3            |
             boost::asio::ssl::context::no_tlsv1            |
             boost::asio::ssl::context::no_tlsv1_1          |
             boost::asio::ssl::context::single_dh_use);
-        if (!cfg_.tlsCertFile.empty())
-            sslCtx_.use_certificate_chain_file(cfg_.tlsCertFile);
-        if (!cfg_.tlsKeyFile.empty())
-            sslCtx_.use_private_key_file(cfg_.tlsKeyFile,
+
+        if (!cfg.tlsCertPath.empty())
+            sslCtx.use_certificate_chain_file(cfg.tlsCertPath);
+        if (!cfg.tlsKeyPath.empty())
+            sslCtx.use_private_key_file(cfg.tlsKeyPath,
                 boost::asio::ssl::context::pem);
-        if (!cfg_.tlsDHParamFile.empty())
-            sslCtx_.use_tmp_dh_file(cfg_.tlsDHParamFile);
-        sslCtx_.set_verify_mode(
-            cfg_.requirePeerCert
-                ? boost::asio::ssl::verify_peer
-                : boost::asio::ssl::verify_none);
-        return true;
-    } catch (const std::exception& e) {
-        slog(2, std::string("[P2PNode] TLS init failed: ") + e.what());
-        return false;
+        if (!cfg.tlsDhParamsPath.empty())
+            sslCtx.use_tmp_dh_file(cfg.tlsDhParamsPath);
+
+        sslCtx.set_verify_mode(
+            cfg.requirePeerCert
+            ? boost::asio::ssl::verify_peer
+            : boost::asio::ssl::verify_none);
     }
-}
 
-void doAccept() {
-    auto session = std::make_shared<net::Session>(
-        ioc_, sslCtx_, sighandler_t, cfg_, ssl_ctx_st,
-        [](const std::string& id) 'void doAccept()';
-        [](const std::string& id) { handlePeerDisconnect(id); },
-        [](const std::string& id, const std::string& r) { handleError(id, r); }
-
-    accept4_.async_accept(
-        session->socket().lowest_layer(),
-        [this, session](const boost::system::error_code& ec) {
-            if (!running_.load()) return;
-            if (!ec) {
-                if (peerMgr_->peerCount() <
-                    cfg_.maxInboundPeers + cfg_.maxOutboundPeers) {
-                    g_metrics.acceptSuccess.fetch_add(1,
-                        std::memory_order_relaxed);
-                    registry_->add(session->peerId(), session);
-                    session->startInbound();
-                } else {
-                    g_metrics.acceptRejected.fetch_add(1,
-                        std::memory_order_relaxed);
+    std::shared_ptr<Session> makeSession(bool isInbound) {
+        return std::make_shared<Session>(
+            ioc, sslCtx, peerMgr, msgHandler, cfg,
+            isInbound,
+            [this](const std::string& id) {
+                registry.add(id, registry.get(id));
+                std::lock_guard<std::mutex> lk(cbMu);
+                if (onConnectCb) {
+                    try { onConnectCb(id); } catch (...) {}
                 }
-            }
-            doAccept();
+            },
+            [this](const std::string& id) {
+                registry.remove(id);
+                std::lock_guard<std::mutex> lk(cbMu);
+                if (onDisconnectCb) {
+                    try { onDisconnectCb(id); } catch (...) {}
+                }
+            },
+            [this](const std::string& id,
+                    const std::string& reason) {
+                std::lock_guard<std::mutex> lk(cbMu);
+                if (onErrorCb) {
+                    try { onErrorCb(id, reason); } catch (...) {}
+                }
+            });
+    }
+
+    void doAccept() {
+        auto session = makeSession(true);
+        acceptor.async_accept(
+            session->socket().lowest_layer(),
+            [this, session](const boost::system::error_code& ec) {
+                if (!running.load()) return;
+                if (!ec) {
+                    if (peerMgr->peerCount() < cfg.maxPeers) {
+                        g_metrics.acceptSuccess.fetch_add(1,
+                            std::memory_order_relaxed);
+                        session->startInbound();
+                    } else {
+                        g_metrics.acceptRejected.fetch_add(1,
+                            std::memory_order_relaxed);
+                    }
+                }
+                doAccept();
+            });
+    }
+};
+
+// =============================================================================
+// P2P NODE PUBLIC API
+// =============================================================================
+P2PNode::P2PNode(Config                          cfg,
+                 std::shared_ptr<PeerManager>    peerMgr,
+                 std::shared_ptr<MessageHandler> msgHandler)
+    : impl_(std::make_unique<Impl>())
+{
+    impl_->cfg        = std::move(cfg);
+    impl_->peerMgr    = std::move(peerMgr);
+    impl_->msgHandler = std::move(msgHandler);
+}
+
+P2PNode::~P2PNode() { stop(); }
+
+void P2PNode::start() {
+    if (impl_->running.exchange(true)) return;
+
+    impl_->setupTLS();
+
+    tcp::endpoint ep(tcp::v4(),
+        static_cast<uint16_t>(impl_->cfg.listenPort));
+    impl_->acceptor.open(ep.protocol());
+    impl_->acceptor.set_option(
+        boost::asio::socket_base::reuse_address(true));
+    impl_->acceptor.bind(ep);
+    impl_->acceptor.listen(
+        boost::asio::socket_base::max_listen_connections);
+
+    impl_->doAccept();
+
+    size_t threads = std::max(size_t(1), impl_->cfg.ioThreads);
+    impl_->ioThreads.reserve(threads);
+    for (size_t i = 0; i < threads; ++i) {
+        impl_->ioThreads.emplace_back([this]() {
+            impl_->ioc.run();
         });
-}
-
-void P2PNode::schedulePing() {
-    pingTimer_.expires_after(
-        std::chrono::seconds(cfg_.pingIntervalSecs));
-    pingTimer_.async_wait([this](const boost::system::error_code& ec) {
-        if (ec || !running_.load()) return;
-        pingAllPeers();
-        schedulePing();
-    });
-}
-
-void P2PNode::scheduleReconnect() {
-    reconnectTimer_.expires_after(
-        std::chrono::seconds(cfg_.reconnectIntervalSec));
-    reconnectTimer_.async_wait([this](const boost::system::error_code& ec) {
-        if (ec || !running_.load()) return;
-        reconnectBootstrap();
-        scheduleReconnect();
-    });
-}
-
-void P2PNode::schedulePeerPersist() {
-    peerPersistTimer_.expires_after(std::chrono::seconds(300));
-    peerPersistTimer_.async_wait([this](const boost::system::error_code& ec) {
-        if (ec || !running_.load()) return;
-        persistPeers();
-        schedulePeerPersist();
-    });
-}
-
-void P2PNode::scheduleMetricsDump() {
-    metricsTimer_.expires_after(std::chrono::seconds(60));
-    metricsTimer_.async_wait([this](const boost::system::error_code& ec) {
-        if (ec || !running_.load()) return;
-        std::ostringstream oss;
-        g_metrics.dump(oss);
-        slog(0, oss.str());
-        scheduleMetricsDump();
-    });
-}
-
-void P2PNode::pingAllPeers() {
-    auto ping = std::make_shared<std::vector<uint8_t>>(
-        msgHandler_->buildPing());
-    registry_->broadcast(ping);
-}
-
-void P2PNode::reconnectBootstrap() {
-    for (const auto& peer : cfg_.bootstrapPeers) {
-        auto sep = peer.rfind(':');
-        if (sep == std::string::npos) continue;
-        std::string host = peer.substr(0, sep);
-        uint16_t    port = static_cast<uint16_t>(
-            std::stoul(peer.substr(sep + 1)));
-        connectToPeer(host, port);
     }
+
+    std::cout << "[P2PNode] Listening on port "
+              << impl_->cfg.listenPort
+              << " threads=" << threads << "\n";
 }
 
-void P2PNode::loadPersistedPeers() {
-    std::ifstream f(cfg_.peerStoreFile);
-    if (!f.is_open()) return;
-    std::string line;
-    while (std::getline(f, line)) {
-        if (line.empty()) continue;
-        auto sep = line.rfind(':');
-        if (sep == std::string::npos) continue;
-        std::string host = line.substr(0, sep);
-        uint16_t    port = static_cast<uint16_t>(
-            std::stoul(line.substr(sep + 1)));
-        connectToPeer(host, port);
-    }
+void P2PNode::stop() {
+    if (!impl_->running.exchange(false)) return;
+    impl_->acceptor.close();
+    impl_->ioc.stop();
+    for (auto& t : impl_->ioThreads)
+        if (t.joinable()) t.join();
+    impl_->ioThreads.clear();
+    std::cout << "[P2PNode] Stopped\n";
 }
 
-void P2PNode::persistPeers() {
-    std::ofstream f(cfg_.peerStoreFile, std::ios::trunc);
-    if (!f.is_open()) return;
-    for (const auto& p : peerMgr_->listPeers())
-        f << p.address << ":" << p.port << "\n";
+void P2PNode::connect(const std::string& host, uint16_t port) {
+    if (!impl_->running.load()) return;
+    auto session = impl_->makeSession(false);
+    std::string key = host + ":" + std::to_string(port);
+    if (!g_reconnect.shouldRetry(key, impl_->cfg.maxReconnectAttempts))
+        return;
+    g_metrics.reconnectAttempts.fetch_add(1, std::memory_order_relaxed);
+    session->startOutbound(host, port);
 }
 
-void P2PNode::handlePeerConnect(const std::string& peerId) {
-    std::lock_guard<std::mutex> lk(callbackMu_);
-    if (peerConnFn_) {
-        try { peerConnFn_(peerId); } catch (...) {}
-    }
+void P2PNode::broadcast(std::shared_ptr<std::vector<uint8_t>> frame,
+                          const std::string& excludeId) {
+    impl_->registry.broadcast(std::move(frame), excludeId);
 }
 
-void P2PNode::handlePeerDisconnect(const std::string& peerId) {
-    registry_->remove(peerId);
-    std::lock_guard<std::mutex> lk(callbackMu_);
-    if (peerDiscFn_) {
-        try { peerDiscFn_(peerId); } catch (...) {}
-    }
+void P2PNode::onConnect(std::function<void(const std::string&)> fn) {
+    std::lock_guard<std::mutex> lk(impl_->cbMu);
+    impl_->onConnectCb = std::move(fn);
 }
 
-void P2PNode::handleError(const std::string& peerId,
-                           const std::string& reason) {
-    std::lock_guard<std::mutex> lk(callbackMu_);
-    if (errorFn_) {
-        try { errorFn_(peerId, reason); } catch (...) {}
-    }
+void P2PNode::onDisconnect(std::function<void(const std::string&)> fn) {
+    std::lock_guard<std::mutex> lk(impl_->cbMu);
+    impl_->onDisconnectCb = std::move(fn);
+}
+
+void P2PNode::onError(std::function<void(const std::string&,
+                                          const std::string&)> fn) {
+    std::lock_guard<std::mutex> lk(impl_->cbMu);
+    impl_->onErrorCb = std::move(fn);
+}
+
+size_t P2PNode::sessionCount() const noexcept {
+    return impl_->registry.count();
 }
 
 } // namespace net
