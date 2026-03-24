@@ -90,11 +90,9 @@ void ConnectionPool::applySocketOptions(int fd) noexcept
     ::setsockopt(fd, SOL_SOCKET,  SO_KEEPALIVE, &one, sizeof(one));
 
 #if defined(TCP_KEEPIDLE)
-    // Linux 2.4+ and macOS 10.16+ (Monterey+)
     int keepIdle = 60;
     ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, sizeof(keepIdle));
 #elif defined(TCP_KEEPALIVE)
-    // macOS < 10.16: TCP_KEEPALIVE sets the same idle threshold
     int keepAlive = 60;
     ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, &keepAlive, sizeof(keepAlive));
 #endif
@@ -131,7 +129,7 @@ bool ConnectionPool::initReactor() noexcept
 #elif defined(MEDOR_KQUEUE)
     reactorFd_ = ::kqueue();
 #else
-    reactorFd_ = 0;   // poll uses per-call array; no persistent fd needed
+    reactorFd_ = 0;
 #endif
     if (reactorFd_ < 0) {
         std::cerr << "[ConnectionPool] initReactor: failed — "
@@ -141,7 +139,6 @@ bool ConnectionPool::initReactor() noexcept
     return true;
 }
 
-// Register an fd for write-readiness notification in the persistent reactor.
 void ConnectionPool::registerWrite(int fd, PendingConnect pc) noexcept
 {
     {
@@ -161,7 +158,6 @@ void ConnectionPool::registerWrite(int fd, PendingConnect pc) noexcept
     struct timespec zero{ 0, 0 };
     ::kevent(reactorFd_, &change, 1, nullptr, 0, &zero);
 #endif
-    // poll: the pending map is iterated each reactor loop iteration
 }
 
 void ConnectionPool::unregisterFd(int fd) noexcept
@@ -179,7 +175,7 @@ void ConnectionPool::unregisterFd(int fd) noexcept
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// handleReactorEvent — called by the reactor loop when an fd becomes writable
+// handleReactorEvent
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ConnectionPool::handleReactorEvent(int fd, bool error) noexcept
@@ -202,7 +198,6 @@ void ConnectionPool::handleReactorEvent(int fd, bool error) noexcept
         return;
     }
 
-    // Confirm connect success
     int err = 0; socklen_t el = sizeof(err);
     if (::getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &el) != 0 || err != 0) {
         closeFd(fd);
@@ -211,14 +206,12 @@ void ConnectionPool::handleReactorEvent(int fd, bool error) noexcept
         return;
     }
 
-    // Restore blocking mode
     int flags = ::fcntl(fd, F_GETFL, 0);
     if (flags >= 0) ::fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
     applySocketOptions(fd);
 
     metReactorEvt_.fetch_add(1, std::memory_order_relaxed);
 
-    // If TLS is needed, enqueue to the TLS worker pool — do not block here
     {
         std::lock_guard<std::mutex> lock(tlsMutex_);
         if (tlsFn_) {
@@ -231,14 +224,13 @@ void ConnectionPool::handleReactorEvent(int fd, bool error) noexcept
         }
     }
 
-    // No TLS — deliver the fd directly
     openFds_.fetch_add(1, std::memory_order_relaxed);
     metAcquired_.fetch_add(1, std::memory_order_relaxed);
     if (pc.cb) try { pc.cb(fd); } catch (...) { closeFd(fd); }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// runReactor — persistent reactor loop reusing a single kernel object
+// runReactor
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ConnectionPool::runReactor() noexcept
@@ -248,7 +240,7 @@ void ConnectionPool::runReactor() noexcept
 #if defined(MEDOR_EPOLL)
         constexpr int MAX_EVENTS = 64;
         struct epoll_event events[MAX_EVENTS];
-        int n = ::epoll_wait(reactorFd_, events, MAX_EVENTS, 50 /*ms*/);
+        int n = ::epoll_wait(reactorFd_, events, MAX_EVENTS, 50);
         if (n < 0) { if (errno == EINTR) continue; break; }
         for (int i = 0; i < n; ++i) {
             const bool err = (events[i].events & (EPOLLERR | EPOLLHUP)) != 0;
@@ -258,7 +250,7 @@ void ConnectionPool::runReactor() noexcept
 #elif defined(MEDOR_KQUEUE)
         constexpr int MAX_EVENTS = 64;
         struct kevent events[MAX_EVENTS];
-        struct timespec ts{ 0, 50'000'000L };   // 50 ms
+        struct timespec ts{ 0, 50'000'000L };
         int n = ::kevent(reactorFd_, nullptr, 0, events, MAX_EVENTS, &ts);
         if (n < 0) { if (errno == EINTR) continue; break; }
         for (int i = 0; i < n; ++i) {
@@ -267,9 +259,8 @@ void ConnectionPool::runReactor() noexcept
         }
 
 #else
-        // poll fallback: build the array from the pending map each iteration
-        std::vector<pollfd>          pfds;
-        std::vector<int>             fdList;
+        std::vector<pollfd> pfds;
+        std::vector<int>    fdList;
         {
             std::unique_lock<std::mutex> lock(pendingMutex_);
             pfds.reserve(pendingConnects_.size());
@@ -292,7 +283,6 @@ void ConnectionPool::runReactor() noexcept
         }
 #endif
 
-        // Evict pending connects whose deadline has passed
         const uint64_t now = nowMs();
         std::vector<int> timedOut;
         {
@@ -304,14 +294,13 @@ void ConnectionPool::runReactor() noexcept
         for (int fd : timedOut) {
             std::cerr << "[ConnectionPool] reactor: connect timeout fd="
                       << fd << "\n";
-            handleReactorEvent(fd, true);   // treat as error
+            handleReactorEvent(fd, true);
         }
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// openAsync — DNS on caller thread (fast path: already resolved),
-//             non-blocking connect registered with persistent reactor
+// openAsync
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ConnectionPool::openAsync(const std::string &host,
@@ -330,9 +319,7 @@ void ConnectionPool::openAsync(const std::string &host,
     hints.ai_flags    = AI_NUMERICSERV | AI_ADDRCONFIG;
 
     const std::string portStr = std::to_string(port);
-    if (::getaddrinfo(host.c_str(), portStr.c_str(), &hints, &res) != 0
-        || !res)
-    {
+    if (::getaddrinfo(host.c_str(), portStr.c_str(), &hints, &res) != 0 || !res) {
         metFailed_.fetch_add(1, std::memory_order_relaxed);
         if (cb) try { cb(-1); } catch (...) {}
         return;
@@ -342,9 +329,7 @@ void ConnectionPool::openAsync(const std::string &host,
     bool registered = false;
 
     for (struct addrinfo *ai = res; ai && !registered; ai = ai->ai_next) {
-        guard = FdGuard(::socket(ai->ai_family,
-                                  ai->ai_socktype,
-                                  ai->ai_protocol));
+        guard = FdGuard(::socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol));
         if (guard.fd < 0) continue;
 
         int flags = ::fcntl(guard.fd, F_GETFL, 0);
@@ -373,7 +358,7 @@ void ConnectionPool::openAsync(const std::string &host,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// openBlocking — synchronous path used by the DNS worker and acquire()
+// openBlocking
 // ─────────────────────────────────────────────────────────────────────────────
 
 int ConnectionPool::openBlocking(const std::string &host,
@@ -399,14 +384,11 @@ int ConnectionPool::openBlocking(const std::string &host,
         }
 
         res = nullptr;
-        if (::getaddrinfo(host.c_str(), portStr.c_str(), &hints, &res) != 0
-            || !res)
+        if (::getaddrinfo(host.c_str(), portStr.c_str(), &hints, &res) != 0 || !res)
             continue;
 
         for (struct addrinfo *ai = res; ai; ai = ai->ai_next) {
-            FdGuard guard(::socket(ai->ai_family,
-                                    ai->ai_socktype,
-                                    ai->ai_protocol));
+            FdGuard guard(::socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol));
             if (guard.fd < 0) continue;
 
             int flags = ::fcntl(guard.fd, F_GETFL, 0);
@@ -416,15 +398,12 @@ int ConnectionPool::openBlocking(const std::string &host,
             int rc = ::connect(guard.fd, ai->ai_addr, ai->ai_addrlen);
             if (rc != 0 && errno != EINPROGRESS) continue;
 
-            // Wait using the best available multiplexer (50 ms slices)
             uint32_t waited = 0;
             bool writable   = false;
             while (waited < cfg_.connectTimeoutMs) {
                 uint32_t slice = std::min(50u, cfg_.connectTimeoutMs - waited);
 
 #if defined(MEDOR_EPOLL)
-                // Use a one-shot ephemeral epoll only as final fallback here
-                // to keep the persistent reactorFd_ uncontaminated.
                 fd_set wfds; FD_ZERO(&wfds); FD_SET(guard.fd, &wfds);
                 struct timeval tv;
                 tv.tv_sec  = slice / 1000;
@@ -448,14 +427,12 @@ int ConnectionPool::openBlocking(const std::string &host,
             if (!writable) continue;
 
             int err = 0; socklen_t el = sizeof(err);
-            if (::getsockopt(guard.fd, SOL_SOCKET, SO_ERROR, &err, &el) != 0
-                || err != 0)
+            if (::getsockopt(guard.fd, SOL_SOCKET, SO_ERROR, &err, &el) != 0 || err != 0)
                 continue;
 
             ::fcntl(guard.fd, F_SETFL, flags & ~O_NONBLOCK);
             applySocketOptions(guard.fd);
 
-            // TLS
             int finalFd = applyTlsDirect(guard.fd, host, port);
             if (finalFd < 0) continue;
             if (finalFd != guard.fd) guard.release();
@@ -473,7 +450,7 @@ int ConnectionPool::openBlocking(const std::string &host,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// applyTlsDirect — synchronous TLS for openBlocking() path
+// applyTlsDirect
 // ─────────────────────────────────────────────────────────────────────────────
 
 int ConnectionPool::applyTlsDirect(int fd,
@@ -623,7 +600,7 @@ void ConnectionPool::setMetricsPush(MetricsPushFn fn) noexcept
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// acquire — synchronous; returns immediately when a pooled slot is available
+// acquire
 // ─────────────────────────────────────────────────────────────────────────────
 
 int ConnectionPool::acquire(const std::string &host, uint16_t port) noexcept
@@ -647,14 +624,13 @@ int ConnectionPool::acquire(const std::string &host, uint16_t port) noexcept
         }
     }
 
-    // No pooled connection — open synchronously (called from non-async path)
     int fd = openBlocking(host, port);
     if (fd >= 0) metAcquired_.fetch_add(1, std::memory_order_relaxed);
     return fd;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// acquireAsync — fully non-blocking; cb is always invoked on a bg thread
+// acquireAsync
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ConnectionPool::acquireAsync(const std::string &host,
@@ -694,27 +670,6 @@ void ConnectionPool::acquireAsync(const std::string &host,
         }
     }
 
-    {
-        std::unique_lock<std::mutex> lock(dnsMutex_);
-        dnsQueue_.push({ host, port, std::move(cb) });
-        metAsyncDepth_.fetch_add(1, std::memory_order_relaxed);
-    }
-    dnsCv_.notify_one();
-}
-
-    {
-        std::unique_lock<std::mutex> lock(dnsMutex_);
-        dnsQueue_.push({ host, port, std::move(cb) });
-        metAsyncDepth_.fetch_add(1, std::memory_order_relaxed);
-    }
-    dnsCv_.notify_one();
-}
-
-    }
-
-    // Slow path: open a new connection via the reactor (non-blocking connect)
-    // DNS resolution is the first blocking step and is delegated to the
-    // DNS worker pool so neither the caller nor the reactor thread blocks.
     {
         std::unique_lock<std::mutex> lock(dnsMutex_);
         dnsQueue_.push({ host, port, std::move(cb) });
@@ -810,7 +765,7 @@ ConnectionPool::Metrics ConnectionPool::getMetrics() const noexcept
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// runDnsWorker — resolves hostnames and dispatches to the reactor
+// runDnsWorker
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ConnectionPool::runDnsWorker() noexcept
@@ -827,7 +782,6 @@ void ConnectionPool::runDnsWorker() noexcept
             dnsQueue_.pop();
         }
 
-        // Empty host signals a fast-path pooled delivery — just invoke cb
         if (req.host.empty()) {
             if (req.cb) try { req.cb(-1); } catch (...) {}
             continue;
@@ -836,14 +790,12 @@ void ConnectionPool::runDnsWorker() noexcept
         if (metAsyncDepth_.load(std::memory_order_relaxed) > 0)
             metAsyncDepth_.fetch_sub(1, std::memory_order_relaxed);
 
-        // DNS getaddrinfo happens here on the DNS worker thread.
-        // After resolution, we hand off to the reactor for the connect.
         openAsync(req.host, req.port, std::move(req.cb));
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// runTlsWorker — performs TLS handshakes asynchronously
+// runTlsWorker
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ConnectionPool::runTlsWorker() noexcept
@@ -874,8 +826,7 @@ void ConnectionPool::runTlsWorker() noexcept
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// runAsyncWorker — handles callers that used the old acquireAsync API before
-//                  the fast-path pooled delivery was introduced above
+// runAsyncWorker
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ConnectionPool::runAsyncWorker() noexcept
@@ -904,7 +855,7 @@ void ConnectionPool::runAsyncWorker() noexcept
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// runJanitorWorker — parallel idle-connection reaper
+// runJanitorWorker
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ConnectionPool::runJanitorWorker(size_t /*idx*/) noexcept
@@ -951,7 +902,7 @@ void ConnectionPool::runJanitorWorker(size_t /*idx*/) noexcept
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// runMetricsReporter — live push to registered sink
+// runMetricsReporter
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ConnectionPool::runMetricsReporter() noexcept
