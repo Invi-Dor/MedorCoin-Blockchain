@@ -3,214 +3,206 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MedorCoin Mining - Dashboard</title>
+  <title>MedorCoin - Professional Mining</title>
   <style>
-    :root{
-      --bg:#0f1013;--bg-elev:#15171b;--ink:#f8fafa;--muted:#a3a3a3;
-      --border:#232630;--accent:#ff8a00;--accent-2:#ffb84d;--pill:#1c2029;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%; margin:0; background:var(--bg); color:var(--ink); font-family: 'Segoe UI', Arial, sans-serif;}
-    
-    /* Navigation Header */
-    header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 15px 25px; background: var(--bg-elev); border-bottom: 1px solid var(--border);
-    }
-    .logo { font-size: 1.2rem; font-weight: 800; color: var(--accent); letter-spacing: 1px; }
-
-    input{width: 100%; padding:12px; margin:8px 0; border:1px solid var(--border); border-radius:5px; background: #000; color: #fff;}
-    button{padding:10px 20px; border:none; border-radius:5px; font-weight:800; transition: 0.2s;}
-    .btn{background:var(--accent-2); color:#000; cursor:pointer;}
-    .btn:hover{background:var(--accent); transform: translateY(-1px);}
-    .btn-outline { background: transparent; border: 1px solid var(--accent-2); color: var(--accent-2); cursor: pointer; }
-
-    .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-    .error{color:#ff6666; font-size: 14px; margin-top:8px;}
-    .section { margin: 18px 0; padding: 20px; border:1px solid var(--border); border-radius:12px; background:var(--bg-elev); }
-    
-    #authSection { 
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: 90%; max-width: 400px; z-index: 100; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-    }
-    .overlay {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 90; backdrop-filter: blur(4px);
-    }
+    :root{--bg:#0f1013;--bg-elev:#15171b;--ink:#f8fafa;--muted:#a3a3a3;
+      --border:#232630;--accent:#ff8a00;--accent-2:#ffb84d;--pill:#1c2029;}
+    *{box-sizing:border-box}html,body{height:100%; margin:0; background:var(--bg); color:var(--ink); font-family:Arial,sans-serif;}
+    .nav-bar { display:flex; justify-content:space-between; align-items:center; padding:15px 25px; background:var(--bg-elev); border-bottom:1px solid var(--border); }
+    .container { padding: 20px; max-width: 1200px; margin: 0 auto; }
+    input{width:100%;padding:12px;margin:8px 0;border:1px solid var(--border);border-radius:5px;background:#000;color:#fff;}
+    button{padding:10px 20px;border:none;border-radius:5px;font-weight:800;cursor:pointer;transition:0.2s;}
+    .btn{background:var(--accent-2);color:#000;}
+    .btn:hover{background:var(--accent);transform:translateY(-1px);}
+    .btn-outline{background:transparent; border:1px solid var(--accent-2); color:var(--accent-2);}
+    .section { margin-bottom: 20px; padding: 20px; border:1px solid var(--border); border-radius:12px; background:var(--bg-elev); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .plan-card { background: #1c2029; border: 1px solid var(--border); padding: 20px; border-radius: 10px; text-align: center; }
+    .plan-card h4 { color: var(--accent); margin-top: 0; }
+    .price { font-size: 1.5rem; font-weight: bold; margin: 10px 0; }
+    footer { background: var(--bg-elev); padding: 40px 20px; border-top: 1px solid var(--border); margin-top: 40px; }
+    .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; text-align: center; }
+    .footer-link { color: var(--muted); text-decoration: none; font-size: 14px; display: block; margin: 5px 0; }
+    #authModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:1000; align-items:center; justify-content:center; }
+    .auth-container { width:90%; max-width:400px; background:var(--bg-elev); padding:30px; border-radius:15px; border:1px solid var(--border); }
+    .timer { font-family: monospace; color: var(--accent-2); font-weight: bold; }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">MEDORCOIN</div>
-  <div id="navActions">
-    <button class="btn" onclick="toggleAuth()">Sign In / Register</button>
-  </div>
-</header>
-
-<div class="container">
-  
-  <section id="dashboardSection" class="section">
-    <h2 style="margin-top:0; color:var(--accent);">Mining Stats</h2>
-    <div id="userInfo" style="display:none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
-        <strong>Miner:</strong> <span id="minerEmail" style="color:var(--accent-2);"></span>
-    </div>
-    
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-      <div class="section" style="margin:0;">
-        <div style="color:var(--muted); font-size: 12px; text-transform: uppercase;">Balance</div>
-        <div style="font-size: 1.2rem; font-weight: bold;"><span id="balance">0.00000000</span> MEDOR</div>
-      </div>
-      <div class="section" style="margin:0;">
-        <div style="color:var(--muted); font-size: 12px; text-transform: uppercase;">Total Hashrate</div>
-        <div style="font-size: 1.2rem; font-weight: bold; color:var(--accent-2);"><span id="liveTotalSpeed">0.00</span> GH/s</div>
-      </div>
-    </div>
-
-    <div style="margin-top:20px; font-size: 14px; color:var(--muted);">
-      <div>Base Hardware Speed: <span id="baseSpeedGHs">0.00</span> GH/s</div>
-    </div>
-  </section>
-
-  <section id="adsSection" class="section">
-    <h3 style="margin:0 0 12px 0;">Boost Performance</h3>
-    <p style="font-size: 14px; color:var(--muted);">Watch ads to secure 24-hour mining contracts (+4.5 GH/s per ad).</p>
-    
-    <div style="margin-bottom:15px;">
-      <button class="btn" id="watchAdBtn" onclick="watchAd()">
-        Watch Ad (Bonus Speed)
-      </button>
-      <span id="adsError" class="error" style="display:none; margin-left:10px;"></span>
-    </div>
-
-    <div style="display: flex; justify-content: space-between; font-size:13px; color:var(--muted);">
-      <span>Daily Limit: <span id="adsWatched24h" style="color:var(--ink);">0</span> / 10</span>
-      <span>Active Bonus: <span id="adsBonusGHs" style="color:var(--accent-2);">0.00</span> GH/s</span>
-    </div>
-  </section>
+<div class="nav-bar">
+  <div style="font-weight:800; color:var(--accent);">MEDORCOIN</div>
+  <div id="nav-user-tools"><button class="btn" onclick="openAuth()">Sign In / Register</button></div>
 </div>
 
-<div class="overlay" id="authOverlay" onclick="toggleAuth()"></div>
-<section id="authSection" style="display:none" class="section">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="margin:0;">Authentication</h2>
-        <button onclick="toggleAuth()" style="background:none; color:var(--muted); cursor:pointer; font-size:20px;">&times;</button>
-    </div>
-    
-    <div id="authTabs">
-        <div style="margin-top:20px;">
-          <input type="email" id="log-email" placeholder="Email"/>
-          <input type="password" id="log-pass" placeholder="Password"/>
-          <button class="btn" style="width:100%; margin-top:10px;" onclick="handleLogin()">Login</button>
-          <div id="si-error" class="error"></div>
-        </div>
-        <hr style="border:0; border-top:1px solid var(--border); margin:25px 0;">
-        <div style="text-align:center;">
-            <p style="font-size:13px; color:var(--muted);">Don't have an account? Use the form above to auto-register or contact support.</p>
-        </div>
-    </div>
-</section>
+<div class="container">
+  <div class="grid">
+    <section class="section">
+      <div id="userGreeting" style="display:none; margin-bottom:10px; color:var(--accent-2);">Hello, <span id="minerEmail">Visitor</span></div>
+      <h2>Mining Stats</h2>
+      <div style="font-size:1.2rem;">Balance: <span id="balance">0.00000000</span> MEDOR</div>
+      <div style="font-size:1.2rem; color:var(--accent-2);">Live Power: <span id="liveTotalSpeed">0.00</span> GH/s</div>
+      <div style="margin-top:10px; font-size:12px; color:var(--muted);">Hardware Base: <span id="baseSpeedGHs">0.00</span> GH/s</div>
+    </section>
 
-<div id="adsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;align-items:center;justify-content:center;">
-    <div style="width:320px;background:#111;border:1px solid #333;border-radius:12px;padding:25px;text-align:center;">
-      <div style="font-weight:700;margin-bottom:15px; color:var(--accent-2);">ADVERTISEMENT IN PROGRESS</div>
-      <div id="adsCountdown" style="font-family:monospace;font-size:48px; color:var(--ink); margin:15px 0;">0</div>
-      <button class="btn-outline" onclick="closeAdsModal()">Close</button>
+    <section class="section" style="border-color: var(--accent-2);">
+      <h3>Free 12h Continuity</h3>
+      <p style="font-size:14px; color:var(--muted);">Claim every 12h to maintain +4 GH/s speed.</p>
+      <button class="btn" id="claimFreeBtn" onclick="claimFreeContract()">Claim Free (+4 GH/s)</button>
+      <div id="freeStatus" style="font-size:12px; margin-top:8px;"></div>
+    </section>
+  </div>
+
+  <h3>Premium Continuity Boosts</h3>
+  <div class="grid">
+    <div class="plan-card">
+      <h4>MONTHLY BOOST</h4>
+      <div class="price">$13 / mo</div>
+      <div style="margin-bottom:15px;">+600 GH/s Continuity<br>Duration: 30 Days<br>Automatic 24h Renewal</div>
+      <button class="btn-outline" onclick="purchasePlan('Monthly', 30, 600)">Purchase Now</button>
     </div>
+    <div class="plan-card">
+      <h4>QUARTERLY BOOST</h4>
+      <div class="price">$39 / 3mo</div>
+      <div style="margin-bottom:15px;">+600 GH/s Continuity<br>Duration: 90 Days<br>Best for Stability</div>
+      <button class="btn-outline" onclick="purchasePlan('Quarterly', 90, 600)">Purchase Now</button>
+    </div>
+    <div class="plan-card">
+      <h4>ANNUAL BOOST</h4>
+      <div class="price">$130 / yr</div>
+      <div style="margin-bottom:15px;">+600 GH/s Continuity<br>Duration: 365 Days<br>Save $26 per Year</div>
+      <button class="btn-outline" onclick="purchasePlan('Annual', 365, 600)">Purchase Now</button>
+    </div>
+  </div>
+
+  <section class="section">
+    <h3>Active Contract Ledger</h3>
+    <div id="contractList" style="font-size:13px;">
+        </div>
+    <div style="margin-top:20px; border-top: 1px solid var(--border); padding-top:15px;">
+        Ads Watched (24h): <span id="adsWatched24h">0</span> / 10 
+        <button class="btn" onclick="watchAd()" style="margin-left:15px;">Watch Ad (+4.5 GH/s)</button>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="section">
+      <h3>Affiliate Program</h3>
+      <input type="text" id="refLink" value="https://medorcoin.io/invite/USER" readonly>
+      <button class="btn-outline" style="margin-top:10px;" onclick="copyRef()">Copy Invite Link</button>
+    </section>
+    <section class="section">
+      <h3>Bonus Tasks</h3>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <button class="btn-outline" onclick="alert('Games coming soon!')">Play Games</button>
+        <button class="btn-outline" onclick="alert('Social tasks loading...')">Social Tasks</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-grid">
+    <div><a href="#" class="footer-link">About Us</a><a href="#" class="footer-link">FAQ</a></div>
+    <div><a href="#" class="footer-link">Terms</a><a href="#" class="footer-link">Privacy</a></div>
+    <div><span style="color:var(--accent);">MedorCoin &copy; 2026</span></div>
+  </div>
+</footer>
+
+<div id="authModal">
+  <div class="auth-container">
+    <input type="email" id="auth-email" placeholder="Email">
+    <input type="password" id="auth-pass" placeholder="Password">
+    <button class="btn" style="width:100%; margin-top:10px;" onclick="handleAuth()">Login / Register</button>
+    <button onclick="closeAuth()" style="background:none; color:var(--muted); width:100%; margin-top:10px;">Cancel</button>
+  </div>
 </div>
 
 <script>
-  const API_BASE = "/api/auth";
-  let authToken = localStorage.getItem("medorAuthToken") || null;
-  let BASE_SPEED_GH = 0.5; // Starting base speed for visitors
+  let authToken = localStorage.getItem("medorAuthToken");
+  let userEmail = localStorage.getItem("medorUserEmail") || "Visitor";
+  let BASE_SPEED_GH = 0.5;
+  let activeContracts = JSON.parse(localStorage.getItem("medorContracts") || "[]");
 
-  // Toggle the Auth Modal
-  function toggleAuth() {
-    const section = document.getElementById("authSection");
-    const overlay = document.getElementById("authOverlay");
-    const isVisible = section.style.display === "block";
-    
-    section.style.display = isVisible ? "none" : "block";
-    overlay.style.display = isVisible ? "none" : "block";
-  }
+  function openAuth() { document.getElementById("authModal").style.display = "flex"; }
+  function closeAuth() { document.getElementById("authModal").style.display = "none"; }
 
-  async function handleLogin() {
-    const email = document.getElementById("log-email").value;
-    const pass = document.getElementById("log-pass").value;
-    // Logic for login/register goes here...
-    // On success:
-    // authToken = data.token; localStorage.setItem("medorAuthToken", authToken);
-    // toggleAuth(); updateUI();
+  function handleAuth() {
+    const email = document.getElementById("auth-email").value;
+    if(!email) return;
+    localStorage.setItem("medorAuthToken", "true");
+    localStorage.setItem("medorUserEmail", email);
+    location.reload();
   }
 
   function updateUI() {
-    const nav = document.getElementById("navActions");
-    const userInfo = document.getElementById("userInfo");
-    
     if (authToken) {
-      nav.innerHTML = `<button class="btn-outline" onclick="logout()">Logout</button>`;
-      userInfo.style.display = "block";
-      // document.getElementById("minerEmail").innerText = "user@example.com";
-    } else {
-      nav.innerHTML = `<button class="btn" onclick="toggleAuth()">Sign In / Register</button>`;
-      userInfo.style.display = "none";
+      document.getElementById("nav-user-tools").innerHTML = `<button class="btn-outline" onclick="logout()">Logout</button>`;
+      document.getElementById("userGreeting").style.display = "block";
+      document.getElementById("minerEmail").innerText = userEmail;
+      document.getElementById("refLink").value = "https://medorcoin.io/invite/" + btoa(userEmail).slice(0,8);
     }
-    updateAdsUI();
+    renderLoop();
   }
 
-  function logout() {
-    localStorage.removeItem("medorAuthToken");
-    authToken = null;
-    updateUI();
-  }
+  function renderLoop() {
+    const now = Date.now();
+    activeContracts = activeContracts.filter(c => (now - c.start) < c.dur);
+    localStorage.setItem("medorContracts", JSON.stringify(activeContracts));
 
-  /* AD LOGIC (Same as your provided logic) */
-  const MAX_ADS_24H = 10;
-  const AD_GHPS = 4.5;
-  const CONTRACT_MS = 24 * 60 * 60 * 1000;
-  let adContracts = JSON.parse(localStorage.getItem("medorAdsContracts") || "[]");
-
-  function pruneExpired() {
-    const t = Date.now();
-    adContracts = adContracts.filter(c => (t - c.startedAt) < c.durationMs);
-    localStorage.setItem("medorAdsContracts", JSON.stringify(adContracts));
-  }
-
-  function updateAdsUI() {
-    pruneExpired();
-    document.getElementById("adsWatched24h").innerText = adContracts.length;
-    const bonus = adContracts.reduce((sum, c) => sum + c.ghps, 0);
-    document.getElementById("adsBonusGHs").innerText = bonus.toFixed(2);
+    const totalBonus = activeContracts.reduce((s, c) => s + c.gh, 0);
+    document.getElementById("liveTotalSpeed").innerText = (BASE_SPEED_GH + totalBonus).toFixed(2);
     document.getElementById("baseSpeedGHs").innerText = BASE_SPEED_GH.toFixed(2);
-    document.getElementById("liveTotalSpeed").innerText = (BASE_SPEED_GH + bonus).toFixed(2);
+    document.getElementById("adsWatched24h").innerText = activeContracts.filter(c => c.type === 'Ad').length;
+
+    const list = document.getElementById("contractList");
+    if(activeContracts.length === 0) {
+        list.innerHTML = `<div style="color:var(--muted);">No active contracts found.</div>`;
+    } else {
+        list.innerHTML = activeContracts.map(c => {
+            const remaining = c.dur - (now - c.start);
+            const hours = Math.floor(remaining / 3600000);
+            const mins = Math.floor((remaining % 3600000) / 60000);
+            return `
+            <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--border);">
+                <span>${c.type} (${c.gh} GH/s)</span>
+                <span class="timer">Expires in: ${hours}h ${mins}m</span>
+            </div>`;
+        }).join('');
+    }
   }
 
-  window.watchAd = function() {
-    if (adContracts.length >= MAX_ADS_24H) {
-        alert("Daily limit reached!"); return;
-    }
-    // Simulate Ad process
-    document.getElementById("adsModal").style.display = "flex";
-    let count = 5;
-    document.getElementById("adsCountdown").innerText = count;
-    const inter = setInterval(() => {
-        count--;
-        document.getElementById("adsCountdown").innerText = count;
-        if(count <= 0) {
-            clearInterval(inter);
-            adContracts.push({ startedAt: Date.now(), durationMs: CONTRACT_MS, ghps: AD_GHPS });
-            localStorage.setItem("medorAdsContracts", JSON.stringify(adContracts));
-            document.getElementById("adsModal").style.display = "none";
-            updateAdsUI();
-        }
-    }, 1000);
-  };
+  function claimFreeContract() {
+    activeContracts.push({ type: 'Free', start: Date.now(), dur: 12*60*60*1000, gh: 4.0 });
+    renderLoop();
+  }
 
-  window.closeAdsModal = () => document.getElementById("adsModal").style.display = "none";
+  function watchAd() {
+    if (activeContracts.filter(c => c.type === 'Ad').length >= 10) return alert("Ad limit reached!");
+    activeContracts.push({ type: 'Ad', start: Date.now(), dur: 24*60*60*1000, gh: 4.5 });
+    renderLoop();
+  }
 
-  window.addEventListener("load", () => {
+  function purchasePlan(name, days, speed) {
+    if(!authToken) return openAuth();
+    activeContracts.push({ type: name + ' Plan', start: Date.now(), dur: days*24*60*60*1000, gh: speed });
+    alert(name + " Plan activated successfully!");
+    renderLoop();
+  }
+
+  function copyRef() {
+    const link = document.getElementById("refLink");
+    link.select();
+    document.execCommand("copy");
+    alert("Referral link copied!");
+  }
+
+  function logout() { localStorage.clear(); location.reload(); }
+
+  window.onload = () => {
     updateUI();
-    updateAdsUI();
-  });
+    setInterval(renderLoop, 60000); // Update timers every minute
+  };
 </script>
 </body>
 </html>
