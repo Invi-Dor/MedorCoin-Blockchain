@@ -12,7 +12,6 @@ DATA_DIR="/var/lib/medorcoin"
 PID_FILE="/tmp/medorcoin.pid"
 BINARY_NAME="medorcoin"
 LOG_FILE="$ROOT_DIR/logs/reset.log"
-TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"
 DRY_RUN=false
 BACKUP=false
 ENVIRONMENT="${MEDORCOIN_ENV:-production}"
@@ -24,10 +23,24 @@ ENVIRONMENT="${MEDORCOIN_ENV:-production}"
 log() {
     local level="$1"; shift
     local msg="$*"
-    local line="[$TIMESTAMP][$level] $msg"
+    local ts
+    ts=$(date '+%Y-%m-%d %H:%M:%S')
+    local line="[$ts][$level] $msg"
     echo "$line"
     mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null || true
     echo "$line" >> "$LOG_FILE" 2>/dev/null || true
+}
+
+# =============================================================================
+# Permissions Check
+# =============================================================================
+
+check_permissions() {
+    if [[ ! -w "$DATA_DIR" ]]; then
+        log ERROR "No write permission on '$DATA_DIR'. Run as the correct user or with sudo."
+        exit 1
+    fi
+    log INFO "Permission check passed."
 }
 
 # =============================================================================
@@ -35,7 +48,6 @@ log() {
 # =============================================================================
 
 validate_data_dir() {
-    # Refuse empty or obviously wrong paths
     if [[ -z "$DATA_DIR" ]]; then
         log ERROR "DATA_DIR is empty. Aborting."
         exit 1
@@ -46,13 +58,11 @@ validate_data_dir() {
         exit 1
     fi
 
-    # Must be an absolute path
     if [[ "$DATA_DIR" != /* ]]; then
         log ERROR "DATA_DIR '$DATA_DIR' is not an absolute path. Aborting."
         exit 1
     fi
 
-    # Must have at least 3 path components (e.g. /var/lib/medorcoin)
     local depth
     depth=$(echo "$DATA_DIR" | tr -cd '/' | wc -c)
     if [[ "$depth" -lt 2 ]]; then
@@ -60,7 +70,6 @@ validate_data_dir() {
         exit 1
     fi
 
-    # Must contain expected app structure (directory signature check)
     local has_signature=false
     for dir in blocks accounts mempool receipts; do
         if [[ -d "$DATA_DIR/$dir" ]]; then
@@ -75,14 +84,6 @@ validate_data_dir() {
     fi
 
     log INFO "DATA_DIR validated: $DATA_DIR"
-}
-
-check_permissions() {
-    if [[ ! -w "$DATA_DIR" ]]; then
-        log ERROR "No write permission on '$DATA_DIR'. Run as the correct user or with sudo."
-        exit 1
-    fi
-    log INFO "Permission check passed."
 }
 
 check_environment() {
@@ -105,21 +106,18 @@ stop_node() {
     local pid
     pid=$(cat "$PID_FILE")
 
-    # Validate PID is a number
     if ! [[ "$pid" =~ ^[0-9]+$ ]]; then
         log WARN "PID file contains invalid value: '$pid'. Removing stale PID file."
         rm -f "$PID_FILE"
         return 0
     fi
 
-    # Check process exists
     if ! kill -0 "$pid" 2>/dev/null; then
         log INFO "PID $pid is not running. Removing stale PID file."
         rm -f "$PID_FILE"
         return 0
     fi
 
-    # Verify the PID belongs to our binary
     local proc_name
     proc_name=$(ps -p "$pid" -o comm= 2>/dev/null || true)
     if [[ "$proc_name" != "$BINARY_NAME" ]]; then
@@ -134,7 +132,6 @@ stop_node() {
         kill -TERM "$pid" || true
     fi
 
-    # Wait with timeout for the process to die
     local timeout=30
     local elapsed=0
     while kill -0 "$pid" 2>/dev/null; do
