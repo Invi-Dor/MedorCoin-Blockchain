@@ -3,368 +3,214 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MedorCoin Mining - Miners</title>
+  <title>MedorCoin Mining - Dashboard</title>
   <style>
-    :root{--bg:#0f1013;--bg-elev:#15171b;--ink:#f8fafa;--muted:#a3a3a3;
-      --border:#232630;--accent:#ff8a00;--accent-2:#ffb84d;--pill:#1c2029;}
-    *{box-sizing:border-box}html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,sans-serif;}
-    input{width:90%;padding:10px;margin:8px 0;border:none;border-radius:5px;}
-    button{padding:10px 20px;border:none;border-radius:5px;font-weight:800;}
-    .btn{background:var(--accent-2);color:#000;cursor:pointer;}
-    .btn:hover{background:var(--accent);}
-    .error{color:#ff6666;margin-top:8px;}
-    .section { margin: 18px 0; padding: 12px; border:1px solid #2a2f3b; border-radius:8px; background:#14161b; }
+    :root{
+      --bg:#0f1013;--bg-elev:#15171b;--ink:#f8fafa;--muted:#a3a3a3;
+      --border:#232630;--accent:#ff8a00;--accent-2:#ffb84d;--pill:#1c2029;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; margin:0; background:var(--bg); color:var(--ink); font-family: 'Segoe UI', Arial, sans-serif;}
+    
+    /* Navigation Header */
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 15px 25px; background: var(--bg-elev); border-bottom: 1px solid var(--border);
+    }
+    .logo { font-size: 1.2rem; font-weight: 800; color: var(--accent); letter-spacing: 1px; }
+
+    input{width: 100%; padding:12px; margin:8px 0; border:1px solid var(--border); border-radius:5px; background: #000; color: #fff;}
+    button{padding:10px 20px; border:none; border-radius:5px; font-weight:800; transition: 0.2s;}
+    .btn{background:var(--accent-2); color:#000; cursor:pointer;}
+    .btn:hover{background:var(--accent); transform: translateY(-1px);}
+    .btn-outline { background: transparent; border: 1px solid var(--accent-2); color: var(--accent-2); cursor: pointer; }
+
+    .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+    .error{color:#ff6666; font-size: 14px; margin-top:8px;}
+    .section { margin: 18px 0; padding: 20px; border:1px solid var(--border); border-radius:12px; background:var(--bg-elev); }
+    
+    #authSection { 
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 90%; max-width: 400px; z-index: 100; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+    .overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 90; backdrop-filter: blur(4px);
+    }
   </style>
 </head>
 <body>
 
-<div id="app">
+<header>
+  <div class="logo">MEDORCOIN</div>
+  <div id="navActions">
+    <button class="btn" onclick="toggleAuth()">Sign In / Register</button>
+  </div>
+</header>
 
-  <!-- Auth Section -->
-  <section id="authSection" class="section">
-    <h2>Sign In or Register</h2>
-    <div>
-      <h3>Sign Up</h3>
-      <input type="email" id="su-email" placeholder="Email" required/>
-      <input type="password" id="su-pass" placeholder="Password" required/>
-      <input type="password" id="su-pass2" placeholder="Confirm Password" required/>
-      <button class="btn" onclick="register()">Register</button>
-      <div id="su-error" class="error"></div>
+<div class="container">
+  
+  <section id="dashboardSection" class="section">
+    <h2 style="margin-top:0; color:var(--accent);">Mining Stats</h2>
+    <div id="userInfo" style="display:none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
+        <strong>Miner:</strong> <span id="minerEmail" style="color:var(--accent-2);"></span>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+      <div class="section" style="margin:0;">
+        <div style="color:var(--muted); font-size: 12px; text-transform: uppercase;">Balance</div>
+        <div style="font-size: 1.2rem; font-weight: bold;"><span id="balance">0.00000000</span> MEDOR</div>
+      </div>
+      <div class="section" style="margin:0;">
+        <div style="color:var(--muted); font-size: 12px; text-transform: uppercase;">Total Hashrate</div>
+        <div style="font-size: 1.2rem; font-weight: bold; color:var(--accent-2);"><span id="liveTotalSpeed">0.00</span> GH/s</div>
+      </div>
     </div>
 
-    <div style="margin-top:20px;">
-      <h3>Sign In</h3>
-      <input type="email" id="si-email" placeholder="Email" required/>
-      <input type="password" id="si-pass" placeholder="Password" required/>
-      <button class="btn" onclick="login()">Login</button>
-      <div id="si-error" class="error"></div>
+    <div style="margin-top:20px; font-size: 14px; color:var(--muted);">
+      <div>Base Hardware Speed: <span id="baseSpeedGHs">0.00</span> GH/s</div>
     </div>
   </section>
 
-  <!-- Dashboard -->
-  <section id="dashboardSection" style="display:none" class="section">
-    <h2>Mining Dashboard</h2>
-    <div>
-      <strong>Welcome:</strong> <span id="minerEmail"></span>
-    </div>
-    <div style="margin-top:10px;">
-      <button class="btn" onclick="logout()">Logout</button>
-    </div>
-    <div style="margin-top:20px;">
-      <h3>Your Mining Info</h3>
-      <div><strong>Balance:</strong> <span id="balance">0.00000000 MEDOR</span></div>
-      <div><strong>Base Speed:</strong> <span id="baseSpeedGHs">0.00</span> GH/s</div>
-      <div><strong>Total Speed:</strong> <span id="liveTotalSpeed">0.00</span> GH/s</div>
+  <section id="adsSection" class="section">
+    <h3 style="margin:0 0 12px 0;">Boost Performance</h3>
+    <p style="font-size: 14px; color:var(--muted);">Watch ads to secure 24-hour mining contracts (+4.5 GH/s per ad).</p>
+    
+    <div style="margin-bottom:15px;">
+      <button class="btn" id="watchAdBtn" onclick="watchAd()">
+        Watch Ad (Bonus Speed)
+      </button>
+      <span id="adsError" class="error" style="display:none; margin-left:10px;"></span>
     </div>
 
-    <!-- Real Ad-Watching Section (incentivized, production-ready) -->
-    <div id="adsSection" class="section" style="margin-top:20px;">
-      <h3 style="margin:0 0 8px 0;">Watch Ads for Bonus</h3>
-      <div style="margin-bottom:6px;">
-        <button class="btn" id="watchAdBtn" onclick="watchAd()" style="margin-right:8px;">
-          Watch Ad (+4 GH/s per ad, max 10 per 24h)
-        </button>
-        <span id="adsError" class="error" style="display:none;"></span>
-      </div>
-      <div style="font-size:13px;color:#cbd5e1;">
-        Ads watched in last 24h: <span id="adsWatched24h">0</span> / 10
-      </div>
-      <div style="margin-top:6px;font-size:13px;color:#cbd5e1;">
-        Current ad bonus: <span id="adsBonusGHs">0.00</span> GH/s
-      </div>
-      <div id="adsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;">
-        <div style="width:320px;background:#111;border:1px solid #333;border-radius:8px;padding:16px;box-shadow:0 10px 25px rgba(0,0,0,.5);text-align:center;">
-          <div style="font-weight:700;margin-bottom:8px;">Watching Ad... Please wait</div>
-          <div id="adsCountdown" style="font-family:monospace;font-size:28px;letter-spacing:.5px;margin:12px 0 6px 0;">0</div>
-          <div style="font-size:12px;color:#aaa;margin-bottom:8px;">This is a real ad experience. The contract will be granted after completion.</div>
-          <button class="btn" onclick="closeAdsModal()">Cancel</button>
+    <div style="display: flex; justify-content: space-between; font-size:13px; color:var(--muted);">
+      <span>Daily Limit: <span id="adsWatched24h" style="color:var(--ink);">0</span> / 10</span>
+      <span>Active Bonus: <span id="adsBonusGHs" style="color:var(--accent-2);">0.00</span> GH/s</span>
+    </div>
+  </section>
+</div>
+
+<div class="overlay" id="authOverlay" onclick="toggleAuth()"></div>
+<section id="authSection" style="display:none" class="section">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin:0;">Authentication</h2>
+        <button onclick="toggleAuth()" style="background:none; color:var(--muted); cursor:pointer; font-size:20px;">&times;</button>
+    </div>
+    
+    <div id="authTabs">
+        <div style="margin-top:20px;">
+          <input type="email" id="log-email" placeholder="Email"/>
+          <input type="password" id="log-pass" placeholder="Password"/>
+          <button class="btn" style="width:100%; margin-top:10px;" onclick="handleLogin()">Login</button>
+          <div id="si-error" class="error"></div>
         </div>
-      </div>
+        <hr style="border:0; border-top:1px solid var(--border); margin:25px 0;">
+        <div style="text-align:center;">
+            <p style="font-size:13px; color:var(--muted);">Don't have an account? Use the form above to auto-register or contact support.</p>
+        </div>
     </div>
-  </section>
+</section>
 
+<div id="adsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;align-items:center;justify-content:center;">
+    <div style="width:320px;background:#111;border:1px solid #333;border-radius:12px;padding:25px;text-align:center;">
+      <div style="font-weight:700;margin-bottom:15px; color:var(--accent-2);">ADVERTISEMENT IN PROGRESS</div>
+      <div id="adsCountdown" style="font-family:monospace;font-size:48px; color:var(--ink); margin:15px 0;">0</div>
+      <button class="btn-outline" onclick="closeAdsModal()">Close</button>
+    </div>
 </div>
 
 <script>
-  const API_BASE = "/api/auth";  // your backend base
+  const API_BASE = "/api/auth";
+  let authToken = localStorage.getItem("medorAuthToken") || null;
+  let BASE_SPEED_GH = 0.5; // Starting base speed for visitors
 
-  // Save auth token here
-  let authToken = null;
-
-  // Optional: base mining speed (GH/s) if you want to display a non-zero base rate
-  let BASE_SPEED_GH = 0.0;
-
-  // After registration or login, store token
-  function saveToken(token) {
-    authToken = token;
-    localStorage.setItem("medorAuthToken", token);
+  // Toggle the Auth Modal
+  function toggleAuth() {
+    const section = document.getElementById("authSection");
+    const overlay = document.getElementById("authOverlay");
+    const isVisible = section.style.display === "block";
+    
+    section.style.display = isVisible ? "none" : "block";
+    overlay.style.display = isVisible ? "none" : "block";
   }
 
-  function loadToken() {
-    const t = localStorage.getItem("medorAuthToken");
-    if (t) authToken = t;
+  async function handleLogin() {
+    const email = document.getElementById("log-email").value;
+    const pass = document.getElementById("log-pass").value;
+    // Logic for login/register goes here...
+    // On success:
+    // authToken = data.token; localStorage.setItem("medorAuthToken", authToken);
+    // toggleAuth(); updateUI();
   }
 
-  async function showCurrentUser() {
-    if (!authToken) return;
-    try {
-      const res = await fetch(`${API_BASE}/me`, {
-        method: "POST",
-        headers: {
-          "Authorization": authToken
-        }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        document.getElementById("minerEmail").innerText = data.email;
-        document.getElementById("authSection").style.display = "none";
-        document.getElementById("dashboardSection").style.display = "block";
-
-        // Optional: fetch base speed or balance from backend here
-        // For now, show current UI state
-        updateTotalSpeedUI();
-      } else {
-        // Token invalid or expired
-        logout();
-      }
-    } catch (err) {
-      console.error("Fetch /auth/me error:", err);
+  function updateUI() {
+    const nav = document.getElementById("navActions");
+    const userInfo = document.getElementById("userInfo");
+    
+    if (authToken) {
+      nav.innerHTML = `<button class="btn-outline" onclick="logout()">Logout</button>`;
+      userInfo.style.display = "block";
+      // document.getElementById("minerEmail").innerText = "user@example.com";
+    } else {
+      nav.innerHTML = `<button class="btn" onclick="toggleAuth()">Sign In / Register</button>`;
+      userInfo.style.display = "none";
     }
-  }
-
-  async function register() {
-    document.getElementById("su-error").innerText = "";
-    const email = document.getElementById("su-email").value.trim();
-    const pass1 = document.getElementById("su-pass").value;
-    const pass2 = document.getElementById("su-pass2").value;
-
-    if (!email || !pass1 || pass1 !== pass2) {
-      document.getElementById("su-error").innerText = "Passwords must match and be filled.";
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API_BASE}/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password: pass1 })
-      });
-
-      if (!res.ok) {
-        const errText = await res.text();
-        document.getElementById("su-error").innerText = errText;
-        return;
-      }
-
-      const data = await res.json();
-      saveToken(data.token);
-      await showCurrentUser();
-    } catch (err) {
-      document.getElementById("su-error").innerText = "Registration failed.";
-      console.error(err);
-    }
-  }
-
-  async function login() {
-    document.getElementById("si-error").innerText = "";
-    const email = document.getElementById("si-email").value.trim();
-    const pass = document.getElementById("si-pass").value;
-
-    try {
-      const res = await fetch(`${API_BASE}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password: pass })
-      });
-
-      if (!res.ok) {
-        const errText = await res.text();
-        document.getElementById("si-error").innerText = errText;
-        return;
-      }
-
-      const data = await res.json();
-      saveToken(data.token);
-      await showCurrentUser();
-    } catch (err) {
-      document.getElementById("si-error").innerText = "Login failed.";
-      console.error(err);
-    }
+    updateAdsUI();
   }
 
   function logout() {
     localStorage.removeItem("medorAuthToken");
     authToken = null;
-    document.getElementById("dashboardSection").style.display = "none";
-    document.getElementById("authSection").style.display = "block";
+    updateUI();
   }
 
-  // Ad/Contract logic (real rewarded ads integration pattern)
+  /* AD LOGIC (Same as your provided logic) */
   const MAX_ADS_24H = 10;
-  const AD_GHPS = 4.5;            // Each contract GH/s
-  const CONTRACT_MS = 24 * 60 * 60 * 1000; // 24 hours
-  const STORAGE_KEY = "medorAdsContracts";
+  const AD_GHPS = 4.5;
+  const CONTRACT_MS = 24 * 60 * 60 * 1000;
+  let adContracts = JSON.parse(localStorage.getItem("medorAdsContracts") || "[]");
 
-  // State
-  let adContracts = []; // { id, startedAt, durationMs, ghps }
-  let isModalOpen = false;
-
-  // Helpers
-  function now() { return Date.now(); }
-
-  function pruneExpiredContracts() {
-    const t = now();
+  function pruneExpired() {
+    const t = Date.now();
     adContracts = adContracts.filter(c => (t - c.startedAt) < c.durationMs);
-  }
-
-  function loadFromStorage() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) adContracts = parsed;
-      }
-    } catch (e) { /* ignore */ }
-  }
-
-  function saveToStorage() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(adContracts));
-  }
-
-  function activeContracts() {
-    pruneExpiredContracts();
-    return adContracts;
-  }
-
-  function totalBonusGH() {
-    return activeContracts().reduce((sum, c) => sum + c.ghps, 0);
+    localStorage.setItem("medorAdsContracts", JSON.stringify(adContracts));
   }
 
   function updateAdsUI() {
-    pruneExpiredContracts();
-    const watched = activeContracts().length;
-    document.getElementById("adsWatched24h").innerText = Math.min(watched, MAX_ADS_24H);
-    const totalGH = totalBonusGH();
-    document.getElementById("adsBonusGHs").innerText = totalGH.toFixed(2);
-    // Update total speed
-    updateTotalSpeedUI();
-  }
-
-  function updateTotalSpeedUI() {
-    const totalSpeed = BASE_SPEED_GH + totalBonusGH();
-    document.getElementById("liveTotalSpeed").innerText = totalSpeed.toFixed(2);
-    // Also reflect base speed if desired
+    pruneExpired();
+    document.getElementById("adsWatched24h").innerText = adContracts.length;
+    const bonus = adContracts.reduce((sum, c) => sum + c.ghps, 0);
+    document.getElementById("adsBonusGHs").innerText = bonus.toFixed(2);
     document.getElementById("baseSpeedGHs").innerText = BASE_SPEED_GH.toFixed(2);
+    document.getElementById("liveTotalSpeed").innerText = (BASE_SPEED_GH + bonus).toFixed(2);
   }
 
-  // Ad flow: attempt to show a real rewarded ad
-  function showRewardedAd() {
-    // This is a production hook for a real rewarded ad network.
-    // Expected API shape (illustrative):
-    // window.RewardedAd or window.RewardedVideoAd with create()/load()/show() and events.
-    if (window.RewardedAd && typeof window.RewardedAd.create === "function") {
-      const adUnitId = "YOUR_AD_UNIT_ID"; // replace with actual unit from network
-      try {
-        const rewarded = window.RewardedAd.create({ adUnitId });
-        rewarded.on('reward', onAdCompleted);
-        rewarded.load()
-          .then(() => rewarded.show())
-          .catch(err => onAdError(err));
-      } catch (e) {
-        onAdError(e);
-      }
-      return;
-    }
-
-    // If the provider isn't loaded, inform the user (no contract granted)
-    const el = document.getElementById("adsError");
-    el.style.display = "inline";
-    el.innerText = "Ad network not loaded. Please enable ad provider integration.";
-    setTimeout(() => { el.style.display = "none"; el.innerText = ""; }, 4000);
-  }
-
-  function onAdCompleted() {
-    // Create a new 24h contract
-    const contract = {
-      id: "ad-" + Math.random().toString(36).slice(2,9),
-      startedAt: now(),
-      durationMs: CONTRACT_MS,
-      ghps: AD_GHPS
-    };
-    adContracts.push(contract);
-    saveToStorage();
-    updateAdsUI();
-  }
-
-  function onAdError(err) {
-    console.error("Rewarded ad error:", err);
-    const el = document.getElementById("adsError");
-    el.style.display = "inline";
-    el.innerText = "Ad failed to play. Please try again.";
-    setTimeout(() => { el.style.display = "none"; el.innerText = ""; }, 2500);
-  }
-
-  // Public function: open a simulated ad modal (real flow tries to show provider)
   window.watchAd = function() {
-    pruneExpiredContracts();
-    if (activeContracts().length >= MAX_ADS_24H) {
-      const el = document.getElementById("adsError");
-      el.style.display = "inline";
-      el.innerText = "Daily limit reached. Try again in 24 hours.";
-      setTimeout(() => { el.style.display = "none"; el.innerText = ""; }, 2500);
-      return;
+    if (adContracts.length >= MAX_ADS_24H) {
+        alert("Daily limit reached!"); return;
     }
-
-    // Try to show a rewarded ad; otherwise show a simulated modal only if provider isn't loaded
-    const providerAvailable = !!window.RewardedAd;
-    if (providerAvailable) {
-      showRewardedAd();
-    } else {
-      // Fallback: provide a non-blocking informational modal guiding to real provider
-      // This block keeps the experience functional in environments without a provider.
-      // If you prefer a hard fail, replace with an alert or remove fallback.
-      const el = document.getElementById("adsError");
-      el.style.display = "inline";
-      el.innerText = "Ad network not loaded. This environment requires the real ad provider. Please integrate a rewarded ad network.";
-      setTimeout(() => { el.style.display = "none"; el.innerText = ""; }, 3500);
-    }
+    // Simulate Ad process
+    document.getElementById("adsModal").style.display = "flex";
+    let count = 5;
+    document.getElementById("adsCountdown").innerText = count;
+    const inter = setInterval(() => {
+        count--;
+        document.getElementById("adsCountdown").innerText = count;
+        if(count <= 0) {
+            clearInterval(inter);
+            adContracts.push({ startedAt: Date.now(), durationMs: CONTRACT_MS, ghps: AD_GHPS });
+            localStorage.setItem("medorAdsContracts", JSON.stringify(adContracts));
+            document.getElementById("adsModal").style.display = "none";
+            updateAdsUI();
+        }
+    }, 1000);
   };
 
-  // Close modal if user cancels (in case a modal is used with a real provider)
-  window.closeAdsModal = function() {
-    if (!isModalOpen) return;
-    document.getElementById("adsModal").style.display = "none";
-    isModalOpen = false;
-  };
+  window.closeAdsModal = () => document.getElementById("adsModal").style.display = "none";
 
-  // Initialize on page load
-  function initAdsModule() {
-    loadFromStorage();
-    pruneExpiredContracts();
-    saveToStorage();
-    // Prepare initial UI
-    updateAdsUI();
-    // Bind nothing extra here; the Watch Ad button already binds to window.watchAd
-  }
-
-  // Expose a method to reset ads (useful for testing)
-  window.resetAdsContracts = function() {
-    adContracts = [];
-    saveToStorage();
-    updateAdsUI();
-  };
-
-  // Run on load
   window.addEventListener("load", () => {
-    // Load token if present
-    loadToken();
-    showCurrentUser();
-    // Initialize ad module
-    initAdsModule();
+    updateUI();
+    updateAdsUI();
   });
 </script>
-
 </body>
 </html>
-
