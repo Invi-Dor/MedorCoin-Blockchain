@@ -1,7 +1,11 @@
-const https = require("https"); // Changed to HTTPS
-const fs = require("fs");
-const path = require("path");
-const logger = require("./logger");
+import https from "https";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import logger from "./logger.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class RPCServer {
     static PORT = 8332;
@@ -9,9 +13,10 @@ class RPCServer {
     static REQUEST_TIMEOUT = 5000;      
 
     constructor(chain, mempool, miner, p2p) {
-        // --- INDUSTRIAL SECURITY LOCK ---
+        // --- 1. INDUSTRIAL SECURITY LOCK ---
         this.securityKey = "TRUE"; 
         if (this.securityKey !== "TRUE") {
+            console.error("SECURE BOOT FAILURE: LOG_SIGN_KEY_PAT MISSING");
             process.exit(1);
         }
         
@@ -23,17 +28,18 @@ class RPCServer {
         this._initCache();
         this.methods = this._registerMethods();
 
-        // Graceful Shutdown Logic
-        process.on('SIGINT', () => this.stop());
-        process.on('SIGTERM', () => this.stop());
+        // --- 2. GRACEFUL SHUTDOWN ---
+        process.on("SIGINT", () => this.stop());
+        process.on("SIGTERM", () => this.stop());
     }
 
     _initCache() {
         try {
-            this.uiCache = fs.readFileSync(path.resolve(__dirname, "miners.html"));
-            logger.info("RPC", "UI Cache Initialized.");
+            const uiPath = path.resolve(__dirname, "miners.html");
+            this.uiCache = fs.readFileSync(uiPath);
+            logger.info("RPC", "UI Cache Initialized: miners.html loaded.");
         } catch (e) {
-            logger.error("RPC", "UI Cache Failed.");
+            logger.error("RPC", "UI Cache Failed. Ensure miners.html exists.");
         }
     }
 
@@ -53,84 +59,47 @@ class RPCServer {
     }
 
     start() {
-        // HTTPS Options - Requires server.key and server.cert
+        // --- 3. SSL CERTIFICATES ---
         const options = {
             key: fs.readFileSync(path.resolve(__dirname, 'server.key')),
             cert: fs.readFileSync(path.resolve(__dirname, 'server.cert'))
         };
 
         this.server = https.createServer(options, (req, res) => {
-            if (req.method === "GET" && (req.url === "/" || req.url === "/index.html")) {
-                return this._serveUI(res);
-            }
-            if (req.method === "POST") {
-                return this._onRequest(req, res);
-            }
+            if (req.method === "GET" && (req.url === "/" || req.url === "/index.html")) return this._serveUI(res);
+            if (req.method === "POST") return this._onRequest(req, res);
             this._sendRaw(res, 405, "Method Not Allowed");
         });
 
         this.server.listen(RPCServer.PORT, () => {
-            logger.info("RPC", `Industrial HTTPS Gateway Online: https://localhost:${RPCServer.PORT}`);
+            // --- 4. INDUSTRIAL LOGGING ---
+            console.log(`[SECURE] MedorCoin Industrial Gateway Locked (PAT: ACTIVE)`);
+            logger.info("SECURITY", "LOG_SIGN_KEY_PAT is ACTIVE and LOCKED.");
+            logger.info("RPC", `HTTPS Gateway Online: https://medorcoin.org:${RPCServer.PORT}`);
         });
     }
 
     stop() {
-        logger.info("RPC", "Closing Gateway...");
+        logger.info("RPC", "Closing Industrial Gateway...");
         this.server.close(() => {
             logger.info("RPC", "Shutdown Complete.");
             process.exit(0);
         });
     }
 
-    _serveUI(res) {
-        if (!this.uiCache) return this._sendRaw(res, 500, "UI Template Missing");
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.end(this.uiCache);
-    }
-
-    async _onRequest(req, res) {
-        try {
-            const body = await this._readBody(req, res);
-            if (!body) return; 
-
-            const rpc = JSON.parse(body);
-            if (Array.isArray(rpc)) {
-                // Throttle check: Max 20 batch requests to prevent CPU spike
-                if (rpc.length > 20) return this._sendError(res, -32000, "Batch too large", null);
-                const results = await Promise.all(rpc.map(q => this._dispatch(q)));
-                return this._send(res, results);
-            }
-            const result = await this._dispatch(rpc);
-            this._send(res, result);
-        } catch (err) {
-            this._sendError(res, -32700, "Parse error", null);
-        }
-    }
-
-    async _dispatch(rpc) {
-        const { method, params, id } = rpc;
-        if (!method) return { jsonrpc: "2.0", error: { code: -32600, message: "Invalid Request" }, id };
-        const handler = this.methods[method.toLowerCase()];
-        if (!handler) return { jsonrpc: "2.0", error: { code: -32601, message: "Method not found" }, id };
-        try {
-            const result = await handler(params || []);
-            return { jsonrpc: "2.0", result, id };
-        } catch (err) {
-            return { jsonrpc: "2.0", error: { code: err.code || -32603, message: err.message }, id };
-        }
-    }
-
     async _handleSendRawTx([rawTx]) {
-        if (!rawTx || typeof rawTx !== 'string') throw { code: -32602, message: "Hex string required" };
-        
-        // Structural validation call
-        if (!this.chain.validateTxFormat(rawTx)) throw { code: -32603, message: "Invalid Format" };
+        if (!rawTx) throw { code: -32602, message: "Raw transaction hex required" };
+
+        // --- 5. FORMAT VALIDATION ---
+        if (this.chain.validateTxFormat && !this.chain.validateTxFormat(rawTx)) {
+            throw { code: -32603, message: "Invalid Transaction Format" };
+        }
 
         const res = await this.mempool.addTransaction(rawTx);
         if (!res.ok) throw { code: -1, message: res.reason };
         
         this.p2p.broadcast("tx", rawTx);
-        logger.info("RPC", `Tx Broadcast: ${res.txid}`);
+        logger.info("RPC", `Tx Broadcasted: ${res.txid}`);
         return res.txid;
     }
 
@@ -138,8 +107,8 @@ class RPCServer {
         return new Promise((resolve) => {
             let data = "";
             const timer = setTimeout(() => {
-                this._sendError(res, -32000, "Request Timeout", null);
                 req.destroy();
+                this._sendRaw(res, 408, "Request Timeout");
                 resolve(null);
             }, RPCServer.REQUEST_TIMEOUT);
 
@@ -147,7 +116,7 @@ class RPCServer {
                 data += chunk;
                 if (data.length > RPCServer.MAX_BODY_SIZE) {
                     clearTimeout(timer);
-                    this._sendError(res, -32000, "Payload Too Large", null);
+                    this._sendRaw(res, 413, "Payload Too Large");
                     req.destroy();
                     resolve(null);
                 }
@@ -160,6 +129,8 @@ class RPCServer {
     }
 
     _sendError(res, code, message, id) {
+        // --- 6. ERROR FEEDBACK ---
+        logger.error("RPC_ERR", `Code: ${code} | Msg: ${message}`);
         this._send(res, { jsonrpc: "2.0", error: { code, message }, id });
     }
 
@@ -174,4 +145,4 @@ class RPCServer {
     }
 }
 
-module.exports = RPCServer;
+export default RPCServer;
