@@ -1,0 +1,30 @@
+<div class="invoice-box">
+    <h2>Order Summary</h2>
+    <div id="planName" style="font-weight:bold; font-size:20px;">Monthly Boost</div>
+    <hr>
+    <p>Speed: 600 GH/s Daily</p>
+    <p>Total Due: <span id="planPrice" style="color:green; font-weight:bold;">$13.00</span></p>
+    
+    <div class="payment-instructions">
+        <p>Send payment to the address below. Speed will activate automatically after 1 confirmation.</p>
+        <code id="payAddr">0xYourCryptoPaymentAddress...</code>
+    </div>
+    
+    <button class="btn" onclick="verifyPayment()">I HAVE PAID</button>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get('plan');
+    
+    const pricing = {
+        'monthly': { name: 'Monthly Boost', price: '$13.00' },
+        'quarterly': { name: 'Quarterly Boost', price: '$39.00' },
+        'yearly': { name: 'Yearly Boost', price: '$156.00' }
+    };
+
+    if(pricing[plan]) {
+        document.getElementById("planName").innerText = pricing[plan].name;
+        document.getElementById("planPrice").innerText = pricing[plan].price;
+    }
+</script>
