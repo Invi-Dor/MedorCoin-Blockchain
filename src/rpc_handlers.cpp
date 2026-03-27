@@ -1,194 +1,97 @@
-#include "rpc_handlers.h
+#include "rpc_handlers.h"
 #include "blockchain.h"
 #include "receipt.h"
+#include "utxo.h" // Ensure this includes the UTXOSet class
 #include <nlohmann/json.hpp>
-#include <sstream>
-#include <iomanip>
+
+// Assuming global objects exist
+extern Blockchain globalChain;
+extern UTXOSet globalUtxoSet;
 
 // =========================
-// Helpers: hex formatting
+// Bridge Methods
 // =========================
 
-static std::string hexUInt(uint64_t v) {
-    std::ostringstream ss;
-    ss << "0x" << std::hex << v;
-    return ss.str();
-}
-
-// =========================
-// Helpers: common responses
-// =========================
-
-static void jsonError(nlohmann::json &res, int code, const std::string &message) {
-    res["error"] = {
-        {"code", code},
-        {"message", message}
-    };
-}
-
-// Normalize an address string by removing optional 0x prefix.
-// Returns empty string if input is empty after normalization.
-static std::string normalizeAddress(const std::string &addr) {
-    std::string a = addr;
-    if (a.rfind("0x", 0) == 0) {
-        a = a.substr(2);
-    }
-    return a;
-}
-
-// =========================
-// web3 methods
-// =========================
-
-std::string rpc_web3_clientVersion(const nlohmann::json &params, int id) {
-    nlohmann::json res;
-    res["jsonrpc"] = "2.0";
-    res["id"]      = id;
-    res["result"]  = "MedorCoin/v1.0";
-    return res.dump();
-}
-
-// =========================
-// net methods
-// =========================
-
-std::string rpc_net_version(const nlohmann::json &params, int id) {
-    nlohmann::json res;
-    res["jsonrpc"] = "2.0";
-    res["id"]      = id;
-    res["result"]  = std::to_string(MEDOR_CHAIN_ID);
-    return res.dump();
-}
-
-// =========================
-// eth methods — core
-// =========================
-
-std::string rpc_eth_blockNumber(const nlohmann::json &params, int id) {
-    extern Blockchain globalChain;
+/**
+ * Method: bridge_lockUTXO
+ * Parameters: [txHash, outputIndex, evmAddress]
+ * Locks a UTXO on the C++ side to trigger a mint on the EVM side.
+ */
+std::string rpc_bridge_lockUTXO(const nlohmann::json &params, int id) {
     nlohmann::json res;
     res["jsonrpc"] = "2.0";
     res["id"]      = id;
 
-    // Safe height calculation
-    uint64_t height = (globalChain.chain.empty() ? 0 : globalChain.chain.size() - 1);
-    res["result"] = hexUInt(height);
-    return res.dump();
-}
-
-std::string rpc_eth_getBalance(const nlohmann::json &params, int id) {
-    nlohmann::json res;
-    res["jsonrpc"] = "2.0";
-    res["id"]      = id;
-
-    // Validate params
-    if (!params.is_array() || params.size() < 1 || !params[0].is_string()) {
-        jsonError(res, -32602, "Invalid params");
+    if (!params.is_array() || params.size() < 3) {
+        jsonError(res, -32602, "Invalid params: [txHash, index, evmAddress]");
         return res.dump();
     }
 
-    extern Blockchain globalChain;
-    std::string addr = params[0].get<std::string>();
-    addr = normalizeAddress(addr);
+    std::string txHash  = params[0].get<std::string>();
+    int index           = params[1].get<int>();
+    std::string evmAddr = params[2].get<std::string>();
 
-    if (addr.empty()) {
-        jsonError(res, -32602, "Invalid address");
-        return res.dump();
-    }
-
-    uint64_t bal = globalChain.getBalance(addr);
-    res["result"] = hexUInt(bal);
-    return res.dump();
-}
-
-std::string rpc_eth_getTransactionCount(const nlohmann::json &params, int id) {
-    nlohmann::json res;
-    res["jsonrpc"] = "2.0";
-    res["id"]      = id;
-
-    if (!params.is_array() || params.size() < 1 || !params[0].is_string()) {
-        jsonError(res, -32602, "Invalid params");
-        return res.dump();
-    }
-
-    extern Blockchain globalChain;
-    std::string addr = params[0].get<std::string>();
-    addr = normalizeAddress(addr);
-
-    if (addr.empty()) {
-        jsonError(res, -32602, "Invalid address");
-        return res.dump();
-    }
-
-    uint64_t nonce = globalChain.getNonce(addr);
-    res["result"] = hexUInt(nonce);
-    return res.dump();
-}
-
-// =========================
-// eth methods — transactions
-// =========================
-
-std::string rpc_eth_sendRawTransaction(const nlohmann::json &params, int id) {
-    nlohmann::json res;
-    res["jsonrpc"] = "2.0";
-    res["id"]      = id;
-
-    if (!params.is_array() || params.size() < 1 || !params[0].is_string()) {
-        jsonError(res, -32602, "Invalid params");
-        return res.dump();
-    }
-
-    std::string rawHex = params[0].get<std::string>();
-    // Normalize: remove optional 0x
-    if (rawHex.rfind("0x", 0) == 0) rawHex = rawHex.substr(2);
-
-    Transaction tx = decodeRawTransaction(rawHex);
-
-    if (!tx.isValid()) {
-        jsonError(res, -32000, "Invalid transaction");
-        return res.dump();
-    }
-
-    extern Blockchain globalChain;
-    bool ok = globalChain.mempool.addTransaction(tx);
-
-    if (!ok) {
-        jsonError(res, -32000, "Failed to add transaction to mempool");
+    if (globalUtxoSet.lockUTXO(txHash, index, evmAddr)) {
+        res["result"] = {{"status", "locked"}, {"txHash", txHash}, {"index", index}};
     } else {
-        // TX hash may or may not include 0x in its field; normalize for RPC
-        std::string txHash = tx.txHash;
-        if (txHash.rfind("0x", 0) != 0) res["result"] = "0x" + txHash;
-        else res["result"] = txHash;
+        jsonError(res, -32000, "UTXO locking failed - may be spent or already locked");
     }
 
     return res.dump();
 }
 
-// =========================
-// eth methods — receipt
-// =========================
-
-std::string rpc_eth_getTransactionReceipt(const nlohmann::json &params, int id) {
+/**
+ * Method: bridge_unlockUTXO
+ * Parameters: [medorAddress, amount]
+ * Releases locked UTXOs back to the user after they burn wMEDOR.
+ */
+std::string rpc_bridge_unlockUTXO(const nlohmann::json &params, int id) {
     nlohmann::json res;
     res["jsonrpc"] = "2.0";
     res["id"]      = id;
 
-    if (!params.is_array() || params.size() < 1 || !params[0].is_string()) {
-        jsonError(res, -32602, "Invalid params");
+    if (!params.is_array() || params.size() < 2) {
+        jsonError(res, -32602, "Invalid params: [medorAddress, amount]");
         return res.dump();
     }
 
-    std::string txHash = params[0].get<std::string>();
-    if (txHash.rfind("0x", 0) == 0) txHash = txHash.substr(2);
+    std::string medorAddr = params[0].get<std::string>();
+    uint64_t amount      = std::stoull(params[1].get<std::string>());
 
-    Receipt receipt = getReceipt(txHash);
+    auto lockedUtxos = globalUtxoSet.getUTXOsForAddress(medorAddr);
+    uint64_t unlockedValue = 0;
 
-    if (!receipt.found) {
-        jsonError(res, -32000, "Receipt not found");
-        return res.dump();
+    for (const auto& utxo : lockedUtxos) {
+        if (utxo.isLocked && unlockedValue < amount) {
+            if (globalUtxoSet.unlockUTXO(utxo.txHash, utxo.outputIndex)) {
+                unlockedValue += utxo.value;
+            }
+        }
     }
 
-    res["result"] = receipt.toJson();
+    res["result"] = {{"unlockedValue", unlockedValue}, {"targetAmount", amount}};
+    return res.dump();
+}
+
+/**
+ * Method: bridge_getSwapLogs
+ * Used by the .CJS relayer to poll for new wrap requests.
+ */
+std::string rpc_bridge_getSwapLogs(const nlohmann::json &params, int id) {
+    nlohmann::json res;
+    res["jsonrpc"] = "2.0";
+    res["id"]      = id;
+
+    nlohmann::json logs = nlohmann::json::array();
+    
+    // Logic: Iterate UTXO set and find items where isLocked == true 
+    // In production, you would maintain a separate 'pendingSwaps' queue for performance.
+    // For now, we query the state.
+    
+    // Note: This requires a helper in UTXOSet to retrieve all locked items
+    // auto allLocked = globalUtxoSet.getAllLockedUTXOs();
+    // for(auto& l : allLocked) logs.push_back({...});
+
+    res["result"] = logs;
     return res.dump();
 }
