@@ -92,6 +92,35 @@
     </div>
 </div>
 
+    <div class="box">
+    <h4>Ad Reward</h4>
+    <div class="speed">+4.5 GH/s</div>
+    <div class="price">Watch to Boost</div>
+    <button class="btn btn-boost" onclick="watchAd()">WATCH ADS</button>
+</div>
+
+<div class="box">
+    <h4>Affiliate</h4>
+    <div class="speed">+1.8 GH/s</div>
+    <div class="price">Per Referral</div>
+    <button class="btn btn-boost" onclick="copyRef()">SHARE LINK</button>
+</div>
+
+<script>
+function watchAd() {
+    // Replace with your AdMob/AdSense trigger
+    alert("Loading Ad... Watch to earn +4.5 GH/s.");
+}
+
+function copyRef() {
+    const addr = localStorage.getItem("m_addr") || "User";
+    const link = `https://medorcoin.org/signup.html?ref=${addr}`;
+    navigator.clipboard.writeText(link).then(() => alert("Referral Link Copied!"));
+}
+</script>
+
+    
+
 <div class="info-section">
     <h2>How it Works</h2>
     <p>MEDOR tokens are mined via device background processing. Free contracts must be manually accepted every 12 hours. Paid plans provide high-density hardware speed.</p>
@@ -155,3 +184,53 @@
 </script>
 </body>
 </html>
+
+<!-- Two-column resources (General / Introduction, then Row 2) -->
+  <section class="resources" style="padding:20px 12px;">
+    <div class="ext-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
+      <!-- Column 1: General -->
+      <div class="col" aria-label="General">
+        <h3>General</h3>
+        <ul style="padding-left:20px;margin:6px 0 0;">
+          <li><a href="beware-of-scams.html">Beware of Scams</a></li>
+          <li><a href="buy-sell-medorcoin.html">Buy & Sell</a></li>
+          <li><a href="invisible-m-blog.html">Blog</a></li>
+          <li><a href="legal.html">Legal</a></li>
+          <li><a href="run-full-node.html">Full Node</a></li>
+          <li><a href="sponsor-us.html">Sponsor Us</a></li>
+        </ul>
+      </div>
+      <!-- Column 2: Introduction -->
+      <div class="col" aria-label="Introduction">
+        <h3>Introduction</h3>
+        <ul style="padding-left:20px;margin:6px 0 0;">
+          <li><a href="about-medorcoin.html">About MedorCoin</a></li>
+          <li><a href="how-it-works.html">How it Works</a></li>
+          <li><a href="important-to-know.html">Important to Know</a></li>
+          <li><a href="introduction.html">Introductionl</a></li>
+          <li><a href="white-paper.html">White Paper</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ext-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:24px;">
+      <!-- Row 2 Column 1: Resources -->
+      <div class="col" aria-label="Resources">
+        <h3>Resources</h3>
+        <ul style="padding-left:20px;margin:6px 0 0;">
+          <li><a href="community.html">Community</a></li>
+          <li><a href="latest-news.html">Latest News</a></li>
+          <li><a href="resources.html">Resources</a></li>
+          <li><a href="terms-and-conditions.html">Terms & Conditions</a></li>
+        </ul>
+      </div>
+      <!-- Row 2 Column 2: About MedorCoin -->
+      <div class="col" aria-label="About MedorCoin">
+        <h3>Who is it For:</h3>
+        <ul style="padding-left:20px;margin:6px 0 0;">
+          <li><a href="institutions.html">For Institutions</a></li>
+          <li><a href="investors.html">For Investors</a></li>
+          <li><a href="medorcoin-core.html">MedorCoin Core</a></li>
+        </ul>
+      </div>
+    </div>
