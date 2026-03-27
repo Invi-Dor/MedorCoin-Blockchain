@@ -2,47 +2,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedorCoin Mining | Industrial Hardware</title>
+    <title>MedorCoin Mining | Live Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
     <style>
         :root { --bg: #f4f4f4; --text: #000; --accent: #ff8a00; --border: #ddd; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; line-height: 1.5; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; }
         
-        /* HEADER */
+        /* HEADER - NAV LINKS */
         .header { background: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; }
-        .logo-text { font-weight: 900; font-size: 1.3rem; letter-spacing: -0.5px; }
+        .logo-text { font-weight: 900; font-size: 1.3rem; }
         .nav-right { display: flex; align-items: center; gap: 20px; }
-        .menu-icon { font-size: 24px; cursor: pointer; font-weight: bold; padding: 5px; }
+        .menu-icon { font-size: 24px; cursor: pointer; font-weight: bold; }
         
         .dropdown { display: none; position: absolute; top: 65px; right: 20px; background: white; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1001; width: 220px; border-radius: 8px; }
-        .dropdown a { display: block; padding: 14px 20px; text-decoration: none; color: #333; border-bottom: 1px solid #f0f0f0; font-size: 14px; font-weight: 500; }
-        .dropdown a:hover { background: #f9f9f9; }
+        .dropdown a { display: block; padding: 14px 20px; text-decoration: none; color: #333; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 
-        /* BALANCE BLOCK (White Background, Black Text) */
-        .balance-container { background: #fff; margin: 20px; padding: 35px 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        /* LIVE BALANCE BLOCK - WHITE BACKGROUND / BLACK FONT */
+        .balance-container { background: #fff; margin: 20px; padding: 35px 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
         .brand-logo-circle { width: 50px; height: 50px; background: var(--accent); border-radius: 50%; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 20px; }
         .bal-val { font-size: 2.8rem; font-weight: 800; color: #000; letter-spacing: -1.5px; margin: 10px 0; }
-        .speed-label { color: #666; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* 4-BOX GRID */
+        /* 4-BLOCK GRID */
         .box-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
-        .box { background: #fff; border: 1px solid var(--border); padding: 20px 10px; border-radius: 10px; text-align: center; transition: transform 0.1s; }
-        .box h4 { margin: 0 0 8px 0; font-size: 12px; color: #888; text-transform: uppercase; }
+        .box { background: #fff; border: 1px solid var(--border); padding: 20px 10px; border-radius: 10px; text-align: center; }
+        .box h4 { margin: 0 0 8px 0; font-size: 11px; color: #888; text-transform: uppercase; }
         .box .speed { font-size: 20px; font-weight: 800; color: var(--accent); }
         .box .price { font-size: 13px; margin: 8px 0; font-weight: 700; color: #444; }
-        .action-btn { width: 90%; padding: 12px; border: none; background: #000; color: #fff; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 12px; }
+        .action-btn { width: 95%; padding: 12px; border: none; background: #000; color: #fff; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 11px; text-transform: uppercase; }
 
-        /* HOW IT WORKS SECTION */
+        /* CONTENT */
         .info-section { background: #fff; margin: 20px; padding: 25px; border-radius: 12px; border: 1px solid var(--border); }
-        .info-section h2 { font-size: 18px; margin-top: 0; border-bottom: 2px solid var(--accent); display: inline-block; padding-bottom: 5px; }
-        .info-section p { font-size: 14px; color: #444; margin-bottom: 10px; }
-
-        /* DISCLAIMER SECTION */
-        .disclaimer-section { margin: 20px; padding: 20px; border-radius: 12px; background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
-        .disclaimer-section h3 { font-size: 14px; margin-top: 0; text-transform: uppercase; }
-        .disclaimer-section p { font-size: 12px; line-height: 1.6; margin: 0; }
-        
-        #logoutBtn { color: #dc2626 !important; font-weight: bold; }
+        .disclaimer-section { margin: 20px; padding: 20px; border-radius: 12px; background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -51,66 +41,63 @@
     <div class="logo-text">MedorCoin Mining</div>
     <div class="nav-right">
         <div id="authLinks">
-            <button onclick="startAuth()" style="background:none; border:none; font-weight:bold; cursor:pointer; font-size:14px;">Login/Signup</button>
+            <a href="login.html" style="text-decoration:none; color:#000; font-weight:bold; font-size:14px; margin-right:10px;">Login</a>
+            <a href="signup.html" style="text-decoration:none; color:#000; font-weight:bold; font-size:14px;">Signup</a>
         </div>
         <div class="menu-icon" onclick="toggleMenu()">三</div>
     </div>
 </div>
 
 <div class="dropdown" id="menu">
-    <a href="#dashboard">Dashboard</a>
-    <a href="#howitworks">How it works</a>
-    <a href="#course">Mining Course</a>
-    <a href="#devs">Developers</a>
-    <a href="#settings">Settings</a>
-    <a href="#" id="logoutBtn" style="display:none;" onclick="logout()">Logout</a>
+    <a href="miners.html">Dashboard</a>
+    <a href="how-it-works.html">How it works</a>
+    <a href="mining-course.html">Mining Course</a>
+    <a href="developers.html">Developers</a>
+    <a href="settings.html">Settings</a>
+    <a href="logout.html" id="logoutBtn" style="display:none; color:red;">Logout</a>
 </div>
 
 <div class="balance-container">
     <div class="brand-logo-circle">M</div>
-    <div class="speed-label">Current Mining Balance</div>
+    <div style="color:#666; font-size:12px; font-weight:600; text-transform:uppercase;">Live Balance</div>
     <div class="bal-val" id="bal">0.00000000</div>
-    <div style="font-weight:bold; font-size:14px;">Total Speed: <span id="spd" style="color:var(--accent);">0.00</span> GH/s</div>
+    <div style="font-weight:bold; font-size:14px;">Hashrate: <span id="spd" style="color:var(--accent);">0.00</span> GH/s</div>
 </div>
 
 <div class="box-grid">
     <div class="box">
-        <h4>Free Plan</h4>
+        <h4>Free Contract</h4>
         <div class="speed">4 GH/s</div>
-        <div class="price">Every 12 Hours</div>
-        <button class="action-btn" onclick="sendAction('claim-free')">ACCEPT CONTRACT</button>
+        <div class="price">12h Cycle</div>
+        <button class="action-btn" onclick="claimFree()">Accept Contract</button>
     </div>
     <div class="box">
-        <h4>Monthly Boost</h4>
+        <h4>Monthly</h4>
         <div class="speed">600 GH/s</div>
-        <div class="price">$13 / Month</div>
-        <button class="action-btn" onclick="buyPlan('monthly')">UPGRADE NOW</button>
+        <div class="price">$13.00</div>
+        <button class="action-btn" onclick="triggerInvoice('Monthly Mining Session', 13, 'monthly')">Upgrade</button>
     </div>
     <div class="box">
-        <h4>Quarterly Boost</h4>
+        <h4>Quarterly</h4>
         <div class="speed">600 GH/s</div>
-        <div class="price">$39 / 3 Months</div>
-        <button class="action-btn" onclick="buyPlan('quarterly')">UPGRADE NOW</button>
+        <div class="price">$39.00</div>
+        <button class="action-btn" onclick="triggerInvoice('Quarterly Mining Session', 39, 'quarterly')">Upgrade</button>
     </div>
     <div class="box">
-        <h4>Yearly Boost</h4>
+        <h4>Yearly</h4>
         <div class="speed">600 GH/s</div>
-        <div class="price">$156 / Year</div>
-        <button class="action-btn" onclick="buyPlan('yearly')">UPGRADE NOW</button>
+        <div class="price">$156.00</div>
+        <button class="action-btn" onclick="triggerInvoice('Yearly Mining Session', 156, 'yearly')">Upgrade</button>
     </div>
 </div>
 
-<div class="info-section" id="howitworks">
+<div class="info-section">
     <h2>How it Works</h2>
-    <p><strong>Universal Mining:</strong> MEDOR tokens can be mined using any device, including your smartphone. Simply keep this page active or running in the background to continue hashing.</p>
-    <p><strong>Free Mining:</strong> Accept the mining contract every 12 hours to maintain your 4 GH/s speed boost. This ensures active participation in the network.</p>
-    <p><strong>Boosted Plans:</strong> For industrial-scale results, our Monthly, Quarterly, and Yearly plans provide a continuous, high-speed 600 GH/s connection to the Medor hardware pool.</p>
-    <p><strong>Withdrawals:</strong> You can withdraw your earnings to any compatible wallet once you reach the minimum threshold of US$10 worth of MEDOR.</p>
+    <p>MEDOR tokens are mined via device background processing. Free contracts must be manually accepted every 12 hours. Paid plans provide high-density hardware speed.</p>
 </div>
 
 <div class="disclaimer-section">
-    <h3>Disclaimer</h3>
-    <p>Mining MEDOR tokens is not a guarantee of financial freedom and does not constitute financial advice. Cryptocurrency markets are highly volatile; users should be aware that tokens can lose value. MedorCoin is not liable for any financial losses. It is your sole responsibility to secure your passwords and recovery phrases; loss of these credentials will result in permanent loss of your account and funds.</p>
+    <p><strong>Disclaimer:</strong> Not financial advice. Crypto is volatile. MedorCoin is not liable for losses. Protect your own private keys and recovery phrases.</p>
 </div>
 
 <script>
@@ -118,69 +105,52 @@
 
     function toggleMenu() {
         const m = document.getElementById("menu");
-        m.style.display = m.style.display === "block" ? "none" : "block";
+        m.style.display = (m.style.display === "block") ? "none" : "block";
     }
 
-    function updateAuthUI() {
-        const authLinks = document.getElementById("authLinks");
-        const logoutBtn = document.getElementById("logoutBtn");
-        if (auth) {
-            authLinks.style.display = "none";
-            logoutBtn.style.display = "block";
-        } else {
-            authLinks.style.display = "block";
-            logoutBtn.style.display = "none";
-        }
-    }
-
-    async function sync() {
-        if (!auth || !addr) return;
-        try {
-            const res = await fetch(`/api/user-stats?addr=${addr}&token=${auth}`);
-            const d = await res.json();
-            localBal = parseFloat(d.balance);
-            localSpd = parseFloat(d.speed);
-            document.getElementById("bal").innerText = localBal.toFixed(8);
-            document.getElementById("spd").innerText = localSpd.toFixed(2);
-        } catch (e) { console.error("Sync failed."); }
-    }
-
-    async function startAuth() {
-        if (!window.ethereum) return alert("Please open in a Web3 Browser like MetaMask.");
-        const p = new ethers.BrowserProvider(window.ethereum);
-        const s = await p.getSigner();
-        const a = await s.getAddress();
-        const msg = `Medor_Auth_${Date.now()}`;
-        const sig = await s.signMessage(msg);
-        const r = await fetch('/api/auth', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ addr: a, signature: sig, message: msg })
-        });
-        const d = await r.json();
-        auth = d.token; addr = a;
-        localStorage.setItem("m_token", auth); localStorage.setItem("m_addr", addr);
-        updateAuthUI(); sync();
-    }
-
-    function logout() {
-        localStorage.clear();
-        location.reload();
-    }
-
-    // Live Visual Tick (100ms)
+    // --- LIVE BALANCE TICKING ---
     setInterval(() => {
         if (localSpd > 0) {
-            // Speed / 10^7 = Medor per second. / 10 for 100ms interval.
             localBal += (localSpd * 0.00000010) / 10;
             document.getElementById("bal").innerText = localBal.toFixed(8);
         }
     }, 100);
 
-    window.onload = () => {
-        updateAuthUI();
-        if (auth) { sync(); setInterval(sync, 10000); }
-    };
+    // --- UNIVERSAL INVOICE TRIGGER ---
+    function triggerInvoice(prod, price, plan) {
+        // Injects data into your universal Invoice.html engine
+        const uid = localStorage.getItem("m_addr");
+        const sid = localStorage.getItem("m_token");
+        window.location.href = `Invoice.html?product=${encodeURIComponent(prod)}&price=${price}&plan=${plan}&speed=600&method=crypto&uid=${uid}&sid=${sid}`;
+    }
+
+    // --- 12-HOUR MANUAL CLAIM ---
+    async function claimFree() {
+        if(!auth) return alert("Login required.");
+        const res = await fetch('/api/action', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ type: 'claim-free', addr, token: auth })
+        });
+        const d = await res.json();
+        if(d.success) { alert("LIVE 4 GH/s Started!"); sync(); }
+        else alert(d.error);
+    }
+
+    async function sync() {
+        if(!auth || !addr) return;
+        const res = await fetch(`/api/user-stats?addr=${addr}&token=${auth}`);
+        const d = await res.json();
+        localBal = parseFloat(d.balance);
+        localSpd = parseFloat(d.speed);
+        document.getElementById("spd").innerText = localSpd.toFixed(2);
+        
+        // Navigation Logic
+        document.getElementById("authLinks").style.display = "none";
+        document.getElementById("logoutBtn").style.display = "block";
+    }
+
+    window.onload = () => { if(auth) { sync(); setInterval(sync, 10000); } };
 </script>
 </body>
 </html>
