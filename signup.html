@@ -3,127 +3,131 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MedorCoin | Industrial Sign Up</title>
-<link rel="icon" href="medorcoin-logo.png">
-<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+<title>MedorCoin | Professional Sign Up</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
+
 <style>
-  body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; padding: 40px 20px; }
-  .container { background: #1e293b; padding: 30px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-  h2 { text-align: center; color: #38bdf8; margin-bottom: 25px; font-size: 22px; }
-  label { font-size: 13px; color: #94a3b8; display: block; margin-top: 15px; }
-  input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
-  input:focus { border-color: #2563eb; outline: none; }
-  button { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 25px; transition: 0.3s; }
-  button:hover { background: #1d4ed8; transform: translateY(-1px); }
-  .error { color: #f87171; font-size: 13px; margin-top: 10px; background: rgba(248, 113, 113, 0.1); padding: 8px; border-radius: 4px; display: none; }
-  .social-group { display: flex; gap: 10px; margin-bottom: 20px; }
-  .social-btn { flex: 1; background: #f8fafc; color: #1e293b; text-align: center; border-radius: 6px; text-decoration: none; padding: 10px; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
-  .social-btn img { width: 18px; height: 18px; margin-right: 8px; }
-  .requirements { font-size: 11px; color: #64748b; margin-top: 5px; line-height: 1.4; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; padding: 40px 20px; }
+  .container { background: #1e293b; padding: 32px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+  h2 { text-align: center; color: #38bdf8; margin-bottom: 24px; font-weight: 700; }
+  
+  /* REAL SOCIAL BUTTONS */
+  .social-btn { width: 100%; height: 45px; margin-bottom: 12px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 600; text-decoration: none; font-size: 15px; transition: 0.2s; border: none; }
+  .btn-google { background: #ffffff; color: #1f2937; }
+  .btn-apple { background: #000000; color: #ffffff; }
+  .social-icon { width: 20px; height: 20px; margin-right: 12px; }
+
+  label { font-size: 13px; color: #94a3b8; display: block; margin-top: 16px; font-weight: 600; }
+  input { width: 100%; padding: 12px; margin-top: 6px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 15px; }
+  input:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
+  
+  .requirements { font-size: 11px; color: #64748b; margin-top: 6px; line-height: 1.4; }
+  .error { color: #f87171; font-size: 13px; margin-top: 12px; background: rgba(248, 113, 113, 0.15); padding: 10px; border-radius: 6px; display: none; }
+  
+  button[type="submit"] { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 700; margin-top: 24px; }
+  button:hover { background: #1d4ed8; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>Create MedorCoin Account</h2>
+  <h2>Join MedorCoin</h2>
 
-  <div class="social-group">
-    <a href="#" class="social-btn" onclick="handleSocial('google')">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"> Google
-    </a>
-    <a href="#" class="social-btn" onclick="handleSocial('apple')">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg"> Apple
-    </a>
-  </div>
+  <button class="social-btn btn-google" onclick="googleAuth()">
+    <img class="social-icon" src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="G">
+    Continue with Google
+  </button>
 
-  <div style="text-align:center; color:#475569; font-size:12px; margin: 15px 0;">OR MANUAL SIGNUP</div>
+  <button class="social-btn btn-apple" id="appleid-signin" onclick="appleAuth()">
+    <img class="social-icon" src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" style="filter: invert(1);" alt="A">
+    Continue with Apple
+  </button>
+
+  <div style="text-align:center; color:#475569; font-size:12px; margin: 20px 0;">OR USE EMAIL</div>
 
   <form id="signupForm">
-    <label>Email Address</label>
+    <label>Email</label>
     <input type="email" id="email" required placeholder="name@email.com">
 
     <label>Username</label>
-    <input type="text" id="username" required placeholder="Choose a username">
+    <input type="text" id="username" required placeholder="Display name">
 
     <label>Password</label>
     <input type="password" id="password" required placeholder="••••••••">
     <div class="requirements">
-      Min. 8 chars, 1 Uppercase, 1 Lowercase, 1 Number, 1 Special Symbol.
+      * 8+ chars, 1 Upper, 1 Lower, 1 Number, 1 Special Symbol (@$!%*?&).
     </div>
 
     <label>Confirm Password</label>
     <input type="password" id="confirmPassword" required placeholder="••••••••">
 
     <div id="errorBox" class="error"></div>
-
-    <button type="submit" id="submitBtn">Sign Up & Verify Email</button>
+    <button type="submit" id="mainBtn">Create Account</button>
   </form>
 </div>
 
 <script>
-// 1. Password Security Logic (8 Chars + Complexity)
-function validatePassword(pw) {
-  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-  return regex.test(pw);
-}
+// 1. STRICT SECURITY VALIDATION
+const validatePassword = (pw) => {
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(pw);
+};
 
 document.getElementById("signupForm").addEventListener("submit", async function(e) {
   e.preventDefault();
-  const errorBox = document.getElementById("errorBox");
   const email = document.getElementById("email").value;
   const pw = document.getElementById("password").value;
   const confirm = document.getElementById("confirmPassword").value;
-  
+  const errorBox = document.getElementById("errorBox");
+
   errorBox.style.display = "none";
 
-  // Match Check
-  if(pw !== confirm) {
-    showError("Passwords do not match.");
-    return;
-  }
+  if (pw !== confirm) return showError("Passwords do not match.");
+  if (!validatePassword(pw)) return showError("Password fails security requirements.");
 
-  // Industrial Complexity Check
-  if(!validatePassword(pw)) {
-    showError("Password does not meet the 4 strict security requirements.");
-    return;
-  }
-
-  // 2. Trigger verification code via Node.js Backend
+  // 2. TRIGGER REAL EMAIL VERIFICATION (OTP)
+  document.getElementById("mainBtn").innerText = "Sending Code...";
+  
   try {
-    document.getElementById("submitBtn").innerText = "Sending Code...";
-    const response = await fetch("https://your-api.medorcoin.org/auth/signup", {
+    const res = await fetch("/api/auth/request-otp", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, username: document.getElementById("username").value, password: pw })
     });
 
-    if(response.ok) {
-      // Direct user to the verification code page
-      window.location.href = "verify.html?email=" + encodeURIComponent(email);
+    if (res.ok) {
+      // Move to the 6-digit confirmation screen
+      window.location.href = `verify.html?email=${encodeURIComponent(email)}`;
     } else {
-      showError("Account already exists or Server Error.");
+      showError("This email is already registered.");
     }
   } catch (err) {
-    showError("Network Error. Check your connection.");
-  } finally {
-    document.getElementById("submitBtn").innerText = "Sign Up & Verify Email";
+    showError("Server timeout. Try again.");
   }
 });
 
 function showError(msg) {
-  const errorBox = document.getElementById("errorBox");
-  errorBox.innerText = msg;
-  errorBox.style.display = "block";
+  const eb = document.getElementById("errorBox");
+  eb.innerText = msg;
+  eb.style.display = "block";
+  document.getElementById("mainBtn").innerText = "Create Account";
 }
 
-// 3. Real Social Login (Google/Apple)
-async function handleSocial(providerType) {
-  // In a real build, this uses Firebase 'signInWithPopup'
-  alert(`Connecting to ${providerType} secure gateway...`);
-  // Once confirmed, user bypasses OTP and goes straight to dashboard
+// 3. PUBLIC OAUTH GATEWAYS
+function googleAuth() {
+  // Triggers Google's Public Identity UI
+  window.location.href = "https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_URL&response_type=token&scope=email profile";
+}
+
+function appleAuth() {
+  AppleID.auth.init({
+    clientId : 'com.medorcoin.network.login',
+    scope : 'name email',
+    redirectURI : 'https://medorcoin.org/callback',
+    usePopup : true
+  });
+  AppleID.auth.signIn();
 }
 </script>
-
 </body>
 </html>
