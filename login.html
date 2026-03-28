@@ -6,29 +6,53 @@
 <title>MedorCoin | Log In</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-  body { font-family: Arial, sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; padding: 40px 20px; }
-  .container { background: #1e293b; padding: 30px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-  h2 { text-align: center; color: #38bdf8; margin-bottom: 25px; }
-  label { font-size: 13px; color: #94a3b8; display: block; margin-top: 15px; }
-  input[type="text"], input[type="password"] { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+  :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --btn: #2563eb; --text: #f8fafc; }
+  body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
   
-  .captcha-container { display: flex; align-items: center; margin-top: 20px; font-size: 14px; }
-  .captcha-container input { width: auto; margin-right: 10px; transform: scale(1.2); cursor: pointer; }
+  /* HEADER ARCHITECTURE */
+  header { width: 100%; padding: 20px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; background: rgba(15, 23, 42, 0.9); position: sticky; top: 0; z-index: 1000; }
+  .logo { font-size: 22px; font-weight: 800; color: var(--accent); text-decoration: none; }
+  .menu-icon { cursor: pointer; display: flex; flex-direction: column; gap: 5px; }
+  .menu-icon div { width: 25px; height: 3px; background: white; border-radius: 2px; }
   
-  button[type="submit"] { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 25px; }
-  button[type="submit"]:hover { background: #1d4ed8; }
-  .error { color: #f87171; font-size: 13px; margin-top: 10px; display: none; background: rgba(248, 113, 113, 0.1); padding: 8px; border-radius: 4px; }
+  /* DROPDOWN MENU */
+  #nav-dropdown { display: none; position: absolute; top: 60px; right: 20px; background: var(--card); border: 1px solid #334155; border-radius: 8px; width: 200px; padding: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+  #nav-dropdown a { display: block; color: white; padding: 12px; text-decoration: none; font-size: 14px; border-radius: 4px; }
+  #nav-dropdown a:hover { background: #334155; }
+
+  /* LOGIN CONTAINER */
+  .container { background: var(--card); padding: 35px; border-radius: 12px; width: 100%; max-width: 400px; margin-top: 60px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+  h2 { text-align: center; color: var(--accent); margin-bottom: 30px; }
   
-  /* Layout for the Social Buttons */
-  .social-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; align-items: center; }
-  .apple-btn { background: #000; color: #fff; border: none; width: 100%; height: 40px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; text-decoration: none; }
-  .apple-btn img { width: 18px; margin-right: 8px; filter: invert(1); }
+  label { font-size: 13px; color: #94a3b8; display: block; margin-top: 20px; font-weight: 600; }
+  input { width: 100%; padding: 12px; margin-top: 8px; border-radius: 6px; border: 1px solid #334155; background: var(--bg); color: white; box-sizing: border-box; font-size: 15px; }
+  
+  .captcha-box { display: flex; align-items: center; margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px; }
+  .captcha-box input { width: auto; margin-top: 0; margin-right: 12px; transform: scale(1.3); }
+
+  button[type="submit"] { width: 100%; padding: 15px; background: var(--btn); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 700; margin-top: 25px; transition: 0.3s; }
+  button[type="submit"]:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+  .social-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
+  .apple-btn { background: #000; color: #fff; border: none; width: 100%; height: 45px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; cursor: pointer; }
+  .apple-btn img { width: 18px; margin-right: 10px; filter: invert(1); }
+  
+  .error-msg { color: #f87171; font-size: 13px; margin-top: 15px; padding: 10px; background: rgba(248, 113, 113, 0.1); border-radius: 6px; display: none; text-align: center; }
 </style>
 </head>
 <body>
 
+<header>
+  <a href="index.html" class="logo">MEDORCOIN</a>
+  <div class="menu-icon" onclick="toggleMenu()">
+    <div></div><div></div><div></div>
+  </div>
+  <div id="nav-dropdown">
+    </div>
+</header>
+
 <div class="container">
-  <h2>MedorCoin Login</h2>
+  <h2>Account Login</h2>
 
   <div class="social-container">
     <div id="g_id_onload"
@@ -38,98 +62,122 @@
          data-callback="onGoogleLogin"
          data-auto_prompt="false">
     </div>
-
-    <div class="g_id_signin"
-         data-type="standard"
-         data-shape="rectangular"
-         data-theme="outline"
-         data-text="signin_with"
-         data-size="large"
-         data-logo_alignment="left"
-         data-width="400">
-    </div>
+    <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-width="330"></div>
 
     <button class="apple-btn" onclick="onAppleLogin()">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg">
-      Log in with Apple
+      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="">
+      Login with Apple
     </button>
   </div>
 
-  <hr style="border:0px; border-top:1px solid #334155; margin:15px 0;">
+  <hr style="border: 0; border-top: 1px solid #334155; margin-bottom: 20px;">
 
   <form id="loginForm">
     <label>Email or Username</label>
-    <input type="text" id="identifier" required placeholder="name@domain.com or username">
+    <input type="text" id="identifier" required placeholder="Enter credentials">
 
     <label>Password</label>
     <input type="password" id="password" required placeholder="••••••••">
 
-    <div class="captcha-container">
+    <div class="captcha-box">
       <input type="checkbox" id="captcha" required>
-      <label for="captcha" style="margin: 0; color: white;">I am not a robot</label>
+      <label for="captcha" style="margin:0; color:white;">I am not a robot</label>
     </div>
 
-    <div id="errorBox" class="error"></div>
-    <button type="submit" id="submitBtn">Log In</button>
+    <div id="errorBox" class="error-msg"></div>
+    <button type="submit" id="mainBtn">Log In to MedorCoin</button>
   </form>
 </div>
 
 <script>
-document.getElementById("loginForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
-  const errorBox = document.getElementById("errorBox");
-  const identifier = document.getElementById("identifier").value.trim();
-  const pw = document.getElementById("password").value;
-  const captcha = document.getElementById("captcha").checked;
+// --- 1. SESSION & UI MANAGEMENT ---
+function toggleMenu() {
+  const dd = document.getElementById("nav-dropdown");
+  dd.style.display = dd.style.display === "block" ? "none" : "block";
+}
 
-  errorBox.style.display = "none";
-
-  if (!captcha) {
-    return showError("Please verify you are not a robot.");
+function updateUIForSession() {
+  const user = JSON.parse(localStorage.getItem("medor_session"));
+  const dropdown = document.getElementById("nav-dropdown");
+  
+  if (user) {
+    dropdown.innerHTML = `
+      <a href="crypto-dashboard.html"><b>Dashboard</b></a>
+      <a href="wallet.html">My Wallet</a>
+      <a href="settings.html">Settings</a>
+      <hr style="border:0; border-top:1px solid #334155;">
+      <a href="#" onclick="logout()" style="color:#f87171">Logout</a>
+    `;
+  } else {
+    dropdown.innerHTML = `
+      <a href="login.html">Login</a>
+      <a href="signup.html">Create Account</a>
+      <a href="about.html">About MedorCoin</a>
+    `;
   }
+}
 
-  // --- REAL LOGIN TRIGGER ---
-  document.getElementById("submitBtn").innerText = "Authenticating...";
+function logout() {
+  localStorage.removeItem("medor_session");
+  window.location.href = "index.html";
+}
+
+// --- 2. THE "LANDING" REDIRECT LOGIC ---
+async function landInDashboard(data) {
+  // Save global user data from your server
+  localStorage.setItem("medor_session", JSON.stringify(data.user));
+  // Land on the dashboard
+  window.location.href = "crypto-dashboard.html";
+}
+
+// --- 3. AUTHENTICATION HANDLERS ---
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById("mainBtn");
+  const err = document.getElementById("errorBox");
+  err.style.display = "none";
+  btn.innerText = "Verifying...";
+
   try {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identifier, password: pw })
+      body: JSON.stringify({
+        identifier: document.getElementById("identifier").value,
+        password: document.getElementById("password").value
+      })
     });
 
+    const data = await res.json();
     if (res.ok) {
-      // Redirect straight to dashboard on successful login
-      window.location.href = "crypto-dashboard.html";
+      landInDashboard(data);
     } else {
-      showError("Invalid credentials. Please try again.");
+      err.innerText = data.message || "Invalid credentials.";
+      err.style.display = "block";
     }
-  } catch (err) {
-    showError("Could not connect to the MedorCoin server.");
+  } catch (error) {
+    err.innerText = "Network error: Verify your VPS connection.";
+    err.style.display = "block";
   } finally {
-    document.getElementById("submitBtn").innerText = "Log In";
+    btn.innerText = "Log In to MedorCoin";
   }
 });
 
-// --- LIVE GOOGLE CALLBACK ---
 function onGoogleLogin(response) {
-  console.log("Token received:", response.credential);
-  // Send token to your backend to verify and create session
   fetch("/api/auth/google-login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token: response.credential })
-  }).then(res => res.ok ? window.location.href = "crypto-dashboard.html" : showError("Google Login Failed"));
+  }).then(res => res.json()).then(data => landInDashboard(data));
 }
 
 function onAppleLogin() {
-  alert("Apple Log-in triggered. Requires your Developer Team ID in the config.");
+  // Add your registered Apple Redirect URI here
+  window.location.href = "https://appleid.apple.com/auth/authorize?client_id=YOUR_ID&redirect_uri=https://medorcoin.org/dashboard&response_type=code id_token&scope=name email&response_mode=form_post";
 }
 
-function showError(msg) {
-  const eb = document.getElementById("errorBox");
-  eb.innerText = msg;
-  eb.style.display = "block";
-}
+// Init UI on load
+updateUIForSession();
 </script>
 </body>
 </html>
