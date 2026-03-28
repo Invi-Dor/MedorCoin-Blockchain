@@ -3,16 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MedorCoin | Sign Up</title>
+<title>MedorCoin | Log In</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   body { font-family: Arial, sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; padding: 40px 20px; }
   .container { background: #1e293b; padding: 30px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
   h2 { text-align: center; color: #38bdf8; margin-bottom: 25px; }
   label { font-size: 13px; color: #94a3b8; display: block; margin-top: 15px; }
-  input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
-  .requirements { font-size: 11px; color: #64748b; margin-top: 5px; line-height: 1.4; }
+  input[type="text"], input[type="password"] { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+  
+  .captcha-container { display: flex; align-items: center; margin-top: 20px; font-size: 14px; }
+  .captcha-container input { width: auto; margin-right: 10px; transform: scale(1.2); cursor: pointer; }
+  
   button[type="submit"] { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 25px; }
+  button[type="submit"]:hover { background: #1d4ed8; }
   .error { color: #f87171; font-size: 13px; margin-top: 10px; display: none; background: rgba(248, 113, 113, 0.1); padding: 8px; border-radius: 4px; }
   
   /* Layout for the Social Buttons */
@@ -24,14 +28,14 @@
 <body>
 
 <div class="container">
-  <h2>Join MedorCoin</h2>
+  <h2>MedorCoin Login</h2>
 
   <div class="social-container">
     <div id="g_id_onload"
-         data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
-         data-context="signup"
+         data-client_id="650014694453-ud6jq7505nrh7ivm455p0hv86k9na6d5.apps.googleusercontent.com"
+         data-context="signin"
          data-ux_mode="popup"
-         data-callback="onGoogleSignup"
+         data-callback="onGoogleLogin"
          data-auto_prompt="false">
     </div>
 
@@ -39,95 +43,92 @@
          data-type="standard"
          data-shape="rectangular"
          data-theme="outline"
-         data-text="signup_with"
+         data-text="signin_with"
          data-size="large"
          data-logo_alignment="left"
          data-width="400">
     </div>
 
-    <button class="apple-btn" onclick="onAppleSignup()">
+    <button class="apple-btn" onclick="onAppleLogin()">
       <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg">
-      Sign up with Apple
+      Log in with Apple
     </button>
   </div>
 
   <hr style="border:0px; border-top:1px solid #334155; margin:15px 0;">
 
-  <form id="signupForm">
-    <label>Email</label>
-    <input type="email" id="email" required placeholder="name@domain.com">
+  <form id="loginForm">
+    <label>Email or Username</label>
+    <input type="text" id="identifier" required placeholder="name@domain.com or username">
 
-    <label>Username</label>
-    <input type="text" id="username" required placeholder="Create username">
-
-    <label>Choose Password</label>
+    <label>Password</label>
     <input type="password" id="password" required placeholder="••••••••">
-    <div class="requirements">8+ characters, 1 Upper, 1 Lower, 1 Number, 1 Special Symbol.</div>
 
-    <label>Confirm Password</label>
-    <input type="password" id="confirmPassword" required placeholder="••••••••">
+    <div class="captcha-container">
+      <input type="checkbox" id="captcha" required>
+      <label for="captcha" style="margin: 0; color: white;">I am not a robot</label>
+    </div>
 
     <div id="errorBox" class="error"></div>
-    <button type="submit" id="submitBtn">Proceed to Sign Up</button>
+    <button type="submit" id="submitBtn">Log In</button>
   </form>
 </div>
 
 <script>
-// --- STRICT PASSWORD LOGIC ---
-const validatePassword = (pw) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(pw);
-
-document.getElementById("signupForm").addEventListener("submit", async function(e) {
+document.getElementById("loginForm").addEventListener("submit", async function(e) {
   e.preventDefault();
   const errorBox = document.getElementById("errorBox");
-  const email = document.getElementById("email").value;
+  const identifier = document.getElementById("identifier").value.trim();
   const pw = document.getElementById("password").value;
-  const confirm = document.getElementById("confirmPassword").value;
+  const captcha = document.getElementById("captcha").checked;
 
   errorBox.style.display = "none";
 
-  if (pw !== confirm) return showError("Passwords do not match.");
-  if (!validatePassword(pw)) return showError("Password must follow the 4 strict security rules.");
+  if (!captcha) {
+    return showError("Please verify you are not a robot.");
+  }
 
-  // --- REAL VERIFICATION TRIGGER ---
-  document.getElementById("submitBtn").innerText = "Sending Code...";
+  // --- REAL LOGIN TRIGGER ---
+  document.getElementById("submitBtn").innerText = "Authenticating...";
   try {
-    const res = await fetch("/api/auth/send-otp", {
+    const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, username: document.getElementById("username").value, password: pw })
+      body: JSON.stringify({ identifier, password: pw })
     });
 
     if (res.ok) {
-      window.location.href = `verify.html?email=${encodeURIComponent(email)}`;
+      // Redirect straight to dashboard on successful login
+      window.location.href = "crypto-dashboard.html";
     } else {
-      showError("User already exists or network error.");
+      showError("Invalid credentials. Please try again.");
     }
   } catch (err) {
-    showError("Could not connect to MedorCoin server.");
+    showError("Could not connect to the MedorCoin server.");
+  } finally {
+    document.getElementById("submitBtn").innerText = "Log In";
   }
 });
 
-// --- REAL GOOGLE CALLBACK ---
-function onGoogleSignup(response) {
-  // This is the real token from your developer console
+// --- LIVE GOOGLE CALLBACK ---
+function onGoogleLogin(response) {
   console.log("Token received:", response.credential);
-  // Send token to your VPS
-  fetch("/api/auth/google-verify", {
+  // Send token to your backend to verify and create session
+  fetch("/api/auth/google-login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token: response.credential })
-  }).then(res => res.ok ? window.location.href = "verify.html" : showError("Google Auth Failed"));
+  }).then(res => res.ok ? window.location.href = "crypto-dashboard.html" : showError("Google Login Failed"));
 }
 
-function onAppleSignup() {
-  alert("Apple Sign-up triggered. Requires your Developer Team ID in the config.");
+function onAppleLogin() {
+  alert("Apple Log-in triggered. Requires your Developer Team ID in the config.");
 }
 
 function showError(msg) {
   const eb = document.getElementById("errorBox");
   eb.innerText = msg;
   eb.style.display = "block";
-  document.getElementById("submitBtn").innerText = "Proceed to Sign Up";
 }
 </script>
 </body>
