@@ -3,131 +3,199 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MedorCoin | Sign Up</title>
+<title>MedorCoin | Join the Future</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-  body { font-family: Arial, sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; padding: 40px 20px; }
-  .container { background: #1e293b; padding: 30px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-  h2 { text-align: center; color: #38bdf8; margin-bottom: 25px; }
-  label { font-size: 13px; color: #94a3b8; display: block; margin-top: 15px; }
-  input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
-  .requirements { font-size: 11px; color: #64748b; margin-top: 5px; line-height: 1.4; }
-  button[type="submit"] { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 25px; }
-  .error { color: #f87171; font-size: 13px; margin-top: 10px; display: none; background: rgba(248, 113, 113, 0.1); padding: 8px; border-radius: 4px; }
+  :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --btn: #2563eb; --text: #f8fafc; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
   
-  /* Layout for the Social Buttons */
-  .social-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; align-items: center; }
-  .apple-btn { background: #000; color: #fff; border: none; width: 100%; height: 40px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; text-decoration: none; }
-  .apple-btn img { width: 18px; margin-right: 8px; filter: invert(1); }
+  /* HEADER ARCHITECTURE */
+  header { width: 100%; padding: 20px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; }
+  .logo { font-size: 22px; font-weight: 800; color: var(--accent); text-decoration: none; }
+  .menu-icon { cursor: pointer; display: flex; flex-direction: column; gap: 5px; }
+  .menu-icon div { width: 25px; height: 3px; background: white; border-radius: 2px; }
+  #nav-dropdown { display: none; position: absolute; top: 60px; right: 20px; background: var(--card); border: 1px solid #334155; border-radius: 8px; width: 200px; padding: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+  #nav-dropdown a { display: block; color: white; padding: 12px; text-decoration: none; font-size: 14px; border-radius: 4px; }
+
+  /* FORM CONTAINERS */
+  .container { background: var(--card); padding: 35px; border-radius: 12px; width: 100%; max-width: 420px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); margin-top: 20px; }
+  h2 { text-align: center; color: var(--accent); margin-bottom: 25px; }
+  label { font-size: 13px; color: #94a3b8; display: block; margin-top: 15px; font-weight: 600; }
+  input { width: 100%; padding: 12px; margin-top: 8px; border-radius: 6px; border: 1px solid #334155; background: var(--bg); color: white; box-sizing: border-box; font-size: 15px; }
+  
+  /* VERIFICATION BOX (Hidden by default) */
+  #verifySection { display: none; text-align: center; }
+  .otp-group { display: flex; justify-content: space-between; margin-top: 20px; }
+  .otp-input { width: 45px; height: 50px; text-align: center; font-size: 20px; font-weight: bold; }
+
+  button { width: 100%; padding: 15px; background: var(--btn); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 700; margin-top: 25px; transition: 0.3s; }
+  .social-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; align-items: center; }
+  .apple-btn { background: #000; color: #fff; width: 100%; height: 45px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; cursor: pointer; border: none; }
+  .apple-btn img { width: 18px; margin-right: 10px; filter: invert(1); }
+  .error-msg { color: #f87171; font-size: 13px; margin-top: 15px; display: none; text-align: center; background: rgba(248, 113, 113, 0.1); padding: 10px; border-radius: 6px; }
+  .success-msg { color: #4ade80; font-size: 14px; margin-top: 15px; display: none; text-align: center; }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <h2>Join MedorCoin</h2>
+<header>
+  <a href="index.html" class="logo">MEDORCOIN</a>
+  <div class="menu-icon" onclick="toggleMenu()">
+    <div></div><div></div><div></div>
+  </div>
+  <div id="nav-dropdown"></div>
+</header>
 
-  <div class="social-container">
-    <div id="g_id_onload"
-         data-client_id="650014694453-ud6jq7505nrh7ivm455p0hv86k9na6d5.apps.googleusercontent.com"
-         data-context="signup"
-         data-ux_mode="popup"
-         data-callback="onGoogleSignup"
-         data-auto_prompt="false">
+<div class="container" id="mainCard">
+  <div id="signupSection">
+    <h2>Create Account</h2>
+    
+    <div class="social-container">
+      <div id="g_id_onload"
+           data-client_id="650014694453-ud6jq7505nrh7ivm455p0hv86k9na6d5.apps.googleusercontent.com"
+           data-context="signup"
+           data-ux_mode="popup"
+           data-callback="onSocialLanding"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signup_with" data-size="large" data-width="350"></div>
+      
+      <button class="apple-btn" onclick="onSocialLanding({provider: 'apple'})">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg"> Sign up with Apple
+      </button>
     </div>
 
-    <div class="g_id_signin"
-         data-type="standard"
-         data-shape="rectangular"
-         data-theme="outline"
-         data-text="signup_with"
-         data-size="large"
-         data-logo_alignment="left"
-         data-width="400">
-    </div>
+    <hr style="border:0; border-top:1px solid #334155; margin: 20px 0;">
 
-    <button class="apple-btn" onclick="onAppleSignup()">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg">
-      Sign up with Apple
-    </button>
+    <form id="manualSignupForm">
+      <label>Email Address</label>
+      <input type="email" id="regEmail" required placeholder="name@domain.com">
+      <label>Username</label>
+      <input type="text" id="regUser" required placeholder="Choose username">
+      <label>Password</label>
+      <input type="password" id="regPass" required placeholder="••••••••">
+      <label>Confirm Password</label>
+      <input type="password" id="regConfirm" required placeholder="••••••••">
+      
+      <div id="regError" class="error-msg"></div>
+      <button type="submit" id="regBtn">Create Medor Account</button>
+    </form>
   </div>
 
-  <hr style="border:0px; border-top:1px solid #334155; margin:15px 0;">
-
-  <form id="signupForm">
-    <label>Email</label>
-    <input type="email" id="email" required placeholder="name@domain.com">
-
-    <label>Username</label>
-    <input type="text" id="username" required placeholder="Create username">
-
-    <label>Choose Password</label>
-    <input type="password" id="password" required placeholder="••••••••">
-    <div class="requirements">8+ characters, 1 Upper, 1 Lower, 1 Number, 1 Special Symbol.</div>
-
-    <label>Confirm Password</label>
-    <input type="password" id="confirmPassword" required placeholder="••••••••">
-
-    <div id="errorBox" class="error"></div>
-    <button type="submit" id="submitBtn">Proceed to Sign Up</button>
-  </form>
+  <div id="verifySection">
+    <h2>Verify Email</h2>
+    <p style="font-size: 14px; color: #94a3b8;">A 6-digit code was sent to your email.</p>
+    <div class="otp-group">
+      <input type="text" class="otp-input" maxlength="1">
+      <input type="text" class="otp-input" maxlength="1">
+      <input type="text" class="otp-input" maxlength="1">
+      <input type="text" class="otp-input" maxlength="1">
+      <input type="text" class="otp-input" maxlength="1">
+      <input type="text" class="otp-input" maxlength="1">
+    </div>
+    <div id="verifyError" class="error-msg"></div>
+    <div id="successInfo" class="success-msg">Registration Successful! Redirecting...</div>
+    <button onclick="submitOTP()" id="verifyBtn">Verify & Complete</button>
+  </div>
 </div>
 
 <script>
-// --- STRICT PASSWORD LOGIC ---
-const validatePassword = (pw) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(pw);
+// --- UI UTILS ---
+function toggleMenu() {
+  const dd = document.getElementById("nav-dropdown");
+  dd.style.display = dd.style.display === "block" ? "none" : "block";
+}
 
-document.getElementById("signupForm").addEventListener("submit", async function(e) {
+function updateNav() {
+  const user = JSON.parse(localStorage.getItem("medor_session"));
+  const dd = document.getElementById("nav-dropdown");
+  if (user) {
+    dd.innerHTML = `<a href="crypto-dashboard.html">Dashboard</a><a href="#" onclick="logout()">Logout</a>`;
+  } else {
+    dd.innerHTML = `<a href="login.html">Login</a><a href="signup.html">Join</a>`;
+  }
+}
+
+function logout() { localStorage.removeItem("medor_session"); window.location.href="index.html"; }
+
+// --- 1. SOCIAL LANDING (IMMEDIATE DASHBOARD) ---
+function onSocialLanding(response) {
+  // If user chooses Google/Apple, bypass OTP and go straight to Dashboard
+  document.getElementById("signupSection").style.opacity = "0.5";
+  fetch("/api/auth/social-sync", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: response.credential, provider: response.provider || 'google' })
+  }).then(res => res.json()).then(data => {
+    localStorage.setItem("medor_session", JSON.stringify(data.user));
+    window.location.href = "crypto-dashboard.html";
+  });
+}
+
+// --- 2. MANUAL SIGNUP (OTP FLOW) ---
+document.getElementById("manualSignupForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const errorBox = document.getElementById("errorBox");
-  const email = document.getElementById("email").value;
-  const pw = document.getElementById("password").value;
-  const confirm = document.getElementById("confirmPassword").value;
+  const btn = document.getElementById("regBtn");
+  const err = document.getElementById("regError");
+  const pass = document.getElementById("regPass").value;
+  const conf = document.getElementById("regConfirm").value;
 
-  errorBox.style.display = "none";
-
-  if (pw !== confirm) return showError("Passwords do not match.");
-  if (!validatePassword(pw)) return showError("Password must follow the 4 strict security rules.");
-
-  // --- REAL VERIFICATION TRIGGER ---
-  document.getElementById("submitBtn").innerText = "Sending Code...";
+  if(pass !== conf) { err.innerText = "Passwords match error."; err.style.display="block"; return; }
+  
+  btn.innerText = "Sending Code...";
   try {
     const res = await fetch("/api/auth/send-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, username: document.getElementById("username").value, password: pw })
+      body: JSON.stringify({ email: document.getElementById("regEmail").value, username: document.getElementById("regUser").value, password: pass })
     });
 
-    if (res.ok) {
-      window.location.href = `verify.html?email=${encodeURIComponent(email)}`;
+    if(res.ok) {
+      document.getElementById("signupSection").style.display = "none";
+      document.getElementById("verifySection").style.display = "block";
     } else {
-      showError("User already exists or network error.");
+      err.innerText = "Email already registered."; err.style.display="block";
     }
-  } catch (err) {
-    showError("Could not connect to the server.");
-  }
+  } catch { err.innerText = "Server Error."; err.style.display="block"; }
+  btn.innerText = "Create Medor Account";
 });
 
-// --- LIVE GOOGLE CALLBACK ---
-function onGoogleSignup(response) {
-  console.log("Token received:", response.credential);
-  // Send token to your backend
-  fetch("/api/auth/google-verify", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token: response.credential })
-  }).then(res => res.ok ? window.location.href = "verify.html" : showError("Google Auth Failed"));
+// --- 3. VERIFICATION & LOGIN REDIRECT ---
+async function submitOTP() {
+  const btn = document.getElementById("verifyBtn");
+  const err = document.getElementById("verifyError");
+  const success = document.getElementById("successInfo");
+  const otp = Array.from(document.querySelectorAll(".otp-input")).map(i => i.value).join("");
+
+  btn.innerText = "Checking...";
+  try {
+    const res = await fetch("/api/auth/verify-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: document.getElementById("regEmail").value, code: otp })
+    });
+
+    if(res.ok) {
+      success.style.display = "block";
+      setTimeout(() => {
+        // After successful verification, we land them on the LOGIN page as requested
+        window.location.href = "login.html?registered=true";
+      }, 2000);
+    } else {
+      err.innerText = "Invalid or expired code."; err.style.display="block";
+    }
+  } catch { err.innerText = "Connection failed."; err.style.display="block"; }
+  btn.innerText = "Verify & Complete";
 }
 
-function onAppleSignup() {
-  alert("Apple Sign-up triggered. Requires your Developer Team ID in the config.");
-}
+// Auto-focus OTP inputs
+document.querySelectorAll(".otp-input").forEach((input, index) => {
+  input.addEventListener("input", (e) => {
+    if (e.target.value.length === 1 && index < 5) document.querySelectorAll(".otp-input")[index + 1].focus();
+  });
+});
 
-function showError(msg) {
-  const eb = document.getElementById("errorBox");
-  eb.innerText = msg;
-  eb.style.display = "block";
-  document.getElementById("submitBtn").innerText = "Proceed to Sign Up";
-}
+updateNav();
 </script>
 </body>
 </html>
