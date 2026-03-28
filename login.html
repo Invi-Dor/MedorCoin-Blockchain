@@ -4,123 +4,93 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MedorCoin Login</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #0f172a;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: top;
-    padding-top: 60px;
-  }
-  .container {
-    background: #1e293b;
-    padding: 40px;
-    border-radius: 8px;
-    width: 380px;
-  }
-  input {
-    width: 100%;
-    padding: 10px;
-    margin-top: 8px;
-    margin-bottom: 18px;
-    border-radius: 5px;
-    border: none;
-  }
-  button {
-    width: 100%;
-    padding: 12px;
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  button:hover {
-    background: #1d4ed8;
-  }
-  .error {
-    color: #f87171;
-    font-size: 14px;
-    margin-bottom: 12px;
-  }
-  .social-btn {
-    background: #fff;
-    color: #000;
-    text-align: center;
-    margin: 8px 0;
-    display: block;
-    border-radius: 6px;
-    text-decoration: none;
-    padding: 10px;
-    font-weight: bold;
-  }
-  .social-btn img {
-    vertical-align: middle;
-    margin-right: 8px;
-    width: 20px;
-    height: 20px;
-  }
+  body { font-family: Arial, sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; align-items: top; padding-top: 60px; }
+  .container { background: #1e293b; padding: 40px; border-radius: 8px; width: 380px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+  h2 { text-align: center; margin-bottom: 20px; color: #38bdf8; }
+  label { font-size: 14px; color: #94a3b8; }
+  input { width: 100%; padding: 12px; margin-top: 8px; margin-bottom: 18px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+  button { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+  button:hover { background: #1d4ed8; }
+  .error { color: #f87171; font-size: 14px; margin-bottom: 12px; background: rgba(248, 113, 113, 0.1); padding: 8px; border-radius: 4px; display: none; }
+  
+  /* Public Icon Styling */
+  .social-btn { background: #fff; color: #000; text-align: center; margin: 8px 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; text-decoration: none; padding: 10px; font-weight: bold; border: none; width: 100%; cursor: pointer; }
+  .social-btn img { margin-right: 10px; width: 20px; height: 20px; }
+  .btn-apple { background: #000; color: #fff; }
 </style>
 </head>
 <body>
 
 <div class="container">
-
   <h2>MedorCoin Login</h2>
 
-  <!-- Social Login Options -->
-  <a class="social-btn" href="#" id="googleLogin">
-    <img src="google-icon.png" alt="Google"> Login with Google
-  </a>
+  <div id="g_id_onload"
+     data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+     data-callback="handleCredentialResponse"
+     data-auto_prompt="false">
+  </div>
+  
+  <button class="social-btn" onclick="googleLoginTrigger()">
+    <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google"> 
+    Login with Google
+  </button>
 
-  <a class="social-btn" href="#" id="appleLogin">
-    <img src="apple-icon.png" alt="Apple"> Login with Apple
-  </a>
+  <button class="social-btn btn-apple" id="appleLogin">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" style="filter: invert(1);" alt="Apple"> 
+    Login with Apple
+  </button>
 
-  <hr style="border:1px solid #334155; margin:15px 0;">
+  <hr style="border:0px; border-top:1px solid #334155; margin:20px 0;">
 
   <form id="loginForm">
+    <div id="loginError" class="error"></div>
+
     <label>Email or Username</label>
     <input type="text" id="loginIdentifier" required placeholder="Your email or username">
 
     <label>Password</label>
     <input type="password" id="loginPassword" required placeholder="Your password">
 
-    <div id="loginError" class="error"></div>
-
-    <div style="margin-bottom:20px;">
+    <div style="margin-bottom:20px; font-size: 14px;">
       <input type="checkbox" id="loginCaptcha" required>
       <label for="loginCaptcha">I am not a robot</label>
     </div>
 
     <button type="submit">Log In</button>
   </form>
-
 </div>
 
 <script>
+// --- 1. REAL GOOGLE AUTH LOGIC ---
+function googleLoginTrigger() {
+  // Triggers the Google Sign-In prompt
+  google.accounts.id.prompt(); 
+}
+
+// This function handles the response from Google
+function handleCredentialResponse(response) {
+  console.log("Encoded JWT ID token: " + response.credential);
+  
+  // SEND TOKEN TO YOUR VPS BACKEND FOR VERIFICATION
+  fetch("/api/auth/google", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: response.credential })
+  })
+  .then(res => res.ok ? window.location.href = "crypto-dashboard.html" : alert("Google Login Failed"));
+}
+
+// --- 2. MANUAL EMAIL LOGIN LOGIC ---
 document.getElementById("loginForm").addEventListener("submit", async function(e) {
   e.preventDefault();
+  const errorDiv = document.getElementById("loginError");
+  errorDiv.style.display = "none";
 
   const identifier = document.getElementById("loginIdentifier").value.trim();
   const password = document.getElementById("loginPassword").value;
-  const captchaChecked = document.getElementById("loginCaptcha").checked;
-  const errorDiv = document.getElementById("loginError");
 
-  if (!identifier || !password) {
-    errorDiv.textContent = "Please fill in both fields.";
-    return;
-  }
-
-  if (!captchaChecked) {
-    errorDiv.textContent = "Please verify you are not a robot.";
-    return;
-  }
-
-  // Example request — adapt to your backend endpoint
   try {
     const response = await fetch("/api/login", {
       method: "POST",
@@ -130,24 +100,21 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
     if (response.ok) {
       const result = await response.json();
-      // Store session token or user info
       localStorage.setItem("medorUser", JSON.stringify(result.user));
       window.location.href = "crypto-dashboard.html";
     } else {
-      const error = await response.json();
-      errorDiv.textContent = error.message || "Login failed.";
+      errorDiv.textContent = "Invalid credentials. Try again.";
+      errorDiv.style.display = "block";
     }
   } catch (err) {
-    errorDiv.textContent = "Network error, try again.";
+    errorDiv.textContent = "Server connection failed.";
+    errorDiv.style.display = "block";
   }
 });
 
-// OAuth stubs
-document.getElementById("googleLogin").addEventListener("click", function() {
-  alert("Google OAuth login not implemented.");
-});
+// Apple Stub - Reserved for your Apple Client ID later
 document.getElementById("appleLogin").addEventListener("click", function() {
-  alert("Apple OAuth login not implemented.");
+  alert("Apple ID integration requires your Apple Developer Team ID.");
 });
 </script>
 
