@@ -1,9 +1,8 @@
 /**
- * MedorCoin - Production Mining Module (V6 Final)
+ * MedorCoin - Production Mining Module (V6 Final - Binary Strict)
  * - Binary Parity: Fully aligned with C++ Merkle binary iterative folding.
  * - Endianness: Little-Endian byte-order for 256-bit target comparison.
  * - Logic: Real-time timestamp refreshing on nonce-wrap to prevent stale mining.
- * - Consensus: BigInt-safe RFC 8785 Canonical Hashing.
  */
 
 const crypto = require("crypto");
@@ -33,7 +32,6 @@ class Miner extends EventEmitter {
 
     start() {
         if (this.mining) return;
-        // Fix #9: Pre-flight check (Check if we are in sync)
         if (this.chain.isSyncing?.()) {
             logger.warn("MINER", "Chain sync in progress. Mining suspended.");
             return;
@@ -73,22 +71,18 @@ class Miner extends EventEmitter {
         const nBits = this.chain.calculateDifficulty(Number(nextHeight));
         const target = this._bitsToTarget(nBits);
 
-        // Fix #10: Mathematical Halving (Safe cutoff at 64 shifts)
         const shifts = nextHeight / HALVING_INTERVAL;
         const subsidy = shifts >= 64n ? 0n : (INITIAL_REWARD >> shifts);
         
         const { transactions, totalFees } = this._preparePayload();
         const coinbase = this._createCoinbase(subsidy + totalFees, Number(nextHeight));
         
-        // Fix #7: Sort by hash (BIP69-style) for Merkle Root consensus parity
         const allTxs = [coinbase, ...transactions.sort((a, b) => a.hash.localeCompare(b.hash))];
         const merkleRootHex = this._calculateMerkleRoot(allTxs);
 
-        // Header Structure (80 Bytes): [Version:4][Prev:32][Merkle:32][Time:4][Bits:4][Nonce:8]
         const header = Buffer.alloc(80);
         header.writeUInt32LE(1, 0); 
         
-        // Fix #1: Rigid 32-byte binary copy for hashes
         const prevBuf = Buffer.from(tip.hash, 'hex');
         const rootBuf = Buffer.from(merkleRootHex, 'hex');
         if (prevBuf.length !== 32 || rootBuf.length !== 32) throw new Error("Consensus: Invalid Hash Size");
@@ -104,7 +98,6 @@ class Miner extends EventEmitter {
         while (!signal.aborted && this.mining) {
             nonce++;
             
-            // Fix #2: Prevent wrap-around stale mining
             if (nonce > MAX_NONCE) {
                 header.writeUInt32LE(this._getValidatedTimestamp(tip.timestamp), 68);
                 nonce = 0n;
@@ -112,19 +105,15 @@ class Miner extends EventEmitter {
 
             header.writeBigUInt64LE(nonce, 76);
             
-            // Fix #3: Binary Double-SHA256 (Aligned with Merkle logic)
             const hash = crypto.createHash("sha256").update(
                 crypto.createHash("sha256").update(header).digest()
             ).digest();
             
             this._hashCount++;
 
-            // Fix #1 & #3: Little-Endian Comparison
-            // Block hash is compared as a 256-bit integer in LE format
             const hashInt = BigInt("0x" + Buffer.from(hash).reverse().toString('hex'));
 
             if (hashInt <= target) {
-                // Fix #3: Reverse the digest to store the hash in LE string format
                 const blockHash = Buffer.from(hash).reverse().toString('hex');
                 const block = {
                     header: {
@@ -141,7 +130,6 @@ class Miner extends EventEmitter {
                 return await this._submitBlock(block);
             }
 
-            // Fix #13: Chain tip race check
             if (nonce % 20000n === 0n) {
                 await new Promise(setImmediate);
                 if (this.chain.getLatestBlock().hash !== tip.hash) return false;
@@ -159,7 +147,8 @@ class Miner extends EventEmitter {
         let fees = 0n;
 
         for (const tx of txs) {
-            const size = Buffer.byteLength(JSON.stringify(tx));
+            // Replaced JSON length check with rough binary size estimation
+            const size = 16 + (tx.inputs.length * 180) + (tx.outputs.length * 34);
             if (size > 100000 || weight + size > MAX_BLOCK_WEIGHT - 4000) continue;
             selected.push(tx);
             weight += size;
@@ -169,17 +158,18 @@ class Miner extends EventEmitter {
     }
 
     _createCoinbase(val, height) {
+        // Pure UTXO coinbase. No Ethereum nonces.
         const tx = {
-            inputs: [{ coinbase: true, script: `MedorNode:${height}:${Date.now()}` }],
+            version: 1,
+            inputs: [{ txid: "0000000000000000000000000000000000000000000000000000000000000000", vout: 0xffffffff, scriptSig: `MedorNode:${height}:${Date.now()}` }],
             outputs: [{ address: this.wallet.address, value: val.toString() }],
-            timestamp: Math.floor(Date.now() / 1000)
+            locktime: 0
         };
-        tx.hash = this._hashCanonical(tx);
+        tx.hash = this._hashBinary(tx);
         return tx;
     }
 
     _calculateMerkleRoot(txs) {
-        // Fix #4 & #7: Binary Iterative Folding (Matches C++ Implementation)
         let nodes = txs.map(tx => Buffer.from(tx.hash, 'hex'));
         if (nodes.length === 0) return Buffer.alloc(32).toString('hex');
 
@@ -189,7 +179,6 @@ class Miner extends EventEmitter {
                 const left = nodes[i];
                 const right = (i + 1 < nodes.length) ? nodes[i + 1] : left;
                 
-                // Fix #3: Binary Double-SHA256
                 const combined = Buffer.concat([left, right]);
                 const hash = crypto.createHash("sha256").update(
                     crypto.createHash("sha256").update(combined).digest()
@@ -201,28 +190,41 @@ class Miner extends EventEmitter {
         return nodes[0].toString('hex');
     }
 
-    _hashCanonical(obj) {
-        // Fix #5: BigInt-safe RFC 8785 Canonical Serialization
-        const canonicalize = (val) => {
-            if (val === null || typeof val !== 'object') {
-                return typeof val === 'bigint' ? val.toString() : val;
-            }
-            if (Array.isArray(val)) return val.map(canonicalize);
-            const sorted = {};
-            Object.keys(val).sort().forEach(k => { sorted[k] = canonicalize(val[k]); });
-            return sorted;
-        };
-        const str = JSON.stringify(canonicalize(obj));
-        return crypto.createHash("sha256").update(str).digest("hex");
+    _hashBinary(tx) {
+        // Destroyed JSON.stringify. Strictly packs buffers.
+        const header = Buffer.alloc(16);
+        header.writeUInt32LE(tx.version || 1, 0);
+        header.writeUInt32LE(tx.inputs.length, 4);
+        header.writeUInt32LE(tx.outputs.length, 8);
+        header.writeUInt32LE(tx.locktime || 0, 12);
+        
+        const bufs = [header];
+        
+        for (const i of tx.inputs) {
+            const b = Buffer.alloc(36);
+            Buffer.from(i.txid, 'hex').copy(b, 0);
+            b.writeUInt32LE(i.vout, 32);
+            bufs.push(b);
+        }
+        
+        for (const o of tx.outputs) {
+            const b = Buffer.alloc(8);
+            b.writeBigUInt64LE(BigInt(o.value), 0);
+            bufs.push(b);
+        }
+        
+        const raw = Buffer.concat(bufs);
+        return crypto.createHash("sha256").update(
+            crypto.createHash("sha256").update(raw).digest()
+        ).digest("hex");
     }
 
     async _submitBlock(block) {
         try {
-            const result = await this.chain.addBlock(block);
+            const result = await this.chain.addBlock(block); // This will trigger _processBlock
             if (result.ok) {
                 logger.info("MINER", `BLOCK ACCEPTED: ${block.hash}`);
-                // Fix #8: Reliable Mempool removal
-                this.mempool.removeConfirmed?.(block.transactions.filter(t => !t.inputs[0]?.coinbase));
+                this.mempool.removeConfirmed?.(block.transactions.filter(t => t.inputs[0].vout !== 0xffffffff));
                 await this._broadcastWithRetry(block);
                 this.emit("block:mined", block);
                 return true;
@@ -234,7 +236,6 @@ class Miner extends EventEmitter {
     }
 
     async _broadcastWithRetry(block, attempts = 3) {
-        // Fix #7: P2P Confirmation Logic
         for (let i = 0; i < attempts; i++) {
             try {
                 await this.p2p.broadcast("block", block);
@@ -254,7 +255,6 @@ class Miner extends EventEmitter {
 
     _getValidatedTimestamp(prevTimestamp) {
         const now = Math.floor(Date.now() / 1000);
-        // Fix #6: Clamp within consensus window (MTP+1 to FutureDrift)
         const clamped = Math.max(prevTimestamp + 1, now);
         return (clamped > now + MAX_FUTURE_DRIFT_SEC) ? (now + MAX_FUTURE_DRIFT_SEC) : clamped;
     }
