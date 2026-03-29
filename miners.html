@@ -1,4 +1,291 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MedorCoin | Industrial Hardware Interface V11</title>
+    <script data-ad-client="ca-pub-1189498572545023" async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bg: #050505; --bg-elev: #15171b; --card: #111; --accent: #ff8a00; --accent-2: #ffb84d; 
+            --text: #eee; --muted: #a3a3a3; --border: #222; --danger: #ef4444; --light-info: #fdf6e3;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+
+        /* --- ORIGINAL NAVIGATION BAR --- */
+        .nav-bar { 
+            display:flex; justify-content:space-between; align-items:center; 
+            padding:15px 25px; background:var(--bg-elev); border-bottom:1px solid var(--border); 
+            position: sticky; top:0; z-index:2000; 
+        }
+        .brand { font-weight:900; color:var(--accent); text-decoration:none; font-size: 1.3rem; letter-spacing: -1px; }
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        
+        /* AUTH BUTTONS */
+        .auth-btn { font-size: 11px; font-weight: 800; text-transform: uppercase; text-decoration: none; color: var(--muted); cursor: pointer; background: none; border: none; }
+        .auth-btn.active { color: var(--accent); border: 1px solid var(--accent); padding: 5px 12px; border-radius: 4px; }
+
+        /* HAMBURGER & DROPDOWN */
+        .menu-trigger { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; gap: 4px; padding: 5px; }
+        .menu-trigger span { display: block; width: 20px; height: 2px; background: var(--text); }
+        
+        #navDropdown {
+            position: absolute; top: 100%; right: 0; width: 240px; background: #000; 
+            display: none; flex-direction: column; border-left: 1px solid var(--border); border-bottom: 1px solid var(--border);
+        }
+        #navDropdown.active { display: flex; }
+        .drop-link { color: #fff; padding: 15px 20px; text-decoration: none; font-size: 11px; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #111; }
+        .drop-link:hover { background: #111; color: var(--accent); }
+
+        /* --- DASHBOARD COMPONENTS --- */
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .stat-card { border: 1px solid var(--border); padding: 25px; border-radius: 12px; background: var(--card); }
+        
+        .label { font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 10px; font-weight: 900; letter-spacing: 1px; }
+        .live-value { font-size: 2.5rem; color: var(--accent); font-weight: 900; letter-spacing: -1px; }
+
+        .btn { background: var(--accent); color: #000; border: none; padding: 14px; font-weight: 900; cursor: pointer; border-radius: 6px; width: 100%; text-transform: uppercase; }
+        .btn-outline { background: transparent; border: 1px solid var(--accent-2); color: var(--accent-2); padding: 12px; border-radius: 6px; font-weight: 800; cursor: pointer; width: 100%; }
+
+        /* --- LEDGER --- */
+        .ledger-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #1a1a1a; font-size: 13px; font-family: monospace; }
+        .timer-tag { color: var(--accent-2); font-weight: bold; }
+
+        /* --- INFO BLOCKS & FAQ --- */
+        .section-header { font-weight: 900; text-transform: uppercase; font-size: 1.2rem; margin: 30px 0 15px; }
+        .info-box { background: var(--light-info); color: #111; padding: 30px; border-radius: 15px; margin-bottom: 20px; }
+        .info-box h3 { color: #000; font-weight: 900; margin-top: 0; text-transform: uppercase; }
+        .info-box p { font-size: 14px; line-height: 1.6; }
+
+        /* ACCORDION */
+        .faq-item { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; }
+        .faq-q { padding: 18px; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; justify-content: space-between; }
+        .faq-a { padding: 0 18px; max-height: 0; overflow: hidden; transition: 0.3s ease; color: var(--muted); font-size: 13px; }
+        .faq-item.active .faq-a { padding: 0 18px 18px; max-height: 150px; }
+
+        .disclaimer { background: var(--light-info); color: #444; padding: 25px; border-radius: 10px; font-size: 11px; line-height: 1.5; border: 1px solid #ddd; }
+
+        /* SINGLETON TOAST */
+        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; width: 90%; max-width: 400px; }
+        .toast { background: #000; color: #fff; padding: 15px 25px; border-radius: 12px; border-left: 5px solid var(--accent); font-weight: 900; font-size: 11px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); }
+    </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<header class="nav-bar">
+    <a href="#" class="brand">MEDORCOIN</a>
+    
+    <div class="nav-right">
+        <a href="login.html" class="auth-btn">Sign In</a>
+        <a href="signup.html" class="auth-btn active">Register</a>
+        <button class="menu-trigger" onclick="toggleMenu()">
+            <span></span><span style="margin: 4px 0;"></span><span></span>
+        </button>
+    </div>
+
+    <nav id="navDropdown">
+        <a href="dashboard.cjs" class="drop-link">Industrial Dashboard</a>
+        <a href="wallet.cjs" class="drop-link">Wallet Ledger</a>
+        <a href="stats.cjs" class="drop-link">Network Epochs</a>
+        <a href="settings.cjs" class="drop-link">Hardware Config</a>
+        <a href="#" class="drop-link" onclick="logout()">Logout Node</a>
+    </nav>
+</header>
+
+<div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;">
+        <h2 class="section-header" style="margin:0;">Hardware Interface V11</h2>
+        <div id="connectionStatus" style="font-size:10px; font-weight:900; color:var(--danger);">● DISCONNECTED</div>
+    </div>
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="label">Mining Pool Balance</div>
+            <div class="live-value" id="bal">0.00000000</div>
+            <div style="font-size:12px; color:#555; margin-top:8px; font-weight:700;">EST. VALUE: $<span id="usdVal">0.00</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Total Cluster Speed</div>
+            <div class="live-value" id="spd">0.00 <span style="font-size:1.2rem;">GH/S</span></div>
+            <div id="activeSlots" style="font-size:12px; color:#555; margin-top:8px; font-weight:700;">0 HARDWARE SLOTS ACTIVE</div>
+        </div>
+    </div>
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="label">Standard Cycle (12H)</div>
+            <button class="btn" id="freeBtn" onclick="sendAction('claim-free')">Claim Free Contract</button>
+        </div>
+        <div class="stat-card">
+            <div class="label">Ad-Boost Slot (24H)</div>
+            <button class="btn" id="adBtn" style="background:#222; color:#fff; border:1px solid #333;" onclick="sendAction('watch-ad')">Watch Ad (+4.5 GH/s)</button>
+        </div>
+    </div>
+
+    <div class="stat-card" style="margin-top:20px;">
+        <div class="label">Active Contract Ledger</div>
+        <div id="ledger">Initializing hardware connection...</div>
+    </div>
+
+    <section class="section-header">Mining Protocol</section>
+    <div class="info-box">
+        <h3>How It Works</h3>
+        <p>MEDOR is the native utility token of the MedorCoin ecosystem. Your hardware node contributes computational entropy to finalize network epochs. Unlike traditional mining, our cluster protocol is optimized for background execution on mobile and desktop environments.</p>
+        <p style="color:var(--accent); font-weight:800;">Node Status: Leave this interface active to maintain peer synchronization.</p>
+    </div>
+
+    <section class="section-header">FAQ & Support</section>
+    <div id="faq-container"></div>
+
+    <section class="section-header">Verification & Safety</section>
+    <div class="disclaimer">
+        <h4 style="margin:0 0 10px 0; color:#000; text-transform:uppercase;">Industrial Disclaimer</h4>
+        Mining MEDOR tokens involves network difficulty volatility. This is an experimental blockchain protocol. You are responsible for securing your own recovery phrases and private keys. The platform cannot recover lost credentials. By activating a node, you acknowledge that cryptocurrency assets are volatile and past epoch yields do not guarantee future performance.
+    </div>
+
+    <div style="margin: 30px 0; padding-top: 20px; border-top: 1px solid var(--border);">
+        <button class="btn-outline" style="background:#000; color:#fff; border:none;" onclick="startHandshake()">Reconnect Hardware Node</button>
+    </div>
+</div>
+
+<script>
+    let localBal = 0;
+    let localSpd = 0;
+    let auth = localStorage.getItem("medor_at");
+    let addr = localStorage.getItem("medor_ua");
+
+    // NOTIFICATION SINGLETON
+    function notify(msg, type='success', id='gen') {
+        const container = document.getElementById("toast-container");
+        let t = document.getElementById(`toast-${id}`);
+        if(!t) {
+            t = document.createElement("div");
+            t.id = `toast-${id}`;
+            t.className = "toast";
+            container.appendChild(t);
+        }
+        t.innerText = msg.toUpperCase();
+        t.style.borderLeftColor = type === 'success' ? 'var(--success)' : 'var(--danger)';
+        if(type === 'success') setTimeout(()=>t.remove(), 3000);
+    }
+
+    // FAQ SYSTEM
+    const questions = [
+        { q: "What is GH/s?", a: "Giga-hashes per second measures your node's validation power." },
+        { q: "Is withdrawal automatic?", a: "No, you must execute a manual withdrawal once the $10 threshold is met." },
+        { q: "Can I mine on multiple devices?", a: "Yes, but each device must be linked to a unique node address." },
+        { q: "What happens when a contract expires?", a: "Your speed drops back to baseline. You must re-claim to maintain boosts." }
+    ];
+
+    function renderFAQ() {
+        document.getElementById('faq-container').innerHTML = questions.map((f, i) => `
+            <div class="faq-item" id="faq-${i}" onclick="toggleFaq(${i})">
+                <div class="faq-q">${f.q} <span>+</span></div>
+                <div class="faq-a">${f.a}</div>
+            </div>
+        `).join('');
+    }
+
+    function toggleFaq(i) {
+        document.querySelectorAll('.faq-item').forEach((el, idx) => {
+            idx === i ? el.classList.toggle('active') : el.classList.remove('active');
+        });
+    }
+
+    function toggleMenu() { document.getElementById('navDropdown').classList.toggle('active'); }
+
+    // LIVE TICKER
+    setInterval(() => {
+        if (localSpd > 0) {
+            localBal += (localSpd * 0.000000001) / 10;
+            document.getElementById("bal").innerText = localBal.toFixed(8);
+            document.getElementById("usdVal").innerText = (localBal * 0.05).toFixed(2);
+        }
+    }, 100);
+
+    async function sync() {
+        if (!auth || !addr) return;
+        try {
+            const res = await fetch(`/api/user-stats?addr=${addr}`, { headers: { 'Authorization': `Bearer ${auth}` }});
+            const d = await res.json();
+            localBal = parseFloat(d.balance);
+            localSpd = parseFloat(d.totalSpeed);
+            document.getElementById("spd").innerText = localSpd.toFixed(2);
+            document.getElementById("activeSlots").innerText = `${d.contracts.length} HARDWARE SLOTS ACTIVE`;
+            document.getElementById("connectionStatus").innerText = "● NODE_CONNECTED";
+            document.getElementById("connectionStatus").style.color = "var(--accent)";
+            
+            const retryToast = document.getElementById('toast-retry');
+            if(retryToast) retryToast.remove();
+
+            document.getElementById("ledger").innerHTML = d.contracts.map(c => `
+                <div class="ledger-row">
+                    <span>${c.type} [${c.speed} GH/S]</span>
+                    <span class="timer-tag">${formatTime(c.remaining)}</span>
+                </div>
+            `).join('') || "No active hardware contracts.";
+        } catch (e) { notify("Sync Lost. Retrying...", "error", "retry"); }
+    }
+
+    async function sendAction(type) {
+        if(!auth) return notify("Auth Required", "error");
+        try {
+            const res = await fetch('/api/action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${auth}` },
+                body: JSON.stringify({ type, addr })
+            });
+            const d = await res.json();
+            if(d.success) { notify("Action Verified"); sync(); } else { notify(d.error, "error"); }
+        } catch (e) { notify("Node Request Failed", "error"); }
+    }
+
+    async function startHandshake() {
+        if (!window.ethereum) return notify("Wallet Not Found", "error");
+        try {
+            const p = new ethers.BrowserProvider(window.ethereum);
+            const s = await p.getSigner();
+            const a = await s.getAddress();
+            const msg = `Medor Industrial Auth: ${Date.now()}`;
+            const sig = await s.signMessage(msg);
+            
+            const r = await fetch('/api/auth', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ addr: a, signature: sig, message: msg })
+            });
+            const d = await r.json();
+            auth = d.token; addr = a;
+            localStorage.setItem("medor_at", auth);
+            localStorage.setItem("medor_ua", addr);
+            notify("Handshake Complete");
+            sync();
+        } catch (e) { notify("Signature Denied", "error"); }
+    }
+
+    function formatTime(ms) {
+        const h = Math.floor(ms / 3600000);
+        const m = Math.floor((ms % 3600000) / 60000);
+        return `EXPIRES: ${h}H ${m}M`;
+    }
+
+    function logout() { localStorage.clear(); location.reload(); }
+
+    window.onload = () => {
+        renderFAQ();
+        if(auth) { sync(); setInterval(sync, 10000); }
+    };
+</script>
+</body>
+</html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
