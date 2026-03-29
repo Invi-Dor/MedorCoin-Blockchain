@@ -11,67 +11,53 @@
             --success: #10b981; --error: #ef4444; --card: #fff;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-        body { 
-            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
-            margin: 0; padding: 0; overflow-x: hidden;
-        }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
 
-        /* --- HEADER --- */
+        /* --- RESTORED HEADER ARCHITECTURE --- */
         .header { 
-            background: var(--card); padding: 15px 20px; display: flex; 
+            background: var(--card); padding: 12px 20px; display: flex; 
             justify-content: space-between; align-items: center; 
-            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000;
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 2000;
         }
-        .net-status { font-size: 10px; font-weight: 900; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; transition: 0.3s; }
-        .online { background: #e8f5e9; color: #1b5e20; }
-        .offline { background: #ffebee; color: #b71c1c; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .brand { font-weight: 900; font-size: 1.3rem; letter-spacing: -1px; text-decoration: none; color: #000; }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        
+        .auth-link { font-size: 11px; font-weight: 800; text-transform: uppercase; text-decoration: none; color: #666; }
+        .auth-link:hover { color: var(--accent); }
 
-        /* --- DASHBOARD --- */
-        .balance-card { 
-            background: var(--card); margin: 20px; padding: 30px 20px; 
-            border-radius: 16px; border: 1px solid var(--border); text-align: center;
-            position: relative; overflow: hidden;
+        /* HAMBURGER & DROPDOWN */
+        .menu-trigger { background: none; border: none; cursor: pointer; padding: 5px; display: flex; flex-direction: column; gap: 4px; }
+        .menu-trigger span { display: block; width: 22px; height: 2px; background: #000; transition: 0.3s; }
+        
+        #navDropdown {
+            position: absolute; top: 100%; right: 0; width: 220px; background: #000; 
+            display: none; flex-direction: column; padding: 10px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
-        .offline-overlay {
-            position: absolute; inset: 0; background: rgba(255,255,255,0.85);
-            display: none; align-items: center; justify-content: center;
-            z-index: 10; font-weight: 900; color: var(--error);
-            font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
-        }
+        #navDropdown.active { display: flex; }
+        .drop-link { color: #fff; padding: 12px 20px; text-decoration: none; font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #222; }
+        .drop-link:hover { background: #111; color: var(--accent); }
+
+        /* --- DASHBOARD COMPONENTS --- */
+        .balance-card { background: var(--card); margin: 20px; padding: 30px 20px; border-radius: 16px; border: 1px solid var(--border); text-align: center; }
         .bal-val { font-size: 3.2rem; font-weight: 900; letter-spacing: -2px; margin: 10px 0; font-variant-numeric: tabular-nums; }
-        .sync-time { font-size: 10px; color: #999; text-transform: uppercase; font-weight: 700; margin-top: 5px; }
-
-        /* --- CHART --- */
-        .chart-container { display: flex; align-items: flex-end; justify-content: center; gap: 3px; height: 35px; margin-bottom: 12px; }
-        .bar { width: 5px; background: var(--accent); border-radius: 2px; transition: height 0.4s; }
-        .bar.off { background: #ccc; }
-
-        /* --- GRID --- */
+        
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; padding: 0 20px; }
-        .box { 
-            background: var(--card); border: 1px solid var(--border); 
-            padding: 24px 15px; border-radius: 14px; text-align: center;
-            display: flex; flex-direction: column; position: relative;
-        }
-        .speed { font-size: 22px; font-weight: 900; color: var(--text); }
-        .p-meta { font-size: 10px; font-weight: 800; color: #aaa; text-transform: uppercase; margin-bottom: 10px; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 900; font-size: 11px; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
-        .btn-black { background: #000; color: #fff; }
+        .box { background: var(--card); border: 1px solid var(--border); padding: 24px 15px; border-radius: 14px; text-align: center; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 900; font-size: 11px; text-transform: uppercase; cursor: pointer; }
         .btn-orange { background: var(--accent); color: #fff; }
 
-        /* --- SINGLETON NOTIFICATION (FIXED STACKING) --- */
-        #toast-container { 
-            position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); 
-            z-index: 9999; pointer-events: none; width: 90%; max-width: 380px;
-        }
-        .toast { 
-            background: #000; color: #fff; padding: 14px 20px; border-radius: 12px; 
-            font-weight: 800; font-size: 11px; text-align: center; 
-            box-shadow: 0 12px 24px rgba(0,0,0,0.3); transition: all 0.2s ease;
-            width: 100%; border-left: 4px solid var(--accent); margin-top: 8px;
-            animation: slideUp 0.3s forwards;
-        }
+        /* FAQ ACCORDION */
+        .content-section { padding: 30px 20px; }
+        .faq-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; }
+        .faq-question { padding: 15px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; justify-content: space-between; }
+        .faq-answer { padding: 0 15px; max-height: 0; overflow: hidden; transition: 0.3s ease; font-size: 12px; color: #555; }
+        .faq-item.active .faq-answer { padding: 0 15px 15px; max-height: 100px; }
+
+        .disclaimer { font-size: 10px; color: #888; text-align: center; padding: 30px 20px; background: #eee; margin-top: 20px; line-height: 1.4; }
+
+        /* --- NO-SPAM TOAST --- */
+        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; width: 90%; max-width: 380px; }
+        .toast { background: #000; color: #fff; padding: 14px 20px; border-radius: 12px; font-weight: 800; font-size: 11px; text-align: center; border-left: 4px solid var(--accent); margin-top: 8px; animation: slideUp 0.3s forwards; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -80,171 +66,140 @@
 <div id="toast-container"></div>
 
 <header class="header">
-    <div style="font-weight: 900; font-size: 1.2rem; letter-spacing: -1px;">Medor<span style="color:var(--accent)">Coin</span></div>
-    <div id="netTag" class="net-status online">● Node Active</div>
+    <a href="#" class="brand">Medor<span style="color:var(--accent)">Coin</span></a>
+    
+    <div class="nav-right">
+        <a href="login.html" class="auth-link">Login</a>
+        <a href="signup.html" class="auth-link" style="color:var(--accent)">Sign Up</a>
+        <button class="menu-trigger" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+
+    <nav id="navDropdown">
+        <a href="dashboard.html" class="drop-link">Node Dashboard</a>
+        <a href="wallet.html" class="drop-link">Secure Wallet</a>
+        <a href="mining-stats.html" class="drop-link">Network Stats</a>
+        <a href="settings.html" class="drop-link">Account Settings</a>
+        <a href="support.html" class="drop-link">Get Support</a>
+    </nav>
 </header>
 
 <main>
-    <section class="balance-card" id="mainCard">
-        <div class="offline-overlay" id="offOverlay"><span>NODE DISCONNECTED</span></div>
-        <div class="chart-container" id="hashChart"></div>
+    <section class="balance-card">
         <div style="color:#888; font-size:11px; font-weight:900; text-transform:uppercase;">Network Verified Balance</div>
         <div class="bal-val" id="balDisplay">0.00000000</div>
-        <div style="font-weight:800; color:var(--accent); font-size:14px;">Cluster Rate: <span id="spdDisplay">0.00</span> GH/s</div>
-        <div class="sync-time" id="lastSync">Last Sync: Just Now</div>
+        <div style="font-weight:800; color:var(--accent); font-size:14px;">Cluster: <span id="spdDisplay">0.00</span> GH/s</div>
     </section>
 
-    <div class="grid" id="planGrid"></div>
-
-    <div class="grid" style="margin-top:20px;">
+    <div class="grid">
         <div class="box" style="border: 2px solid var(--accent)">
             <h4>Speed Booster</h4>
-            <div class="speed">+4.5 GH/s</div>
-            <div class="p-meta">100% Ad Revenue</div>
-            <button class="btn btn-orange" id="adBtn" onclick="handleAction('ad-boost', 'adBtn')">Watch Ad</button>
+            <div style="font-size:22px; font-weight:900;">+4.5 GH/s</div>
+            <button class="btn btn-orange" onclick="handleAction('ad-boost')">WATCH AD</button>
         </div>
         <div class="box">
-            <h4>Affiliate</h4>
-            <div class="speed">+1.8 GH/s</div>
-            <div class="p-meta">Network Fee Share</div>
-            <button class="btn btn-orange" id="refBtn" onclick="copyRef()">Copy Invite</button>
+            <h4>Link Node</h4>
+            <div style="font-size:22px; font-weight:900;">+1.8 GH/s</div>
+            <button class="btn btn-orange" onclick="copyRef()">COPY LINK</button>
         </div>
     </div>
+
+    <section class="content-section">
+        <h2 style="font-weight:900; text-transform:uppercase; font-size:14px;">How It Works</h2>
+        <p style="font-size:13px; color:#555;">Maintain an active node connection to synchronize with the blockchain. Your rewards are calculated based on your GH/s rate and network contribution epochs.</p>
+    </section>
+
+    <section class="content-section" style="padding-top:0;">
+        <h2 style="font-weight:900; text-transform:uppercase; font-size:14px;">Frequently Asked Questions</h2>
+        <div id="faq-container"></div>
+    </section>
+
+    <footer class="disclaimer">
+        <b>INDUSTRIAL DISCLAIMER:</b> MedorCoin is a decentralized experimental protocol. Mining yields depend on network difficulty. This interface is a node management layer. Always verify your secure address integration.
+    </footer>
 </main>
 
 <script>
-    const CONFIG = { retry_limit: 5, sync_interval: 15000 };
-    let state = {
-        balance: 0.0, speed: 0.0,
-        lastUpdate: Date.now(), lastSyncTime: Date.now(),
-        isOffline: false, address: localStorage.getItem("m_addr"),
-        isTabActive: true
-    };
+    let state = { balance: 0.0, speed: 0.0, lastUpdate: Date.now(), address: localStorage.getItem("m_addr") };
 
-    // --- SINGLETON NOTIFICATION LOGIC ---
-    function notify(msg, type = 'success', persistentId = null) {
+    // FAQ SYSTEM
+    const questions = [
+        { q: "What is GH/s?", a: "Giga-hashes per second measures your node's validation power." },
+        { q: "How do I withdraw?", a: "Withdrawals process automatically at epoch thresholds." },
+        { q: "Can I use multiple tabs?", a: "No, one active session per account for security." },
+        { q: "Is mining free?", a: "Standard node participation is free for all users." },
+        { q: "What is an Epoch?", a: "A fixed time window where network blocks are finalized." },
+        { q: "How to increase speed?", a: "Through ad-boosts, referrals, or node upgrades." },
+        { q: "Is my data private?", a: "Yes, we use secure HttpOnly cookies for session data." },
+        { q: "Why did my speed drop?", a: "Ensure your tab is active and not throttled by the OS." },
+        { q: "Where is my wallet?", a: "Access your wallet via the hamburger menu." },
+        { q: "Who runs MedorCoin?", a: "A decentralized community of blockchain architects." }
+    ];
+
+    function renderFAQ() {
+        document.getElementById('faq-container').innerHTML = questions.map((item, i) => `
+            <div class="faq-item" id="faq-${i}" onclick="toggleFaq(${i})">
+                <div class="faq-question">${item.q} <span>+</span></div>
+                <div class="faq-answer">${item.a}</div>
+            </div>
+        `).join('');
+    }
+
+    function toggleFaq(i) {
+        document.querySelectorAll('.faq-item').forEach((el, idx) => {
+            idx === i ? el.classList.toggle('active') : el.classList.remove('active');
+        });
+    }
+
+    function toggleMenu() { document.getElementById('navDropdown').classList.toggle('active'); }
+
+    // NOTIFICATION SINGLETON (FIXED)
+    function notify(msg, type = 'success', id = 'gen') {
         const container = document.getElementById("toast-container");
-        
-        // If a persistent ID is provided (e.g., 'retry'), update existing toast instead of creating new
-        if (persistentId) {
-            let existing = document.getElementById(`toast-${persistentId}`);
-            if (existing) {
-                existing.innerText = msg.toUpperCase();
-                return;
-            }
+        let t = document.getElementById(`toast-${id}`);
+        if (!t) {
+            t = document.createElement("div");
+            t.id = `toast-${id}`;
+            t.className = `toast`;
+            container.appendChild(t);
         }
-
-        const t = document.createElement("div");
-        if (persistentId) t.id = `toast-${persistentId}`;
-        t.className = `toast`;
-        t.style.borderLeftColor = type === 'success' ? 'var(--success)' : 'var(--error)';
         t.innerText = msg.toUpperCase();
-        container.appendChild(t);
-
-        // Auto-remove standard notifications; keep persistent ones until manually removed
-        if (!persistentId) {
-            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
-        }
+        t.style.borderLeftColor = type === 'success' ? 'var(--success)' : 'var(--error)';
+        if (type === 'success') setTimeout(() => t.remove(), 3000);
     }
 
-    function removeNotification(id) {
-        const t = document.getElementById(`toast-${id}`);
-        if (t) t.remove();
-    }
-
-    async function secureFetch(endpoint, body = {}, attempt = 0) {
+    async function secureFetch(endpoint) {
         try {
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...body, addr: state.address })
-            });
-
-            if (res.status === 401) return window.location.href = 'login.html';
-            
-            // On success: Remove any existing retry notification
-            removeNotification('retry');
-            
-            state.isOffline = false;
-            state.lastSyncTime = Date.now();
-            updateStatusUI(true);
+            const res = await fetch(endpoint, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({addr: state.address})});
+            if (document.getElementById('toast-retry')) document.getElementById('toast-retry').remove();
             return await res.json();
         } catch (e) {
-            state.isOffline = true;
-            updateStatusUI(false);
-
-            if (attempt < CONFIG.retry_limit) {
-                // UPDATE text of existing toast, don't stack new ones
-                notify(`Link Unstable. Reconnecting (Attempt ${attempt+1}/5)...`, 'error', 'retry');
-                
-                const delay = Math.min(10000, Math.pow(2, attempt) * 1000);
-                await new Promise(r => setTimeout(r, delay));
-                return secureFetch(endpoint, body, attempt + 1);
-            }
+            notify("Link Lost. Reconnecting...", "error", "retry");
             return { success: false };
         }
     }
 
-    function updateStatusUI(online) {
-        document.getElementById("netTag").className = `net-status ${online ? 'online' : 'offline'}`;
-        document.getElementById("netTag").innerText = online ? "● Node Active" : "○ Offline";
-        document.getElementById("offOverlay").style.display = online ? "none" : "flex";
-    }
-
-    async function sync() {
-        const data = await secureFetch('/api/user-stats');
-        if (data && data.success) {
-            state.balance = parseFloat(data.balance);
-            state.speed = parseFloat(data.speed);
-            document.getElementById("spdDisplay").innerText = state.speed.toFixed(2);
-        }
-    }
-
-    function updateChart() {
-        if (!state.isTabActive) return;
-        const container = document.getElementById("hashChart");
-        if (container.children.length > 18) container.removeChild(container.firstChild);
-        const bar = document.createElement("div");
-        bar.className = `bar ${state.isOffline ? 'off' : ''}`;
-        const h = state.isOffline ? 2 : Math.min(35, (state.speed / 30) + (Math.random() * 5));
-        bar.style.height = `${h}px`;
-        container.appendChild(bar);
-    }
-
     function tick() {
-        if (!state.isTabActive) { setTimeout(() => requestAnimationFrame(tick), 1000); return; }
         const now = Date.now();
-        if (state.speed > 0 && !state.isOffline) {
-            const delta = (now - state.lastUpdate) / 1000;
-            state.balance += (state.speed * 0.000000001) * delta;
+        if (state.speed > 0) {
+            state.balance += (state.speed * 0.000000001) * ((now - state.lastUpdate) / 1000);
             document.getElementById("balDisplay").innerText = state.balance.toFixed(8);
         }
         state.lastUpdate = now;
-        document.getElementById("lastSync").innerText = `Last Sync: ${Math.floor((now - state.lastSyncTime)/1000)}s ago`;
         requestAnimationFrame(tick);
-    }
-
-    async function handleAction(type, btnId) {
-        document.getElementById(btnId).disabled = true;
-        notify("Authorizing...", "success");
-        const data = await secureFetch('/api/action', { type });
-        if (data && data.success) { sync(); }
-        setTimeout(() => document.getElementById(btnId).disabled = false, 3000);
-    }
-
-    function copyRef() {
-        navigator.clipboard.writeText(`https://medorcoin.org/join?ref=${state.address}`);
-        notify("Link Copied", "success");
     }
 
     window.onload = () => {
-        sync();
+        renderFAQ();
         requestAnimationFrame(tick);
-        setInterval(sync, CONFIG.sync_interval);
-        setInterval(updateChart, 800);
+        setInterval(async () => {
+            const d = await secureFetch('/api/user-stats');
+            if(d.success) { state.balance = d.balance; state.speed = d.speed; document.getElementById("spdDisplay").innerText = d.speed; }
+        }, 15000);
     };
 
-    document.addEventListener("visibilitychange", () => { state.isTabActive = !document.hidden; });
+    function copyRef() { navigator.clipboard.writeText(`https://medorcoin.org/join?ref=${state.address}`); notify("Link Copied"); }
 </script>
 </body>
 </html>
