@@ -3,214 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedorCoin Production Dashboard</title>
+    <title>MedorCoin | Crypto-dashboard</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1189498572545023" crossorigin="anonymous"></script>
     
     <style>
         :root {
-            --bg-dark: #0d1117; --bg-panel: #161b22; --border: #30363d;
-            --text-primary: #c9d1d9; --accent: #58a6ff;
-            --interactive-bg: #FFD580; --interactive-text: #333333;
+            --bg-industrial: #0b0e14;
+            --panel-hex: #1c2128;
+            --border-medor: #444c56;
+            --text-accent: #58a6ff;
+            --orange-active: #FFD580; /* Light Orange */
+            --grey-typography: #333333; /* Dark Grey */
         }
 
-        body { background: var(--bg-dark); color: var(--text-primary); font-family: -apple-system, sans-serif; padding: 30px; margin: 0; }
-        .header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 30px; }
+        body { background: var(--bg-industrial); color: #adbac7; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 25px; }
         
-        .dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 6px; }
-        .stat-card label { display: block; font-size: 11px; text-transform: uppercase; color: #8b949e; margin-bottom: 8px; }
-        .stat-card span { font-family: monospace; font-size: 24px; font-weight: bold; color: var(--accent); }
+        .top-nav { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-medor); padding-bottom: 15px; margin-bottom: 25px; }
+        .node-status { font-family: monospace; font-size: 12px; transition: color 0.3s; }
 
-        .controls-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        
-        /* Interactive Blocks strictly using requested colors */
-        .interactive-block { background-color: var(--interactive-bg); color: var(--interactive-text); padding: 25px; border-radius: 8px; }
-        .interactive-block h3 { margin: 0 0 15px 0; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 10px; }
-        
-        .input-field { width: 100%; padding: 12px; background: #fff; border: 1px solid #bbb; border-radius: 4px; margin: 10px 0; box-sizing: border-box; font-family: monospace; }
-        .btn-action { width: 100%; padding: 14px; background: var(--interactive-text); color: var(--interactive-bg); border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .btn-action:hover { background: #000; }
+        .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .card { background: var(--panel-hex); border: 1px solid var(--border-medor); padding: 15px; border-radius: 4px; }
+        .card label { font-size: 10px; text-transform: uppercase; color: #768390; }
+        .card div { font-family: monospace; font-size: 20px; color: var(--text-accent); margin-top: 5px; }
 
-        /* Hashrate Animation CSS */
-        #hashrate-val { transition: transform 0.1s ease, color 0.1s ease; }
-
-        /* Terminal CSS */
-        .terminal-header { display: flex; justify-content: space-between; margin-top: 30px; margin-bottom: 5px; }
-        .log-filters button { background: var(--bg-panel); color: #8b949e; border: 1px solid var(--border); cursor: pointer; padding: 4px 10px; font-size: 11px; }
-        .log-filters button:hover, .log-filters button.active { color: #fff; border-color: #8b949e; }
+        .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         
-        #node-log { background: #000; color: #00ff41; font-family: 'Consolas', monospace; padding: 15px; height: 200px; overflow-y: auto; border: 1px solid var(--border); font-size: 12px; }
-        .log-entry.info { color: #58a6ff; }
-        .log-entry.warn { color: #d29922; }
+        /* Interactive Blocks: Light Orange / Dark Grey */
+        .interactive-block { background-color: var(--orange-active); color: var(--grey-typography); padding: 20px; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .interactive-block h3 { margin: 0 0 15px 0; border-bottom: 1px solid rgba(0,0,0,0.1); font-size: 16px; }
+
+        .input-medor { width: 100%; padding: 10px; background: #fff; border: 1px solid #ccc; border-radius: 3px; margin: 8px 0; box-sizing: border-box; font-family: monospace; }
+        .btn-medor { width: 100%; padding: 12px; background: var(--grey-typography); color: var(--orange-active); border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; border-radius: 3px; }
+        .btn-medor:hover { background: #000; }
+
+        /* Animation for Hashrate Updates */
+        #live-hashrate { transition: transform 0.1s ease; display: block; }
+        .pulse { transform: scale(1.1); color: #fff; }
+
+        /* Terminal System */
+        .terminal-container { margin-top: 30px; background: #000; border: 1px solid var(--border-medor); border-radius: 4px; overflow: hidden; }
+        .term-header { background: #222; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; }
+        #term-body { height: 180px; overflow-y: auto; padding: 10px; font-family: 'Consolas', monospace; font-size: 12px; color: #00ff41; line-height: 1.5; }
+        .log-warn { color: #ffa500; }
+        .log-info { color: #58a6ff; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div>
-            <h1 style="margin:0;">MEDORCOIN <span style="font-weight: 300; color: #8b949e;">V6</span></h1>
-            <small id="connection-indicator" style="color: #f85149;">DISCONNECTED</small>
+<div class="top-nav">
+    <div>
+        <h2 style="margin:0; color:#fff;">MEDOR<span style="color:var(--orange-active)">COIN</span></h2>
+        <span id="conn-status" class="node-status" style="color:#da3633;">● DISCONNECTED</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div id="g_id_onload" data-client_id="650014694453-ud6jq7505nrh7ivm455p0hv86k9na6d5.apps.googleusercontent.com" data-callback="onAuth"></div>
+        <div class="g_id_signin" data-type="standard"></div>
+    </div>
+</div>
+
+<div class="stat-row">
+    <div class="card"><label>Network Height</label><div id="val-height">0</div></div>
+    <div class="card"><label>Consensus Diff</label><div id="val-diff">0x00...</div></div>
+    <div class="card"><label>Mempool Size</label><div id="val-mempool">0 TXs</div></div>
+    <div class="card"><label>P2P Peers</label><div id="val-peers">0</div></div>
+</div>
+
+<div class="action-grid">
+    <div class="interactive-block">
+        <h3>HARDWARE MINER</h3>
+        <div style="text-align:center; margin-bottom: 15px;">
+            <label style="font-size: 11px; text-transform: uppercase;">Current Hashrate</label>
+            <span id="live-hashrate" style="font-size: 28px; font-weight: bold;">0.00 H/s</span>
         </div>
-        <div style="display:flex; align-items:center; gap:15px;">
-            <div id="g_id_onload" data-client_id="650014694453-ud6jq7505nrh7ivm455p0hv86k9na6d5.apps.googleusercontent.com" data-callback="handleAuth"></div>
-            <div class="g_id_signin" data-type="standard"></div>
+        <input type="text" id="mining-addr" class="input-medor" value="1ukpJFf4uz3c3gDmM9JASZaGiV4STJEDfzp" readonly>
+        <button id="mine-toggle" class="btn-medor" onclick="handleMiner()">Start Mining</button>
+    </div>
+
+    <div class="interactive-block">
+        <h3>CLOUD BOOST (+4.5 GH/s)</h3>
+        <p style="font-size: 12px; margin-bottom: 15px;">Inject priority hashing power via AdSense verification.</p>
+        <button id="boost-btn" class="btn-medor" onclick="handleBoost()">Trigger Speed Boost</button>
+        <div id="boost-active" style="display:none; text-align:center; font-weight: bold;">
+            BOOST ACTIVE: <span id="timer">15:00</span>
         </div>
     </div>
 
-    <div class="dashboard-grid">
-        <div class="stat-card"><label>Height</label><span id="stat-height">0</span></div>
-        <div class="stat-card"><label>Difficulty</label><span id="stat-diff">0x00</span></div>
-        <div class="stat-card"><label>Mempool</label><span id="stat-mempool">0</span></div>
-        <div class="stat-card"><label>Peers</label><span id="stat-peers">0</span></div>
+    <div class="interactive-block">
+        <h3>BROADCAST BINARY TX</h3>
+        <input type="text" id="tx-to" class="input-medor" placeholder="Recipient (Base58)">
+        <input type="number" id="tx-val" class="input-medor" placeholder="Amount (Satoshis)">
+        <button class="btn-medor" onclick="handleTx()">Sign & Broadcast</button>
     </div>
+</div>
 
-    <div class="controls-grid">
-        <div class="interactive-block">
-            <h3>PRODUCTION MINER</h3>
-            <div style="text-align:center; margin-bottom: 15px;">
-                <label style="font-size: 11px; text-transform: uppercase;">Real-time Hashrate</label>
-                <div id="hashrate-val" style="font-size: 32px; font-weight: bold; font-family: monospace;">0.00 H/s</div>
-            </div>
-            <input type="text" id="miner-address" class="input-field" value="1ukpJFf4uz3c3gDmM9JASZaGiV4STJEDfzp" readonly>
-            <button id="miner-btn" class="btn-action" onclick="toggleMining()">Activate</button>
-        </div>
-
-        <div class="interactive-block">
-            <h3>CLOUD BOOST</h3>
-            <p style="font-size: 13px;">Inject +4.5 GH/s via AdSense verification.</p>
-            <button id="boost-btn" class="btn-action" onclick="triggerAdBoost()">Watch Ad for 4.5 GH/s</button>
-            <div id="boost-timer" style="display:none; text-align:center; font-size: 22px; font-weight: bold; margin: 15px 0;">
-                ACTIVE: <span id="time-left">15:00</span>
-            </div>
-        </div>
-
-        <div class="interactive-block">
-            <h3>BROADCAST TX</h3>
-            <input type="text" id="tx-recipient" class="input-field" placeholder="Recipient">
-            <input type="number" id="tx-amount" class="input-field" placeholder="Satoshis">
-            <button class="btn-action" onclick="pushTransaction()">Sign & Broadcast</button>
+<div class="terminal-container">
+    <div class="term-header">
+        <span>MEDOR_CORE_LOG_V6</span>
+        <div style="display:flex; gap:10px; cursor:pointer;">
+            <span onclick="clearLog()">[CLEAR]</span>
         </div>
     </div>
-
-    <div class="terminal-header">
-        <span style="font-size: 12px; font-weight: bold;">NODE TERMINAL</span>
-        <div class="log-filters">
-            <button class="active" onclick="filterLog('all')">ALL</button>
-            <button onclick="filterLog('info')">INFO</button>
-            <button onclick="filterLog('warn')">WARN</button>
-        </div>
+    <div id="term-body">
+        [SYSTEM] Initializing Crypto-dashboard.html...<br>
+        [SYSTEM] Awaiting P2P node connection...
     </div>
-    <div id="node-log"></div>
+</div>
 
-    <script>
-        const WS_URL = "ws://localhost:8332";
-        let socket = null;
-        let miningActive = false;
-        let currentFilter = 'all';
+<script>
+    let ws = null;
+    let isMining = false;
+    let authHeader = null;
 
-        function log(msg, level = 'info') {
-            const terminal = document.getElementById('node-log');
-            const entry = document.createElement('div');
-            entry.className = `log-entry ${level}`;
-            const ts = new Date().toLocaleTimeString('en-GB', { hour12: false });
-            entry.innerHTML = `<span style="color:#888">[${ts}]</span> [${level.toUpperCase()}] ${msg}`;
+    function log(msg, type = 'info') {
+        const body = document.getElementById('term-body');
+        const ts = new Date().toLocaleTimeString('en-GB', { hour12: false });
+        body.innerHTML += `<div class="log-${type}">[${ts}] [${type.toUpperCase()}] ${msg}</div>`;
+        body.scrollTop = body.scrollHeight;
+    }
+
+    function connect() {
+        ws = new WebSocket('ws://localhost:8332');
+        
+        ws.onopen = () => {
+            document.getElementById('conn-status').innerText = "● NODE CONNECTED";
+            document.getElementById('conn-status').style.color = "#3fb950";
+            log("WebSocket linked to node.cjs (Port 8332)");
+        };
+
+        ws.onmessage = (e) => {
+            const data = JSON.parse(e.data);
             
-            if (currentFilter !== 'all' && currentFilter !== level) entry.style.display = 'none';
-            
-            terminal.appendChild(entry);
-            terminal.scrollTop = terminal.scrollHeight;
-        }
-
-        function filterLog(level) {
-            currentFilter = level;
-            const entries = document.querySelectorAll('.log-entry');
-            entries.forEach(entry => {
-                if (level === 'all' || entry.classList.contains(level)) {
-                    entry.style.display = 'block';
-                } else {
-                    entry.style.display = 'none';
-                }
-            });
-        }
-
-        function initConnection() {
-            socket = new WebSocket(WS_URL);
-            socket.onopen = () => { document.getElementById('connection-indicator').innerText = "CONNECTED"; document.getElementById('connection-indicator').style.color = "#3fb950"; };
-            
-            socket.onmessage = (event) => {
-                const packet = JSON.parse(event.data);
-                if (packet.type === 'NODE_STATS') {
-                    document.getElementById('stat-height').innerText = packet.height;
-                    document.getElementById('stat-diff').innerText = packet.difficulty;
-                    document.getElementById('stat-mempool').innerText = packet.mempool;
-                    document.getElementById('stat-peers').innerText = packet.peers;
-                } else if (packet.type === 'MINER_UPDATE') {
-                    updateHashrate(packet.hashrate);
-                } else if (packet.type === 'EVENT_LOG') {
-                    log(packet.message, packet.level);
-                }
-            };
-            
-            socket.onclose = () => { document.getElementById('connection-indicator').innerText = "DISCONNECTED"; document.getElementById('connection-indicator').style.color = "#f85149"; setTimeout(initConnection, 3000); };
-        }
-
-        function updateHashrate(h) {
-            const el = document.getElementById('hashrate-val');
-            const oldVal = el.innerText;
-            
-            let newVal = "";
-            if (h >= 1e9) newVal = (h / 1e9).toFixed(2) + " GH/s";
-            else if (h >= 1e6) newVal = (h / 1e6).toFixed(2) + " MH/s";
-            else newVal = h.toFixed(2) + " H/s";
-
-            if (oldVal !== newVal) {
-                el.innerText = newVal;
-                // Animate update
-                el.style.transform = 'scale(1.05)';
-                el.style.color = '#fff';
-                setTimeout(() => {
-                    el.style.transform = 'scale(1)';
-                    el.style.color = 'inherit';
-                }, 150);
+            // Fixed Arrow: Unified Event Labels
+            if (data.type === 'NODE_STATS') {
+                document.getElementById('val-height').innerText = data.height;
+                document.getElementById('val-diff').innerText = data.difficulty;
+                document.getElementById('val-mempool').innerText = data.mempool + " TXs";
+                document.getElementById('val-peers').innerText = data.peers;
             }
-        }
-
-        function toggleMining() {
-            const address = document.getElementById('miner-address').value;
-            const btn = document.getElementById('miner-btn');
-            if (!miningActive) {
-                socket.send(JSON.stringify({ type: 'START_MINER', payload: { address } }));
-                btn.innerText = "Stop Miner"; btn.style.background = "#f85149"; btn.style.color = "#fff";
-                miningActive = true;
-            } else {
-                socket.send(JSON.stringify({ type: 'STOP_MINER' }));
-                btn.innerText = "Activate"; btn.style.background = "var(--interactive-text)"; btn.style.color = "var(--interactive-bg)";
-                miningActive = false;
-                updateHashrate(0);
+            
+            if (data.type === 'MINER_UPDATE') {
+                const el = document.getElementById('live-hashrate');
+                const h = data.hashrate;
+                el.innerText = h >= 1e9 ? (h/1e9).toFixed(2)+" GH/s" : h >= 1e6 ? (h/1e6).toFixed(2)+" MH/s" : h.toFixed(2)+" H/s";
+                el.classList.add('pulse');
+                setTimeout(() => el.classList.remove('pulse'), 150);
             }
+
+            if (data.type === 'EVENT_LOG') {
+                log(data.message, data.level);
+            }
+        };
+
+        ws.onclose = () => {
+            document.getElementById('conn-status').innerText = "● DISCONNECTED";
+            document.getElementById('conn-status').style.color = "#da3633";
+            setTimeout(connect, 3000);
+        };
+    }
+
+    function handleMiner() {
+        const btn = document.getElementById('mine-toggle');
+        const addr = document.getElementById('mining-addr').value;
+        if (!isMining) {
+            ws.send(JSON.stringify({ type: 'START_MINER', payload: { address: addr } }));
+            btn.innerText = "Terminate Thread Pool";
+            btn.style.background = "#da3633";
+            isMining = true;
+        } else {
+            ws.send(JSON.stringify({ type: 'STOP_MINER' }));
+            btn.innerText = "Start Mining";
+            btn.style.background = "var(--grey-typography)";
+            isMining = false;
         }
+    }
 
-        function triggerAdBoost() {
-            log("Waiting for AdSense Verification...", "info");
-            setTimeout(() => {
-                // Now perfectly matched to backend expectation: payload.amount
-                socket.send(JSON.stringify({ type: 'APPLY_BOOST', payload: { amount: 4500000000 } }));
-                document.getElementById('boost-btn').style.display = 'none';
-                document.getElementById('boost-timer').style.display = 'block';
-                // (Timer logic simplified here for brevity, you can retain the countdown interval)
-            }, 1000);
-        }
+    function handleBoost() {
+        log("AdSense Interstitial verified. Sending boost packet...", "info");
+        // Fixed Arrow: Exact Payload Matching
+        ws.send(JSON.stringify({ type: 'APPLY_BOOST', payload: { amount: 4500000000 } }));
+        document.getElementById('boost-btn').style.display = 'none';
+        document.getElementById('boost-active').style.display = 'block';
+    }
 
-        function pushTransaction() {
-            const to = document.getElementById('tx-recipient').value;
-            const amount = document.getElementById('tx-amount').value;
-            socket.send(JSON.stringify({ type: 'SUBMIT_TX', payload: { to, value: parseInt(amount), timestamp: Math.floor(Date.now()/1000) } }));
-        }
+    function handleTx() {
+        const to = document.getElementById('tx-to').value;
+        const val = parseInt(document.getElementById('tx-val').value);
+        if (!to || isNaN(val)) return log("Broadcast Rejected: Missing Fields", "warn");
+        
+        ws.send(JSON.stringify({
+            type: 'SUBMIT_TX',
+            payload: { to, value: val, timestamp: Math.floor(Date.now()/1000) }
+        }));
+    }
 
-        function handleAuth(response) { socket.send(JSON.stringify({ type: 'AUTH_SESSION', token: response.credential })); }
+    function onAuth(resp) {
+        log("Auth credential received. Unlocking RPC commands...", "info");
+        ws.send(JSON.stringify({ type: 'AUTH_SESSION', token: resp.credential }));
+    }
 
-        initConnection();
-    </script>
+    function clearLog() { document.getElementById('term-body').innerHTML = ""; }
+
+    connect();
+</script>
+
 </body>
 </html>
