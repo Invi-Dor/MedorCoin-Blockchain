@@ -1,236 +1,278 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedorCoin Mining | Live Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MedorCoin | Production Node</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #f4f4f4; --text: #000; --accent: #ff8a00; --border: #ddd; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; }
-        
-        /* HEADER - NAV LINKS */
-        .header { background: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; }
-        .logo-text { font-weight: 900; font-size: 1.3rem; }
-        .nav-right { display: flex; align-items: center; gap: 20px; }
-        .menu-icon { font-size: 24px; cursor: pointer; font-weight: bold; }
-        
-        .dropdown { display: none; position: absolute; top: 65px; right: 20px; background: white; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1001; width: 220px; border-radius: 8px; }
-        .dropdown a { display: block; padding: 14px 20px; text-decoration: none; color: #333; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        :root { 
+            --bg: #f4f4f4; --text: #000; --accent: #ff8a00; --border: #ddd; 
+            --success: #10b981; --error: #ef4444; --card: #fff;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        body { 
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
+            margin: 0; padding: 0; overflow-x: hidden;
+        }
 
-        /* LIVE BALANCE BLOCK - WHITE BACKGROUND / BLACK FONT */
-        .balance-container { background: #fff; margin: 20px; padding: 35px 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
-        .brand-logo-circle { width: 50px; height: 50px; background: var(--accent); border-radius: 50%; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 20px; }
-        .bal-val { font-size: 2.8rem; font-weight: 800; color: #000; letter-spacing: -1.5px; margin: 10px 0; }
+        /* --- HEADER --- */
+        .header { 
+            background: var(--card); padding: 15px 20px; display: flex; 
+            justify-content: space-between; align-items: center; 
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000;
+        }
+        .net-status { font-size: 10px; font-weight: 900; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; transition: 0.3s; }
+        .online { background: #e8f5e9; color: #1b5e20; }
+        .offline { background: #ffebee; color: #b71c1c; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        /* 4-BLOCK GRID */
-        .box-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
-        .box { background: #fff; border: 1px solid var(--border); padding: 20px 10px; border-radius: 10px; text-align: center; }
-        .box h4 { margin: 0 0 8px 0; font-size: 11px; color: #888; text-transform: uppercase; }
-        .box .speed { font-size: 20px; font-weight: 800; color: var(--accent); }
-        .box .price { font-size: 13px; margin: 8px 0; font-weight: 700; color: #444; }
-        .action-btn { width: 95%; padding: 12px; border: none; background: #000; color: #fff; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 11px; text-transform: uppercase; }
+        /* --- DASHBOARD --- */
+        .balance-card { 
+            background: var(--card); margin: 20px; padding: 30px 20px; 
+            border-radius: 16px; border: 1px solid var(--border); text-align: center;
+            position: relative; overflow: hidden;
+        }
+        .offline-overlay {
+            position: absolute; inset: 0; background: rgba(255,255,255,0.8);
+            display: none; align-items: center; justify-content: center;
+            flex-direction: column; z-index: 10; font-weight: 800; color: var(--error);
+            font-size: 12px; text-transform: uppercase;
+        }
+        .bal-val { font-size: 3.2rem; font-weight: 900; letter-spacing: -2px; margin: 10px 0; font-variant-numeric: tabular-nums; }
+        .sync-time { font-size: 10px; color: #999; text-transform: uppercase; font-weight: 700; margin-top: 5px; }
 
-        /* CONTENT */
-        .info-section { background: #fff; margin: 20px; padding: 25px; border-radius: 12px; border: 1px solid var(--border); }
-        .disclaimer-section { margin: 20px; padding: 20px; border-radius: 12px; background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; font-size: 12px; }
+        /* --- REAL-TIME HASHRATE CHART --- */
+        .chart-container { display: flex; align-items: flex-end; justify-content: center; gap: 3px; height: 35px; margin-bottom: 12px; }
+        .bar { width: 5px; background: var(--accent); border-radius: 2px; transition: height 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .bar.off { background: #ccc; }
+
+        /* --- DYNAMIC GRID --- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; padding: 0 20px; }
+        .box { 
+            background: var(--card); border: 1px solid var(--border); 
+            padding: 24px 15px; border-radius: 14px; text-align: center;
+            display: flex; flex-direction: column; position: relative;
+        }
+        .status-dot { position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; border-radius: 50%; }
+        .dot-active { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .dot-inactive { background: #ccc; }
+
+        .speed { font-size: 22px; font-weight: 900; color: var(--text); }
+        .p-meta { font-size: 10px; font-weight: 800; color: #aaa; text-transform: uppercase; margin-bottom: 10px; }
+        .price { font-size: 12px; margin: 0 0 15px; font-weight: 700; color: #666; }
+
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 900; font-size: 11px; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+        .btn-black { background: #000; color: #fff; }
+        .btn-orange { background: var(--accent); color: #fff; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* --- TOAST QUEUE --- */
+        #toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; width: 90%; max-width: 400px; }
+        .toast { background: #000; color: #fff; padding: 12px 20px; border-radius: 12px; font-weight: 700; font-size: 11px; margin-top: 8px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2); animation: slideUp 0.3s forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="logo-text">MedorCoin Mining</div>
-    <div class="nav-right">
-        <div id="authLinks">
-            <a href="login.html" style="text-decoration:none; color:#000; font-weight:bold; font-size:14px; margin-right:10px;">Login</a>
-            <a href="signup.html" style="text-decoration:none; color:#000; font-weight:bold; font-size:14px;">Signup</a>
+<div id="toast-container"></div>
+
+<header class="header">
+    <div style="font-weight: 900; font-size: 1.2rem; letter-spacing: -1px;">Medor<span style="color:var(--accent)">Coin</span></div>
+    <div id="netTag" class="net-status online">● Node Active</div>
+</header>
+
+<main>
+    <section class="balance-card" id="mainCard">
+        <div class="offline-overlay" id="offOverlay">
+            <span style="font-size: 24px;">⚠</span>
+            <span>Link Interrupted</span>
         </div>
-        <div class="menu-icon" onclick="toggleMenu()">三</div>
-    </div>
-</div>
+        <div class="chart-container" id="hashChart"></div>
+        <div style="color:#888; font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing: 1px;">Network Verified Balance</div>
+        <div class="bal-val" id="balDisplay" aria-live="polite">0.00000000</div>
+        <div style="font-weight:800; color:var(--accent); font-size:14px;">Cluster Rate: <span id="spdDisplay">0.00</span> GH/s</div>
+        <div class="sync-time" id="lastSync">Last Sync: Just Now</div>
+    </section>
 
-<div class="dropdown" id="menu">
-    <a href="miners.html">Dashboard</a>
-    <a href="how-it-works.html">How it works</a>
-    <a href="mining-course.html">Mining Course</a>
-    <a href="developers.html">Developers</a>
-    <a href="settings.html">Settings</a>
-    <a href="logout.html" id="logoutBtn" style="display:none; color:red;">Logout</a>
-</div>
+    <div class="grid" id="planGrid"></div>
 
-<div class="balance-container">
-    <div class="brand-logo-circle">M</div>
-    <div style="color:#666; font-size:12px; font-weight:600; text-transform:uppercase;">Live Balance</div>
-    <div class="bal-val" id="bal">0.00000000</div>
-    <div style="font-weight:bold; font-size:14px;">Hashrate: <span id="spd" style="color:var(--accent);">0.00</span> GH/s</div>
-</div>
-
-<div class="box-grid">
-    <div class="box">
-        <h4>Free Contract</h4>
-        <div class="speed">4 GH/s</div>
-        <div class="price">12h Cycle</div>
-        <button class="action-btn" onclick="claimFree()">Accept Contract</button>
+    <div class="grid" style="margin-top:20px;">
+        <div class="box" style="border: 2px solid var(--accent)">
+            <h4>Speed Booster</h4>
+            <div class="speed">+4.5 GH/s</div>
+            <div class="p-meta">Bonus: 100% Ad Revenue</div>
+            <button class="btn btn-orange" id="adBtn" onclick="handleAction('ad-boost', 'adBtn')">Watch Ad</button>
+        </div>
+        <div class="box">
+            <h4>Affiliate</h4>
+            <div class="speed">+1.8 GH/s</div>
+            <div class="p-meta">Bonus: Network Fee Share</div>
+            <button class="btn btn-orange" id="refBtn" onclick="copyRef()">Copy Invite</button>
+        </div>
     </div>
-    <div class="box">
-        <h4>Monthly</h4>
-        <div class="speed">600 GH/s</div>
-        <div class="price">$13.00</div>
-        <button class="action-btn" onclick="triggerInvoice('Monthly Mining Session', 13, 'monthly')">Upgrade</button>
-    </div>
-    <div class="box">
-        <h4>Quarterly</h4>
-        <div class="speed">600 GH/s</div>
-        <div class="price">$39.00</div>
-        <button class="action-btn" onclick="triggerInvoice('Quarterly Mining Session', 39, 'quarterly')">Upgrade</button>
-    </div>
-    <div class="box">
-        <h4>Yearly</h4>
-        <div class="speed">600 GH/s</div>
-        <div class="price">$156.00</div>
-        <button class="action-btn" onclick="triggerInvoice('Yearly Mining Session', 156, 'yearly')">Upgrade</button>
-    </div>
-</div>
-
-    <div class="box">
-    <h4>Ad Reward</h4>
-    <div class="speed">+4.5 GH/s</div>
-    <div class="price">Watch to Boost</div>
-    <button class="btn btn-boost" onclick="watchAd()">WATCH ADS</button>
-</div>
-
-<div class="box">
-    <h4>Affiliate</h4>
-    <div class="speed">+1.8 GH/s</div>
-    <div class="price">Per Referral</div>
-    <button class="btn btn-boost" onclick="copyRef()">SHARE LINK</button>
-</div>
+</main>
 
 <script>
-function watchAd() {
-    // Replace with your AdMob/AdSense trigger
-    alert("Loading Ad... Watch to earn +4.5 GH/s.");
-}
+    const CONFIG = { retry_limit: 5, sync_interval: 15000 };
+    let state = {
+        balance: 0.0, speed: 0.0,
+        lastUpdate: Date.now(), lastSyncTime: Date.now(),
+        isOffline: false, address: localStorage.getItem("m_addr"),
+        activePlans: [], isTabActive: true
+    };
 
-function copyRef() {
-    const addr = localStorage.getItem("m_addr") || "User";
-    const link = `https://medorcoin.org/signup.html?ref=${addr}`;
-    navigator.clipboard.writeText(link).then(() => alert("Referral Link Copied!"));
-}
-</script>
+    // --- SMART THROTTLING (Battery Saver) ---
+    document.addEventListener("visibilitychange", () => {
+        state.isTabActive = !document.hidden;
+        if (state.isTabActive) state.lastUpdate = Date.now();
+    });
 
-    
-
-<div class="info-section">
-    <h2>How it Works</h2>
-    <p>MEDOR tokens are mined via device background processing. Free contracts must be manually accepted every 12 hours. Paid plans provide high-density hardware speed.</p>
-</div>
-
-<div class="disclaimer-section">
-    <p><strong>Disclaimer:</strong> Not financial advice. Crypto is volatile. MedorCoin is not liable for losses. Protect your own private keys and recovery phrases.</p>
-</div>
-
-<script>
-    let localBal = 0, localSpd = 0, auth = localStorage.getItem("m_token"), addr = localStorage.getItem("m_addr");
-
-    function toggleMenu() {
-        const m = document.getElementById("menu");
-        m.style.display = (m.style.display === "block") ? "none" : "block";
+    // --- DYNAMIC CHART (Speed-Based) ---
+    function updateChart() {
+        if (!state.isTabActive) return;
+        const container = document.getElementById("hashChart");
+        if (container.children.length > 18) container.removeChild(container.firstChild);
+        
+        const bar = document.createElement("div");
+        bar.className = `bar ${state.isOffline ? 'off' : ''}`;
+        
+        // Height calculated from actual speed (Max 35px at 1000 GH/s)
+        const baseH = state.isOffline ? 2 : Math.min(35, (state.speed / 30) + (Math.random() * 5));
+        bar.style.height = `${baseH}px`;
+        
+        container.appendChild(bar);
     }
 
-    // --- LIVE BALANCE TICKING ---
-    setInterval(() => {
-        if (localSpd > 0) {
-            localBal += (localSpd * 0.00000010) / 10;
-            document.getElementById("bal").innerText = localBal.toFixed(8);
+    function notify(msg, type = 'success') {
+        const container = document.getElementById("toast-container");
+        const t = document.createElement("div");
+        t.className = `toast`;
+        t.style.borderLeft = `4px solid ${type === 'success' ? 'var(--success)' : 'var(--error)'}`;
+        t.innerText = msg.toUpperCase();
+        container.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
+    }
+
+    async function secureFetch(endpoint, body = {}, attempt = 0) {
+        try {
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...body, addr: state.address })
+            });
+            if (res.status === 401) return window.location.href = 'login.html';
+            state.isOffline = false;
+            state.lastSyncTime = Date.now();
+            updateStatusUI(true);
+            return await res.json();
+        } catch (e) {
+            if (attempt < CONFIG.retry_limit) {
+                const delay = Math.pow(2, attempt) * 1000;
+                notify(`Sync Lost. Retry ${attempt+1}...`, 'error');
+                await new Promise(r => setTimeout(r, delay));
+                return secureFetch(endpoint, body, attempt + 1);
+            }
+            state.isOffline = true;
+            updateStatusUI(false);
+            return { success: false };
         }
-    }, 100);
-
-    // --- UNIVERSAL INVOICE TRIGGER ---
-    function triggerInvoice(prod, price, plan) {
-        // Injects data into your universal Invoice.html engine
-        const uid = localStorage.getItem("m_addr");
-        const sid = localStorage.getItem("m_token");
-        window.location.href = `Invoice.html?product=${encodeURIComponent(prod)}&price=${price}&plan=${plan}&speed=600&method=crypto&uid=${uid}&sid=${sid}`;
     }
 
-    // --- 12-HOUR MANUAL CLAIM ---
-    async function claimFree() {
-        if(!auth) return alert("Login required.");
-        const res = await fetch('/api/action', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ type: 'claim-free', addr, token: auth })
-        });
-        const d = await res.json();
-        if(d.success) { alert("LIVE 4 GH/s Started!"); sync(); }
-        else alert(d.error);
+    function updateStatusUI(online) {
+        const tag = document.getElementById("netTag");
+        const overlay = document.getElementById("offOverlay");
+        tag.className = `net-status ${online ? 'online' : 'offline'}`;
+        tag.innerText = online ? "● Node Active" : "○ Offline";
+        overlay.style.display = online ? "none" : "flex";
+    }
+
+    async function loadPlans() {
+        const cached = localStorage.getItem("m_plans_cache");
+        if (cached) renderPlans(JSON.parse(cached));
+        const data = await secureFetch('/api/plans');
+        if (data.success) {
+            localStorage.setItem("m_plans_cache", JSON.stringify(data.plans));
+            state.activePlans = data.active_user_plans || [];
+            renderPlans(data.plans);
+        }
+    }
+
+    function renderPlans(plans) {
+        const grid = document.getElementById("planGrid");
+        grid.innerHTML = plans.map(p => {
+            const isActive = state.activePlans.includes(p.id);
+            return `
+                <div class="box">
+                    <div class="status-dot ${isActive ? 'dot-active' : 'dot-inactive'}"></div>
+                    <h4>${p.name}</h4>
+                    <div class="speed">${p.speed} GH/s</div>
+                    <div class="p-meta">ROI: ${p.roi_est || '12h Cycle'}</div>
+                    <div class="price">$${p.price} / ${p.term}</div>
+                    <button class="btn btn-black" ${isActive ? 'disabled' : ''} onclick="upgrade('${p.id}')">
+                        ${isActive ? 'Active' : 'Activate Node'}
+                    </button>
+                </div>
+            `;
+        }).join('');
     }
 
     async function sync() {
-        if(!auth || !addr) return;
-        const res = await fetch(`/api/user-stats?addr=${addr}&token=${auth}`);
-        const d = await res.json();
-        localBal = parseFloat(d.balance);
-        localSpd = parseFloat(d.speed);
-        document.getElementById("spd").innerText = localSpd.toFixed(2);
-        
-        // Navigation Logic
-        document.getElementById("authLinks").style.display = "none";
-        document.getElementById("logoutBtn").style.display = "block";
+        const data = await secureFetch('/api/user-stats');
+        if (data.success) {
+            state.balance = parseFloat(data.balance);
+            state.speed = parseFloat(data.speed);
+            document.getElementById("spdDisplay").innerText = state.speed.toFixed(2);
+        }
     }
 
-    window.onload = () => { if(auth) { sync(); setInterval(sync, 10000); } };
+    function tick() {
+        // Battery Saver: Throttling to roughly 1 FPS when inactive
+        if (!state.isTabActive) {
+            setTimeout(() => requestAnimationFrame(tick), 1000);
+            return;
+        }
+
+        const now = Date.now();
+        if (state.speed > 0 && !state.isOffline) {
+            const delta = (now - state.lastUpdate) / 1000;
+            state.balance += (state.speed * 0.000000001) * delta;
+            document.getElementById("balDisplay").innerText = state.balance.toFixed(8);
+        }
+        state.lastUpdate = now;
+        
+        const secondsSinceSync = Math.floor((now - state.lastSyncTime) / 1000);
+        document.getElementById("lastSync").innerText = `Last Sync: ${secondsSinceSync}s ago`;
+        
+        requestAnimationFrame(tick);
+    }
+
+    async function handleAction(type, btnId) {
+        const btn = document.getElementById(btnId);
+        btn.disabled = true;
+        notify("Authorizing...");
+        const data = await secureFetch('/api/action', { type });
+        if (data.success) { notify("Power Boosted!"); sync(); }
+        setTimeout(() => btn.disabled = false, 3000);
+    }
+
+    function upgrade(id) {
+        notify("Secure Redirect...");
+        setTimeout(() => window.location.href = `Invoice.html?id=${id}&uid=${state.address}`, 800);
+    }
+
+    function copyRef() {
+        navigator.clipboard.writeText(`https://medorcoin.org/join?ref=${state.address}`);
+        notify("Invite Link Copied");
+    }
+
+    window.onload = () => {
+        loadPlans();
+        sync();
+        requestAnimationFrame(tick);
+        setInterval(sync, CONFIG.sync_interval);
+        setInterval(updateChart, 800);
+    };
 </script>
 </body>
 </html>
-
-<!-- Two-column resources (General / Introduction, then Row 2) -->
-  <section class="resources" style="padding:20px 12px;">
-    <div class="ext-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
-      <!-- Column 1: General -->
-      <div class="col" aria-label="General">
-        <h3>General</h3>
-        <ul style="padding-left:20px;margin:6px 0 0;">
-          <li><a href="beware-of-scams.html">Beware of Scams</a></li>
-          <li><a href="buy-sell-medorcoin.html">Buy & Sell</a></li>
-          <li><a href="invisible-m-blog.html">Blog</a></li>
-          <li><a href="legal.html">Legal</a></li>
-          <li><a href="run-full-node.html">Full Node</a></li>
-          <li><a href="sponsor-us.html">Sponsor Us</a></li>
-        </ul>
-      </div>
-      <!-- Column 2: Introduction -->
-      <div class="col" aria-label="Introduction">
-        <h3>Introduction</h3>
-        <ul style="padding-left:20px;margin:6px 0 0;">
-          <li><a href="about-medorcoin.html">About MedorCoin</a></li>
-          <li><a href="how-it-works.html">How it Works</a></li>
-          <li><a href="important-to-know.html">Important to Know</a></li>
-          <li><a href="introduction.html">Introductionl</a></li>
-          <li><a href="white-paper.html">White Paper</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="ext-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:24px;">
-      <!-- Row 2 Column 1: Resources -->
-      <div class="col" aria-label="Resources">
-        <h3>Resources</h3>
-        <ul style="padding-left:20px;margin:6px 0 0;">
-          <li><a href="community.html">Community</a></li>
-          <li><a href="latest-news.html">Latest News</a></li>
-          <li><a href="resources.html">Resources</a></li>
-          <li><a href="terms-and-conditions.html">Terms & Conditions</a></li>
-        </ul>
-      </div>
-      <!-- Row 2 Column 2: About MedorCoin -->
-      <div class="col" aria-label="About MedorCoin">
-        <h3>Who is it For:</h3>
-        <ul style="padding-left:20px;margin:6px 0 0;">
-          <li><a href="institutions.html">For Institutions</a></li>
-          <li><a href="investors.html">For Investors</a></li>
-          <li><a href="medorcoin-core.html">MedorCoin Core</a></li>
-        </ul>
-      </div>
-    </div>
