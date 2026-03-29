@@ -1,186 +1,369 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MedorCoin Mining - Industrial V11</title>
-    <script data-ad-client="ca-pub-1189498572545023" async
-        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
-    <style>
-        :root { 
-            --bg: #050505; --bg-elev: #15171b; --card: #111; --accent: #ff8a00; --accent-2: #ffb84d; 
-            --text: #eee; --muted: #a3a3a3; --border: #222; --light-info: #fdf6e3; --dark-grey: #333;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', Arial, sans-serif; margin: 0; }
-
-        /* --- HEADER & NAVIGATION --- */
-        .nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background: var(--bg-elev); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 2000; }
-        .brand { font-weight: 900; color: var(--accent); text-decoration: none; font-size: 1.3rem; text-transform: uppercase; }
-        .nav-right { display: flex; align-items: center; gap: 15px; }
-        .btn-wallet { background: var(--accent); color: #000; padding: 8px 15px; border-radius: 5px; font-weight: 800; font-size: 11px; cursor: pointer; border: none; }
-        
-        #navDropdown { position: absolute; top: 100%; right: 0; width: 240px; background: #000; display: none; flex-direction: column; border: 1px solid var(--border); }
-        #navDropdown.active { display: flex; }
-        .drop-link { color: #fff; padding: 15px 20px; text-decoration: none; font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #111; }
-
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-
-        /* --- STATS & NINE BLOCK GRID --- */
-        .stat-card { border: 1px solid var(--border); padding: 30px; border-radius: 12px; background: var(--card); margin-bottom: 25px; text-align: center; }
-        .live-value { font-size: 3rem; color: var(--accent); font-weight: 900; letter-spacing: -1px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 10px; text-align: center; }
-        .btn-action { background: var(--accent); color: #000; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 11px; margin-top: 10px; }
-
-        /* --- CONTRACT LEDGER --- */
-        .ledger { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 20px; border-radius: 12px; margin-top: 30px; }
-        .ledger-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #111; font-size: 13px; }
-        .timer { color: var(--accent-2); font-weight: bold; font-family: monospace; }
-
-        /* --- LIGHT INFO BLOCKS --- */
-        .info-block { background: var(--light-info); color: var(--dark-grey); padding: 40px; border-radius: 15px; margin-top: 30px; }
-        .info-block h2, .info-block h3 { color: #000; font-weight: 900; text-transform: uppercase; margin-top: 0; }
-
-        /* --- FAQ ACCORDION --- */
-        .faq-item { border-bottom: 1px solid rgba(0,0,0,0.1); padding: 15px 0; cursor: pointer; }
-        .faq-q { font-weight: 800; display: flex; justify-content: space-between; }
-        .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; font-size: 14px; color: #444; padding-top: 0; }
-        .faq-item.active .faq-a { max-height: 200px; padding-top: 10px; }
-    </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MedorCoin Mining - Miners</title>
+  <style>
+    :root{--bg:#0f1013;--bg-elev:#15171b;--ink:#f8fafa;--muted:#a3a3a3;
+      --border:#232630;--accent:#ff8a00;--accent-2:#ffb84d;--pill:#1c2029;}
+    *{box-sizing:border-box}html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,sans-serif;}
+    input{width:90%;padding:10px;margin:8px 0;border:none;border-radius:5px;}
+    button{padding:10px 20px;border:none;border-radius:5px;font-weight:800;}
+    .btn{background:var(--accent-2);color:#000;cursor:pointer;}
+    .btn:hover{background:var(--accent);}
+    .error{color:#ff6666;margin-top:8px;}
+    .section { margin: 18px 0; padding: 12px; border:1px solid #2a2f3b; border-radius:8px; background:#14161b; }
+  </style>
 </head>
 <body>
 
-<header class="nav-bar">
-    <a href="#" class="brand">MEDOR coin mining</a>
-    <div class="nav-right">
-        <button id="connectBtn" class="btn-wallet" onclick="connectWallet()">Connect Wallet</button>
-        <button class="menu-trigger" onclick="document.getElementById('navDropdown').classList.toggle('active')" style="background:none; border:none; cursor:pointer; color:#fff; font-size:24px;">☰</button>
-    </div>
-    <nav id="navDropdown">
-        <a href="miners.html" class="drop-link">Mining Dashboard</a>
-        <a href="wallet.html" class="drop-link">My Ledger</a>
-        <a href="#" class="drop-link" onclick="logout()">Logout</a>
-    </nav>
-</header>
+<div id="app">
 
-<div class="container">
-    <div class="stat-card">
-        <div style="font-size:11px; color:#666; text-transform:uppercase; font-weight:800;">Real-Time Node Balance</div>
-        <div class="live-value" id="bal">0.00000000</div>
-        <div style="font-size:14px; color:var(--accent-2); font-weight:bold;">HASHPOWER: <span id="spd">0.00</span> GH/S</div>
+  <!-- Auth Section -->
+  <section id="authSection" class="section">
+    <h2>Sign In or Register</h2>
+    <div>
+      <h3>Sign Up</h3>
+      <input type="email" id="su-email" placeholder="Email" required/>
+      <input type="password" id="su-pass" placeholder="Password" required/>
+      <input type="password" id="su-pass2" placeholder="Confirm Password" required/>
+      <button class="btn" onclick="register()">Register</button>
+      <div id="su-error" class="error"></div>
     </div>
 
-    <div class="grid">
-        <div class="card"><h4>Free 12H Contract</h4><div style="font-weight:800;">4.00 GH/s</div><button class="btn-action" onclick="runAction('free')">Activate</button></div>
-        <div class="card"><h4>Ad-Boost Slot</h4><div style="font-weight:800;">+4.50 GH/s</div><button class="btn-action" style="background:#222; color:#fff;" onclick="runAction('ad')">Watch Ad</button></div>
-        <div class="card" style="border-color:var(--accent);"><h4>Monthly Boost</h4><div style="font-weight:800;">$13.00</div><button class="btn-action" onclick="purchase('monthly')">Purchase</button></div>
-        <div class="card"><h4>Quarterly Boost</h4><div style="font-weight:800;">$39.00</div><button class="btn-action" onclick="purchase('quarterly')">Purchase</button></div>
-        <div class="card"><h4>Annual Boost</h4><div style="font-weight:800;">$130.00</div><button class="btn-action" onclick="purchase('annual')">Purchase</button></div>
-        <div class="card"><h4>Tier 1 Node</h4><div style="font-weight:800;">Custom</div><button class="btn-action" style="background:none; border:1px solid #333; color:#fff;">Inquire</button></div>
-        <div class="card"><h4>Tier 2 Node</h4><div style="font-weight:800;">Custom</div><button class="btn-action" style="background:none; border:1px solid #333; color:#fff;">Inquire</button></div>
-        <div class="card"><h4>Enterprise 1</h4><div style="font-weight:800;">Bulk</div><button class="btn-action" style="background:none; border:1px solid #333; color:#fff;">Inquire</button></div>
-        <div class="card"><h4>Enterprise 2</h4><div style="font-weight:800;">Cluster</div><button class="btn-action" style="background:none; border:1px solid #333; color:#fff;">Inquire</button></div>
+    <div style="margin-top:20px;">
+      <h3>Sign In</h3>
+      <input type="email" id="si-email" placeholder="Email" required/>
+      <input type="password" id="si-pass" placeholder="Password" required/>
+      <button class="btn" onclick="login()">Login</button>
+      <div id="si-error" class="error"></div>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="dashboardSection" style="display:none" class="section">
+    <h2>Mining Dashboard</h2>
+    <div>
+      <strong>Welcome:</strong> <span id="minerEmail"></span>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn" onclick="logout()">Logout</button>
+    </div>
+    <div style="margin-top:20px;">
+      <h3>Your Mining Info</h3>
+      <div><strong>Balance:</strong> <span id="balance">0.00000000 MEDOR</span></div>
+      <div><strong>Base Speed:</strong> <span id="baseSpeedGHs">0.00</span> GH/s</div>
+      <div><strong>Total Speed:</strong> <span id="liveTotalSpeed">0.00</span> GH/s</div>
     </div>
 
-    <div class="ledger">
-        <h3 style="margin-top:0; font-size:14px; text-transform:uppercase;">Active Mining Contracts</h3>
-        <div id="ledger-list">
-            <div class="muted" style="padding:10px 0;">No active contracts detected.</div>
+    <!-- Real Ad-Watching Section (incentivized, production-ready) -->
+    <div id="adsSection" class="section" style="margin-top:20px;">
+      <h3 style="margin:0 0 8px 0;">Watch Ads for Bonus</h3>
+      <div style="margin-bottom:6px;">
+        <button class="btn" id="watchAdBtn" onclick="watchAd()" style="margin-right:8px;">
+          Watch Ad (+4 GH/s per ad, max 10 per 24h)
+        </button>
+        <span id="adsError" class="error" style="display:none;"></span>
+      </div>
+      <div style="font-size:13px;color:#cbd5e1;">
+        Ads watched in last 24h: <span id="adsWatched24h">0</span> / 10
+      </div>
+      <div style="margin-top:6px;font-size:13px;color:#cbd5e1;">
+        Current ad bonus: <span id="adsBonusGHs">0.00</span> GH/s
+      </div>
+      <div id="adsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;">
+        <div style="width:320px;background:#111;border:1px solid #333;border-radius:8px;padding:16px;box-shadow:0 10px 25px rgba(0,0,0,.5);text-align:center;">
+          <div style="font-weight:700;margin-bottom:8px;">Watching Ad... Please wait</div>
+          <div id="adsCountdown" style="font-family:monospace;font-size:28px;letter-spacing:.5px;margin:12px 0 6px 0;">0</div>
+          <div style="font-size:12px;color:#aaa;margin-bottom:8px;">This is a real ad experience. The contract will be granted after completion.</div>
+          <button class="btn" onclick="closeAdsModal()">Cancel</button>
         </div>
+      </div>
     </div>
+  </section>
 
-    <section class="info-block">
-        <h2>How It Works</h2>
-        <p>MEDOR is the native token of the MedorCoin blockchain. Mining utilizes computational entropy from your device hardware to secure network epochs. Leave this tab active to maximize peer synchronization.</p>
-        <h3>Free Mining</h3>
-        <p>Every 12 hours, users can claim a free mining license. Once active, the node will accrue rewards until the license expires. You must manually renew to continue.</p>
-        <h3>Withdrawal</h3>
-        <p>Minimum withdrawal: US$10. Balance is subject to a 2% Platform Fee and dynamic Network Relayer Gas fees.</p>
-    </section>
-
-    <section class="info-block">
-        <h2>FAQ</h2>
-        <div class="faq-item" onclick="this.classList.toggle('active')">
-            <div class="faq-q">What is MedorCoin mining? <span>▼</span></div>
-            <div class="faq-a">It is the process of contributing device power to the decentralized Medor infrastructure in exchange for MEDOR tokens.</div>
-        </div>
-        <div class="faq-item" onclick="this.classList.toggle('active')">
-            <div class="faq-q">Can I mine on mobile? <span>▼</span></div>
-            <div class="faq-a">Yes, the industrial interface is optimized for mobile browser mining with background persistence.</div>
-        </div>
-    </section>
-
-    <section class="info-block" style="background:#eee; font-size:12px;">
-        <h3>Disclaimer</h3>
-        <p>Mining involves volatility. You are solely responsible for securing your wallet seed phrases. MedorCoin is not liable for hardware wear or lost funds.</p>
-    </section>
 </div>
 
 <script>
-    let nodeState = { bal: 0, spd: 0, contracts: [], addr: localStorage.getItem("medor_ua") };
+  const API_BASE = "/api/auth";  // your backend base
 
-    // 1. ETHERS / METAMASK HANDSHAKE
-    async function connectWallet() {
-        if (!window.ethereum) return alert("Install MetaMask");
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        nodeState.addr = await signer.getAddress();
-        localStorage.setItem("medor_ua", nodeState.addr);
-        document.getElementById("connectBtn").innerText = nodeState.addr.slice(0,6)+"..."+nodeState.addr.slice(-4);
-        sync();
-    }
+  // Save auth token here
+  let authToken = null;
 
-    // 2. DYNAMIC LEDGER & SYNC (Tied to .cjs)
-    async function sync() {
-        if(!nodeState.addr) return;
-        const res = await fetch(`/api/node.cjs?action=fullStats&addr=${nodeState.addr}`);
-        const d = await res.json();
-        nodeState.bal = d.balance; nodeState.spd = d.speed; nodeState.contracts = d.contracts;
-        updateUI();
-    }
+  // Optional: base mining speed (GH/s) if you want to display a non-zero base rate
+  let BASE_SPEED_GH = 0.0;
 
-    function updateUI() {
-        document.getElementById("spd").innerText = nodeState.spd.toFixed(2);
-        const list = document.getElementById("ledger-list");
-        list.innerHTML = nodeState.contracts.map(c => `
-            <div class="ledger-row">
-                <span>${c.type.toUpperCase()} CONTRACT</span>
-                <span class="timer" data-end="${c.expiresAt}">Calculating...</span>
-                <span>+${c.power} GH/s</span>
-            </div>
-        `).join('') || '<div class="muted">No active contracts.</div>';
-    }
+  // After registration or login, store token
+  function saveToken(token) {
+    authToken = token;
+    localStorage.setItem("medorAuthToken", token);
+  }
 
-    // 3. COUNTDOWN TIMERS
-    setInterval(() => {
-        document.querySelectorAll('.timer').forEach(el => {
-            const end = parseInt(el.getAttribute('data-end'));
-            const remain = Math.max(0, Math.floor((end - Date.now()) / 1000));
-            const h = Math.floor(remain / 3600);
-            const m = Math.floor((remain % 3600) / 60);
-            const s = remain % 60;
-            el.innerText = `${h}h ${m}m ${s}s`;
-        });
-        // Ticker Logic
-        if(nodeState.spd > 0) {
-            nodeState.bal += (nodeState.spd * 0.000000001) / 10;
-            document.getElementById("bal").innerText = nodeState.bal.toFixed(8);
+  function loadToken() {
+    const t = localStorage.getItem("medorAuthToken");
+    if (t) authToken = t;
+  }
+
+  async function showCurrentUser() {
+    if (!authToken) return;
+    try {
+      const res = await fetch(`${API_BASE}/me`, {
+        method: "POST",
+        headers: {
+          "Authorization": authToken
         }
-    }, 1000);
+      });
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById("minerEmail").innerText = data.email;
+        document.getElementById("authSection").style.display = "none";
+        document.getElementById("dashboardSection").style.display = "block";
 
-    // 4. ACTIONS (Claim/Watch/Purchase)
-    async function runAction(act) {
-        const res = await fetch('/api/node.cjs', {
-            method: 'POST',
-            body: JSON.stringify({ action: act, addr: nodeState.addr })
-        });
-        const r = await res.json();
-        if(r.success) sync();
+        // Optional: fetch base speed or balance from backend here
+        // For now, show current UI state
+        updateTotalSpeedUI();
+      } else {
+        // Token invalid or expired
+        logout();
+      }
+    } catch (err) {
+      console.error("Fetch /auth/me error:", err);
+    }
+  }
+
+  async function register() {
+    document.getElementById("su-error").innerText = "";
+    const email = document.getElementById("su-email").value.trim();
+    const pass1 = document.getElementById("su-pass").value;
+    const pass2 = document.getElementById("su-pass2").value;
+
+    if (!email || !pass1 || pass1 !== pass2) {
+      document.getElementById("su-error").innerText = "Passwords must match and be filled.";
+      return;
     }
 
-    window.onload = () => { if(nodeState.addr) { connectWallet(); } };
+    try {
+      const res = await fetch(`${API_BASE}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: pass1 })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        document.getElementById("su-error").innerText = errText;
+        return;
+      }
+
+      const data = await res.json();
+      saveToken(data.token);
+      await showCurrentUser();
+    } catch (err) {
+      document.getElementById("su-error").innerText = "Registration failed.";
+      console.error(err);
+    }
+  }
+
+  async function login() {
+    document.getElementById("si-error").innerText = "";
+    const email = document.getElementById("si-email").value.trim();
+    const pass = document.getElementById("si-pass").value;
+
+    try {
+      const res = await fetch(`${API_BASE}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: pass })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        document.getElementById("si-error").innerText = errText;
+        return;
+      }
+
+      const data = await res.json();
+      saveToken(data.token);
+      await showCurrentUser();
+    } catch (err) {
+      document.getElementById("si-error").innerText = "Login failed.";
+      console.error(err);
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem("medorAuthToken");
+    authToken = null;
+    document.getElementById("dashboardSection").style.display = "none";
+    document.getElementById("authSection").style.display = "block";
+  }
+
+  // Ad/Contract logic (real rewarded ads integration pattern)
+  const MAX_ADS_24H = 10;
+  const AD_GHPS = 4.5;            // Each contract GH/s
+  const CONTRACT_MS = 24 * 60 * 60 * 1000; // 24 hours
+  const STORAGE_KEY = "medorAdsContracts";
+
+  // State
+  let adContracts = []; // { id, startedAt, durationMs, ghps }
+  let isModalOpen = false;
+
+  // Helpers
+  function now() { return Date.now(); }
+
+  function pruneExpiredContracts() {
+    const t = now();
+    adContracts = adContracts.filter(c => (t - c.startedAt) < c.durationMs);
+  }
+
+  function loadFromStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) adContracts = parsed;
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  function saveToStorage() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(adContracts));
+  }
+
+  function activeContracts() {
+    pruneExpiredContracts();
+    return adContracts;
+  }
+
+  function totalBonusGH() {
+    return activeContracts().reduce((sum, c) => sum + c.ghps, 0);
+  }
+
+  function updateAdsUI() {
+    pruneExpiredContracts();
+    const watched = activeContracts().length;
+    document.getElementById("adsWatched24h").innerText = Math.min(watched, MAX_ADS_24H);
+    const totalGH = totalBonusGH();
+    document.getElementById("adsBonusGHs").innerText = totalGH.toFixed(2);
+    // Update total speed
+    updateTotalSpeedUI();
+  }
+
+  function updateTotalSpeedUI() {
+    const totalSpeed = BASE_SPEED_GH + totalBonusGH();
+    document.getElementById("liveTotalSpeed").innerText = totalSpeed.toFixed(2);
+    // Also reflect base speed if desired
+    document.getElementById("baseSpeedGHs").innerText = BASE_SPEED_GH.toFixed(2);
+  }
+
+  // Ad flow: attempt to show a real rewarded ad
+  function showRewardedAd() {
+    // This is a production hook for a real rewarded ad network.
+    // Expected API shape (illustrative):
+    // window.RewardedAd or window.RewardedVideoAd with create()/load()/show() and events.
+    if (window.RewardedAd && typeof window.RewardedAd.create === "function") {
+      const adUnitId = "YOUR_AD_UNIT_ID"; // replace with actual unit from network
+      try {
+        const rewarded = window.RewardedAd.create({ adUnitId });
+        rewarded.on('reward', onAdCompleted);
+        rewarded.load()
+          .then(() => rewarded.show())
+          .catch(err => onAdError(err));
+      } catch (e) {
+        onAdError(e);
+      }
+      return;
+    }
+
+    // If the provider isn't loaded, inform the user (no contract granted)
+    const el = document.getElementById("adsError");
+    el.style.display = "inline";
+    el.innerText = "Ad network not loaded. Please enable ad provider integration.";
+    setTimeout(() => { el.style.display = "none"; el.innerText = ""; }, 4000);
+  }
+
+  function onAdCompleted() {
+    // Create a new 24h contract
+    const contract = {
+      id: "ad-" + Math.random().toString(36).slice(2,9),
+      startedAt: now(),
+      durationMs: CONTRACT_MS,
+      ghps: AD_GHPS
+    };
+    adContracts.push(contract);
+    saveToStorage();
+    updateAdsUI();
+  }
+
+  function onAdError(err) {
+    console.error("Rewarded ad error:", err);
+    const el = document.getElementById("adsError");
+    el.style.display = "inline";
+    el.innerText = "Ad failed to play. Please try again.";
+    setTimeout(() => { el.style.display = "none"; el.innerText = ""; }, 2500);
+  }
+
+  // Public function: open a simulated ad modal (real flow tries to show provider)
+  window.watchAd = function() {
+    pruneExpiredContracts();
+    if (activeContracts().length >= MAX_ADS_24H) {
+      const el = document.getElementById("adsError");
+      el.style.display = "inline";
+      el.innerText = "Daily limit reached. Try again in 24 hours.";
+      setTimeout(() => { el.style.display = "none"; el.innerText = ""; }, 2500);
+      return;
+    }
+
+    // Try to show a rewarded ad; otherwise show a simulated modal only if provider isn't loaded
+    const providerAvailable = !!window.RewardedAd;
+    if (providerAvailable) {
+      showRewardedAd();
+    } else {
+      // Fallback: provide a non-blocking informational modal guiding to real provider
+      // This block keeps the experience functional in environments without a provider.
+      // If you prefer a hard fail, replace with an alert or remove fallback.
+      const el = document.getElementById("adsError");
+      el.style.display = "inline";
+      el.innerText = "Ad network not loaded. This environment requires the real ad provider. Please integrate a rewarded ad network.";
+      setTimeout(() => { el.style.display = "none"; el.innerText = ""; }, 3500);
+    }
+  };
+
+  // Close modal if user cancels (in case a modal is used with a real provider)
+  window.closeAdsModal = function() {
+    if (!isModalOpen) return;
+    document.getElementById("adsModal").style.display = "none";
+    isModalOpen = false;
+  };
+
+  // Initialize on page load
+  function initAdsModule() {
+    loadFromStorage();
+    pruneExpiredContracts();
+    saveToStorage();
+    // Prepare initial UI
+    updateAdsUI();
+    // Bind nothing extra here; the Watch Ad button already binds to window.watchAd
+  }
+
+  // Expose a method to reset ads (useful for testing)
+  window.resetAdsContracts = function() {
+    adContracts = [];
+    saveToStorage();
+    updateAdsUI();
+  };
+
+  // Run on load
+  window.addEventListener("load", () => {
+    // Load token if present
+    loadToken();
+    showCurrentUser();
+    // Initialize ad module
+    initAdsModule();
+  });
 </script>
+
 </body>
 </html>
