@@ -1,0 +1,52 @@
+{
+  "consensus": {
+    "type": "pow",
+    "version": "1.0.0",
+    "pow": {
+      "algorithm": "keccak256",
+      "initialDifficulty": 6,
+      "minDifficulty": 1,
+      "maxDifficulty": 256,
+      "targetBlockTimeSecs": 15,
+      "adjustmentInterval": 50,
+      "threads": 4,
+      "hashCheckInterval": 500,
+      "nonceStatePath": "./db/nonce_state.bin"
+    },
+    "validation": {
+      "requirePrevHashMatch": true,
+      "requireStrictTimestamp": true,
+      "requireMinBaseFee": true,
+      "minBaseFee": 100,
+      "maxBlockSize": 2097152,
+      "maxTransactionsPerBlock": 2500,
+      "coinbaseMaturity": 100,
+      "enableStateRootValidation": true
+    },
+    "fork": {
+      "resolutionStrategy": "longest_chain",
+      "minCandidateLength": 3,
+      "requireGenesisMatch": true,
+      "requireLinkage": true,
+      "enableUndoLog": true
+    },
+    "infrastructure": {
+      "wal": {
+        "enableHmac": true,
+        "flushIntervalMs": 100,
+        "requireDrainOnHighLoad": true,
+        "recoveryMode": "replay_and_truncate"
+      },
+      "concurrency": {
+        "executionMode": "serialized_queue",
+        "lockTimeoutMs": 5000
+      },
+      "storage": {
+        "snapshotInterval": 1000,
+        "pruneOldHistory": true,
+        "snapshotStreaming": true,
+        "pendingKeyPersistence": "retain_zero"
+      }
+    }
+  }
+}
