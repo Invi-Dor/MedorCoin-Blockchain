@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MedorCoin | Production Node</title>
-    <!-- Google AdSense -->
-<script data-ad-client="pub-1189498572545023" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -36,43 +34,45 @@
             position: relative; overflow: hidden;
         }
         .offline-overlay {
-            position: absolute; inset: 0; background: rgba(255,255,255,0.8);
+            position: absolute; inset: 0; background: rgba(255,255,255,0.85);
             display: none; align-items: center; justify-content: center;
-            flex-direction: column; z-index: 10; font-weight: 800; color: var(--error);
-            font-size: 12px; text-transform: uppercase;
+            z-index: 10; font-weight: 900; color: var(--error);
+            font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
         }
         .bal-val { font-size: 3.2rem; font-weight: 900; letter-spacing: -2px; margin: 10px 0; font-variant-numeric: tabular-nums; }
         .sync-time { font-size: 10px; color: #999; text-transform: uppercase; font-weight: 700; margin-top: 5px; }
 
-        /* --- REAL-TIME HASHRATE CHART --- */
+        /* --- CHART --- */
         .chart-container { display: flex; align-items: flex-end; justify-content: center; gap: 3px; height: 35px; margin-bottom: 12px; }
-        .bar { width: 5px; background: var(--accent); border-radius: 2px; transition: height 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .bar { width: 5px; background: var(--accent); border-radius: 2px; transition: height 0.4s; }
         .bar.off { background: #ccc; }
 
-        /* --- DYNAMIC GRID --- */
+        /* --- GRID --- */
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; padding: 0 20px; }
         .box { 
             background: var(--card); border: 1px solid var(--border); 
             padding: 24px 15px; border-radius: 14px; text-align: center;
             display: flex; flex-direction: column; position: relative;
         }
-        .status-dot { position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; border-radius: 50%; }
-        .dot-active { background: var(--success); box-shadow: 0 0 8px var(--success); }
-        .dot-inactive { background: #ccc; }
-
         .speed { font-size: 22px; font-weight: 900; color: var(--text); }
         .p-meta { font-size: 10px; font-weight: 800; color: #aaa; text-transform: uppercase; margin-bottom: 10px; }
-        .price { font-size: 12px; margin: 0 0 15px; font-weight: 700; color: #666; }
-
         .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 900; font-size: 11px; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
         .btn-black { background: #000; color: #fff; }
         .btn-orange { background: var(--accent); color: #fff; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* --- TOAST QUEUE --- */
-        #toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; width: 90%; max-width: 400px; }
-        .toast { background: #000; color: #fff; padding: 12px 20px; border-radius: 12px; font-weight: 700; font-size: 11px; margin-top: 8px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2); animation: slideUp 0.3s forwards; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* --- SINGLETON NOTIFICATION (FIXED STACKING) --- */
+        #toast-container { 
+            position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); 
+            z-index: 9999; pointer-events: none; width: 90%; max-width: 380px;
+        }
+        .toast { 
+            background: #000; color: #fff; padding: 14px 20px; border-radius: 12px; 
+            font-weight: 800; font-size: 11px; text-align: center; 
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3); transition: all 0.2s ease;
+            width: 100%; border-left: 4px solid var(--accent); margin-top: 8px;
+            animation: slideUp 0.3s forwards;
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -86,13 +86,10 @@
 
 <main>
     <section class="balance-card" id="mainCard">
-        <div class="offline-overlay" id="offOverlay">
-            <span style="font-size: 24px;">⚠</span>
-            <span>Link Interrupted</span>
-        </div>
+        <div class="offline-overlay" id="offOverlay"><span>NODE DISCONNECTED</span></div>
         <div class="chart-container" id="hashChart"></div>
-        <div style="color:#888; font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing: 1px;">Network Verified Balance</div>
-        <div class="bal-val" id="balDisplay" aria-live="polite">0.00000000</div>
+        <div style="color:#888; font-size:11px; font-weight:900; text-transform:uppercase;">Network Verified Balance</div>
+        <div class="bal-val" id="balDisplay">0.00000000</div>
         <div style="font-weight:800; color:var(--accent); font-size:14px;">Cluster Rate: <span id="spdDisplay">0.00</span> GH/s</div>
         <div class="sync-time" id="lastSync">Last Sync: Just Now</div>
     </section>
@@ -103,13 +100,13 @@
         <div class="box" style="border: 2px solid var(--accent)">
             <h4>Speed Booster</h4>
             <div class="speed">+4.5 GH/s</div>
-            <div class="p-meta">Bonus: 100% Ad Revenue</div>
+            <div class="p-meta">100% Ad Revenue</div>
             <button class="btn btn-orange" id="adBtn" onclick="handleAction('ad-boost', 'adBtn')">Watch Ad</button>
         </div>
         <div class="box">
             <h4>Affiliate</h4>
             <div class="speed">+1.8 GH/s</div>
-            <div class="p-meta">Bonus: Network Fee Share</div>
+            <div class="p-meta">Network Fee Share</div>
             <button class="btn btn-orange" id="refBtn" onclick="copyRef()">Copy Invite</button>
         </div>
     </div>
@@ -121,39 +118,38 @@
         balance: 0.0, speed: 0.0,
         lastUpdate: Date.now(), lastSyncTime: Date.now(),
         isOffline: false, address: localStorage.getItem("m_addr"),
-        activePlans: [], isTabActive: true
+        isTabActive: true
     };
 
-    // --- SMART THROTTLING (Battery Saver) ---
-    document.addEventListener("visibilitychange", () => {
-        state.isTabActive = !document.hidden;
-        if (state.isTabActive) state.lastUpdate = Date.now();
-    });
-
-    // --- DYNAMIC CHART (Speed-Based) ---
-    function updateChart() {
-        if (!state.isTabActive) return;
-        const container = document.getElementById("hashChart");
-        if (container.children.length > 18) container.removeChild(container.firstChild);
-        
-        const bar = document.createElement("div");
-        bar.className = `bar ${state.isOffline ? 'off' : ''}`;
-        
-        // Height calculated from actual speed (Max 35px at 1000 GH/s)
-        const baseH = state.isOffline ? 2 : Math.min(35, (state.speed / 30) + (Math.random() * 5));
-        bar.style.height = `${baseH}px`;
-        
-        container.appendChild(bar);
-    }
-
-    function notify(msg, type = 'success') {
+    // --- SINGLETON NOTIFICATION LOGIC ---
+    function notify(msg, type = 'success', persistentId = null) {
         const container = document.getElementById("toast-container");
+        
+        // If a persistent ID is provided (e.g., 'retry'), update existing toast instead of creating new
+        if (persistentId) {
+            let existing = document.getElementById(`toast-${persistentId}`);
+            if (existing) {
+                existing.innerText = msg.toUpperCase();
+                return;
+            }
+        }
+
         const t = document.createElement("div");
+        if (persistentId) t.id = `toast-${persistentId}`;
         t.className = `toast`;
-        t.style.borderLeft = `4px solid ${type === 'success' ? 'var(--success)' : 'var(--error)'}`;
+        t.style.borderLeftColor = type === 'success' ? 'var(--success)' : 'var(--error)';
         t.innerText = msg.toUpperCase();
         container.appendChild(t);
-        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
+
+        // Auto-remove standard notifications; keep persistent ones until manually removed
+        if (!persistentId) {
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+        }
+    }
+
+    function removeNotification(id) {
+        const t = document.getElementById(`toast-${id}`);
+        if (t) t.remove();
     }
 
     async function secureFetch(endpoint, body = {}, attempt = 0) {
@@ -163,78 +159,60 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...body, addr: state.address })
             });
+
             if (res.status === 401) return window.location.href = 'login.html';
+            
+            // On success: Remove any existing retry notification
+            removeNotification('retry');
+            
             state.isOffline = false;
             state.lastSyncTime = Date.now();
             updateStatusUI(true);
             return await res.json();
         } catch (e) {
+            state.isOffline = true;
+            updateStatusUI(false);
+
             if (attempt < CONFIG.retry_limit) {
-                const delay = Math.pow(2, attempt) * 1000;
-                notify(`Sync Lost. Retry ${attempt+1}...`, 'error');
+                // UPDATE text of existing toast, don't stack new ones
+                notify(`Link Unstable. Reconnecting (Attempt ${attempt+1}/5)...`, 'error', 'retry');
+                
+                const delay = Math.min(10000, Math.pow(2, attempt) * 1000);
                 await new Promise(r => setTimeout(r, delay));
                 return secureFetch(endpoint, body, attempt + 1);
             }
-            state.isOffline = true;
-            updateStatusUI(false);
             return { success: false };
         }
     }
 
     function updateStatusUI(online) {
-        const tag = document.getElementById("netTag");
-        const overlay = document.getElementById("offOverlay");
-        tag.className = `net-status ${online ? 'online' : 'offline'}`;
-        tag.innerText = online ? "● Node Active" : "○ Offline";
-        overlay.style.display = online ? "none" : "flex";
-    }
-
-    async function loadPlans() {
-        const cached = localStorage.getItem("m_plans_cache");
-        if (cached) renderPlans(JSON.parse(cached));
-        const data = await secureFetch('/api/plans');
-        if (data.success) {
-            localStorage.setItem("m_plans_cache", JSON.stringify(data.plans));
-            state.activePlans = data.active_user_plans || [];
-            renderPlans(data.plans);
-        }
-    }
-
-    function renderPlans(plans) {
-        const grid = document.getElementById("planGrid");
-        grid.innerHTML = plans.map(p => {
-            const isActive = state.activePlans.includes(p.id);
-            return `
-                <div class="box">
-                    <div class="status-dot ${isActive ? 'dot-active' : 'dot-inactive'}"></div>
-                    <h4>${p.name}</h4>
-                    <div class="speed">${p.speed} GH/s</div>
-                    <div class="p-meta">ROI: ${p.roi_est || '12h Cycle'}</div>
-                    <div class="price">$${p.price} / ${p.term}</div>
-                    <button class="btn btn-black" ${isActive ? 'disabled' : ''} onclick="upgrade('${p.id}')">
-                        ${isActive ? 'Active' : 'Activate Node'}
-                    </button>
-                </div>
-            `;
-        }).join('');
+        document.getElementById("netTag").className = `net-status ${online ? 'online' : 'offline'}`;
+        document.getElementById("netTag").innerText = online ? "● Node Active" : "○ Offline";
+        document.getElementById("offOverlay").style.display = online ? "none" : "flex";
     }
 
     async function sync() {
         const data = await secureFetch('/api/user-stats');
-        if (data.success) {
+        if (data && data.success) {
             state.balance = parseFloat(data.balance);
             state.speed = parseFloat(data.speed);
             document.getElementById("spdDisplay").innerText = state.speed.toFixed(2);
         }
     }
 
-    function tick() {
-        // Battery Saver: Throttling to roughly 1 FPS when inactive
-        if (!state.isTabActive) {
-            setTimeout(() => requestAnimationFrame(tick), 1000);
-            return;
-        }
+    function updateChart() {
+        if (!state.isTabActive) return;
+        const container = document.getElementById("hashChart");
+        if (container.children.length > 18) container.removeChild(container.firstChild);
+        const bar = document.createElement("div");
+        bar.className = `bar ${state.isOffline ? 'off' : ''}`;
+        const h = state.isOffline ? 2 : Math.min(35, (state.speed / 30) + (Math.random() * 5));
+        bar.style.height = `${h}px`;
+        container.appendChild(bar);
+    }
 
+    function tick() {
+        if (!state.isTabActive) { setTimeout(() => requestAnimationFrame(tick), 1000); return; }
         const now = Date.now();
         if (state.speed > 0 && !state.isOffline) {
             const delta = (now - state.lastUpdate) / 1000;
@@ -242,39 +220,31 @@
             document.getElementById("balDisplay").innerText = state.balance.toFixed(8);
         }
         state.lastUpdate = now;
-        
-        const secondsSinceSync = Math.floor((now - state.lastSyncTime) / 1000);
-        document.getElementById("lastSync").innerText = `Last Sync: ${secondsSinceSync}s ago`;
-        
+        document.getElementById("lastSync").innerText = `Last Sync: ${Math.floor((now - state.lastSyncTime)/1000)}s ago`;
         requestAnimationFrame(tick);
     }
 
     async function handleAction(type, btnId) {
-        const btn = document.getElementById(btnId);
-        btn.disabled = true;
-        notify("Authorizing...");
+        document.getElementById(btnId).disabled = true;
+        notify("Authorizing...", "success");
         const data = await secureFetch('/api/action', { type });
-        if (data.success) { notify("Power Boosted!"); sync(); }
-        setTimeout(() => btn.disabled = false, 3000);
-    }
-
-    function upgrade(id) {
-        notify("Secure Redirect...");
-        setTimeout(() => window.location.href = `Invoice.html?id=${id}&uid=${state.address}`, 800);
+        if (data && data.success) { sync(); }
+        setTimeout(() => document.getElementById(btnId).disabled = false, 3000);
     }
 
     function copyRef() {
         navigator.clipboard.writeText(`https://medorcoin.org/join?ref=${state.address}`);
-        notify("Invite Link Copied");
+        notify("Link Copied", "success");
     }
 
     window.onload = () => {
-        loadPlans();
         sync();
         requestAnimationFrame(tick);
         setInterval(sync, CONFIG.sync_interval);
         setInterval(updateChart, 800);
     };
+
+    document.addEventListener("visibilitychange", () => { state.isTabActive = !document.hidden; });
 </script>
 </body>
 </html>
