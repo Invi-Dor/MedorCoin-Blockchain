@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Industrial MedorCoin Mining Provisioning - v19.0 Precision">
+  <title>Sovereign Command — MedorCoin v19.0</title>
+  <style>
+    :root {
+      --bg: #020408; --surface: #0a0f18; --border: rgba(255,255,255,0.08);
+      --accent: #ff9500; --accent-glow: rgba(255,149,0,0.15);
+      --text: #f3f4f6; --muted: #6b7280; --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+      --radius: 12px; --font-mono: 'ui-monospace', 'Cascadia Code', monospace;
+    }
+    *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 40px; max-width: 640px; width: 100%; box-shadow: 0 40px 100px rgba(0,0,0,0.8); position: relative; }
+
+    /* Header & Global SLA */
+    .status-row { display: flex; justify-content: space-between; margin-bottom: 24px; font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
+    .indicator { display: flex; align-items: center; gap: 8px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 10px var(--success); }
+
+    /* Node-Level Breakdown Grid (Problem 2) */
+    .node-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 24px; }
+    .node-mini-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; }
+    .node-id { font-size: 0.6rem; color: var(--muted); display: block; margin-bottom: 4px; }
+    .node-stat { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #fff; display: flex; justify-content: space-between; }
+    .node-stat b { color: var(--success); }
+
+    /* Dynamic TPS Graph (Problem 1) */
+    .visualizer-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; display: flex; justify-content: space-between; font-family: var(--font-mono); }
+    .pulse-wrap { height: 60px; display: flex; align-items: flex-end; gap: 2px; margin-bottom: 30px; }
+    .bar { flex: 1; background: var(--accent); border-radius: 1px 1px 0 0; transition: height 0.3s ease, background 0.3s; min-height: 4px; }
+
+    /* SKU Selection (Problem 3) */
+    .sku-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; }
+    .sku-opt { border: 1px solid var(--border); padding: 16px; border-radius: var(--radius); cursor: pointer; transition: 0.2s; position: relative; background: rgba(255,255,255,0.01); }
+    .sku-opt.active { border-color: var(--accent); background: var(--accent-glow); }
+    .sku-opt .term { font-weight: 800; font-size: 0.85rem; display: block; }
+    .sku-opt .cost { font-family: var(--font-mono); color: var(--accent); font-size: 0.75rem; margin-top: 4px; }
+
+    .btn-exec { width: 100%; padding: 20px; border-radius: var(--radius); border: none; background: var(--accent); color: #000; font-weight: 900; font-size: 1.1rem; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; transition: 0.2s; }
+    .btn-exec:disabled { background: #1f2937; color: #4b5563; cursor: not-allowed; }
+
+    /* Event Log (Problem 4) */
+    .event-log { background: #000; border: 1px solid var(--border); border-radius: 8px; padding: 12px; height: 80px; overflow-y: auto; font-family: var(--font-mono); font-size: 0.65rem; margin-bottom: 24px; color: #888; }
+    .event-item { margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 2px; }
+    .event-item b { color: var(--warning); }
+
+    /* Notification System */
+    .toast { position: fixed; bottom: 30px; right: 30px; padding: 16px 24px; background: #111; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 8px; color: #fff; font-size: 0.85rem; transform: translateX(150%); transition: transform 0.4s; z-index: 1000; }
+    .toast.active { transform: translateX(0); }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <header class="status-row">
+    <div class="indicator"><span class="dot" id="sys-dot"></span> <span id="sys-text">Network: Optimized</span></div>
+    <div id="sys-rtt">RTT: --ms</div>
+  </header>
+
+  <h1>Infrastructure Provision</h1>
+  <p style="color:var(--muted); font-size:0.95rem; margin-bottom:24px;">Dedicated 610 GH/s Provisioning Gateway.</p>
+
+  <div class="node-grid" id="node-container">
+    </div>
+
+  <div class="visualizer-label"><span>Cluster TPS Intensity</span><span id="m-tps-val">0.00 TPS</span></div>
+  <div class="pulse-wrap" id="v-pulse"></div>
+
+  <div class="visualizer-label"><span>System Event Log</span></div>
+  <div class="event-log" id="e-log">
+    <div class="event-item">[SYS] Initializing industrial sync...</div>
+  </div>
+
+  <form id="provisionForm">
+    <div class="sku-group" role="radiogroup">
+      <div class="sku-opt active" onclick="updatePlan(this, 'MONTH_01')"><span class="term">1 Month</span><span class="cost">$13.00</span></div>
+      <div class="sku-opt" onclick="updatePlan(this, 'MONTH_03')"><span class="term">3 Months</span><span class="cost">$35.00</span></div>
+      <div class="sku-opt" onclick="updatePlan(this, 'YEAR_01')"><span class="term">12 Months</span><span class="cost">$120.00</span></div>
+    </div>
+
+    <button type="button" class="btn-exec" id="submitBtn" onclick="executeProvisioning()">Authorize & Provision</button>
+  </form>
+</div>
+
+<div class="toast" id="notify"></div>
+
+<script>
+  let selectedSku = "MONTH_01";
+  let tpsHistory = Array(45).fill(2); // Problem 1: Tracking real TPS points
+  const MAX_TPS_THRESHOLD = 5000; // Industrial max TPS for scaling height
+
+  function updatePlan(el, sku) {
+    document.querySelectorAll('.sku-opt').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+    selectedSku = sku;
+  }
+
+  /**
+   * 1 & 2. DYNAMIC TPS BINDING & NODE BREAKDOWN
+   */
+  async function syncIndustrialMetrics() {
+    try {
+      const start = Date.now();
+      const res = await fetch('/api/v1/cluster/status');
+      const data = await res.json();
+      
+      document.getElementById('sys-rtt').innerText = `RTT: ${Date.now() - start}ms`;
+      document.getElementById('m-tps-val').innerText = `${data.totalTps.toFixed(2)} TPS`;
+
+      // Update Node Breakdown Grid (Problem 2)
+      const container = document.getElementById('node-container');
+      container.innerHTML = '';
+      data.nodes.forEach(node => {
+        const nCard = document.createElement('div');
+        nCard.className = 'node-mini-card';
+        nCard.innerHTML = `
+          <span class="node-id">${node.id}</span>
+          <div class="node-stat">CPU: <b>${Math.round(node.cpu * 100)}%</b></div>
+          <div class="node-stat">TPS: <b>${node.tps}</b></div>
+        `;
+        container.appendChild(nCard);
+      });
+
+      // Update TPS Pulse Graph (Problem 1)
+      tpsHistory.push(data.totalTps);
+      tpsHistory.shift();
+      drawTpsGraph();
+
+      // Fetch Event Log (Problem 4)
+      syncEventLog();
+
+    } catch (e) {
+      console.error("METRIC_SYNC_FAIL");
+    }
+  }
+
+  function drawTpsGraph() {
+    const wrap = document.getElementById('v-pulse');
+    wrap.innerHTML = '';
+    tpsHistory.forEach(tps => {
+      const b = document.createElement('div');
+      b.className = 'bar';
+      // Scale height relative to TPS load
+      const hPercent = Math.min(100, (tps / 100) * 100); 
+      b.style.height = `${Math.max(6, hPercent)}%`;
+      
+      // Color coding (Problem 1)
+      if(tps > 80) b.style.background = 'var(--danger)';
+      else if(tps > 50) b.style.background = 'var(--warning)';
+      else b.style.background = 'var(--accent)';
+      
+      wrap.appendChild(b);
+    });
+  }
+
+  /**
+   * 4. PERSISTENT EVENT LOG
+   */
+  async function syncEventLog() {
+    try {
+      const res = await fetch('/api/v1/cluster/events');
+      const events = await res.json();
+      const log = document.getElementById('e-log');
+      log.innerHTML = events.map(e => `
+        <div class="event-item">[${e.time}] <b>${e.level}</b>: ${e.message}</div>
+      `).join('');
+      log.scrollTop = log.scrollHeight;
+    } catch(e) {}
+  }
+
+  /**
+   * 3. SKU-BASED PROVISIONING
+   */
+  async function executeProvisioning() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerText = "Provisioning Logic Active...";
+
+    try {
+      const res = await fetch('/api/v1/provision/init', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('medor_token')}`
+        },
+        body: JSON.stringify({ sku: selectedSku }) // Problem 3: Backend receives SKU
+      });
+
+      const session = await res.json();
+      if(!res.ok) throw new Error(session.message);
+
+      window.location.href = `/gateway/checkout?ik=${session.idempotency_key}&sku=${selectedSku}`;
+    } catch (err) {
+      const toast = document.getElementById('notify');
+      toast.innerText = err.message;
+      toast.classList.add('active');
+      setTimeout(() => toast.classList.remove('active'), 4000);
+      btn.disabled = false;
+      btn.innerText = "Authorize & Provision";
+    }
+  }
+
+  setInterval(syncIndustrialMetrics, 4000);
+  syncIndustrialMetrics();
+</script>
+
+</body>
+</html>
