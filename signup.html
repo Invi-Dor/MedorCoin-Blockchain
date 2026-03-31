@@ -89,12 +89,11 @@ passInput.addEventListener('input', () => {
   document.getElementById('r-sym').className = /[^A-Za-z0-9]/.test(v) ? 'valid' : 'invalid';
 });
 
-// Submit Signup
 form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  btn.disabled = true;
-  btn.textContent = "Signin Up...";
-
+  btn.disabled = false;       // button stays clickable
+  btn.textContent = "Signing Up..."; // optional feedback
+});
+  
   try {
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
