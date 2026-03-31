@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MedorCoin - Welcome</title>
+  <title>MedorCoin - Join the Network</title>
   <style>
     :root {
       --bg: #0b1020; --surface: #0e1520; --accent: #ff8a00; --text: #e5e7eb;
@@ -16,7 +16,7 @@
     }
     .auth-card {
       background: var(--surface); border: 1px solid rgba(255,255,255,0.1);
-      padding: 45px; border-radius: 18px; width: 100%; max-width: 420px;
+      padding: 40px; border-radius: 16px; width: 100%; max-width: 420px;
     }
     .logo { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 32px; text-align: center; }
     
@@ -36,6 +36,8 @@
       background: linear-gradient(135deg, #ffb84d, var(--accent));
       color: #000; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 10px;
     }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    
     .status-msg { font-size: 0.85rem; padding: 12px; border-radius: 8px; margin-top: 20px; display: none; text-align: center; }
     .status-msg.err { display: block; background: rgba(225,29,72,0.1); color: var(--error); }
     .status-msg.ok { display: block; background: rgba(16,185,129,0.1); color: var(--success); }
@@ -48,7 +50,7 @@
 
   <form id="signup-form">
     <div class="form-group">
-      <label>Enter Your Email Address</label>
+      <label>Email Address</label>
       <input type="email" id="email" required placeholder="user@example.com">
     </div>
     <div class="form-group">
@@ -59,19 +61,16 @@
       <label>Password</label>
       <input type="password" id="password" required placeholder="••••••••">
       <div class="password-hints" id="pass-hints">
-        <span id="r-len" class="invalid">You must use minimum 8+ chars</span>
-        <span id="r-up" class="invalid">must contain at least 1 Uppercase letter</span>
-        <span id="r-num" class="invalid">Number</span>
-        <span id="r-sym" class="invalid">and a Symbol</span>
+        <span id="r-len" class="invalid">8+ chars</span>
+        <span id="r-up" class="invalid">Upper</span>
+        <span id="r-num" class="invalid">Num</span>
+        <span id="r-sym" class="invalid">Sym</span>
       </div>
     </div>
     <button type="submit" class="btn" id="signup-btn">Create Medor Account</button>
   </form>
 
   <div id="status" class="status-msg"></div>
-  <p style="text-align: center; font-size: 0.8rem; margin-top: 20px; color: var(--muted);">
-    Already registered? <a href="login.html" style="color: var(--accent);">Login here</a>
-  </p>
 </div>
 
 <script>
@@ -80,7 +79,7 @@ const passInput = document.getElementById('password');
 const btn = document.getElementById('signup-btn');
 const statusEl = document.getElementById('status');
 
-// Password Validator (Dynamic)
+// Real-time password UI updates
 passInput.addEventListener('input', () => {
   const v = passInput.value;
   document.getElementById('r-len').className = v.length >= 8 ? 'valid' : 'invalid';
@@ -90,12 +89,17 @@ passInput.addEventListener('input', () => {
 });
 
 form.addEventListener('submit', async (e) => {
-  btn.disabled = false;       // button stays clickable
-  btn.textContent = "Signing Up..."; // optional feedback
-});
+  e.preventDefault();
   
+  // Disable button to prevent double-clicks while network is thinking
+  btn.disabled = true;
+  btn.textContent = "Connecting to Node...";
+  statusEl.style.display = "none";
+
+  let isSuccess = false;
+
   try {
-    const res = await fetch('/api/auth/signup', {
+    const response = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -105,23 +109,30 @@ form.addEventListener('submit', async (e) => {
       })
     });
 
-    const data = await res.json();
-    if (res.ok) {
-      statusEl.textContent = "Success! Start Mining...";
+    const data = await response.json();
+
+    if (response.ok) {
+      isSuccess = true;
+      statusEl.textContent = "Success! Initializing mining...";
       statusEl.className = "status-msg ok";
       localStorage.setItem('medor_token', data.token);
-      setTimeout(() => { window.location.href = 'miners.html'; }, 1500);
+      localStorage.setItem('medor_address', data.address);
+      window.location.href = 'miners.html'; // Instant redirect
     } else {
-      statusEl.textContent = data.msg || "Registration Failed.";
+      statusEl.textContent = data.msg || "Server rejected registration.";
       statusEl.className = "status-msg err";
-      btn.disabled = false;
-      btn.textContent = "Create Your Account";
     }
   } catch (err) {
-    statusEl.textContent = "connection lost.";
+    // This happens if the backend isn't running or the route is missing
+    console.error("[FETCH ERROR]", err);
+    statusEl.textContent = "Backend offline or missing route. Check server logs.";
     statusEl.className = "status-msg err";
-    btn.disabled = false;
-    btn.textContent = "Create Your Account";
+  } finally {
+    // THIS GUARANTEES THE BUTTON UNLOCKS NO MATTER WHAT
+    if (!isSuccess) {
+      btn.disabled = false;
+      btn.textContent = "Try Again";
+    }
   }
 });
 </script>
