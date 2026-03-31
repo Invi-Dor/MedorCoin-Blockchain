@@ -56,14 +56,14 @@
 
   <form id="login-form">
     <div class="form-group">
-      <label>Industrial Identifier (Email)</label>
+      <label>Enter Your Email Address</label>
       <input type="email" id="email" required placeholder="name@domain.com" autocomplete="username">
     </div>
     <div class="form-group">
-      <label>Security Key (Password)</label>
+      <label>Enter Your Password</label>
       <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
     </div>
-    <button type="submit" class="btn" id="login-btn">Initialize Session</button>
+    <button type="submit" class="btn" id="login-btn">Login</button>
   </form>
 
   <form id="twofa-section">
@@ -115,7 +115,7 @@
         tempEmail = email;
         loginForm.style.display = 'none';
         twofaForm.style.display = 'block';
-        showStatus("Verification code dispatched to your email.", "ok");
+        showStatus("Verification code has been sent to your email.", "ok");
       } else {
         throw new Error(data.msg || "Authentication Failed");
       }
