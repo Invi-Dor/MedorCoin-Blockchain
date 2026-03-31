@@ -12,6 +12,7 @@ const path = require("path");
 const crypto = require("crypto");
 const msgpack = require("msgpack5")();
 const jwt = require("jsonwebtoken");
+const cors = require('cors');
 
 // Core Modules
 const TransactionEngine = require('./transaction_engine.cjs');
@@ -35,6 +36,7 @@ try {
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
+app.use(cors());  
 
 // Initialize Distributed WebSocket Hub
 const wsHub = new MedorWS(server, engine);
