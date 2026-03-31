@@ -100,7 +100,7 @@ form.addEventListener('submit', async (e) => {
   
   // Disable button to prevent double-clicks while network is thinking
   btn.disabled = false;
-  btn.textContent = "Aigning Up...";
+  btn.textContent = "Signing Up...";
   statusEl.style.display = "none";
 
   let isSuccess = true;
@@ -116,21 +116,27 @@ form.addEventListener('submit', async (e) => {
       })
     });
 
-    const data = response.json();
+    const response = await fetch('/api/auth/signup', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    email: document.getElementById('email').value,
+    username: document.getElementById('username').value,
+    password: passInput.value
+  })
+});
 
-    if (response.ok) {
-      isSuccess = true;
-      statusEl.textContent = "Success! Start mining...";
-      statusEl.className = "status-msg ok";
-      localStorage.setItem('medor_token', data.token);
-      localStorage.setItem('medor_address', data.address);
-      window.location.href = 'miners.html'; // Instant if (data.success) {
-  // Redirect or continue
-  window.location.href = "/dashboard"; // or whatever the next page is
+const data = await response.json(); // <-- await here too
+
+if (response.ok) {
+  statusEl.textContent = "Success! Start mining...";
+  statusEl.className = "status-msg ok";
+  localStorage.setItem('medor_token', data.token);
+  localStorage.setItem('medor_address', data.address);
+  window.location.href = 'miners.html'; // now it will actually redirect
 } else {
-  // Show a message if there really is a problem
   statusEl.textContent = data.msg || "Something went wrong.";
-  statusEl.className = "status-msg err"; // only for actual errors
+  statusEl.className = "status-msg err";
 }
   } catch (err) {
     // This happens if the backend isn't running or the route is missing
