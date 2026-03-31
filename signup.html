@@ -3,44 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MedorCoin - Welcome</title>
+  <title>MedorCoin - Genesis Node Signup</title>
   <style>
     :root {
-      --bg: #E0F7FF; --surface: #0e1520; --accent: #0A0A0A; --text: #e5e7eb;
-      --text: #F3EAD2; --error: #e11d48; --success: #10b981; --radius: 12px;
+      --bg: #E0F7FF; --surface: #0e1520; --accent: #0A0A0A; 
+      --text: #F3EAD2; --muted: #cbd5e1; /* Brightened muted text so it's readable on dark cards */
+      --error: #e11d48; --success: #10b981; --radius: 12px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif;
-      display: flex; align-items: center; justify-content: center; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;
     }
     .auth-card {
       background: var(--surface); border: 1px solid rgba(255,255,255,0.1);
-      padding: 40px; border-radius: 16px; width: 100%; max-width: 420px;
+      padding: 40px; border-radius: 16px; width: 100%; max-width: 450px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     }
-    .logo { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 32px; text-align: center; }
+    .logo { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 24px; text-align: center; letter-spacing: 1px; }
     
     .form-group { margin-bottom: 20px; }
-    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
-    input {
-      width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
-      padding: 14px; border-radius: var(--radius); color: #fff; font-size: 1rem;
-    }
+    /* Problem 8 Fixed: Brightened labels for visibility */
+    label { display: block; font-size: 0.85rem; color: #f8fafc; margin-bottom: 8px; font-weight: 500; }
     
-    .password-hints { font-size: 0.7rem; color: var(--muted); margin-top: 8px; display: flex; gap: 10px; }
-    .valid { color: var(--success); }
+    input[type="text"], input[type="email"], input[type="password"] {
+      width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15);
+      padding: 14px; border-radius: var(--radius); color: #fff; font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    input:focus { outline: none; border-color: #64748b; }
+    
+    .password-hints { font-size: 0.75rem; color: var(--muted); margin-top: 8px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .valid { color: var(--success); font-weight: bold; }
     .invalid { color: var(--error); }
+
+    .checkbox-group { display: flex; align-items: flex-start; gap: 10px; margin-top: 25px; margin-bottom: 15px; }
+    .checkbox-group input { width: 18px; height: 18px; margin-top: 2px; cursor: pointer; }
+    .checkbox-group label { font-size: 0.75rem; color: var(--muted); line-height: 1.4; font-weight: normal; }
 
     .btn {
       width: 100%; padding: 14px; border-radius: var(--radius); border: none;
-      background: linear-gradient(135deg, #ffb84d, var(--accent));
-      color: #000; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 10px;
+      background: linear-gradient(135deg, #cbd5e1, var(--accent));
+      color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 10px;
+      transition: opacity 0.2s, transform 0.1s;
     }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     
+    /* Problem 7 Fixed: Removed inline display hiding so these classes actually show */
     .status-msg { font-size: 0.85rem; padding: 12px; border-radius: 8px; margin-top: 20px; display: none; text-align: center; }
-    .status-msg.err { display: block; background: rgba(225,29,72,0.1); color: var(--error); }
-    .status-msg.ok { display: block; background: rgba(16,185,129,0.1); color: var(--success); }
+    .status-msg.err { display: block; background: rgba(225,29,72,0.1); color: var(--error); border: 1px solid rgba(225,29,72,0.3); }
+    .status-msg.ok { display: block; background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
   </style>
 </head>
 <body>
@@ -50,41 +63,56 @@
 
   <form id="signup-form">
     <div class="form-group">
-      <label>Email Address</label>
-      <input type="email" id="email" required placeholder="user@example.com">
+      <label>Identifier (Email)</label>
+      <input type="email" id="email" required placeholder="miner@domain.com">
     </div>
+    
     <div class="form-group">
-      <label>Choose Username</label>
-      <input type="text" id="username" required placeholder="MiningAlias">
+      <label>Worker ID (Username)</label>
+      <input type="text" id="username" required placeholder="Rig_Alpha_01">
     </div>
-   <div class="form-group">
-  <label>Choose Password</label>
-  <input type="password" id="password" required placeholder="••••••••">
-  <div class="password-hints" id="pass-hints">
-    <span id="r-len" class="invalid">8+ chars</span>
-    <span id="r-up" class="invalid">Upper</span>
-    <span id="r-num" class="invalid">Num</span>
-    <span id="r-sym" class="invalid">Sym</span>
-  </div>
-</div>
 
-<div class="form-group">
-  <label>Confirm Password</label>
-  <input type="password" id="confirm-password" required placeholder="••••••••">
-  <div class="password-hints" id="confirm-pass-hints">
-    <span id="r-match" class="invalid">Must match</span>
-  </div>
-</div>
+    <div class="form-group">
+      <label>Payout Wallet Address (Optional)</label>
+      <input type="text" id="wallet" placeholder="Leave blank to auto-generate Medor wallet">
+    </div>
 
-<button type="submit" class="btn" id="signup-btn">Create Medor Account</button>
-  <div id="status" class="status-msg"></div>
+    <div class="form-group">
+      <label>Mining Access Key (Password)</label>
+      <input type="password" id="password" required placeholder="••••••••">
+      <div class="password-hints" id="pass-hints">
+        <span id="r-len" class="invalid">8+ chars</span>
+        <span id="r-up" class="invalid">Upper</span>
+        <span id="r-num" class="invalid">Num</span>
+        <span id="r-sym" class="invalid">Sym</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Confirm Access Key</label>
+      <input type="password" id="confirm-password" required placeholder="••••••••">
+      <div class="password-hints" id="confirm-pass-hints">
+        <span id="r-match" class="invalid">Must match</span>
+      </div>
+    </div>
+
+    <div class="checkbox-group">
+      <input type="checkbox" id="terms" required>
+      <label for="terms">I acknowledge that MedorCoin mining is resource-intensive. I accept the Pool Terms and Conditions.</label>
+    </div>
+
+    <button type="submit" class="btn" id="signup-btn">Initialize Node</button>
+    <div id="status" class="status-msg"></div>
+  </form>
 </div>
 
 <script>
 const form = document.getElementById('signup-form');
 const passInput = document.getElementById('password');
+const confirmPassInput = document.getElementById('confirm-password');
 const btn = document.getElementById('signup-btn');
 const statusEl = document.getElementById('status');
+const matchHint = document.getElementById('r-match');
 
 // Real-time password UI updates
 passInput.addEventListener('input', () => {
@@ -93,61 +121,83 @@ passInput.addEventListener('input', () => {
   document.getElementById('r-up').className = /[A-Z]/.test(v) ? 'valid' : 'invalid';
   document.getElementById('r-num').className = /[0-9]/.test(v) ? 'valid' : 'invalid';
   document.getElementById('r-sym').className = /[^A-Za-z0-9]/.test(v) ? 'valid' : 'invalid';
+  validateMatch();
 });
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  // Disable button to prevent double-clicks while network is thinking
-  btn.disabled = false;
-  btn.textContent = "Signing Up...";
-  statusEl.style.display = "none";
+confirmPassInput.addEventListener('input', validateMatch);
 
-  let isSuccess = true;
+function validateMatch() {
+  if (confirmPassInput.value.length > 0) {
+    const isMatch = passInput.value === confirmPassInput.value;
+    matchHint.className = isMatch ? 'valid' : 'invalid';
+    matchHint.textContent = isMatch ? 'Passwords match' : 'Must match';
+  } else {
+    matchHint.className = 'invalid';
+    matchHint.textContent = 'Must match';
+  }
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault(); // Prevents page reload
+  
+  // Guard clause for passwords
+  if (passInput.value !== confirmPassInput.value) {
+    statusEl.textContent = "Passwords do not match.";
+    statusEl.className = "status-msg err";
+    return;
+  }
+  
+  // Fix 4 & 5: Properly disable button to prevent double submission
+  btn.disabled = true; 
+  btn.textContent = "Connecting to Pool...";
+  
+  // Fix 7: Reset class to hide old messages, do NOT use style.display = "none"
+  statusEl.className = "status-msg"; 
+  statusEl.textContent = "";
+
+  let isSuccess = false;
 
   try {
-    const response = fetch('/api/auth/signup', {
+    // Fix 1, 2, 3, 9: Proper single async/await structure without duplicates
+    const response = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: document.getElementById('email').value,
         username: document.getElementById('username').value,
-        password: passInput.value
+        password: passInput.value,
+        wallet: document.getElementById('wallet').value || null // New Payout Setup
       })
     });
 
-    const response = await fetch('/api/auth/signup', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    email: document.getElementById('email').value,
-    username: document.getElementById('username').value,
-    password: passInput.value
-  })
-});
+    const data = await response.json(); 
 
-const data = await response.json(); // <-- await here too
-
-if (response.ok) {
-  statusEl.textContent = "Success! Start mining...";
-  statusEl.className = "status-msg ok";
-  localStorage.setItem('medor_token', data.token);
-  localStorage.setItem('medor_address', data.address);
-  window.location.href = 'miners.html'; // now it will actually redirect
-} else {
-  statusEl.textContent = data.msg || "Something went wrong.";
-  statusEl.className = "status-msg err";
-}
+    if (response.ok) {
+      isSuccess = true;
+      statusEl.textContent = "Node Registered! Handshaking with cluster...";
+      statusEl.className = "status-msg ok";
+      
+      // Save identity for dashboard
+      localStorage.setItem('medor_token', data.token);
+      localStorage.setItem('medor_address', data.address || data.wallet);
+      
+      // Fix 6: Slight delay so the user sees the success message before jumping to the dashboard
+      setTimeout(() => {
+        window.location.href = 'miners.html'; 
+      }, 1200);
+    } else {
+      statusEl.textContent = data.msg || "Registration rejected by pool.";
+      statusEl.className = "status-msg err";
+    }
   } catch (err) {
-    // This happens if the backend isn't running or the route is missing
     console.error("[FETCH ERROR]", err);
-    statusEl.textContent = "Backend offline or missing route.  server error.";
+    statusEl.textContent = "Gateway timeout. Backend offline or route missing.";
     statusEl.className = "status-msg err";
   } finally {
-    // THIS GUARANTEES THE BUTTON UNLOCKS NO MATTER WHAT
+    // Fix 4 & 5: Ensure button always unlocks correctly if it failed
     if (!isSuccess) {
-      btn.enabled = true;
-      btn.textContent = "Try Again";
+      btn.disabled = false; // "enabled = true" is not valid JS, this is the fix
+      btn.textContent = "Initialize Node";
     }
   }
 });
