@@ -1,201 +1,233 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MedorCoin | Join the Future</title>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<style>
-  :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --btn: #2563eb; --text: #f8fafc; }
-  body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-  
-  /* HEADER ARCHITECTURE */
-  header { width: 100%; padding: 20px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; }
-  .logo { font-size: 22px; font-weight: 800; color: var(--accent); text-decoration: none; }
-  .menu-icon { cursor: pointer; display: flex; flex-direction: column; gap: 5px; }
-  .menu-icon div { width: 25px; height: 3px; background: white; border-radius: 2px; }
-  #nav-dropdown { display: none; position: absolute; top: 60px; right: 20px; background: var(--card); border: 1px solid #334155; border-radius: 8px; width: 200px; padding: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-  #nav-dropdown a { display: block; color: white; padding: 12px; text-decoration: none; font-size: 14px; border-radius: 4px; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Protocol Entry | MedorCoin Signup</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root { 
+      --bg: #0b1020; --surface: #0e1520; --accent: #38bdf8; --btn: #2563eb; 
+      --text: #f8fafc; --muted: #94a3b8; --error: #f87171; --success: #4ade80;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: 'Inter', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); 
+      display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+      background-image: radial-gradient(circle at 50% 50%, rgba(56,189,248,0.05) 0%, transparent 80%);
+    }
+    
+    header { width: 100%; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+    .logo { font-size: 22px; font-weight: 800; color: var(--accent); text-decoration: none; letter-spacing: -0.5px; }
+    
+    .container { 
+      background: var(--surface); padding: 40px; border-radius: 16px; width: 100%; max-width: 440px; 
+      border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      margin: auto;
+    }
+    h2 { text-align: center; font-size: 1.5rem; margin-bottom: 8px; font-weight: 800; }
+    .kicker { font-size: 0.75rem; color: var(--muted); text-align: center; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 0.1em; }
 
-  /* FORM CONTAINERS */
-  .container { background: var(--card); padding: 35px; border-radius: 12px; width: 100%; max-width: 420px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); margin-top: 20px; }
-  h2 { text-align: center; color: var(--accent); margin-bottom: 25px; }
-  label { font-size: 13px; color: #94a3b8; display: block; margin-top: 15px; font-weight: 600; }
-  input { width: 100%; padding: 12px; margin-top: 8px; border-radius: 6px; border: 1px solid #334155; background: var(--bg); color: white; box-sizing: border-box; font-size: 15px; }
-  
-  /* VERIFICATION BOX (Hidden by default) */
-  #verifySection { display: none; text-align: center; }
-  .otp-group { display: flex; justify-content: space-between; margin-top: 20px; }
-  .otp-input { width: 45px; height: 50px; text-align: center; font-size: 20px; font-weight: bold; }
+    label { font-size: 0.8rem; color: var(--muted); display: block; margin-top: 16px; font-weight: 600; }
+    input { 
+      width: 100%; padding: 12px; margin-top: 6px; border-radius: 8px; border: 1px solid #334155; 
+      background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; transition: 0.2s;
+    }
+    input:focus { outline: none; border-color: var(--accent); background: rgba(15, 23, 42, 0.8); }
+    
+    #verifySection { display: none; text-align: center; }
+    .otp-group { display: flex; justify-content: center; gap: 10px; margin: 25px 0; }
+    .otp-input { width: 45px; height: 55px; text-align: center; font-size: 24px; font-weight: 800; border-color: #334155; }
 
-  button { width: 100%; padding: 15px; background: var(--btn); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 700; margin-top: 25px; transition: 0.3s; }
-  .social-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; align-items: center; }
-  .apple-btn { background: #000; color: #fff; width: 100%; height: 45px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; cursor: pointer; border: none; }
-  .apple-btn img { width: 18px; margin-right: 10px; filter: invert(1); }
-  .error-msg { color: #f87171; font-size: 13px; margin-top: 15px; display: none; text-align: center; background: rgba(248, 113, 113, 0.1); padding: 10px; border-radius: 6px; }
-  .success-msg { color: #4ade80; font-size: 14px; margin-top: 15px; display: none; text-align: center; }
-</style>
+    .btn { 
+      width: 100%; padding: 15px; background: var(--btn); color: white; border: none; border-radius: 8px; 
+      cursor: pointer; font-size: 1rem; font-weight: 700; margin-top: 25px; transition: 0.2s; 
+    }
+    .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { background: #334155; cursor: not-allowed; opacity: 0.6; }
+
+    .social-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .apple-btn { 
+      background: #fff; color: #000; width: 100%; height: 44px; border-radius: 4px; 
+      display: flex; align-items: center; justify-content: center; font-weight: 600; 
+      cursor: pointer; border: none; font-family: -apple-system, system-ui; 
+    }
+    .apple-btn img { width: 16px; margin-right: 8px; }
+
+    .msg { font-size: 0.85rem; padding: 12px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; }
+    .msg.err { display: block; background: rgba(248, 113, 113, 0.1); color: var(--error); border: 1px solid rgba(248, 113, 113, 0.2); }
+    .msg.ok { display: block; background: rgba(74, 222, 128, 0.1); color: var(--success); border: 1px solid rgba(74, 222, 128, 0.2); }
+  </style>
 </head>
 <body>
 
 <header>
   <a href="index.html" class="logo">MEDORCOIN</a>
-  <div class="menu-icon" onclick="toggleMenu()">
-    <div></div><div></div><div></div>
-  </div>
-  <div id="nav-dropdown"></div>
+  <div style="font-size: 0.85rem; color: var(--muted);">Already a miner? <a href="login.html" style="color: var(--accent); text-decoration: none;">Login</a></div>
 </header>
 
-<div class="container" id="mainCard">
+<div class="container">
   <div id="signupSection">
-    <h2>Create Account</h2>
+    <h2>Genesis Enrollment</h2>
+    <div class="kicker">Establish your node identity</div>
     
-    <div class="social-container">
+    <div class="social-grid">
       <div id="g_id_onload"
-           data-client_id="650014694453-ud6jq7505nrh7ivm455p0hv86k9na6d5.apps.googleusercontent.com"
-           data-context="signup"
-           data-ux_mode="popup"
-           data-callback="onSocialLanding"
-           data-auto_prompt="false">
+           data-client_id="YOUR_GOOGLE_CLIENT_ID"
+           data-callback="onSocialAuth">
       </div>
-      <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signup_with" data-size="large" data-width="350"></div>
+      <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="filled_blue" data-text="signup_with" data-size="large" data-width="360"></div>
       
-      <button class="apple-btn" onclick="onSocialLanding({provider: 'apple'})">
+      <button class="apple-btn" onclick="onSocialAuth({provider: 'apple'})">
         <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg"> Sign up with Apple
       </button>
     </div>
 
-    <hr style="border:0; border-top:1px solid #334155; margin: 20px 0;">
+    <div style="display: flex; align-items: center; margin: 20px 0; color: #334155;">
+      <hr style="flex: 1; border: 0; border-top: 1px solid #334155;">
+      <span style="padding: 0 10px; font-size: 0.7rem;">OR PROTOCOL MAIL</span>
+      <hr style="flex: 1; border: 0; border-top: 1px solid #334155;">
+    </div>
 
-    <form id="manualSignupForm">
-      <label>Email Address</label>
+    <form id="signupForm">
+      <label>Industrial Identifier (Email)</label>
       <input type="email" id="regEmail" required placeholder="name@domain.com">
-      <label>Username</label>
-      <input type="text" id="regUser" required placeholder="Choose username">
-      <label>Password</label>
-      <input type="password" id="regPass" required placeholder="••••••••">
-      <label>Confirm Password</label>
-      <input type="password" id="regConfirm" required placeholder="••••••••">
       
-      <div id="regError" class="error-msg"></div>
-      <button type="submit" id="regBtn">Create Medor Account</button>
+      <label>Node Username</label>
+      <input type="text" id="regUser" required placeholder="Enter username">
+      
+      <label>Security Key</label>
+      <input type="password" id="regPass" required placeholder="••••••••">
+      
+      <div id="signupMsg" class="msg"></div>
+      <button type="submit" class="btn" id="signupBtn">Generate Credentials</button>
     </form>
   </div>
 
   <div id="verifySection">
-    <h2>Verify Email</h2>
-    <p style="font-size: 14px; color: #94a3b8;">A 6-digit code was sent to your email.</p>
+    <h2>Verify Protocol</h2>
+    <div class="kicker">Check your transmission inbox</div>
+    <p style="font-size: 0.85rem; color: var(--muted); text-align: center;">6-digit verification code sent to node email.</p>
+    
     <div class="otp-group">
-      <input type="text" class="otp-input" maxlength="1">
-      <input type="text" class="otp-input" maxlength="1">
-      <input type="text" class="otp-input" maxlength="1">
-      <input type="text" class="otp-input" maxlength="1">
-      <input type="text" class="otp-input" maxlength="1">
-      <input type="text" class="otp-input" maxlength="1">
+      <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+      <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+      <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+      <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+      <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+      <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
     </div>
-    <div id="verifyError" class="error-msg"></div>
-    <div id="successInfo" class="success-msg">Registration Successful! Redirecting...</div>
-    <button onclick="submitOTP()" id="verifyBtn">Verify & Complete</button>
+    
+    <div id="verifyMsg" class="msg"></div>
+    <button class="btn" id="verifyBtn">Finalize Registration</button>
   </div>
 </div>
 
 <script>
-// --- UI UTILS ---
-function toggleMenu() {
-  const dd = document.getElementById("nav-dropdown");
-  dd.style.display = dd.style.display === "block" ? "none" : "block";
+// --- GLOBAL AUTH STATE ---
+let enrollmentEmail = "";
+
+// --- 1. SOCIAL SYNC (Bypass OTP) ---
+async function onSocialAuth(response) {
+  try {
+    const res = await fetch("/api/auth/social-sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: response.credential, provider: response.provider || 'google' })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem("medor_token", data.token);
+      localStorage.setItem("medor_address", data.address);
+      window.location.href = "miners.html";
+    }
+  } catch (e) { console.error("Sync Failed", e); }
 }
 
-function updateNav() {
-  const user = JSON.parse(localStorage.getItem("medor_session"));
-  const dd = document.getElementById("nav-dropdown");
-  if (user) {
-    dd.innerHTML = `<a href="crypto-dashboard.html">Dashboard</a><a href="#" onclick="logout()">Logout</a>`;
-  } else {
-    dd.innerHTML = `<a href="login.html">Login</a><a href="signup.html">Join</a>`;
-  }
-}
-
-function logout() { localStorage.removeItem("medor_session"); window.location.href="index.html"; }
-
-// --- 1. SOCIAL LANDING (IMMEDIATE DASHBOARD) ---
-function onSocialLanding(response) {
-  // If user chooses Google/Apple, bypass OTP and go straight to Dashboard
-  document.getElementById("signupSection").style.opacity = "0.5";
-  fetch("/api/auth/social-sync", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token: response.credential, provider: response.provider || 'google' })
-  }).then(res => res.json()).then(data => {
-    localStorage.setItem("medor_session", JSON.stringify(data.user));
-    window.location.href = "crypto-dashboard.html";
-  });
-}
-
-// --- 2. MANUAL SIGNUP (OTP FLOW) ---
-document.getElementById("manualSignupForm").addEventListener("submit", async (e) => {
+// --- 2. MANUAL SIGNUP INITIATION ---
+document.getElementById("signupForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const btn = document.getElementById("regBtn");
-  const err = document.getElementById("regError");
-  const pass = document.getElementById("regPass").value;
-  const conf = document.getElementById("regConfirm").value;
-
-  if(pass !== conf) { err.innerText = "Passwords match error."; err.style.display="block"; return; }
+  const btn = document.getElementById("signupBtn");
+  const msg = document.getElementById("signupMsg");
   
-  btn.innerText = "Sending Code...";
+  enrollmentEmail = document.getElementById("regEmail").value;
+  const username = document.getElementById("regUser").value;
+  const password = document.getElementById("regPass").value;
+
+  btn.disabled = true;
+  btn.innerText = "Dispatching Code...";
+  msg.style.display = "none";
+
   try {
     const res = await fetch("/api/auth/send-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: document.getElementById("regEmail").value, username: document.getElementById("regUser").value, password: pass })
+      body: JSON.stringify({ email: enrollmentEmail, username, password })
     });
 
-    if(res.ok) {
+    if (res.ok) {
       document.getElementById("signupSection").style.display = "none";
       document.getElementById("verifySection").style.display = "block";
     } else {
-      err.innerText = "Email already registered."; err.style.display="block";
+      const data = await res.json();
+      msg.textContent = data.msg || "ID already in use.";
+      msg.className = "msg err";
     }
-  } catch { err.innerText = "Server Error."; err.style.display="block"; }
-  btn.innerText = "Create Medor Account";
+  } catch {
+    msg.textContent = "Gateway timeout.";
+    msg.className = "msg err";
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "Generate Credentials";
+  }
 });
 
-// --- 3. VERIFICATION & LOGIN REDIRECT ---
-async function submitOTP() {
+// --- 3. FINAL OTP VERIFICATION ---
+document.getElementById("verifyBtn").addEventListener("click", async () => {
   const btn = document.getElementById("verifyBtn");
-  const err = document.getElementById("verifyError");
-  const success = document.getElementById("successInfo");
+  const msg = document.getElementById("verifyMsg");
   const otp = Array.from(document.querySelectorAll(".otp-input")).map(i => i.value).join("");
 
-  btn.innerText = "Checking...";
+  if (otp.length < 6) return;
+
+  btn.disabled = true;
+  btn.innerText = "Finalizing...";
+
   try {
     const res = await fetch("/api/auth/verify-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: document.getElementById("regEmail").value, code: otp })
+      body: JSON.stringify({ email: enrollmentEmail, code: otp })
     });
 
-    if(res.ok) {
-      success.style.display = "block";
-      setTimeout(() => {
-        // After successful verification, we land them on the LOGIN page as requested
-        window.location.href = "login.html?registered=true";
-      }, 2000);
+    if (res.ok) {
+      msg.textContent = "Identity Confirmed. Redirecting to login...";
+      msg.className = "msg ok";
+      setTimeout(() => { window.location.href = "login.html?reg=success"; }, 2000);
     } else {
-      err.innerText = "Invalid or expired code."; err.style.display="block";
+      msg.textContent = "Invalid verification code.";
+      msg.className = "msg err";
+      btn.disabled = false;
+      btn.innerText = "Finalize Registration";
     }
-  } catch { err.innerText = "Connection failed."; err.style.display="block"; }
-  btn.innerText = "Verify & Complete";
-}
-
-// Auto-focus OTP inputs
-document.querySelectorAll(".otp-input").forEach((input, index) => {
-  input.addEventListener("input", (e) => {
-    if (e.target.value.length === 1 && index < 5) document.querySelectorAll(".otp-input")[index + 1].focus();
-  });
+  } catch {
+    msg.textContent = "Verification link broken.";
+    msg.className = "msg err";
+    btn.disabled = false;
+  }
 });
 
-updateNav();
+// --- UI LOGIC: OTP AUTO-FOCUS ---
+const otpInputs = document.querySelectorAll(".otp-input");
+otpInputs.forEach((input, i) => {
+  input.addEventListener("input", (e) => {
+    if (e.target.value.length === 1 && i < 5) otpInputs[i+1].focus();
+  });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Backspace" && !e.target.value && i > 0) otpInputs[i-1].focus();
+  });
+});
 </script>
 </body>
 </html>
