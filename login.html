@@ -1,183 +1,187 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MedorCoin | Log In</title>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<style>
-  :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --btn: #2563eb; --text: #f8fafc; }
-  body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
-  
-  /* HEADER ARCHITECTURE */
-  header { width: 100%; padding: 20px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; background: rgba(15, 23, 42, 0.9); position: sticky; top: 0; z-index: 1000; }
-  .logo { font-size: 22px; font-weight: 800; color: var(--accent); text-decoration: none; }
-  .menu-icon { cursor: pointer; display: flex; flex-direction: column; gap: 5px; }
-  .menu-icon div { width: 25px; height: 3px; background: white; border-radius: 2px; }
-  
-  /* DROPDOWN MENU */
-  #nav-dropdown { display: none; position: absolute; top: 60px; right: 20px; background: var(--card); border: 1px solid #334155; border-radius: 8px; width: 200px; padding: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-  #nav-dropdown a { display: block; color: white; padding: 12px; text-decoration: none; font-size: 14px; border-radius: 4px; }
-  #nav-dropdown a:hover { background: #334155; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sovereign Access — MedorCoin</title>
+  <style>
+    :root {
+      --bg: #0b1020; --surface: #0e1520; --accent: #ff8a00; --text: #e5e7eb;
+      --muted: #9ca3af; --error: #e11d48; --success: #10b981; --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif;
+      display: flex; align-items: center; justify-content: center; min-height: 100vh;
+      background-image: radial-gradient(circle at 50% 50%, rgba(255,138,0,0.05) 0%, transparent 80%);
+    }
+    .auth-card {
+      background: var(--surface); border: 1px solid rgba(255,255,255,0.1);
+      padding: 40px; border-radius: 16px; width: 100%; max-width: 420px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .logo { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 8px; text-align: center; }
+    .kicker { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 32px; }
+    
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
+    input {
+      width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
+      padding: 14px; border-radius: var(--radius); color: #fff; font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    input:focus { outline: none; border-color: var(--accent); background: rgba(0,0,0,0.3); }
+    
+    .btn {
+      width: 100%; padding: 14px; border-radius: var(--radius); border: none;
+      background: linear-gradient(135deg, #ffb84d, var(--accent));
+      color: #000; font-weight: 700; font-size: 1rem; cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s; margin-top: 10px;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { background: #374151; color: #6b7280; cursor: not-allowed; }
 
-  /* LOGIN CONTAINER */
-  .container { background: var(--card); padding: 35px; border-radius: 12px; width: 100%; max-width: 400px; margin-top: 60px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
-  h2 { text-align: center; color: var(--accent); margin-bottom: 30px; }
-  
-  label { font-size: 13px; color: #94a3b8; display: block; margin-top: 20px; font-weight: 600; }
-  input { width: 100%; padding: 12px; margin-top: 8px; border-radius: 6px; border: 1px solid #334155; background: var(--bg); color: white; box-sizing: border-box; font-size: 15px; }
-  
-  .captcha-box { display: flex; align-items: center; margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px; }
-  .captcha-box input { width: auto; margin-top: 0; margin-right: 12px; transform: scale(1.3); }
-
-  button[type="submit"] { width: 100%; padding: 15px; background: var(--btn); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 700; margin-top: 25px; transition: 0.3s; }
-  button[type="submit"]:hover { background: #1d4ed8; transform: translateY(-1px); }
-
-  .social-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
-  .apple-btn { background: #000; color: #fff; border: none; width: 100%; height: 45px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; cursor: pointer; }
-  .apple-btn img { width: 18px; margin-right: 10px; filter: invert(1); }
-  
-  .error-msg { color: #f87171; font-size: 13px; margin-top: 15px; padding: 10px; background: rgba(248, 113, 113, 0.1); border-radius: 6px; display: none; text-align: center; }
-</style>
+    #twofa-section { display: none; }
+    .status-msg { font-size: 0.85rem; padding: 12px; border-radius: 8px; margin-top: 20px; display: none; text-align: center; }
+    .status-msg.err { display: block; background: rgba(225,29,72,0.1); color: var(--error); border: 1px solid rgba(225,29,72,0.2); }
+    .status-msg.ok { display: block; background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.2); }
+  </style>
 </head>
 <body>
 
-<header>
-  <a href="index.html" class="logo">MEDORCOIN</a>
-  <div class="menu-icon" onclick="toggleMenu()">
-    <div></div><div></div><div></div>
-  </div>
-  <div id="nav-dropdown">
+<div class="auth-card">
+  <div class="logo">MEDORCOIN</div>
+  <div class="kicker">Blockchain Access Gateway</div>
+
+  <form id="login-form">
+    <div class="form-group">
+      <label>Industrial Identifier (Email)</label>
+      <input type="email" id="email" required placeholder="name@domain.com" autocomplete="username">
     </div>
-</header>
-
-<div class="container">
-  <h2>Account Login</h2>
-
-  <div class="social-container">
-    <div id="g_id_onload"
-         data-client_id="650014694453-ud6jq7505nrh7ivm455p0hv86k9na6d5.apps.googleusercontent.com"
-         data-context="signin"
-         data-ux_mode="popup"
-         data-callback="onGoogleLogin"
-         data-auto_prompt="false">
+    <div class="form-group">
+      <label>Security Key (Password)</label>
+      <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
     </div>
-    <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-width="330"></div>
-
-    <button class="apple-btn" onclick="onAppleLogin()">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="">
-      Login with Apple
-    </button>
-  </div>
-
-  <hr style="border: 0; border-top: 1px solid #334155; margin-bottom: 20px;">
-
-  <form id="loginForm">
-    <label>Email or Username</label>
-    <input type="text" id="identifier" required placeholder="Enter credentials">
-
-    <label>Password</label>
-    <input type="password" id="password" required placeholder="••••••••">
-
-    <div class="captcha-box">
-      <input type="checkbox" id="captcha" required>
-      <label for="captcha" style="margin:0; color:white;">I am not a robot</label>
-    </div>
-
-    <div id="errorBox" class="error-msg"></div>
-    <button type="submit" id="mainBtn">Log In to MedorCoin</button>
+    <button type="submit" class="btn" id="login-btn">Initialize Session</button>
   </form>
+
+  <form id="twofa-section">
+    <div class="form-group">
+      <label>6-Digit Verification Code</label>
+      <input type="text" id="2fa-code" maxlength="6" pattern="\d{6}" placeholder="000000" inputmode="numeric">
+    </div>
+    <button type="submit" class="btn" id="verify-btn">Confirm Identity</button>
+    <p style="text-align: center; font-size: 0.75rem; color: var(--muted); margin-top: 15px; cursor: pointer;" onclick="location.reload()">Back to login</p>
+  </form>
+
+  <div id="status" class="status-msg"></div>
 </div>
 
 <script>
-// --- 1. SESSION & UI MANAGEMENT ---
-function toggleMenu() {
-  const dd = document.getElementById("nav-dropdown");
-  dd.style.display = dd.style.display === "block" ? "none" : "block";
-}
-
-function updateUIForSession() {
-  const user = JSON.parse(localStorage.getItem("medor_session"));
-  const dropdown = document.getElementById("nav-dropdown");
+(function() {
+  const loginForm = document.getElementById('login-form');
+  const twofaForm = document.getElementById('twofa-section');
+  const statusEl = document.getElementById('status');
   
-  if (user) {
-    dropdown.innerHTML = `
-      <a href="crypto-dashboard.html"><b>Dashboard</b></a>
-      <a href="wallet.html">My Wallet</a>
-      <a href="settings.html">Settings</a>
-      <hr style="border:0; border-top:1px solid #334155;">
-      <a href="#" onclick="logout()" style="color:#f87171">Logout</a>
-    `;
-  } else {
-    dropdown.innerHTML = `
-      <a href="login.html">Login</a>
-      <a href="signup.html">Create Account</a>
-      <a href="about.html">About MedorCoin</a>
-    `;
+  let tempEmail = "";
+
+  function showStatus(msg, type) {
+    statusEl.textContent = msg;
+    statusEl.className = `status-msg ${type}`;
   }
-}
 
-function logout() {
-  localStorage.removeItem("medor_session");
-  window.location.href = "index.html";
-}
+  // --- 1. INITIALIZE LOGIN ---
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const btn = document.getElementById('login-btn');
 
-// --- 2. THE "LANDING" REDIRECT LOGIC ---
-async function landInDashboard(data) {
-  // Save global user data from your server
-  localStorage.setItem("medor_session", JSON.stringify(data.user));
-  // Land on the dashboard
-  window.location.href = "crypto-dashboard.html";
-}
+    btn.disabled = true;
+    btn.textContent = "Verifying...";
+    showStatus("", "");
 
-// --- 3. AUTHENTICATION HANDLERS ---
-document.getElementById("loginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById("mainBtn");
-  const err = document.getElementById("errorBox");
-  err.style.display = "none";
-  btn.innerText = "Verifying...";
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
 
-  try {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        identifier: document.getElementById("identifier").value,
-        password: document.getElementById("password").value
-      })
-    });
+      const data = await res.json();
 
-    const data = await res.json();
-    if (res.ok) {
-      landInDashboard(data);
-    } else {
-      err.innerText = data.message || "Invalid credentials.";
-      err.style.display = "block";
+      if (res.ok && data.msg === "2FA_SENT") {
+        tempEmail = email;
+        loginForm.style.display = 'none';
+        twofaForm.style.display = 'block';
+        showStatus("Verification code dispatched to your email.", "ok");
+      } else {
+        throw new Error(data.msg || "Authentication Failed");
+      }
+    } catch (err) {
+      showStatus(err.message, "err");
+      btn.disabled = false;
+      btn.textContent = "Initialize Session";
     }
-  } catch (error) {
-    err.innerText = "Network error: Verify your VPS connection.";
-    err.style.display = "block";
-  } finally {
-    btn.innerText = "Log In to MedorCoin";
+  });
+
+  // --- 2. CONFIRM 2FA & ISSUE INDUSTRIAL TOKEN ---
+  twofaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = document.getElementById('2fa-code').value;
+    const btn = document.getElementById('verify-btn');
+
+    btn.disabled = true;
+    btn.textContent = "Authorizing...";
+
+    try {
+      const res = await fetch('/api/2fa/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: tempEmail, code: code })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.token) {
+        // GLOBAL LOG: Store critical identity fragments
+        localStorage.setItem('medor_token', data.token);
+        localStorage.setItem('medor_address', data.address);
+        localStorage.setItem('medor_session_start', Date.now());
+
+        showStatus("Access Granted. Handshaking with cluster...", "ok");
+        
+        // Final redirection to the mining dashboard
+        setTimeout(() => { window.location.href = 'miners.html'; }, 1000);
+      } else {
+        throw new Error(data.msg || "Invalid Code");
+      }
+    } catch (err) {
+      showStatus(err.message, "err");
+      btn.disabled = false;
+      btn.textContent = "Confirm Identity";
+    }
+  });
+
+  // --- 3. AUTO-GUARD: Check for existing active session ---
+  async function checkGlobalSession() {
+    const token = localStorage.getItem('medor_token');
+    if (!token) return;
+
+    try {
+      const res = await fetch('/api/auth/me', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) window.location.href = 'miners.html';
+    } catch (e) {
+      localStorage.clear(); // Clear corrupt/expired state
+    }
   }
-});
 
-function onGoogleLogin(response) {
-  fetch("/api/auth/google-login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token: response.credential })
-  }).then(res => res.json()).then(data => landInDashboard(data));
-}
-
-function onAppleLogin() {
-  // Add your registered Apple Redirect URI here
-  window.location.href = "https://appleid.apple.com/auth/authorize?client_id=YOUR_ID&redirect_uri=https://medorcoin.org/dashboard&response_type=code id_token&scope=name email&response_mode=form_post";
-}
-
-// Init UI on load
-updateUIForSession();
+  checkGlobalSession();
+})();
 </script>
 </body>
 </html>
