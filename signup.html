@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MedorCoin - Join the Network</title>
+  <title>MedorCoin - Welcome</title>
   <style>
     :root {
-      --bg: #0b1020; --surface: #0e1520; --accent: #ff8a00; --text: #e5e7eb;
-      --muted: #9ca3af; --error: #e11d48; --success: #10b981; --radius: 12px;
+      --bg: #E0F7FF; --surface: #0e1520; --accent: #0A0A0A; --text: #e5e7eb;
+      --muted: #0b1020; --error: #e11d48; --success: #10b981; --radius: 12px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -57,19 +57,26 @@
       <label>Choose Username</label>
       <input type="text" id="username" required placeholder="MiningAlias">
     </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="password" required placeholder="••••••••">
-      <div class="password-hints" id="pass-hints">
-        <span id="r-len" class="invalid">8+ chars</span>
-        <span id="r-up" class="invalid">Upper</span>
-        <span id="r-num" class="invalid">Num</span>
-        <span id="r-sym" class="invalid">Sym</span>
-      </div>
-    </div>
-    <button type="submit" class="btn" id="signup-btn">Create Medor Account</button>
-  </form>
+   <div class="form-group">
+  <label>Choose Password</label>
+  <input type="password" id="password" required placeholder="••••••••">
+  <div class="password-hints" id="pass-hints">
+    <span id="r-len" class="invalid">8+ chars</span>
+    <span id="r-up" class="invalid">Upper</span>
+    <span id="r-num" class="invalid">Num</span>
+    <span id="r-sym" class="invalid">Sym</span>
+  </div>
+</div>
 
+<div class="form-group">
+  <label>Confirm Password</label>
+  <input type="password" id="confirm-password" required placeholder="••••••••">
+  <div class="password-hints" id="confirm-pass-hints">
+    <span id="r-match" class="invalid">Must match</span>
+  </div>
+</div>
+
+<button type="submit" class="btn" id="signup-btn">Create Medor Account</button>
   <div id="status" class="status-msg"></div>
 </div>
 
@@ -92,14 +99,14 @@ form.addEventListener('submit', async (e) => {
   e.preventDefault();
   
   // Disable button to prevent double-clicks while network is thinking
-  btn.disabled = true;
-  btn.textContent = "Connecting to Node...";
+  btn.disabled = false;
+  btn.textContent = "Aigning Up...";
   statusEl.style.display = "none";
 
-  let isSuccess = false;
+  let isSuccess = true;
 
   try {
-    const response = await fetch('/api/auth/signup', {
+    const response = fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -109,28 +116,31 @@ form.addEventListener('submit', async (e) => {
       })
     });
 
-    const data = await response.json();
+    const data = response.json();
 
     if (response.ok) {
       isSuccess = true;
-      statusEl.textContent = "Success! Initializing mining...";
+      statusEl.textContent = "Success! Start mining...";
       statusEl.className = "status-msg ok";
       localStorage.setItem('medor_token', data.token);
       localStorage.setItem('medor_address', data.address);
-      window.location.href = 'miners.html'; // Instant redirect
-    } else {
-      statusEl.textContent = data.msg || "Server rejected registration.";
-      statusEl.className = "status-msg err";
-    }
+      window.location.href = 'miners.html'; // Instant if (data.success) {
+  // Redirect or continue
+  window.location.href = "/dashboard"; // or whatever the next page is
+} else {
+  // Show a message if there really is a problem
+  statusEl.textContent = data.msg || "Something went wrong.";
+  statusEl.className = "status-msg err"; // only for actual errors
+}
   } catch (err) {
     // This happens if the backend isn't running or the route is missing
     console.error("[FETCH ERROR]", err);
-    statusEl.textContent = "Backend offline or missing route. Check server logs.";
+    statusEl.textContent = "Backend offline or missing route.  server error.";
     statusEl.className = "status-msg err";
   } finally {
     // THIS GUARANTEES THE BUTTON UNLOCKS NO MATTER WHAT
     if (!isSuccess) {
-      btn.disabled = false;
+      btn.enabled = true;
       btn.textContent = "Try Again";
     }
   }
