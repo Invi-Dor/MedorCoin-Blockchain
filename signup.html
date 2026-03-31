@@ -64,7 +64,7 @@
 
 <header>
   <a href="index.html" class="logo">MEDORCOIN</a>
-  <div style="font-size: 0.85rem; color: var(--muted);">Already a miner? <a href="login.html" style="color: var(--accent); text-decoration: none;">Login</a></div>
+  <div style="font-size: 0.85rem; color: var(--muted);">Already Signed-Up? <a href="login.html" style="color: var(--accent); text-decoration: none;">Login</a></div>
 </header>
 
 <div class="container">
@@ -74,7 +74,7 @@
     
     <div class="social-grid">
       <div id="g_id_onload"
-           data-client_id="YOUR_GOOGLE_CLIENT_ID"
+           data-client_id="http://650014694453-ud6jq7505nrh7ivm455p0hv86k9na6d5.apps.googleusercontent.com"
            data-callback="onSocialAuth">
       </div>
       <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="filled_blue" data-text="signup_with" data-size="large" data-width="360"></div>
@@ -91,24 +91,24 @@
     </div>
 
     <form id="signupForm">
-      <label>Industrial Identifier (Email)</label>
+      <label>Your Email</label>
       <input type="email" id="regEmail" required placeholder="name@domain.com">
       
       <label>Node Username</label>
       <input type="text" id="regUser" required placeholder="Enter username">
       
-      <label>Security Key</label>
+      <label>Password</label>
       <input type="password" id="regPass" required placeholder="••••••••">
       
       <div id="signupMsg" class="msg"></div>
-      <button type="submit" class="btn" id="signupBtn">Generate Credentials</button>
+      <button type="submit" class="btn" id="signupBtn">Sign Up</button>
     </form>
   </div>
 
   <div id="verifySection">
-    <h2>Verify Protocol</h2>
-    <div class="kicker">Check your transmission inbox</div>
-    <p style="font-size: 0.85rem; color: var(--muted); text-align: center;">6-digit verification code sent to node email.</p>
+    <h2>Verify </h2>
+    <div class="kicker">Check your inbox</div>
+    <p style="font-size: 0.85rem; color: var(--muted); text-align: center;">6-digit verification code sent to your email. Check your inbox or spam to confirm.</p>
     
     <div class="otp-group">
       <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
@@ -120,7 +120,7 @@
     </div>
     
     <div id="verifyMsg" class="msg"></div>
-    <button class="btn" id="verifyBtn">Finalize Registration</button>
+    <button class="btn" id="verifyBtn">Complete your Registration</button>
   </div>
 </div>
 
@@ -179,7 +179,7 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
     msg.className = "msg err";
   } finally {
     btn.disabled = false;
-    btn.innerText = "Generate Credentials";
+    btn.innerText = "Sign Up";
   }
 });
 
