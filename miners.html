@@ -21,7 +21,7 @@
     .kicker{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2)}
     .title{font-weight:800;font-size:18px}
     .row{display:flex;justify-content:space-between;gap:8px;align-items:center}
-    .btn{display:inline-flex;gap:8px;align-items:center;padding:10px 14px;border-radius:10px;border:1px solid #0000;cursor:pointer;background:linear-gradient(180deg,var(--accent-2),var(--accent));font-weight:800;color:#1a1a1a}
+    .btn{display:inline-flex;gap:8px;align-items:center;padding:10px 14px;border-radius:10px;border:1px solid #0000;cursor:pointer;background:linear-gradient(180deg,var(--accent-2),var(--accent));font-weight:800;color:#1a1a1a;transition: opacity 0.2s;}
     .btn.secondary{background:#0f1115;border:1px solid var(--border);color:#f1f5f9}
     .card{border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
     .price{font-weight:800;color:#ffce7a}
@@ -31,7 +31,6 @@
     .how-it-works { background: #fdf6e3; color: #333; padding: 30px; border-radius: 12px; margin-top: 20px; }
     .how-it-works h2, .how-it-works h3 { color: #000; margin-top: 0; text-transform: uppercase; }
     
-    /* FIX FOR DROPDOWN VISIBILITY */
     #navDropdown.active { display: flex !important; }
   </style>
 </head>
@@ -43,7 +42,7 @@
           <span class="badge">MEDOR coin mining</span>
           <span id="walletBalance" style="font-family: monospace">0.00000000 MEDOR</span>
         </div>
-        <div class="row">
+        <div class="row" id="authContainer">
           <a href="login.html" class="muted">Login</a>
           <a href="signup.html" class="badge" style="margin-left:12px">Sign Up</a>
           <button class="menu-trigger" style="background:none; border:none; color:#fff; cursor:pointer; font-size:20px; margin-left:15px;" onclick="toggleMenu()">☰</button>
@@ -73,18 +72,23 @@
             <div class="price">4.5 GH/s</div>
             <button class="btn secondary" onclick="sendAction('watchAd')">Watch Ad</button>
         </div>
+
         <div class="card">
             <div class="row"><span>Monthly</span><span class="price">$13</span></div>
             <div class="speed">610 GH/s</div>
-            <button class="btn" onclick="sendAction('buyMonthly')">Subscribe</button>
+            <button class="btn" onclick="navigateToProvision('monthly')">Subscribe</button>
         </div>
         <div class="card">
-            <div class="row"><span>3 Months</span><span class="price">$39</span></div>
+            <div class="row"><span>3 Months</span><span class="price">$45</span></div>
             <div class="speed">610 GH/s</div>
-            <button class="btn" onclick="sendAction('buyQuarterly')">Subscribe</button>
+            <button class="btn" onclick="navigateToProvision('quarterly')">Subscribe</button>
         </div>
-        <div class="card"><div class="kicker">Tier 1</div><div class="price">Contact</div><button class="btn secondary">Inquire</button></div>
-        <div class="card"><div class="kicker">Tier 2</div><div class="price">Contact</div><button class="btn secondary">Inquire</button></div>
+        <div class="card">
+            <div class="row"><span>1 Year</span><span class="price">$130</span></div>
+            <div class="speed">Max Priority</div>
+            <button class="btn" onclick="navigateToProvision('yearly')">Subscribe</button>
+        </div>
+        <div class="card"><div class="kicker">Enterprise</div><div class="price">Custom</div><button class="btn secondary">Inquire</button></div>
     </div>
 
     <section class="how-it-works">
@@ -98,66 +102,124 @@
   </div>
 
 <script>
-    // 1. LIVE STATE
     let state = { balance: 0.0, speed: 0.0 };
+    
+    const token = localStorage.getItem('medor_token');
+    const address = localStorage.getItem('medor_address');
 
-    // 2. THE THREE DASHES (MENU) FIX
+    const balEl = document.getElementById('liveBalance');
+    const wallEl = document.getElementById('walletBalance');
+    const speedEl = document.getElementById('liveTotalSpeed');
+    const authContainer = document.getElementById('authContainer');
+
     function toggleMenu() {
         const menu = document.getElementById('navDropdown');
         menu.classList.toggle('active');
     }
 
-    // 3. LIVE BALANCE TICKER (10 ticks per second)
+    function renderAuthUI() {
+        if (token && address) {
+            const shortAddr = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+            authContainer.innerHTML = `
+                <span class="muted" style="font-family: monospace">${shortAddr}</span>
+                <button class="badge" style="margin-left:12px; border:none; cursor:pointer;" onclick="logout()">Logout</button>
+                <button class="menu-trigger" style="background:none; border:none; color:#fff; cursor:pointer; font-size:20px; margin-left:15px;" onclick="toggleMenu()">☰</button>
+            `;
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('medor_token');
+        localStorage.removeItem('medor_address');
+        window.location.href = 'login.html';
+    }
+
+    // Provisioning Router: Maps buttons to your specific .html payment files
+    function navigateToProvision(type) {
+        if (!token) {
+            alert("Login required for industrial provisioning.");
+            window.location.href = "login.html";
+            return;
+        }
+        // Redirects to Mining-monthly.html, Mining-quarterly.html, or Mining-yearly.html
+        window.location.href = `Mining-${type}.html`;
+    }
+
+    let lastTick = Date.now();
     function startTicker() {
         setInterval(() => {
             if (state.speed > 0) {
-                // Formula: (Speed * 0.000000001) / 10 intervals
-                const increment = (state.speed * 0.000000001) / 10;
+                const now = Date.now();
+                const deltaMs = now - lastTick;
+                lastTick = now;
+                
+                // Real-time calculation based on GH/s
+                const increment = (state.speed * 0.00000001) * (deltaMs / 1000);
                 state.balance += increment;
                 
-                const formatted = state.balance.toFixed(8);
-                document.getElementById('liveBalance').innerText = formatted + " MEDOR";
-                document.getElementById('walletBalance').innerText = formatted + " MEDOR";
+                balEl.innerText = state.balance.toFixed(8) + " MEDOR";
+                wallEl.innerText = state.balance.toFixed(8) + " MEDOR";
+            } else {
+                lastTick = Date.now();
             }
         }, 100);
     }
 
-    // 4. ACTION HANDLER (Connecting to node.cjs)
     async function sendAction(act) {
+        if (!token || !address) {
+            window.location.href = "login.html";
+            return;
+        }
+
         try {
-            const res = await fetch('/api/node.cjs', {
+            const res = await fetch('/tx', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: act })
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ 
+                    from: address, 
+                    type: 'CONTRACT',
+                    action: act,
+                    timestamp: Date.now()
+                })
             });
+            
             const data = await res.json();
             if (data.success) {
-                syncData(); // Refresh speed/balance from server
+                await syncData(); 
+                alert(`Action ${act} synced to blockchain.`);
             } else {
-                alert(data.error || "Action failed");
+                alert(data.error || "Chain rejected transaction.");
             }
         } catch (e) {
-            console.error("Node Connection Lost");
+            console.error("GATEWAY_OFFLINE");
         }
     }
 
-    // 5. SERVER SYNC
     async function syncData() {
+        if (!token || !address) return; 
+
         try {
-            const res = await fetch('/api/node.cjs?action=getStats');
+            const res = await fetch(`/api/user-stats?addr=${address}&token=${token}`);
+            if (res.status === 401) logout();
+
             const data = await res.json();
-            state.balance = parseFloat(data.balance);
-            state.speed = parseFloat(data.speed);
-            document.getElementById('liveTotalSpeed').innerText = state.speed.toFixed(2);
-        } catch (e) {
-            console.log("Initial state loaded from cache.");
-        }
+            if (data.success) {
+                state.balance = parseFloat(data.balance);
+                state.speed = parseFloat(data.speed);
+                speedEl.innerText = state.speed.toFixed(2);
+                lastTick = Date.now(); 
+            }
+        } catch (e) {}
     }
 
-    // Init
     window.onload = () => {
+        renderAuthUI();
         syncData();
         startTicker();
+        if (token) setInterval(syncData, 10000); 
     };
 </script>
 </body>
