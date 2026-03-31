@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MedorCoin - Genesis Account</title>
+  <title>MedorCoin - SignUp</title>
   <style>
     :root {
       --bg: #E0F7FF; --surface: #0e1520; --accent: #0A0A0A; 
@@ -58,16 +58,16 @@
   <form id="signup-form">
     <div class="form-group">
       <label>Email Address</label>
-      <input type="email" id="email" required placeholder="miner@domain.com">
+      <input type="email" id="email" required placeholder="miner@example.com">
     </div>
     
     <div class="form-group">
       <label>Choose Username</label>
-      <input type="text" id="username" required placeholder="MiningAlias">
+      <input type="text" id="username" required placeholder="MiningPro">
     </div>
 
     <div class="form-group">
-      <label>Mining Access Key (Password)</label>
+      <label>Choose Password</label>
       <input type="password" id="password" required placeholder="••••••••">
       <div class="password-hints" id="pass-hints">
         <span id="r-len" class="invalid">8+ chars</span>
@@ -77,7 +77,7 @@
     </div>
 
     <div class="form-group">
-      <label>Confirm Access Key</label>
+      <label>Confirm Password</label>
       <input type="password" id="confirm-password" required placeholder="••••••••">
       <div id="match-hint" style="font-size: 0.75rem; margin-top: 5px; color: var(--error);">Must match</div>
     </div>
@@ -123,7 +123,7 @@ form.addEventListener('submit', async (e) => {
   }
 
   btn.disabled = true;
-  btn.textContent = "Connecting to Sovereign Node...";
+  btn.textContent = "Signing up...";
   statusEl.className = "status-msg";
   statusEl.textContent = "";
 
@@ -146,7 +146,7 @@ form.addEventListener('submit', async (e) => {
       localStorage.setItem('medor_address', data.address);
       localStorage.setItem('medor_mnemonic', data.mnemonic);
       
-      statusEl.textContent = "Success! Redirecting to Dashboard...";
+      statusEl.textContent = "Success! Redirecting to Your Dashboard...";
       statusEl.className = "status-msg ok";
       
       // FIRE DIRECTLY TO MINERS.HTML
