@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MedorCoin - Welcome</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --bg: #0b1020; --surface: #0e1520; --accent: #ff8a00; --text: #e5e7eb;
@@ -32,6 +33,15 @@
     }
     input:focus { outline: none; border-color: var(--accent); background: rgba(0,0,0,0.3); }
     
+    /* Password Security Hint Box */
+    .password-requirements {
+      font-size: 0.7rem; color: var(--muted); margin-top: 10px;
+      padding: 10px; background: rgba(0,0,0,0.15); border-radius: 8px;
+    }
+    .req { display: inline-block; margin-right: 8px; transition: color 0.3s; }
+    .valid { color: var(--success); }
+    .invalid { color: var(--error); }
+
     .btn {
       width: 100%; padding: 14px; border-radius: var(--radius); border: none;
       background: linear-gradient(135deg, #ffb84d, var(--accent));
@@ -42,7 +52,6 @@
     .btn:active { transform: scale(0.98); }
     .btn:disabled { background: #374151; color: #6b7280; cursor: not-allowed; }
 
-    #twofa-section { display: none; }
     .status-msg { font-size: 0.85rem; padding: 12px; border-radius: 8px; margin-top: 20px; display: none; text-align: center; }
     .status-msg.err { display: block; background: rgba(225,29,72,0.1); color: var(--error); border: 1px solid rgba(225,29,72,0.2); }
     .status-msg.ok { display: block; background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.2); }
@@ -52,135 +61,118 @@
 
 <div class="auth-card">
   <div class="logo">MEDORCOIN</div>
-  <div class="kicker"></div>
+  <div class="kicker">Genesis Node Enrollment</div>
 
-  <form id="login-form">
-    <div class="form-group">
-      <label>Enter Your Email Address</label>
-      <input type="email" id="email" required placeholder="name@domain.com" autocomplete="username">
-    </div>
-    <div class="form-group">
-      <label>Enter Your Password</label>
-      <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
-    </div>
-    <button type="submit" class="btn" id="login-btn">Login</button>
-  </form>
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px;">
+    <div id="g_id_onload" data-client_id="YOUR_GOOGLE_ID" data-callback="onSocialAuth"></div>
+    <div class="g_id_signin" data-type="standard" data-width="340"></div>
+    <button class="btn" style="background: #fff; color: #000;" onclick="onSocialAuth({provider:'apple'})">Sign up with Apple</button>
+  </div>
 
-  <form id="twofa-section">
+  <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin-bottom: 25px;">
+
+  <form id="signup-form">
     <div class="form-group">
-      <label>6-Digit Verification Code</label>
-      <input type="text" id="2fa-code" maxlength="6" pattern="\d{6}" placeholder="000000" inputmode="numeric">
+      <label>Email Address</label>
+      <input type="email" id="email" required placeholder="name@domain.com">
     </div>
-    <button type="submit" class="btn" id="verify-btn">Confirm</button>
-    <p style="text-align: center; font-size: 0.75rem; color: var(--muted); margin-top: 15px; cursor: pointer;" onclick="location.reload()">Back to login</p>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="username" required placeholder="Node Alias">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" required placeholder="••••••••">
+      <div class="password-requirements" id="pass-hints">
+        <span class="req" id="r-len">• 8+ Chars</span>
+        <span class="req" id="r-up">• Upper</span>
+        <span class="req" id="r-num">• Number</span>
+        <span class="req" id="r-sym">• Symbol</span>
+      </div>
+    </div>
+    <button type="submit" class="btn" id="signup-btn">Create Account</button>
   </form>
 
   <div id="status" class="status-msg"></div>
+  <p style="text-align: center; font-size: 0.8rem; margin-top: 20px; color: var(--muted);">
+    Already have an account? <a href="login.html" style="color: var(--accent); text-decoration: none;">Login</a>
+  </p>
 </div>
 
 <script>
 (function() {
-  const loginForm = document.getElementById('login-form');
-  const twofaForm = document.getElementById('twofa-section');
+  const form = document.getElementById('signup-form');
+  const passInput = document.getElementById('password');
   const statusEl = document.getElementById('status');
-  
-  let tempEmail = "";
+  const btn = document.getElementById('signup-btn');
 
   function showStatus(msg, type) {
     statusEl.textContent = msg;
     statusEl.className = `status-msg ${type}`;
   }
 
-  // --- 1. INITIALIZE LOGIN ---
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const btn = document.getElementById('login-btn');
+  // --- PASSWORD VALIDATION LOGIC ---
+  passInput.addEventListener('input', () => {
+    const val = passInput.value;
+    document.getElementById('r-len').className = val.length >= 8 ? 'req valid' : 'req invalid';
+    document.getElementById('r-up').className = /[A-Z]/.test(val) ? 'req valid' : 'req invalid';
+    document.getElementById('r-num').className = /[0-9]/.test(val) ? 'req valid' : 'req invalid';
+    document.getElementById('r-sym').className = /[^A-Za-z0-9]/.test(val) ? 'req valid' : 'req invalid';
+  });
 
+  // --- SOCIAL SIGNUP SYNC ---
+  window.onSocialAuth = async (response) => {
+    try {
+      const res = await fetch('/api/auth/social-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: response.credential, provider: response.provider || 'google' })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('medor_token', data.token);
+        window.location.href = 'miners.html';
+      }
+    } catch (e) { showStatus("Social sync failed.", "err"); }
+  };
+
+  // --- MANUAL SIGNUP ---
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
     btn.disabled = true;
-    btn.textContent = "Verifying...";
+    btn.textContent = "Processing...";
     showStatus("", "");
 
+    const payload = {
+      email: document.getElementById('email').value,
+      username: document.getElementById('username').value,
+      password: passInput.value
+    };
+
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
 
-      if (res.ok && data.msg === "2FA_SENT") {
-        tempEmail = email;
-        loginForm.style.display = 'none';
-        twofaForm.style.display = 'block';
-        showStatus("Verification code has been sent to your email.", "ok");
-      } else {
-        throw new Error(data.msg || "Authentication Failed");
-      }
-    } catch (err) {
-      showStatus(err.message, "err");
-      btn.disabled = false;
-      btn.textContent = "Initialize Session";
-    }
-  });
-
-  // --- 2. CONFIRM 2FA & ISSUE INDUSTRIAL TOKEN ---
-  twofaForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const code = document.getElementById('2fa-code').value;
-    const btn = document.getElementById('verify-btn');
-
-    btn.disabled = true;
-    btn.textContent = "Authorizing...";
-
-    try {
-      const res = await fetch('/api/2fa/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: tempEmail, code: code })
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.token) {
-        // GLOBAL LOG: Store critical identity fragments
+      if (res.ok) {
+        // Automatically login the user after successful signup
         localStorage.setItem('medor_token', data.token);
         localStorage.setItem('medor_address', data.address);
-        localStorage.setItem('medor_session_start', Date.now());
-
-        showStatus("Access Granted. Handshaking with cluster...", "ok");
-        
-        // Final redirection to the mining dashboard
-        setTimeout(() => { window.location.href = 'miners.html'; }, 1000);
+        showStatus("Account created! Initializing mining node...", "ok");
+        setTimeout(() => { window.location.href = 'miners.html'; }, 1500);
       } else {
-        throw new Error(data.msg || "Invalid Code");
+        throw new Error(data.msg || "Signup Failed");
       }
     } catch (err) {
       showStatus(err.message, "err");
       btn.disabled = false;
-      btn.textContent = "Confirm Identity";
+      btn.textContent = "Create Account";
     }
   });
-
-  // --- 3. AUTO-GUARD: Check for existing active session ---
-  async function checkGlobalSession() {
-    const token = localStorage.getItem('medor_token');
-    if (!token) return;
-
-    try {
-      const res = await fetch('/api/auth/me', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) window.location.href = 'miners.html';
-    } catch (e) {
-      localStorage.clear(); // Clear corrupt/expired state
-    }
-  }
-
-  checkGlobalSession();
 })();
 </script>
 </body>
