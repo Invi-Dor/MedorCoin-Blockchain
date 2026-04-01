@@ -2,7 +2,8 @@
  * FIXES: Cluster-Aware Failover, Capped Worker Pool, Local Alert Logging, 
  * SCAN Throttling, and High-Frequency Spike Protection.
  */
-const Redlock = require('redlock');
+// --- transaction_engine.cjs ---
+const Redlock = require('redlock').default || require('redlock');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const metrics = require('./metrics.cjs'); 
