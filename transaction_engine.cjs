@@ -242,10 +242,62 @@ class TransactionEngine {
     }
   }
 
-  async _reconcileState() {
-      const h = await this.redis.hget("mdc:meta:stats", "currentHeight");
-      this.currentHeight = parseInt(h) || 0;
-  }
-}
+      async recoverFromCrash() {
+        const lockKey = "mdc:recovery:lock";
+        const ttl = 30000; // 30s for full consistency check
+        
+        this.logger.info(`[RECOVERY] [${this.nodeId}] Initializing WAL-based recovery...`);
+        
+        try {
+            const lock = await this.redlock.acquire([lockKey], ttl);
+            
+            // 1. WAL REPLAY: Check for uncommitted writes in the Write-Ahead Log
+            const walEntries = await this.redis.lrange("mdc:wal:active", 0, -1);
+            if (walEntries.length > 0) {
+                this.logger.warn(`[WAL] Found ${walEntries.length} uncommitted entries. Replaying...`);
+                for (const entry of walEntries) {
+                    const { tx, signature, type } = JSON.parse(entry);
+                    
+                    // VALIDATION: Reject if signature or balance is invalid during replay
+                    if (!await this.validateTransaction(tx, signature)) {
+                        this.logger.error(`[WAL] Invalid entry detected in log. Purging.`);
+                        await this.redis.lrem("mdc:wal:active", 1, entry);
+                        continue;
+                    }
+                    
+                    await this._executeAtomicUpdate(tx, type); // Re-run the actual logic
+                    await this.redis.lrem("mdc:wal:active", 1, entry);
+                }
+            }
 
-module.exports = TransactionEngine;
+            // 2. FULL CONSISTENCY CHECK: Last Block vs Redis State
+            const lastBlock = await this.redis.get("mdc:block:last");
+            const redisHeight = await this.redis.get("mdc:meta:height");
+
+            if (lastBlock && JSON.parse(lastBlock).height !== parseInt(redisHeight)) {
+                this.logger.fatal("STATE MISMATCH: Last block height does not match metadata. Entering SAFE MODE.");
+                this.safeMode = true;
+                return { status: "safe_mode", reason: "height_mismatch" };
+            }
+
+            // 3. RECONCILE MEMPOOL
+            const processing = await this.redis.lrange("mdc:mempool:processing", 0, -1);
+            if (processing.length > 0) {
+                const pipeline = this.redis.multi();
+                processing.forEach(tx => {
+                    pipeline.lpush("mdc:mempool:main", tx);
+                    pipeline.lrem("mdc:mempool:processing", 1, tx);
+                });
+                await pipeline.exec();
+            }
+
+            await lock.release();
+            this.logger.info(`[RECOVERY] Success. Chain height: ${redisHeight}`);
+            return { status: "recovered" };
+
+        } catch (err) {
+            if (err.name === 'ResourceLockedError') return { status: "concurrent_skip" };
+            this.logger.error(`[FATAL] Recovery Exception: ${err.stack}`);
+            throw new Error("RECOVERY_FAILED_SYSTEM_HALT");
+        }
+    }
