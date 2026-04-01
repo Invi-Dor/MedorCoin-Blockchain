@@ -15,7 +15,7 @@ class TransactionEngine {
     this.keys = { current: secretKey, previous: process.env.PREVIOUS_JWT_KEY || null };
     this.webhookUrl = process.env.ALERT_WEBHOOK_URL;
     
-    // 1. STATE & SHUTDOWN FLAGS
+    // 1. STATE & INFRASTRUCTURE
     this.isRunning = false;
     this.breaker = { tripped: false, failureCount: 0, threshold: 5, resetTime: 30000 };
     this.retryConfig = { maxRetries: 3, initialDelay: 500 };
@@ -39,28 +39,29 @@ class TransactionEngine {
         this.redis = this.redisClients[0];
     }
 
-    // 3. ATOMIC LUA SCRIPT DEFINITION
+    // 3. REDLOCK & ATOMIC LUA (Line 61)
+    this.redlock = new Redlock(this.redisClients, { 
+        driftFactor: 0.01, 
+        retryCount: 50, 
+        retryDelay: 150 
+    });
+
     this.redis.defineCommand('commitMedorBlock', {
         numberOfKeys: 0,
         lua: `
             local blockHeight = ARGV[1]
             local blockData = ARGV[2]
             local stateChanges = cjson.decode(ARGV[3])
-            
             redis.call('HSET', 'mdc:blocks:' .. blockHeight, 'data', blockData)
             redis.call('HSET', 'mdc:meta:stats', 'currentHeight', blockHeight)
-            
             for _, change in ipairs(stateChanges) do
                 redis.call('HINCRBYFLOAT', 'user:' .. change.address .. ':state', change.field, change.delta)
             end
-            
             return true
         `
     });
 
-    this.redlock = new Redlock(this.redisClients, { driftFactor: 0.01, retryCount: 50, retryDelay: 150 });
     this.currentHeight = 0;
-
     this.init();
   }
 
@@ -76,10 +77,9 @@ class TransactionEngine {
       }
   }
 
-  // --- GRACEFUL SHUTDOWN (Solves Point 1) ---
   async shutdown() {
       logger.info("Graceful shutdown initiated...");
-      this.isRunning = false; // Signals all while() loops to exit on their next cycle
+      this.isRunning = false;
       try {
           await Promise.all(this.redisClients.map(client => client.quit()));
           logger.info("Database connections closed cleanly.");
@@ -88,15 +88,13 @@ class TransactionEngine {
       }
   }
 
-  // --- ALERT QUEUE CAPPING (Solves Point 3) ---
+  // --- RELIABILITY & OBSERVABILITY ---
   async _queueAlert(title, msg) {
       try {
           const payload = JSON.stringify({ nodeId: this.nodeId, title, msg });
           await this.redis.lpush("mdc:alerts", payload);
-          await this.redis.ltrim("mdc:alerts", 0, 1000); // Cap queue at 1000 items
-      } catch (e) {
-          logger.error("Alert Queue Full/Failed", "STORAGE", e.message);
-      }
+          await this.redis.ltrim("mdc:alerts", 0, 1000);
+      } catch (e) { logger.error("Alert Queue Full", "STORAGE", e.message); }
   }
 
   async _logAudit(action, details) {
@@ -112,14 +110,14 @@ class TransactionEngine {
       (async () => {
           while (this.isRunning) {
               try {
-                  const data = await client.blpop("mdc:alerts", 5); // 5s timeout allows checking this.isRunning
+                  const data = await client.blpop("mdc:alerts", 5);
                   if (data && this.webhookUrl && !this.breaker.tripped) {
                       const alert = JSON.parse(data[1]);
                       await this._sendWebhookWithRetry(alert);
                   }
               } catch (e) { await new Promise(r => setTimeout(r, 5000)); }
           }
-          client.quit(); // Clean up duplicate client on shutdown
+          client.quit();
       })();
   }
 
@@ -131,11 +129,7 @@ class TransactionEngine {
       }
   }
 
-  async enqueueBlock(block, stateChanges, token) {
-      const payload = JSON.stringify({ block, stateChanges, token, ts: Date.now() });
-      await this.redis.lpush("mdc:queue:pending", payload);
-  }
-
+  // --- WORKER LOOP ---
   async _startParallelProcessor() {
       for (let i = 0; i < this.MAX_PARALLEL_WORKERS; i++) {
           this._runWorker(i);
@@ -144,19 +138,16 @@ class TransactionEngine {
 
   async _runWorker(workerId) {
       let workerBackoff = 1000;
-      
       while (this.isRunning) {
           if (this.breaker.tripped) {
               await new Promise(r => setTimeout(r, 5000));
               continue;
           }
-
           try {
               const data = await this.redis.brpoplpush("mdc:queue:pending", "mdc:queue:processing", 5);
               if (!data) continue;
 
               const { block, stateChanges, token } = JSON.parse(data);
-              
               await this.commitBlock(block, stateChanges, token);
               
               await this.redis.lrem("mdc:queue:processing", 1, data);
@@ -167,7 +158,7 @@ class TransactionEngine {
               this.breaker.failureCount = 0;
           } catch (e) {
               this._handleBreaker();
-              logger.error(`Worker ${workerId} Exhausted Retries`, "QUEUE", e.message);
+              logger.error(`Worker ${workerId} Error`, "QUEUE", e.message);
               await new Promise(r => setTimeout(r, workerBackoff));
               workerBackoff = Math.min(workerBackoff * 2, 30000);
           }
@@ -192,11 +183,10 @@ class TransactionEngine {
       this.breaker.failureCount++;
       if (this.breaker.failureCount >= this.breaker.threshold && !this.breaker.tripped) {
           this.breaker.tripped = true;
-          logger.error("CIRCUIT BREAKER TRIPPED", "SYSTEM", "Muting alerts and pausing workers.");
+          logger.error("CIRCUIT BREAKER TRIPPED", "SYSTEM", "Muting alerts.");
           setTimeout(() => {
               this.breaker.tripped = false;
               this.breaker.failureCount = 0;
-              logger.info("Circuit Breaker Reset: Resuming processing.");
           }, this.breaker.resetTime);
       }
   }
@@ -211,13 +201,10 @@ class TransactionEngine {
     }
   }
 
-  // --- VISIBLE METRICS ERROR HANDLING (Solves Point 4) ---
   async _updateMetric(name, val = 1) {
       try { 
           await this.redis.hincrby("mdc:metrics", `${this.nodeId}:${name}`, val); 
-      } catch(e) {
-          logger.error(`Failed to record metric [${name}]`, "METRICS", e.message);
-      }
+      } catch(e) { logger.error(`Metrics Failure [${name}]`, "METRICS", e.message); }
   }
 
   async commitBlock(block, stateChanges, token) {
@@ -227,7 +214,7 @@ class TransactionEngine {
     try {
         lock = await this.redlock.acquire([`locks:block:${block.height}`], 15000);
         
-        // --- EXPLICIT LUA BACKOFF (Solves Point 2) ---
+        // --- ATOMIC LUA EXECUTION WITH BACKOFF ---
         await this._executeWithBackoff(async () => {
             await this.redis.commitMedorBlock(
                 block.height.toString(),
