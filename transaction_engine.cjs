@@ -4,13 +4,27 @@ const Redlock = class {
     constructor() { console.log("[MEDOR-CORE] Internal Lock Active"); }
     async lock() { return { unlock: () => {} }; } 
 };
-const ioredis = {}; 
 const ioredis = {
     duplicate: () => ({
         subscribe: () => {},
         on: () => {},
-        publish: () => {}
+        publish: () => {},
+        hgetall: async () => ({})
     }),
+    hgetall: async () => ({ currentHeight: "0", lastBlockHash: "0" }),
+    set: async () => ({}),
+    publish: () => ({}),
+    rpush: async () => ({}),
+    multi: () => ({
+        hset: () => ({ hsetnx: () => ({ hincrbyfloat: () => ({ exec: async () => [] }) }) }),
+        exec: async () => []
+    }),
+    pipeline: () => ({
+        hget: () => {},
+        exec: async () => [[null, "0"]]
+    }),
+    scan: async () => ['0', []]
+};
     hgetall: async () => ({ currentHeight: "0", lastBlockHash: "0" }),
     set: async () => ({}),
     publish: () => ({}),
