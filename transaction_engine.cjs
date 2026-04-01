@@ -26,15 +26,8 @@ class TransactionEngine {
       current: secretKey,
       previous: process.env.PREVIOUS_JWT_KEY || null,
     };
-             this.nodeId = nodeId;
-        this.webhookUrl = process.env.ALERT_WEBHOOK_URL;
-    } // This ends the constructor
-
-    async recoverFromCrash() { 
-        console.log("[MEDOR-CORE] Crash recovery protocol: Standby."); 
-        return true; 
-    }
-
+    this.nodeId = nodeId;
+    this.webhookUrl = process.env.ALERT_WEBHOOK_URL;
 
     // FIX 2: Capped Worker Pool (Max 1000 blocks in memory)
     this.commitQueue = [];
@@ -64,6 +57,11 @@ class TransactionEngine {
     });
 
     this.init();
+  }
+
+  async recoverFromCrash() { 
+      console.log("[MEDOR-CORE] Crash recovery protocol: Standby."); 
+      return true; 
   }
 
   async init() {
