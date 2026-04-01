@@ -1,5 +1,5 @@
 const Redis = require('ioredis');
-const Redlock = require('redlock');
+const Redlock = require('redlock').default || require('redlock'); 
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const os = require('os');
