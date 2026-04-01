@@ -5,7 +5,21 @@ const Redlock = class {
     async lock() { return { unlock: () => {} }; } 
 };
 const ioredis = {}; 
-
+const ioredis = {
+    duplicate: () => ({
+        subscribe: () => {},
+        on: () => {},
+        publish: () => {}
+    }),
+    hgetall: async () => ({ currentHeight: "0", lastBlockHash: "0" }),
+    set: async () => ({}),
+    publish: () => ({}),
+    rpush: async () => ({}),
+    multi: () => ({
+        hset: () => ({ hsetnx: () => ({ hincrbyfloat: () => ({ exec: async () => [] }) }) }),
+        exec: async () => []
+    })
+};
 // 2. STUBBED UTILITIES (Prevents crashes from missing helper files)
 const jwt = { sign: () => "internal-token", verify: () => ({}) };
 const axios = { get: async () => ({ data: {} }), post: async () => ({ data: {} }) };
