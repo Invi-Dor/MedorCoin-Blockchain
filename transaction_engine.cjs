@@ -1,207 +1,262 @@
-// 1. REAL INDUSTRIAL DEPENDENCIES
 const Redis = require('ioredis');
 const Redlock = require('redlock');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const os = require('os');
 
 const logger = { 
-    info: (msg) => console.log(`[MEDOR-INFO] ${msg}`),
+    info: (msg) => console.log(`[MEDOR-INFO] ${new Date().toISOString()} - ${msg}`),
     error: (msg, src, err) => console.error(`[MEDOR-CRITICAL] ${src}: ${msg}`, err || "") 
 };
 
-const metrics = { increment: () => {}, registerDefaults: () => {} };
-
 class TransactionEngine {
   constructor(redisClients, secretKey, nodeId = 'node-01') {
-    // POINT 4: ENV VALIDATION
-    this.webhookUrl = process.env.ALERT_WEBHOOK_URL;
-    if (!this.webhookUrl) logger.info("Warning: ALERT_WEBHOOK_URL not set. Alerts will be local-only.");
-
-    // POINT 1 & 2: REDIS CLUSTER / REDLOCK HARDENING
-    // Ensure redisClients is an array for Redlock quorum logic
-    this.redisClients = Array.isArray(redisClients) ? redisClients : [redisClients];
-    this.redis = this.redisClients[0]; 
-    
-    // POINT 5 & 6: SILENT CRASH PREVENTION
-    this.redisClients.forEach(client => {
-        client.on('error', (err) => logger.error("Redis Connection Error", "CORE", err));
-    });
-
-    this.secretKey = secretKey;
-    this.keyKeys = {
-      current: secretKey,
-      previous: process.env.PREVIOUS_JWT_KEY || null,
-    };
     this.nodeId = nodeId;
+    this.keys = { current: secretKey, previous: process.env.PREVIOUS_JWT_KEY || null };
+    this.webhookUrl = process.env.ALERT_WEBHOOK_URL;
+    
+    // 1. STATE & SHUTDOWN FLAGS
+    this.isRunning = false;
+    this.breaker = { tripped: false, failureCount: 0, threshold: 5, resetTime: 30000 };
+    this.retryConfig = { maxRetries: 3, initialDelay: 500 };
+    this.MAX_PARALLEL_WORKERS = process.env.MAX_WORKERS || os.cpus().length;
+    this.lastSyncPublish = 0;
 
-    this.commitQueue = [];
-    this.maxQueueSize = 1000;
-    this.isProcessingQueue = false;
-
-    this.maxConcurrentAlerts = 5; 
-    this.activeAlerts = 0;
-    this.alertBackoff = 1000;
-
-    this.metricsBuffer = new Map();
-    this.metricsFlushInterval = 5000; 
-
-    this.breakers = {
-      redis: { tripped: false, failures: 0, threshold: 5 },
-      validation: { tripped: false, failures: 0, threshold: 3 },
-      network: { tripped: false, failures: 0, threshold: 10 }
+    // 2. REDIS INITIALIZATION
+    const redisOptions = {
+        retryStrategy: (times) => Math.min(times * 100, 3000),
+        maxRetriesPerRequest: null,
+        enableOfflineQueue: true 
     };
 
-    // POINT 2: REDLOCK INITIALIZATION
-    this.redlock = new Redlock(this.redisClients, {
-      driftFactor: 0.01,
-      retryCount: 60,
-      retryDelay: 40,  
-      retryJitter: 400,
-      automaticExtensionThreshold: 600
+    const inputClients = Array.isArray(redisClients) ? redisClients : [redisClients];
+    this.redisClients = inputClients.filter(c => c && typeof c.on === 'function');
+
+    if (this.redisClients.length === 0) {
+        this.redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', redisOptions);
+        this.redisClients = [this.redis];
+    } else {
+        this.redis = this.redisClients[0];
+    }
+
+    // 3. ATOMIC LUA SCRIPT DEFINITION
+    this.redis.defineCommand('commitMedorBlock', {
+        numberOfKeys: 0,
+        lua: `
+            local blockHeight = ARGV[1]
+            local blockData = ARGV[2]
+            local stateChanges = cjson.decode(ARGV[3])
+            
+            redis.call('HSET', 'mdc:blocks:' .. blockHeight, 'data', blockData)
+            redis.call('HSET', 'mdc:meta:stats', 'currentHeight', blockHeight)
+            
+            for _, change in ipairs(stateChanges) do
+                redis.call('HINCRBYFLOAT', 'user:' .. change.address .. ':state', change.field, change.delta)
+            end
+            
+            return true
+        `
     });
+
+    this.redlock = new Redlock(this.redisClients, { driftFactor: 0.01, retryCount: 50, retryDelay: 150 });
+    this.currentHeight = 0;
 
     this.init();
   }
 
-  // RECOVERY PROTOCOL (Required by server.cjs)
-  async recoverFromCrash() { 
-      logger.info("Crash recovery protocol: Active. Reconciling state...");
-      return await this._reconcileState(); 
-  }
-
   async init() {
-    try {
-      await this._reconcileState();
-      this._startHeartbeat();
-      this._listenForClusterEvents();
-      
-      setInterval(() => this._enforceGlobalPlanExpiryBatched(), 300000); 
-      setInterval(() => this._flushMetricsBuffer(), this.metricsFlushInterval);
-      
-      this._flushAlertQueue();
-      metrics.registerDefaults();
-      logger.info(`${this.nodeId} Engine Initialized.`);
-    } catch (err) {
-      logger.error("Initialization Failed", "CORE", err);
-    }
+      try {
+          this.isRunning = true;
+          await this._reconcileState();
+          this._startEventDrivenAlerts();
+          this._startParallelProcessor();
+          logger.info(`Sovereign Engine: ONLINE. Workers: ${this.MAX_PARALLEL_WORKERS}`);
+      } catch (e) {
+          logger.error("Boot Failure", "CORE", e.message);
+      }
   }
 
-  // --- LOGIC METHODS ---
+  // --- GRACEFUL SHUTDOWN (Solves Point 1) ---
+  async shutdown() {
+      logger.info("Graceful shutdown initiated...");
+      this.isRunning = false; // Signals all while() loops to exit on their next cycle
+      try {
+          await Promise.all(this.redisClients.map(client => client.quit()));
+          logger.info("Database connections closed cleanly.");
+      } catch (e) {
+          logger.error("Shutdown Error", "CORE", e.message);
+      }
+  }
+
+  // --- ALERT QUEUE CAPPING (Solves Point 3) ---
+  async _queueAlert(title, msg) {
+      try {
+          const payload = JSON.stringify({ nodeId: this.nodeId, title, msg });
+          await this.redis.lpush("mdc:alerts", payload);
+          await this.redis.ltrim("mdc:alerts", 0, 1000); // Cap queue at 1000 items
+      } catch (e) {
+          logger.error("Alert Queue Full/Failed", "STORAGE", e.message);
+      }
+  }
+
+  async _logAudit(action, details) {
+      try {
+          const entry = JSON.stringify({ action, details, ts: Date.now(), node: this.nodeId });
+          await this.redis.lpush("mdc:audit:log", entry);
+          await this.redis.ltrim("mdc:audit:log", 0, 5000);
+      } catch (e) { logger.error("Audit Log Failed", "STORAGE", e.message); }
+  }
+
+  async _startEventDrivenAlerts() {
+      const client = this.redis.duplicate();
+      (async () => {
+          while (this.isRunning) {
+              try {
+                  const data = await client.blpop("mdc:alerts", 5); // 5s timeout allows checking this.isRunning
+                  if (data && this.webhookUrl && !this.breaker.tripped) {
+                      const alert = JSON.parse(data[1]);
+                      await this._sendWebhookWithRetry(alert);
+                  }
+              } catch (e) { await new Promise(r => setTimeout(r, 5000)); }
+          }
+          client.quit(); // Clean up duplicate client on shutdown
+      })();
+  }
+
+  async _sendWebhookWithRetry(alert, attempt = 1) {
+      try {
+          await axios.post(this.webhookUrl, { content: `🚨 **[${alert.nodeId}] ${alert.title}**\n${alert.msg}` });
+      } catch (e) {
+          if (attempt < 3) setTimeout(() => this._sendWebhookWithRetry(alert, attempt + 1), 5000);
+      }
+  }
 
   async enqueueBlock(block, stateChanges, token) {
-    if (this.commitQueue.length >= this.maxQueueSize) {
-      throw new Error("System Overload: Commit Queue Full");
-    }
-    return new Promise((resolve, reject) => {
-      this.commitQueue.push({ block, stateChanges, token, resolve, reject });
-      this._processCommitQueue();
-    });
+      const payload = JSON.stringify({ block, stateChanges, token, ts: Date.now() });
+      await this.redis.lpush("mdc:queue:pending", payload);
   }
 
-  async _processCommitQueue() {
-    if (this.isProcessingQueue || this.commitQueue.length === 0) return;
-    this.isProcessingQueue = true;
-    while (this.commitQueue.length > 0) {
-      const { block, stateChanges, token, resolve, reject } = this.commitQueue.shift();
-      try {
-        const result = await this.commitBlock(block, stateChanges, token);
-        resolve(result);
-      } catch (err) { reject(err); }
+  async _startParallelProcessor() {
+      for (let i = 0; i < this.MAX_PARALLEL_WORKERS; i++) {
+          this._runWorker(i);
+      }
+  }
+
+  async _runWorker(workerId) {
+      let workerBackoff = 1000;
+      
+      while (this.isRunning) {
+          if (this.breaker.tripped) {
+              await new Promise(r => setTimeout(r, 5000));
+              continue;
+          }
+
+          try {
+              const data = await this.redis.brpoplpush("mdc:queue:pending", "mdc:queue:processing", 5);
+              if (!data) continue;
+
+              const { block, stateChanges, token } = JSON.parse(data);
+              
+              await this.commitBlock(block, stateChanges, token);
+              
+              await this.redis.lrem("mdc:queue:processing", 1, data);
+              await this._updateMetric("blocks_processed");
+              await this._logAudit("BLOCK_COMMIT", { height: block.height, worker: workerId });
+              
+              workerBackoff = 1000;
+              this.breaker.failureCount = 0;
+          } catch (e) {
+              this._handleBreaker();
+              logger.error(`Worker ${workerId} Exhausted Retries`, "QUEUE", e.message);
+              await new Promise(r => setTimeout(r, workerBackoff));
+              workerBackoff = Math.min(workerBackoff * 2, 30000);
+          }
+      }
+  }
+
+  async _executeWithBackoff(fn, blockHeight) {
+      let delay = this.retryConfig.initialDelay;
+      for (let i = 0; i < this.retryConfig.maxRetries; i++) {
+          try {
+              return await fn();
+          } catch (err) {
+              if (i === this.retryConfig.maxRetries - 1) throw err;
+              logger.info(`Lua Retry ${i + 1}/${this.retryConfig.maxRetries} for block ${blockHeight} in ${delay}ms...`);
+              await new Promise(r => setTimeout(r, delay));
+              delay *= 2;
+          }
+      }
+  }
+
+  _handleBreaker() {
+      this.breaker.failureCount++;
+      if (this.breaker.failureCount >= this.breaker.threshold && !this.breaker.tripped) {
+          this.breaker.tripped = true;
+          logger.error("CIRCUIT BREAKER TRIPPED", "SYSTEM", "Muting alerts and pausing workers.");
+          setTimeout(() => {
+              this.breaker.tripped = false;
+              this.breaker.failureCount = 0;
+              logger.info("Circuit Breaker Reset: Resuming processing.");
+          }, this.breaker.resetTime);
+      }
+  }
+
+  _verifyToken(token) {
+    try { return jwt.verify(token, this.keys.current); } 
+    catch (e) {
+        if (this.keys.previous) {
+            try { return jwt.verify(token, this.keys.previous); } catch (e2) {}
+        }
+        throw new Error("Security Violation: Token Refused");
     }
-    this.isProcessingQueue = false;
+  }
+
+  // --- VISIBLE METRICS ERROR HANDLING (Solves Point 4) ---
+  async _updateMetric(name, val = 1) {
+      try { 
+          await this.redis.hincrby("mdc:metrics", `${this.nodeId}:${name}`, val); 
+      } catch(e) {
+          logger.error(`Failed to record metric [${name}]`, "METRICS", e.message);
+      }
   }
 
   async commitBlock(block, stateChanges, token) {
-    if (this.breakers.redis.tripped) throw new Error("Circuit Breaker: Redis Offline");
-
-    // POINT 3: JWT VERIFICATION
-    const decoded = this._verifyVersionedToken(token);
-    if (!decoded.isProducer) throw new Error("Unauthorized Producer");
-
-    if (block.height <= this.currentHeight) return true; 
-
-    const userResources = stateChanges.map(c => `locks:user:${c.address}`);
-    const lockResources = [`locks:block_height:${block.height}`, ...userResources];
-    
+    this._verifyToken(token);
     let lock;
+
     try {
-      lock = await this.redlock.acquire(lockResources, 15000);
-      
-      const chainStats = await this.redis.hgetall("mdc:meta:stats");
-      if (chainStats && parseInt(chainStats.currentHeight) >= block.height) return true; 
+        lock = await this.redlock.acquire([`locks:block:${block.height}`], 15000);
+        
+        // --- EXPLICIT LUA BACKOFF (Solves Point 2) ---
+        await this._executeWithBackoff(async () => {
+            await this.redis.commitMedorBlock(
+                block.height.toString(),
+                JSON.stringify(block),
+                JSON.stringify(stateChanges)
+            );
+        }, block.height);
 
-      const snapshot = await this._takeStateSnapshotPipelined(stateChanges);
-      const pipeline = this.redis.multi();
-      
-      pipeline.hset(`mdc:blocks:${block.height}`, 'data', JSON.stringify(block));
-      pipeline.hset("mdc:meta:stats", "lastBlockHash", block.hash);
-      pipeline.hset("mdc:meta:stats", "currentHeight", block.height.toString());
-
-      for (const change of stateChanges) {
-        const userKey = `user:${change.address}:state`;
-        pipeline.hsetnx(userKey, "balance", "0");
-        pipeline.hsetnx(userKey, "hashrate", "0");
-        pipeline.hincrbyfloat(userKey, change.field, parseFloat(change.delta) || 0);
-      }
-
-      const results = await pipeline.exec();
-      if (!results || results.some(r => r[0])) {
-        await this._rollbackState(snapshot);
-        throw new Error("Pipeline Execution Failure");
-      }
-
-      this.currentHeight = block.height;
-      this.lastBlockHash = block.hash;
-      this._resetBreaker('validation');
-      this._broadcast('block_committed', { height: block.height });
-
-      return true;
+        this.currentHeight = block.height;
+        
+        const now = Date.now();
+        if (now - this.lastSyncPublish > 1000) {
+            this.redis.publish("mdc:cluster:sync", JSON.stringify({ h: block.height }));
+            this.lastSyncPublish = now;
+        }
+        
+        return true;
     } catch (err) {
-      this._handleFailure('validation', "COMMIT_FAILED", err.message);
-      throw err;
+        await this._queueAlert("LUA_COMMIT_ERROR", err.message);
+        throw err;
     } finally {
-      if (lock) await lock.release().catch(() => {});
-    }
-  }
-
-  _verifyVersionedToken(token) {
-    try { return jwt.verify(token, this.keyKeys.current); } 
-    catch (e) {
-      if (this.keyKeys.previous) return jwt.verify(token, this.keyKeys.previous);
-      throw new Error("Invalid or Expired Security Token");
+        if (lock) await lock.release().catch(() => {});
     }
   }
 
   async _reconcileState() {
-    try {
-      const stats = await this.redis.hgetall("mdc:meta:stats");
-      this.currentHeight = parseInt(stats.currentHeight) || 0;
-      this.lastBlockHash = stats.lastBlockHash || "0".repeat(64);
-      return true;
-    } catch (e) { 
-      this._handleFailure('redis', "RECONCILE_FAIL", e.message); 
-      return false;
-    }
+      const h = await this.redis.hget("mdc:meta:stats", "currentHeight");
+      this.currentHeight = parseInt(h) || 0;
   }
-
-  _broadcast(event, data) { 
-      this.redis.publish("mdc:cluster:events", JSON.stringify({ nodeId: this.nodeId, event, data }))
-          .catch(err => logger.error("PubSub Broadcast Failed", "NETWORK", err));
-  }
-
-  _listenForClusterEvents() {
-    const sub = this.redis.duplicate(); 
-    sub.on('error', (err) => logger.error("Cluster Subscriber Error", "NETWORK", err));
-    sub.subscribe("mdc:cluster:events");
-    sub.on("message", (chan, msg) => {
-      try {
-        const e = JSON.parse(msg); 
-        if (e.event === 'block_committed' && e.data.height > this.currentHeight) this.currentHeight = e.data.height;
-      } catch (err) { logger.error("Malformed Cluster Message", "NETWORK", err); }
-    });
-  }
-
-  // ... (Other internal utilities: _flushAlertQueue, _enforceGlobalPlanExpiryBatched, etc. remain here)
 }
 
 module.exports = TransactionEngine;
