@@ -1,227 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MedorCoin — Crypto Dashboard</title>
-  <style>
-    :root{
-      --bg:#f7fbf6; --ink:#1f2937; --border:#e5e7eb;
-      --green:#0a8d4a; --green-soft:#d7f5e3;
-      --red:#e11d48; --red-soft:#ffd6dc;
-      --gold:#d4b400; --gold-soft:#fff6d0;
-      --card:#fff;
-    }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, Arial, sans-serif; background:var(--bg); color:var(--ink); }
-    .topbar { display:flex; align-items:center; justify-content:space-between;
-      padding:12px 16px; border-bottom:1px solid var(--border); background:#fff; position:sticky; top:0; z-index:10; }
-    .brand { display:flex; align-items:center; gap:8px; font-weight:700; }
-    .wallet-area { position:relative; display:inline-block; }
-    .wallet-trigger { padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-weight:600; }
-    .wallet-menu { display:none; position:absolute; top:110%; left:0; min-width:320px; max-height:420px; overflow:auto;
-      border:1px solid var(--border); background:#fff; border-radius:8px; padding:8px; box-shadow:0 6px 18px rgba(0,0,0,.08); z-index:20; }
-    .wallet-item { display:flex; justify-content:space-between; align-items:center; padding:8px 6px; border-bottom:1px solid #f0f0f0; }
-    .wallet-name { font-weight:600; }
-    .wallet-address { font-family: monospace; font-size:12px; color:#374151; max-width:180px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; }
-    .copy-btn { padding:6px 10px; border:1px solid var(--border); background:#f3f4f6; border-radius:6px; cursor:pointer; }
-    .create-wallet { display:block; width:100%; text-align:center; padding:10px; border:1px solid var(--border);
-      background:#111; color:#fff; border-radius:6px; margin-top:8px; cursor:pointer; text-decoration:none; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedorCoin | Crypto-dashboard</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1189498572545023" crossorigin="anonymous"></script>
+    
+    <style>
+        :root {
+            --bg-industrial: #0b0e14;
+            --panel-hex: #1c2128;
+            --border-medor: #444c56;
+            --text-accent: #58a6ff;
+            --orange-active: #FFD580; /* Light Orange */
+            --grey-typography: #333333; /* Dark Grey */
+        }
 
-    .container { max-width:1200px; margin:0 auto; padding:16px; }
-    .balance { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border:1px solid var(--border);
-      border-radius:12px; background:#fff; margin:8px 0; }
-    .balance .amount { font-weight:700; font-size:20px; }
-    .toolbar { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:12px; margin:8px 0 16px; }
-    .tool { padding:12px; border-radius:8px; border:1px solid var(--border); text-align:center; font-weight:700; cursor:pointer; }
-    .tool.buy { background:var(--green-soft); }
-    .tool.swap { background:var(--red-soft); }
-    .tool.send { background:var(--gold-soft); }
-    .panel { display:none; margin-top:8px; padding:12px; border:1px solid var(--border); border-radius:8px; background:#fff; }
-    .panel h4 { margin:0 0 8px 0; }
-    .panel-row { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
-    select, input { padding:8px 10px; border-radius:6px; border:1px solid var(--border); }
-    .btn { padding:10px 14px; border-radius:6px; border:0; cursor:pointer; font-weight:700; }
-    .btn.primary { background:#111; color:#fff; }
-    .muted { color:#6b7280; font-size:12px; }
-    .qr { width:180px; height:180px; display:block; margin:0 auto; }
+        body { background: var(--bg-industrial); color: #adbac7; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 25px; }
+        
+        .top-nav { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-medor); padding-bottom: 15px; margin-bottom: 25px; }
+        .node-status { font-family: monospace; font-size: 12px; transition: color 0.3s; }
 
-    @media (max-width: 700px){
-      .container { padding:6px; }
-      .balance { flex-wrap:wrap; }
-    }
-  </style>
+        .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .card { background: var(--panel-hex); border: 1px solid var(--border-medor); padding: 15px; border-radius: 4px; }
+        .card label { font-size: 10px; text-transform: uppercase; color: #768390; }
+        .card div { font-family: monospace; font-size: 20px; color: var(--text-accent); margin-top: 5px; }
+
+        .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        
+        /* Interactive Blocks: Light Orange / Dark Grey */
+        .interactive-block { background-color: var(--orange-active); color: var(--grey-typography); padding: 20px; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .interactive-block h3 { margin: 0 0 15px 0; border-bottom: 1px solid rgba(0,0,0,0.1); font-size: 16px; }
+
+        .input-medor { width: 100%; padding: 10px; background: #fff; border: 1px solid #ccc; border-radius: 3px; margin: 8px 0; box-sizing: border-box; font-family: monospace; }
+        .btn-medor { width: 100%; padding: 12px; background: var(--grey-typography); color: var(--orange-active); border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; border-radius: 3px; }
+        .btn-medor:hover { background: #000; }
+
+        /* Animation for Hashrate Updates */
+        #live-hashrate { transition: transform 0.1s ease; display: block; }
+        .pulse { transform: scale(1.1); color: #fff; }
+
+        /* Terminal System */
+        .terminal-container { margin-top: 30px; background: #000; border: 1px solid var(--border-medor); border-radius: 4px; overflow: hidden; }
+        .term-header { background: #222; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; }
+        #term-body { height: 180px; overflow-y: auto; padding: 10px; font-family: 'Consolas', monospace; font-size: 12px; color: #00ff41; line-height: 1.5; }
+        .log-warn { color: #ffa500; }
+        .log-info { color: #58a6ff; }
+    </style>
 </head>
 <body>
 
-  <div class="topbar">
-    <div class="brand">MedorCoin Dashboard</div>
+<div class="top-nav">
+    <div>
+        <h2 style="margin:0; color:#fff;">MEDOR<span style="color:var(--orange-active)">COIN</span></h2>
+        <span id="conn-status" class="node-status" style="color:#da3633;">● DISCONNECTED</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div id="g_id_onload" data-client_id="650014694453-ud6jq7505nrh7ivm455p0hv86k9na6d5.apps.googleusercontent.com" data-callback="onAuth"></div>
+        <div class="g_id_signin" data-type="standard"></div>
+    </div>
+</div>
 
-    <div class="wallet-area">
-      <button id="walletTrigger" class="wallet-trigger" title="Wallets">
-        Wallet: <span id="currentWalletName">Wallet 1</span> ▾
-      </button>
-      <div id="walletMenu" class="wallet-menu" aria-label="Wallets list"></div>
+<div class="stat-row">
+    <div class="card"><label>Network Height</label><div id="val-height">0</div></div>
+    <div class="card"><label>Consensus Diff</label><div id="val-diff">0x00...</div></div>
+    <div class="card"><label>Mempool Size</label><div id="val-mempool">0 TXs</div></div>
+    <div class="card"><label>P2P Peers</label><div id="val-peers">0</div></div>
+</div>
+
+<div class="action-grid">
+    <div class="interactive-block">
+        <h3>HARDWARE MINER</h3>
+        <div style="text-align:center; margin-bottom: 15px;">
+            <label style="font-size: 11px; text-transform: uppercase;">Current Hashrate</label>
+            <span id="live-hashrate" style="font-size: 28px; font-weight: bold;">0.00 H/s</span>
+        </div>
+        <input type="text" id="mining-addr" class="input-medor" value="1ukpJFf4uz3c3gDmM9JASZaGiV4STJEDfzp" readonly>
+        <button id="mine-toggle" class="btn-medor" onclick="handleMiner()">Start Mining</button>
     </div>
 
-    <button id="cardBtn" class="tool" title="Card">Card</button>
-    <button id="qrBtn" class="tool" title="Receive/QR">QR</button>
-    <button id="notifBtn" class="tool" title="Notifications">🔔</button>
-
-    <button id="linksBtn" class="tool" title="Links">☰ Links</button>
-  </div>
-
-  <div class="container" id="main">
-    <div class="balance" aria-label="Total balance">
-      <div>
-        <span class="muted" style="margin-right:8px;">Total Balance</span>
-        <span class="amount" id="balanceAmount">$0.00</span>
-      </div>
-      <div class="muted" id="balanceCurrency">(USD)</div>
-      <div class="muted" style="margin-left:8px;">Currency</div>
-      <select id="currencySelector" aria-label="Currency selector">
-        <option value="usd" selected>USD</option>
-      </select>
+    <div class="interactive-block">
+        <h3>CLOUD BOOST (+4.5 GH/s)</h3>
+        <p style="font-size: 12px; margin-bottom: 15px;">Inject priority hashing power via AdSense verification.</p>
+        <button id="boost-btn" class="btn-medor" onclick="handleBoost()">Trigger Speed Boost</button>
+        <div id="boost-active" style="display:none; text-align:center; font-weight: bold;">
+            BOOST ACTIVE: <span id="timer">15:00</span>
+        </div>
     </div>
 
-    <div class="toolbar" aria-label="Main actions">
-      <div class="tool buy" id="btn-buy" title="Buy">Buy</div>
-      <div class="tool swap" id="btn-swap" title="Swap">Swap</div>
-      <div class="tool send" id="btn-send" title="Send">Send</div>
-      <div class="tool" id="btn-receive" title="Receive">Receive</div>
-      <div class="tool" id="btn-market" title="Market">Market</div>
-      <div class="tool" id="btn-history" title="History">History</div>
+    <div class="interactive-block">
+        <h3>BROADCAST BINARY TX</h3>
+        <input type="text" id="tx-to" class="input-medor" placeholder="Recipient (Base58)">
+        <input type="number" id="tx-val" class="input-medor" placeholder="Amount (Satoshis)">
+        <button class="btn-medor" onclick="handleTx()">Sign & Broadcast</button>
     </div>
+</div>
 
-    <div id="panel-swap" class="panel" aria-label="Swap panel">
-      <h4>Swap Crypto (on‑chain)</h4>
-      <div class="panel-row">
-        <div>
-          <label>From</label><br/>
-          <select id="swap-from" style="min-width:240px;">
-            <option value="ETH">ETH</option>
-            <option value="WETH">WETH</option>
-            <option value="MEDOR">MedorCoin (MEDOR)</option>
-          </select>
+<div class="terminal-container">
+    <div class="term-header">
+        <span>MEDOR_CORE_LOG_V6</span>
+        <div style="display:flex; gap:10px; cursor:pointer;">
+            <span onclick="clearLog()">[CLEAR]</span>
         </div>
-        <div>
-          <label>To</label><br/>
-          <select id="swap-to" style="min-width:240px;">
-            <option value="ETH">ETH</option>
-            <option value="MEDOR">MedorCoin (MEDOR)</option>
-            <option value="USDT">USDT</option>
-          </select>
-        </div>
-        <div>
-          <label>Amount</label><br/>
-          <input id="swap-amount" type="number" min="0" step="0.01" value="0.1" style="min-width:240px;" />
-        </div>
-        <div>
-          <label>Slippage %</label><br/>
-          <input id="swap-slippage" type="number" min="0" step="0.1" value="0.5" style="width:120px;" />
-        </div>
-      </div>
-      <div class="muted" style="margin-top:6px;" id="swap-estimate">Est. received: -</div>
-
-      <div style="text-align:right; margin-top:8px;">
-        <button class="btn primary" id="swap-now">Swap</button>
-      </div>
     </div>
-  </div>
+    <div id="term-body">
+        [SYSTEM] Initializing Crypto-dashboard.html...<br>
+        [SYSTEM] Awaiting P2P node connection...
+    </div>
+</div>
 
-  <script
-    src="https://cdn-cors.ethers.io/lib/ethers-5.7.2.umd.min.js"
-    integrity="sha384-Htz1SE4Sl5aitpvFgr2j0sfsGUIuSXI6t8hEyrlQ93zflEF3a29bH2AvkUROUw7J"
-    crossorigin="anonymous">
-  </script>
+<script>
+    let ws = null;
+    let isMining = false;
+    let authHeader = null;
 
-  <script>
-    const WALLETS_KEY = 'md_wallets';
-    const CURRENT_WALLET_KEY = 'md_current_wallet_id';
-
-    function getWallets() {
-      const s = localStorage.getItem(WALLETS_KEY);
-      if (s) return JSON.parse(s);
-      const w = [{id:1, name:'Wallet 1', address: generateMockAddress()}];
-      localStorage.setItem(WALLETS_KEY, JSON.stringify(w));
-      localStorage.setItem(CURRENT_WALLET_KEY, '1');
-      return w;
+    function log(msg, type = 'info') {
+        const body = document.getElementById('term-body');
+        const ts = new Date().toLocaleTimeString('en-GB', { hour12: false });
+        body.innerHTML += `<div class="log-${type}">[${ts}] [${type.toUpperCase()}] ${msg}</div>`;
+        body.scrollTop = body.scrollHeight;
     }
 
-    function generateMockAddress(){
-      let h = '0x';
-      for(let i=0;i<40;i++){
-        h += '0123456789abcdef'[Math.floor(Math.random()*16)];
-      }
-      return h;
+    function connect() {
+        ws = new WebSocket('ws://localhost:8332');
+        
+        ws.onopen = () => {
+            document.getElementById('conn-status').innerText = "● NODE CONNECTED";
+            document.getElementById('conn-status').style.color = "#3fb950";
+            log("WebSocket linked to node.cjs (Port 8332)");
+        };
+
+        ws.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            
+            // Fixed Arrow: Unified Event Labels
+            if (data.type === 'NODE_STATS') {
+                document.getElementById('val-height').innerText = data.height;
+                document.getElementById('val-diff').innerText = data.difficulty;
+                document.getElementById('val-mempool').innerText = data.mempool + " TXs";
+                document.getElementById('val-peers').innerText = data.peers;
+            }
+            
+            if (data.type === 'MINER_UPDATE') {
+                const el = document.getElementById('live-hashrate');
+                const h = data.hashrate;
+                el.innerText = h >= 1e9 ? (h/1e9).toFixed(2)+" GH/s" : h >= 1e6 ? (h/1e6).toFixed(2)+" MH/s" : h.toFixed(2)+" H/s";
+                el.classList.add('pulse');
+                setTimeout(() => el.classList.remove('pulse'), 150);
+            }
+
+            if (data.type === 'EVENT_LOG') {
+                log(data.message, data.level);
+            }
+        };
+
+        ws.onclose = () => {
+            document.getElementById('conn-status').innerText = "● DISCONNECTED";
+            document.getElementById('conn-status').style.color = "#da3633";
+            setTimeout(connect, 3000);
+        };
     }
 
-    function getCurrentWallet(){
-      const wallets = getWallets();
-      const id = parseInt(localStorage.getItem(CURRENT_WALLET_KEY) || '1', 10);
-      return wallets.find(w => w.id === id) || wallets[0];
+    function handleMiner() {
+        const btn = document.getElementById('mine-toggle');
+        const addr = document.getElementById('mining-addr').value;
+        if (!isMining) {
+            ws.send(JSON.stringify({ type: 'START_MINER', payload: { address: addr } }));
+            btn.innerText = "Terminate Thread Pool";
+            btn.style.background = "#da3633";
+            isMining = true;
+        } else {
+            ws.send(JSON.stringify({ type: 'STOP_MINER' }));
+            btn.innerText = "Start Mining";
+            btn.style.background = "var(--grey-typography)";
+            isMining = false;
+        }
     }
 
-    function refreshWalletUI(){
-      const cw = getCurrentWallet();
-      document.getElementById('currentWalletName').textContent = cw.name || 'Wallet';
-      const menu = document.getElementById('walletMenu');
-      menu.innerHTML = '';
-      getWallets().forEach(w => {
-        const div = document.createElement('div');
-        div.className = 'wallet-item';
-        div.innerHTML = `<span class="wallet-name">${w.name}</span>
-                         <span class="wallet-address">${shorten(w.address,18)}</span>
-                         <button class="copy-btn">${w.address}</button>`;
-        div.querySelector('.copy-btn').addEventListener('click', ()=>copyToClipboard(w.address));
-        menu.appendChild(div);
-      });
-      const create = document.createElement('a');
-      create.className = 'create-wallet'; create.textContent = 'Create Wallet';
-      create.addEventListener('click', createWallet);
-      menu.appendChild(create);
+    function handleBoost() {
+        log("AdSense Interstitial verified. Sending boost packet...", "info");
+        // Fixed Arrow: Exact Payload Matching
+        ws.send(JSON.stringify({ type: 'APPLY_BOOST', payload: { amount: 4500000000 } }));
+        document.getElementById('boost-btn').style.display = 'none';
+        document.getElementById('boost-active').style.display = 'block';
     }
 
-    function shorten(s,len){ return s && s.length>len ? s.slice(0,6)+'...'+s.slice(-4) : s; }
-
-    function copyToClipboard(text){ navigator.clipboard.writeText(text).catch(()=>{}); }
-
-    function createWallet(){
-      const wallets = getWallets();
-      const id = wallets.length ? wallets[wallets.length-1].id+1 : 1;
-      const w = {id, name:'Wallet '+id, address: generateMockAddress()};
-      wallets.push(w); localStorage.setItem(WALLETS_KEY,JSON.stringify(wallets));
-      setCurrentWallet(id); refreshWalletUI();
+    function handleTx() {
+        const to = document.getElementById('tx-to').value;
+        const val = parseInt(document.getElementById('tx-val').value);
+        if (!to || isNaN(val)) return log("Broadcast Rejected: Missing Fields", "warn");
+        
+        ws.send(JSON.stringify({
+            type: 'SUBMIT_TX',
+            payload: { to, value: val, timestamp: Math.floor(Date.now()/1000) }
+        }));
     }
 
-    document.addEventListener('DOMContentLoaded', ()=>{
-      refreshWalletUI();
+    function onAuth(resp) {
+        log("Auth credential received. Unlocking RPC commands...", "info");
+        ws.send(JSON.stringify({ type: 'AUTH_SESSION', token: resp.credential }));
+    }
 
-      document.getElementById('walletTrigger').addEventListener('click', ()=>{
-        const m = document.getElementById('walletMenu');
-        m.style.display = m.style.display==='block'?'none':'block';
-      });
+    function clearLog() { document.getElementById('term-body').innerHTML = ""; }
 
-      document.getElementById('swap-now').addEventListener('click', async ()=>{
-        if (!window.ethereum) { alert('Please install MetaMask'); return; }
-        const fromKey = document.getElementById('swap-from').value;
-        const toKey   = document.getElementById('swap-to').value;
-        const fromToken = TOKEN_ADDRESSES[fromKey] || TOKEN_ADDRESSES.ETH;
-        const toToken   = TOKEN_ADDRESSES[toKey]   || TOKEN_ADDRESSES.ETH;
-        const amountInput = document.getElementById('swap-amount').value || '0';
-        const amountWei = ethers.utils.parseUnits(amountInput, 18).toString();
-        const fromAddress = getCurrentWallet().address;
-        if (!fromAddress) { alert('Connect wallet'); return; }
-      });
-    });
-
-    const TOKEN_ADDRESSES = {
-      ETH: '0xEeeeeEeeeEeEeeEeEeEeEEEeeeeEeeeeeeeEEeE',
-      WETH:'0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-      USDT:'0xdAC17F958D2ee523a2206206994597C13D831ec7',
-      MEDOR:null
-    };
-  </script>
+    connect();
+</script>
 
 </body>
 </html>

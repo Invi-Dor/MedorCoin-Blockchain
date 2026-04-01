@@ -3,291 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:8080 https://127.0.0.1:8332; img-src 'self' data:;">
 <title>MedorCoin Wallet</title>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWtxbC928=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.4/elliptic.min.js" integrity="sha512-fPEaF8/njK0f0q0A//pMoxxUXXT/xZkE2H1eS2Yx23lP2A6IkeM60y8/7X2ZzBcvB+xJ1Kz/A4DtwYg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0eVDvAHU/QZ1/10UeUEX1H50DqJ1f9/jR0yYn/mIu1y==" crossorigin="anonymous"></script>
+
 <style>
+/* ... [Keep all your existing CSS exactly as it was] ... */
 :root {
-  --bg-dark: #0b0f1a;
-  --panel-bg: #12182a;
-  --neon-blue: #00eaff;
-  --neon-blue-strong: #00cfff;
-  --text-light: #e8faff;
-  --text-muted: #9bb3c9;
-  --danger: #ff4d4f;
+  --bg:     #0b0f1a;
+  --panel:  #12182a;
+  --cyan:   #00eaff;
+  --dim:    #00b8cc;
+  --text:   #e8faff;
+  --muted:  #9bb3c9;
+  --danger: #ff4d6d;
+  --green:  #10b981;
+  --border: rgba(0,234,255,0.15);
+  --red:    #f43f5e;
 }
-
-/* Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Segoe UI", sans-serif;
-}
-
-html, body {
-  width: 100%;
-  height: 100%;
-  background: var(--bg-dark);
-  color: var(--text-light);
-  overflow-x: hidden;
-}
-
-/* Layout */
-#wrapper {
-  display: flex;
-  min-height: 100vh;
-}
-
-/* Sidebar */
-#sidebar {
-  width: 240px;
-  background: var(--panel-bg);
-  border-right: 1px solid rgba(0, 234, 255, 0.1);
-  padding: 20px;
-  transition: transform 0.3s ease;
-}
-
-#sidebar h2 {
-  color: var(--neon-blue);
-  margin-bottom: 30px;
-  font-size: 22px;
-}
-
-/* Nav Links */
-#sidebar a {
-  display: block;
-  padding: 12px;
-  border-radius: 8px;
-  color: var(--text-light);
-  text-decoration: none;
-  margin-bottom: 8px;
-  transition: 0.2s;
-}
-#sidebar a:hover {
-  background: rgba(0,234,255,0.1);
-  color: var(--neon-blue);
-}
-
-/* Mobile Sidebar */
-#sidebar.mobile-hidden {
-  transform: translateX(-100%);
-  position: fixed;
-  height: 100%;
-  z-index: 1000;
-}
-
-/* Main Content */
-#content {
-  flex: 1;
-  padding: 24px;
-  overflow-y: auto;
-}
-
-/* Top Bar */
-.topbar {
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-.hamburger {
-  font-size: 26px;
-  cursor: pointer;
-  color: var(--neon-blue);
-}
-
-/* Cards */
-.card {
-  background: var(--panel-bg);
-  padding: 20px;
-  border-radius: 14px;
-  margin-bottom: 20px;
-  border: 1px solid rgba(0,234,255,0.2);
-  box-shadow: 0 0 10px rgba(0,234,255,0.1);
-}
-.card h3 {
-  margin-bottom: 12px;
-  color: var(--neon-blue);
-}
-
-/* Balance */
-.balance {
-  font-size: 32px;
-  font-weight: bold;
-}
-
-/* Inputs */
-input, textarea, select {
-  width: 100%;
-  padding: 14px;
-  margin-top: 10px;
-  margin-bottom: 14px;
-  background: #0e1422;
-  border: 1px solid rgba(0,234,255,0.2);
-  border-radius: 10px;
-  color: var(--text-light);
-  font-size: 15px;
-}
-
-/* Buttons */
-.button {
-  width: 100%;
-  padding: 16px;
-  background: linear-gradient(135deg, var(--neon-blue), var(--neon-blue-strong));
-  border: none;
-  border-radius: 10px;
-  font-weight: bold;
-  color: #001018;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: 0.3s;
-  font-size: 15px;
-}
-.button:hover {
-  box-shadow: 0 0 18x rgba(0,234,255,0.5);
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-  #sidebar {
-    position: fixed;
-    height: 100%;
-    z-index: 1000;
-  }
-  .topbar {
-    display: flex;
-  }
-  #wrapper {
-    flex-direction: column;
-  }
+*,::before,::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text);overflow-x:hidden;font-family:"Segoe UI",system-ui,sans-serif;}
+#wrapper{display:flex;min-height:100vh;}
+#sidebar{width:220px;background:var(--panel);border-right:1px solid var(--border);padding:24px 16px;flex-shrink:0;transition:transform 0.3s ease;}
+.brand{font-size:18px;font-weight:800;color:var(--cyan);letter-spacing:1px;margin-bottom:28px;display:block;}
+#sidebar a{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;color:var(--text);text-decoration:none;margin-bottom:4px;font-size:14px;transition:0.2s;}
+#sidebar a:hover,#sidebar a.active{background:rgba(0,234,255,0.1);color:var(--cyan);}
+.divider{height:1px;background:var(--border);margin:14px 0;}
+.logout-btn{width:100%;padding:11px 14px;border-radius:10px;background:rgba(255,77,109,0.08);border:1px solid rgba(255,77,109,0.25);color:var(--danger);cursor:pointer;font-size:14px;text-align:left;font-family:inherit;transition:0.2s;}
+.logout-btn:hover{background:rgba(255,77,109,0.18);}
+#content{flex:1;padding:28px;overflow-y:auto;}
+.topbar{display:none;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.hamburger{font-size:24px;cursor:pointer;color:var(--cyan);background:none;border:none;}
+.card{background:var(--panel);padding:22px;border-radius:16px;margin-bottom:20px;border:1px solid var(--border);box-shadow:0 0 20px rgba(0,234,255,0.04);}
+.card h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--cyan);margin-bottom:16px;}
+.balance-card{background:linear-gradient(135deg,#0d1f35,#091830);border-color:rgba(0,234,255,0.25);}
+.balance-amount{font-size:40px;font-weight:800;margin-bottom:4px;}
+.balance-usd{font-size:15px;color:var(--muted);}
+.balance-actions{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+.action-btn{flex:1;min-width:90px;padding:13px;border-radius:10px;border:none;cursor:pointer;font-weight:700;font-size:14px;transition:0.2s;font-family:inherit;}
+.action-btn.p{background:linear-gradient(135deg,var(--cyan),var(--dim));color:#001018;}
+.action-btn.p:hover{box-shadow:0 0 20px rgba(0,234,255,0.4);}
+.action-btn.s{background:rgba(0,234,255,0.07);border:1px solid var(--border);color:var(--text);}
+.action-btn.s:hover{border-color:var(--cyan);color:var(--cyan);}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px;}
+input,textarea{width:100%;padding:12px 14px;background:#0b0f1a;border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border-color 0.2s;margin-bottom:14px;}
+input:focus{border-color:var(--cyan);}
+input[readonly]{color:var(--muted);cursor:default;}
+.input-row{display:grid;grid-template-columns:2fr 1fr;gap:12px;}
+.btn{width:100%;padding:14px;border-radius:10px;border:none;cursor:pointer;font-weight:700;font-size:15px;transition:0.2s;font-family:inherit;}
+.btn.primary{background:linear-gradient(135deg,var(--cyan),var(--dim));color:#001018;}
+.btn.primary:hover{box-shadow:0 0 20px rgba(0,234,255,0.4);}
+.btn.primary:disabled{opacity:0.4;cursor:not-allowed;}
+.btn.danger{background:linear-gradient(135deg,#dc2626,var(--red));color:#fff;}
+.ok {color:#6ee7b7;font-size:13px;margin-top:8px;}
+.err{color:#fca5a5;font-size:13px;margin-top:8px;}
+.info{color:var(--muted);font-size:13px;margin-top:8px;}
+.copy-hint{font-size:12px;color:var(--cyan);cursor:pointer;display:inline-block;margin-top:-8px;margin-bottom:12px;transition:0.2s;}
+.copy-hint:hover{opacity:0.7;}
+.tx-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);font-size:14px;}
+.tx-item:last-child{border-bottom:none;}
+.tx-addr{color:var(--muted);font-size:12px;margin-top:2px;word-break:break-all;}
+.tx-amt.in {color:#6ee7b7;}
+.tx-amt.out{color:#fca5a5;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--danger);display:inline-block;margin-right:6px;vertical-align:middle;transition:background 0.3s;}
+.dot.on{background:var(--green);}
+.page{display:none;}
+.page.active{display:block;}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:900px){
+  #sidebar{position:fixed;top:0;left:0;height:100%;z-index:1000;transform:translateX(-100%);}
+  #sidebar.open{transform:translateX(0);}
+  .topbar{display:flex;}
+  #content{padding:16px;}
 }
 </style>
 </head>
-
 <body>
-
 <div id="wrapper">
 
-  <!-- Sidebar -->
-  <div id="sidebar" class="mobile-hidden">
-    <h2>MedorCoin</h2>
-    <a href="#" onclick="showPage('dashboard')">Dashboard</a>
-    <a href="#" onclick="showPage('send')">Send</a>
-    <a href="#" onclick="showPage('receive')">Receive</a>
-    <a href="#" onclick="showPage('history')">History</a>
-    <a href="#" onclick="showPage('backup')">Backup</a>
-    <a href="#" onclick="showPage('security')">Security</a>
-    <a href="#" onclick="showPage('advanced')">Advanced</a>
-  </div>
-
-  <!-- Main Content -->
-  <div id="content">
-
-    <!-- Top Bar for Mobile -->
-    <div class="topbar">
-      <span class="hamburger" onclick="toggleSidebar()">☰</span>
-      <span style="color: var(--neon-blue); font-weight: bold;">MedorCoin</span>
-    </div>
-
-    <!-- Dashboard Page -->
-    <div id="dashboard" class="page">
-      <div class="card">
-        <h3>Wallet Balance</h3>
-        <div class="balance" id="balanceDisplay">0.000 MED</div>
-      </div>
-
-      <!-- Address -->
-      <div class="card">
-        <h3>Your Address</h3>
-        <input type="text" id="dashboardAddress" readonly>
-      </div>
-    </div>
-
-    <!-- Send Page -->
-    <div id="send" class="page" style="display:none;">
-      <div class="card">
-        <h3>Send MedorCoin</h3>
-        <label>Recipient</label>
-        <input type="text" id="sendTo">
-        <label>Amount</label>
-        <input type="number" id="sendAmt">
-        <button class="button" onclick="alert('Send logic pending')">Send</button>
-      </div>
-    </div>
-
-    <!-- Receive Page -->
-    <div id="receive" class="page" style="display:none;">
-      <div class="card">
-        <h3>Receive</h3>
-        <input type="text" id="receiveAddress" readonly>
-      </div>
-    </div>
-
-    <!-- History Page -->
-    <div id="history" class="page" style="display:none;">
-      <div class="card">
-        <h3>Tx History</h3>
-        <div id="txList">No history yet</div>
-      </div>
-    </div>
-
-    <!-- Backup Page -->
-    <div id="backup" class="page" style="display:none;">
-      <div class="card">
-        <h3>Backup Wallet</h3>
-        <button class="button" onclick="alert('Backup logic pending')">Download Backup</button>
-      </div>
-    </div>
-
-    <!-- Security Page -->
-    <div id="security" class="page" style="display:none;">
-      <div class="card">
-        <h3>Security</h3>
-        <button class="button" onclick="alert('Lock & Passphrase logout pending')">Logout</button>
-      </div>
-    </div>
-
-    <!-- Advanced Page -->
-    <div id="advanced" class="page" style="display:none;">
-      <div class="card">
-        <h3>Advanced</h3>
-        <button class="button">Developer Mode</button>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<script>
-let storedWallet = null;
-
-// Toggle sidebar mobile
-function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("mobile-hidden");
-}
-
-// Page navigation
-function showPage(id) {
-  document.querySelectorAll(".page").forEach(p => p.style.display="none");
-  document.getElementById(id).style.display="block";
-  if(window.innerWidth < 900) toggleSidebar();
-}
-
-// Load wallet
-function loadWallet() {
-  const w = localStorage.getItem("medorcoin_wallet");
-  if(!w) {
-    alert("No wallet found. Redirecting to Create Wallet.");
-    window.location.href = "create-wallet.html";
-    return;
-  }
-  storedWallet = JSON.parse(w);
-  document.getElementById("dashboardAddress").value = storedWallet.address;
-  document.getElementById("receiveAddress").value = storedWallet.address;
-}
-
-window.onload = loadWallet;
-</script>
-
-</body>
-</html>
+  <div id="sidebar">
+    <span class="brand">⬡ MedorCoin</span>
+    <a href="#" onclick="go('dashboard')" id="nav-dashboard">🏠 Dashboard</a>
+    <a href="#" onclick="go('send')"      id="nav-send">↑ Send</a>
+    <a href="#" onclick="go('

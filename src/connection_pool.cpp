@@ -1,958 +1,924 @@
-#include "connection_pool.h"
+// =============================================================================
+// ConnectionPool.cpp
+// MedorCoin P2P — Production-grade TCP connection pool implementation
+// Covers: Linux (epoll), macOS/BSD (kqueue), POSIX fallback (poll)
+// =============================================================================
+
+#include "ConnectionPool.hpp"
 
 #include <arpa/inet.h>
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
-#include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
 
-// ── Platform I/O multiplexer selection ────────────────────────────────────────
 #if defined(__linux__)
 #  include <sys/epoll.h>
-#  define MEDOR_EPOLL  1
-#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#  define POOL_USE_EPOLL  1
+#elif defined(__APPLE__) || defined(__FreeBSD__) || \
+      defined(__OpenBSD__) || defined(__NetBSD__)
 #  include <sys/event.h>
-#  define MEDOR_KQUEUE 1
+#  define POOL_USE_KQUEUE 1
 #else
 #  include <poll.h>
-#  define MEDOR_POLL   1
+#  define POOL_USE_POLL   1
 #endif
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Utilities
-// ─────────────────────────────────────────────────────────────────────────────
+#include <algorithm>
+#include <cassert>
+#include <chrono>
+#include <stdexcept>
 
-std::string ConnectionPool::makeKey(const std::string &h, uint16_t p) noexcept
-{
-    return std::to_string(h.size()) + ":" + h + ":" + std::to_string(p);
-}
+// =============================================================================
+// Internal helpers
+// =============================================================================
 
-uint64_t ConnectionPool::nowSecs() noexcept
-{
+namespace {
+
+uint64_t monotonicMs() noexcept {
+    using namespace std::chrono;
     return static_cast<uint64_t>(
-        std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
+        duration_cast<milliseconds>(
+            steady_clock::now().time_since_epoch()).count());
 }
 
-uint64_t ConnectionPool::nowMs() noexcept
-{
-    return static_cast<uint64_t>(
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
+uint64_t monotonicSecs() noexcept {
+    return monotonicMs() / 1000u;
 }
 
-void ConnectionPool::closeFd(int fd) noexcept
+bool setNonBlocking(int fd) noexcept {
+    int flags = ::fcntl(fd, F_GETFL, 0);
+    if (flags < 0) return false;
+    return ::fcntl(fd, F_SETFL, flags | O_NONBLOCK) == 0;
+}
+
+bool setBlocking(int fd) noexcept {
+    int flags = ::fcntl(fd, F_GETFL, 0);
+    if (flags < 0) return false;
+    return ::fcntl(fd, F_SETFL, flags & ~O_NONBLOCK) == 0;
+}
+
+// Returns the resolved addrinfo list; caller must freeaddrinfo().
+// Returns nullptr on failure.
+addrinfo* resolveHost(const std::string& host, uint16_t port) noexcept {
+    addrinfo hints{};
+    hints.ai_family   = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags    = AI_ADDRCONFIG;
+
+    const std::string svc = std::to_string(port);
+    addrinfo* res = nullptr;
+    if (::getaddrinfo(host.c_str(), svc.c_str(), &hints, &res) != 0)
+        return nullptr;
+    return res;
+}
+
+} // anonymous namespace
+
+// =============================================================================
+// Static helpers
+// =============================================================================
+
+/*static*/ std::string
+ConnectionPool::makeKey(const std::string& h, uint16_t p) noexcept {
+    return h + ':' + std::to_string(p);
+}
+
+/*static*/ uint64_t ConnectionPool::nowSecs() noexcept { return monotonicSecs(); }
+/*static*/ uint64_t ConnectionPool::nowMs()   noexcept { return monotonicMs();   }
+
+/*static*/ void
+ConnectionPool::joinWithTimeout(std::thread& t, uint32_t timeoutMs) noexcept {
+    if (!t.joinable()) return;
+    // detach after timeout to avoid blocking forever
+    auto deadline = std::chrono::steady_clock::now()
+                  + std::chrono::milliseconds(timeoutMs);
+    // std::thread has no timed-join; we spin-sleep briefly
+    while (t.joinable()) {
+        if (std::chrono::steady_clock::now() >= deadline) {
+            t.detach();
+            return;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    t.join();
+}
+
+// =============================================================================
+// applySocketOptions
+// Platform-normalised keepalive + nodelay
+// =============================================================================
+
+/*static*/ void ConnectionPool::applySocketOptions(int fd) noexcept {
+    // TCP_NODELAY — disable Nagle
+    {
+        int v = 1;
+        ::setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &v, sizeof(v));
+    }
+
+    // SO_KEEPALIVE — enable kernel keepalive
+    {
+        int v = 1;
+        ::setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &v, sizeof(v));
+    }
+
+    // Idle time before first probe: 60s
+#if defined(TCP_KEEPIDLE)
+    { int v = 60; ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE,    &v, sizeof(v)); }
+#elif defined(TCP_KEEPALIVE)   // macOS uses TCP_KEEPALIVE for idle
+    { int v = 60; ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE,   &v, sizeof(v)); }
+#endif
+
+    // Probe interval: 10s
+#if defined(TCP_KEEPINTVL)
+    { int v = 10; ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL,   &v, sizeof(v)); }
+#endif
+
+    // Number of probes: 3
+#if defined(TCP_KEEPCNT)
+    { int v = 3;  ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT,     &v, sizeof(v)); }
+#endif
+
+    // SO_LINGER off — RST on close, don't linger
+    {
+        struct linger l{ 0, 0 };
+        ::setsockopt(fd, SOL_SOCKET, SO_LINGER, &l, sizeof(l));
+    }
+}
+
+// =============================================================================
+// Constructor / Destructor
+// =============================================================================
+
+ConnectionPool::ConnectionPool(Config cfg)
+    : cfg_(std::move(cfg))
 {
+    // ── Reactor ───────────────────────────────────────────────────────────
+    if (!initReactor())
+        throw std::runtime_error("ConnectionPool: failed to initialise reactor");
+
+    reactorRunning_.store(true);
+    reactorThread_ = std::thread(&ConnectionPool::runReactor, this);
+
+    // ── DNS workers ───────────────────────────────────────────────────────
+    dnsRunning_.store(true);
+    for (size_t i = 0; i < cfg_.dnsWorkerCount; ++i)
+        dnsWorkers_.emplace_back(&ConnectionPool::runDnsWorker, this);
+
+    // ── TLS workers ───────────────────────────────────────────────────────
+    tlsRunning_.store(true);
+    for (size_t i = 0; i < cfg_.tlsWorkerCount; ++i)
+        tlsWorkers_.emplace_back(&ConnectionPool::runTlsWorker, this);
+
+    // ── Async acquire workers ─────────────────────────────────────────────
+    asyncRunning_.store(true);
+    for (size_t i = 0; i < cfg_.asyncWorkerCount; ++i)
+        asyncWorkers_.emplace_back(&ConnectionPool::runAsyncWorker, this);
+
+    // ── Janitor workers ───────────────────────────────────────────────────
+    janitorRunning_.store(true);
+    for (size_t i = 0; i < cfg_.janitorWorkerCount; ++i)
+        janitorWorkers_.emplace_back(&ConnectionPool::runJanitorWorker, this, i);
+
+    // ── Metrics reporter ──────────────────────────────────────────────────
+    metricsRunning_.store(true);
+    metricsThread_ = std::thread(&ConnectionPool::runMetricsReporter, this);
+}
+
+ConnectionPool::~ConnectionPool() {
+    // ── Signal all workers to stop ────────────────────────────────────────
+    reactorRunning_.store(false);
+    dnsRunning_    .store(false);
+    tlsRunning_    .store(false);
+    asyncRunning_  .store(false);
+    janitorRunning_.store(false);
+    metricsRunning_.store(false);
+
+    dnsCv_     .notify_all();
+    tlsCv_     .notify_all();
+    asyncCv_   .notify_all();
+    janitorCv_ .notify_all();
+    metricsCv_ .notify_all();
+
+    // ── Join all threads with bounded timeout ─────────────────────────────
+    joinWithTimeout(reactorThread_,  cfg_.shutdownTimeoutMs);
+    joinWithTimeout(metricsThread_,  cfg_.shutdownTimeoutMs);
+
+    for (auto& t : dnsWorkers_)     joinWithTimeout(t, cfg_.shutdownTimeoutMs);
+    for (auto& t : tlsWorkers_)     joinWithTimeout(t, cfg_.shutdownTimeoutMs);
+    for (auto& t : asyncWorkers_)   joinWithTimeout(t, cfg_.shutdownTimeoutMs);
+    for (auto& t : janitorWorkers_) joinWithTimeout(t, cfg_.shutdownTimeoutMs);
+
+    // ── Close reactor fd ──────────────────────────────────────────────────
+    if (reactorFd_ >= 0) { ::close(reactorFd_); reactorFd_ = -1; }
+
+    // ── Drain and close all pooled fds ────────────────────────────────────
+    clear();
+}
+
+// =============================================================================
+// Public API — setters
+// =============================================================================
+
+void ConnectionPool::setTlsHandshake(TlsHandshakeFn fn) noexcept {
+    std::lock_guard<std::mutex> lk(tlsMutex_);
+    tlsFn_ = std::move(fn);
+}
+
+void ConnectionPool::setMetricsPush(MetricsPushFn fn) noexcept {
+    std::lock_guard<std::mutex> lk(metricsPushMutex_);
+    metricsPushFn_ = std::move(fn);
+}
+
+// =============================================================================
+// Public API — acquire (synchronous)
+// =============================================================================
+
+int ConnectionPool::acquire(const std::string& host, uint16_t port) noexcept {
+    const std::string key = makeKey(host, port);
+    auto bucket = getBucket(key);
+
+    // Fast path: reuse a pooled healthy slot
+    {
+        std::lock_guard<std::mutex> lk(bucket->mtx);
+        while (!bucket->slots.empty()) {
+            Slot s = bucket->slots.front();
+            bucket->slots.pop();
+            if (s.fd >= 0 && isAlive(s.fd)) {
+                ++metAcquired_;
+                return s.fd;
+            }
+            closeFd(s.fd);
+        }
+    }
+
+    // Slow path: open a new connection on the calling thread
+    if (openFds_.load() >= cfg_.globalMaxFds) {
+        ++metGlobalRej_;
+        ++metFailed_;
+        return -1;
+    }
+
+    int fd = openBlocking(host, port);
+    if (fd < 0) { ++metFailed_; return -1; }
+
+    fd = applyTlsDirect(fd, host, port);
+    if (fd < 0) { ++metFailed_; ++metTlsFail_; return -1; }
+
+    ++metAcquired_;
+    return fd;
+}
+
+// =============================================================================
+// Public API — acquireAsync
+// =============================================================================
+
+void ConnectionPool::acquireAsync(const std::string& host, uint16_t port,
+                                   AcquireCallback cb) noexcept {
+    ++metAsyncDepth_;
+    {
+        std::lock_guard<std::mutex> lk(asyncMutex_);
+        asyncQueue_.push({ host, port, std::move(cb) });
+    }
+    asyncCv_.notify_one();
+}
+
+// =============================================================================
+// Public API — release
+// =============================================================================
+
+void ConnectionPool::release(const std::string& host, uint16_t port,
+                              int fd, bool healthy) noexcept {
+    ++metReleased_;
+
+    if (fd < 0 || !healthy) {
+        closeFd(fd);
+        return;
+    }
+
+    const std::string key = makeKey(host, port);
+    auto bucket = getBucket(key);
+
+    std::lock_guard<std::mutex> lk(bucket->mtx);
+    if (bucket->slots.size() >= cfg_.maxConnsPerPeer) {
+        closeFd(fd);
+        ++metEvicted_;
+        return;
+    }
+    bucket->slots.push({ fd, nowSecs() });
+}
+
+// =============================================================================
+// Public API — evictPeer / clear / getMetrics
+// =============================================================================
+
+void ConnectionPool::evictPeer(const std::string& host, uint16_t port) noexcept {
+    const std::string key = makeKey(host, port);
+    std::shared_ptr<Bucket> bucket;
+    {
+        std::shared_lock<std::shared_mutex> lk(mapMutex_);
+        auto it = pool_.find(key);
+        if (it == pool_.end()) return;
+        bucket = it->second;
+    }
+    std::lock_guard<std::mutex> lk(bucket->mtx);
+    while (!bucket->slots.empty()) {
+        closeFd(bucket->slots.front().fd);
+        bucket->slots.pop();
+        ++metEvicted_;
+    }
+}
+
+void ConnectionPool::clear() noexcept {
+    std::unique_lock<std::shared_mutex> lk(mapMutex_);
+    for (auto& [key, bucket] : pool_) {
+        std::lock_guard<std::mutex> blk(bucket->mtx);
+        while (!bucket->slots.empty()) {
+            closeFd(bucket->slots.front().fd);
+            bucket->slots.pop();
+            ++metEvicted_;
+        }
+    }
+    pool_.clear();
+}
+
+ConnectionPool::Metrics ConnectionPool::getMetrics() const noexcept {
+    Metrics m;
+    m.acquired               = metAcquired_  .load();
+    m.released               = metReleased_  .load();
+    m.evicted                = metEvicted_   .load();
+    m.failed                 = metFailed_    .load();
+    m.currentOpenFds         = openFds_      .load();
+    m.globalBudgetRejections = metGlobalRej_ .load();
+    m.tlsFailures            = metTlsFail_   .load();
+    m.asyncQueueDepth        = metAsyncDepth_.load();
+    m.reactorEvents          = metReactorEvt_.load();
+    return m;
+}
+
+// =============================================================================
+// Private — getBucket
+// =============================================================================
+
+std::shared_ptr<ConnectionPool::Bucket>
+ConnectionPool::getBucket(const std::string& key) noexcept {
+    {
+        std::shared_lock<std::shared_mutex> lk(mapMutex_);
+        auto it = pool_.find(key);
+        if (it != pool_.end()) return it->second;
+    }
+    auto b = std::make_shared<Bucket>();
+    std::unique_lock<std::shared_mutex> lk(mapMutex_);
+    return pool_.emplace(key, std::move(b)).first->second;
+}
+
+// =============================================================================
+// Private — closeFd / isAlive
+// =============================================================================
+
+void ConnectionPool::closeFd(int fd) noexcept {
     if (fd < 0) return;
     ::close(fd);
-    if (openFds_.load(std::memory_order_relaxed) > 0)
-        openFds_.fetch_sub(1, std::memory_order_relaxed);
+    if (openFds_.load() > 0) --openFds_;
 }
 
-void ConnectionPool::joinWithTimeout(std::thread &t, uint32_t ms) noexcept
-{
-    if (!t.joinable()) return;
-    auto p = std::make_shared<std::promise<void>>();
-    auto f = p->get_future();
-    std::thread helper([th = std::move(t), pp = p]() mutable {
-        th.join(); pp->set_value();
-    });
-    helper.detach();
-    f.wait_for(std::chrono::milliseconds(ms));
+bool ConnectionPool::isAlive(int fd) const noexcept {
+    if (fd < 0) return false;
+    char buf;
+    // MSG_PEEK + MSG_DONTWAIT: returns 0 if peer closed cleanly, -1 with
+    // EAGAIN/EWOULDBLOCK if alive and no data, or error if dead.
+    int r = static_cast<int>(::recv(fd, &buf, 1, MSG_PEEK | MSG_DONTWAIT));
+    if (r == 0) return false;          // EOF — peer closed
+    if (r < 0 && errno == EBADF)  return false;
+    if (r < 0 && errno == ENOTCONN) return false;
+    return true;                       // EAGAIN or data available — alive
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// applySocketOptions
-//
-// Platform policy applied uniformly:
-//   - TCP_NODELAY:   always — eliminates Nagle delay for blockchain messages.
-//   - SO_KEEPALIVE:  always — enables OS-level dead-connection detection.
-//   - Idle timeout:  60 s  — use TCP_KEEPIDLE (Linux/modern macOS),
-//                            TCP_KEEPALIVE (older macOS), or omit if absent.
-//   - Probe interval: 10 s — TCP_KEEPINTVL where available.
-//   - Probe count:    3    — TCP_KEEPCNT where available.
-//   - SO_NOSIGPIPE:  macOS only — suppresses SIGPIPE at the socket level;
-//                    on Linux MSG_NOSIGNAL is used per-send instead.
-//   - TCP_USER_TIMEOUT: Linux only — 30 s unacknowledged data timeout;
-//                       tighter than keepalive for already-established
-//                       connections under data transfer.
-// ─────────────────────────────────────────────────────────────────────────────
+// =============================================================================
+// Private — openBlocking
+// =============================================================================
 
-void ConnectionPool::applySocketOptions(int fd) noexcept
-{
-    int one = 1;
-    ::setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,  &one, sizeof(one));
-    ::setsockopt(fd, SOL_SOCKET,  SO_KEEPALIVE, &one, sizeof(one));
+int ConnectionPool::openBlocking(const std::string& host, uint16_t port) noexcept {
+    addrinfo* res = resolveHost(host, port);
+    if (!res) return -1;
 
-#if defined(TCP_KEEPIDLE)
-    // Linux 2.4+ and macOS 10.16+ (Monterey+)
-    int keepIdle = 60;
-    ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, sizeof(keepIdle));
-#elif defined(TCP_KEEPALIVE)
-    // macOS < 10.16: TCP_KEEPALIVE sets the same idle threshold
-    int keepAlive = 60;
-    ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, &keepAlive, sizeof(keepAlive));
-#endif
+    FdGuard guard;
+    uint32_t retries = 0;
 
-#if defined(TCP_KEEPINTVL)
-    int keepIntvl = 10;
-    ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &keepIntvl, sizeof(keepIntvl));
-#endif
+    for (addrinfo* ai = res; ai; ai = ai->ai_next) {
+        guard.fd = ::socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+        if (guard.fd < 0) continue;
 
-#if defined(TCP_KEEPCNT)
-    int keepCnt = 3;
-    ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &keepCnt, sizeof(keepCnt));
-#endif
+        applySocketOptions(guard.fd);
 
-#if defined(SO_NOSIGPIPE)
-    ::setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one));
-#endif
+        // Set connect timeout via SO_SNDTIMEO
+        {
+            struct timeval tv;
+            tv.tv_sec  = cfg_.connectTimeoutMs / 1000;
+            tv.tv_usec = (cfg_.connectTimeoutMs % 1000) * 1000;
+            ::setsockopt(guard.fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+        }
 
-#if defined(TCP_USER_TIMEOUT) && defined(__linux__)
-    unsigned int userTimeout = 30000;
-    ::setsockopt(fd, IPPROTO_TCP, TCP_USER_TIMEOUT,
-                 &userTimeout, sizeof(userTimeout));
-#endif
-}
+        retries = 0;
+    retry:
+        int r = ::connect(guard.fd, ai->ai_addr,
+                          static_cast<socklen_t>(ai->ai_addrlen));
+        if (r == 0) {
+            ::freeaddrinfo(res);
+            ++openFds_;
+            return guard.release();
+        }
+        if (errno == EINTR && ++retries <= cfg_.maxEINTRRetries) goto retry;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Reactor initialisation
-// ─────────────────────────────────────────────────────────────────────────────
-
-bool ConnectionPool::initReactor() noexcept
-{
-#if defined(MEDOR_EPOLL)
-    reactorFd_ = ::epoll_create1(EPOLL_CLOEXEC);
-#elif defined(MEDOR_KQUEUE)
-    reactorFd_ = ::kqueue();
-#else
-    reactorFd_ = 0;   // poll uses per-call array; no persistent fd needed
-#endif
-    if (reactorFd_ < 0) {
-        std::cerr << "[ConnectionPool] initReactor: failed — "
-                  << std::strerror(errno) << "\n";
-        return false;
+        ::close(guard.fd);
+        guard.fd = -1;
     }
-    return true;
+
+    ::freeaddrinfo(res);
+    return -1;
 }
 
-// Register an fd for write-readiness notification in the persistent reactor.
-void ConnectionPool::registerWrite(int fd, PendingConnect pc) noexcept
-{
+// =============================================================================
+// Private — applyTlsDirect
+// =============================================================================
+
+int ConnectionPool::applyTlsDirect(int fd,
+                                    const std::string& host,
+                                    uint16_t port) noexcept {
+    TlsHandshakeFn fn;
     {
-        std::unique_lock<std::mutex> lock(pendingMutex_);
-        pendingConnects_.emplace(fd, std::move(pc));
+        std::lock_guard<std::mutex> lk(tlsMutex_);
+        fn = tlsFn_;
+    }
+    if (!fn) return fd;   // no TLS configured
+
+    int tfd = fn(fd, host, port);
+    if (tfd < 0) {
+        ::close(fd);
+        ++metTlsFail_;
+        return -1;
+    }
+    return tfd;
+}
+
+// =============================================================================
+// Reactor — init
+// =============================================================================
+
+bool ConnectionPool::initReactor() noexcept {
+#if defined(POOL_USE_EPOLL)
+    reactorFd_ = ::epoll_create1(EPOLL_CLOEXEC);
+    return reactorFd_ >= 0;
+#elif defined(POOL_USE_KQUEUE)
+    reactorFd_ = ::kqueue();
+    return reactorFd_ >= 0;
+#else
+    reactorFd_ = 0;   // poll needs no persistent fd
+    return true;
+#endif
+}
+
+// =============================================================================
+// Reactor — registerWrite / unregisterFd
+// =============================================================================
+
+void ConnectionPool::registerWrite(int fd, PendingConnect pc) noexcept {
+    {
+        std::lock_guard<std::mutex> lk(pendingMutex_);
+        pendingConnects_[fd] = std::move(pc);
     }
 
-#if defined(MEDOR_EPOLL)
-    struct epoll_event ev{};
-    ev.events  = EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLET;
-    ev.data.fd = fd;
+#if defined(POOL_USE_EPOLL)
+    epoll_event ev{};
+    ev.events   = EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLET;
+    ev.data.fd  = fd;
     ::epoll_ctl(reactorFd_, EPOLL_CTL_ADD, fd, &ev);
 
-#elif defined(MEDOR_KQUEUE)
-    struct kevent change{};
-    EV_SET(&change, fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT, 0, 0, nullptr);
-    struct timespec zero{ 0, 0 };
-    ::kevent(reactorFd_, &change, 1, nullptr, 0, &zero);
+#elif defined(POOL_USE_KQUEUE)
+    struct kevent ev{};
+    EV_SET(&ev, static_cast<uintptr_t>(fd),
+           EVFILT_WRITE, EV_ADD | EV_ONESHOT, 0, 0, nullptr);
+    ::kevent(reactorFd_, &ev, 1, nullptr, 0, nullptr);
 #endif
-    // poll: the pending map is iterated each reactor loop iteration
+    // poll: handled in runReactor by iterating pendingConnects_
 }
 
-void ConnectionPool::unregisterFd(int fd) noexcept
-{
-#if defined(MEDOR_EPOLL)
+void ConnectionPool::unregisterFd(int fd) noexcept {
+#if defined(POOL_USE_EPOLL)
     ::epoll_ctl(reactorFd_, EPOLL_CTL_DEL, fd, nullptr);
-#elif defined(MEDOR_KQUEUE)
-    struct kevent change{};
-    EV_SET(&change, fd, EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
-    struct timespec zero{ 0, 0 };
-    ::kevent(reactorFd_, &change, 1, nullptr, 0, &zero);
+#elif defined(POOL_USE_KQUEUE)
+    struct kevent ev{};
+    EV_SET(&ev, static_cast<uintptr_t>(fd),
+           EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
+    ::kevent(reactorFd_, &ev, 1, nullptr, 0, nullptr);
 #endif
-    std::unique_lock<std::mutex> lock(pendingMutex_);
+    std::lock_guard<std::mutex> lk(pendingMutex_);
     pendingConnects_.erase(fd);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// handleReactorEvent — called by the reactor loop when an fd becomes writable
-// ─────────────────────────────────────────────────────────────────────────────
+// =============================================================================
+// Reactor — openAsync
+// =============================================================================
 
-void ConnectionPool::handleReactorEvent(int fd, bool error) noexcept
-{
+void ConnectionPool::openAsync(const std::string& host, uint16_t port,
+                                AcquireCallback cb) noexcept {
+    // DNS resolution is pushed to a DNS worker; after resolution the
+    // non-blocking connect fd is registered with the reactor.
+    {
+        std::lock_guard<std::mutex> lk(dnsMutex_);
+        dnsQueue_.push({ host, port, std::move(cb) });
+    }
+    dnsCv_.notify_one();
+}
+
+// =============================================================================
+// Reactor — runReactor
+// =============================================================================
+
+void ConnectionPool::runReactor() noexcept {
+    constexpr int kTimeoutMs = 200;
+
+#if defined(POOL_USE_EPOLL)
+    constexpr int kMaxEvents = 64;
+    epoll_event events[kMaxEvents];
+
+    while (reactorRunning_.load()) {
+        int n = ::epoll_wait(reactorFd_, events, kMaxEvents, kTimeoutMs);
+        if (n < 0) {
+            if (errno == EINTR) continue;
+            break;
+        }
+        for (int i = 0; i < n; ++i) {
+            ++metReactorEvt_;
+            bool err = (events[i].events & (EPOLLERR | EPOLLHUP)) != 0;
+            handleReactorEvent(events[i].data.fd, err);
+        }
+        // Timeout-expired pending connects
+        {
+            std::lock_guard<std::mutex> lk(pendingMutex_);
+            uint64_t now = nowMs();
+            std::vector<int> expired;
+            for (auto& [fd, pc] : pendingConnects_)
+                if (now >= pc.deadlineMs) expired.push_back(fd);
+            for (int fd : expired) {
+                auto it = pendingConnects_.find(fd);
+                if (it == pendingConnects_.end()) continue;
+                AcquireCallback cb = std::move(it->second.cb);
+                pendingConnects_.erase(it);
+                ::epoll_ctl(reactorFd_, EPOLL_CTL_DEL, fd, nullptr);
+                ::close(fd);
+                if (openFds_.load() > 0) --openFds_;
+                cb(-1);
+            }
+        }
+    }
+
+#elif defined(POOL_USE_KQUEUE)
+    constexpr int kMaxEvents = 64;
+    struct kevent events[kMaxEvents];
+    struct timespec ts{ 0, kTimeoutMs * 1'000'000L };
+
+    while (reactorRunning_.load()) {
+        int n = ::kevent(reactorFd_, nullptr, 0, events, kMaxEvents, &ts);
+        if (n < 0) {
+            if (errno == EINTR) continue;
+            break;
+        }
+        for (int i = 0; i < n; ++i) {
+            ++metReactorEvt_;
+            bool err = (events[i].flags & EV_ERROR) != 0;
+            handleReactorEvent(static_cast<int>(events[i].ident), err);
+        }
+        // Timeout check
+        {
+            std::lock_guard<std::mutex> lk(pendingMutex_);
+            uint64_t now = nowMs();
+            std::vector<int> expired;
+            for (auto& [fd, pc] : pendingConnects_)
+                if (now >= pc.deadlineMs) expired.push_back(fd);
+            for (int fd : expired) {
+                auto it = pendingConnects_.find(fd);
+                if (it == pendingConnects_.end()) continue;
+                AcquireCallback cb = std::move(it->second.cb);
+                pendingConnects_.erase(it);
+                ::close(fd);
+                if (openFds_.load() > 0) --openFds_;
+                cb(-1);
+            }
+        }
+    }
+
+#else   // POLL fallback
+    while (reactorRunning_.load()) {
+        std::vector<pollfd>       pfds;
+        std::vector<int>          fds;
+        {
+            std::lock_guard<std::mutex> lk(pendingMutex_);
+            pfds.reserve(pendingConnects_.size());
+            fds .reserve(pendingConnects_.size());
+            for (auto& [fd, _] : pendingConnects_) {
+                pfds.push_back({ fd, POLLOUT, 0 });
+                fds.push_back(fd);
+            }
+        }
+        if (pfds.empty()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(kTimeoutMs));
+            continue;
+        }
+        int n = ::poll(pfds.data(), static_cast<nfds_t>(pfds.size()), kTimeoutMs);
+        if (n < 0) { if (errno == EINTR) continue; break; }
+        for (size_t i = 0; i < pfds.size(); ++i) {
+            if (pfds[i].revents == 0) continue;
+            ++metReactorEvt_;
+            bool err = (pfds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) != 0;
+            handleReactorEvent(fds[i], err);
+        }
+        // Timeout check
+        {
+            std::lock_guard<std::mutex> lk(pendingMutex_);
+            uint64_t now = nowMs();
+            std::vector<int> expired;
+            for (auto& [fd, pc] : pendingConnects_)
+                if (now >= pc.deadlineMs) expired.push_back(fd);
+            for (int fd : expired) {
+                auto it = pendingConnects_.find(fd);
+                if (it == pendingConnects_.end()) continue;
+                AcquireCallback cb = std::move(it->second.cb);
+                pendingConnects_.erase(it);
+                ::close(fd);
+                if (openFds_.load() > 0) --openFds_;
+                cb(-1);
+            }
+        }
+    }
+#endif
+}
+
+// =============================================================================
+// Reactor — handleReactorEvent
+// =============================================================================
+
+void ConnectionPool::handleReactorEvent(int fd, bool error) noexcept {
     PendingConnect pc;
     {
-        std::unique_lock<std::mutex> lock(pendingMutex_);
+        std::lock_guard<std::mutex> lk(pendingMutex_);
         auto it = pendingConnects_.find(fd);
         if (it == pendingConnects_.end()) return;
         pc = std::move(it->second);
         pendingConnects_.erase(it);
     }
 
-    unregisterFd(fd);
+#if defined(POOL_USE_EPOLL)
+    ::epoll_ctl(reactorFd_, EPOLL_CTL_DEL, fd, nullptr);
+#endif
 
     if (error) {
-        closeFd(fd);
-        metFailed_.fetch_add(1, std::memory_order_relaxed);
-        if (pc.cb) try { pc.cb(-1); } catch (...) {}
+        ::close(fd);
+        if (openFds_.load() > 0) --openFds_;
+        ++metFailed_;
+        pc.cb(-1);
         return;
     }
 
-    // Confirm connect success
-    int err = 0; socklen_t el = sizeof(err);
-    if (::getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &el) != 0 || err != 0) {
-        closeFd(fd);
-        metFailed_.fetch_add(1, std::memory_order_relaxed);
-        if (pc.cb) try { pc.cb(-1); } catch (...) {}
+    // Verify connect actually succeeded via getsockopt
+    int       err = 0;
+    socklen_t len = sizeof(err);
+    ::getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
+    if (err != 0) {
+        ::close(fd);
+        if (openFds_.load() > 0) --openFds_;
+        ++metFailed_;
+        pc.cb(-1);
         return;
     }
 
-    // Restore blocking mode
-    int flags = ::fcntl(fd, F_GETFL, 0);
-    if (flags >= 0) ::fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
-    applySocketOptions(fd);
+    // Back to blocking before handing to TLS worker
+    setBlocking(fd);
 
-    metReactorEvt_.fetch_add(1, std::memory_order_relaxed);
-
-    // If TLS is needed, enqueue to the TLS worker pool — do not block here
+    // Push to TLS worker (or complete directly if no TLS)
     {
-        std::lock_guard<std::mutex> lock(tlsMutex_);
-        if (tlsFn_) {
-            {
-                std::unique_lock<std::mutex> qlock(tlsQueueMutex_);
-                tlsQueue_.push({ fd, pc.host, pc.port, std::move(pc.cb) });
-            }
-            tlsCv_.notify_one();
+        std::lock_guard<std::mutex> lk(tlsMutex_);
+        if (!tlsFn_) {
+            ++metAcquired_;
+            pc.cb(fd);
             return;
         }
     }
-
-    // No TLS — deliver the fd directly
-    openFds_.fetch_add(1, std::memory_order_relaxed);
-    metAcquired_.fetch_add(1, std::memory_order_relaxed);
-    if (pc.cb) try { pc.cb(fd); } catch (...) { closeFd(fd); }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// runReactor — persistent reactor loop reusing a single kernel object
-// ─────────────────────────────────────────────────────────────────────────────
-
-void ConnectionPool::runReactor() noexcept
-{
-    while (reactorRunning_.load()) {
-
-#if defined(MEDOR_EPOLL)
-        constexpr int MAX_EVENTS = 64;
-        struct epoll_event events[MAX_EVENTS];
-        int n = ::epoll_wait(reactorFd_, events, MAX_EVENTS, 50 /*ms*/);
-        if (n < 0) { if (errno == EINTR) continue; break; }
-        for (int i = 0; i < n; ++i) {
-            const bool err = (events[i].events & (EPOLLERR | EPOLLHUP)) != 0;
-            handleReactorEvent(events[i].data.fd, err);
-        }
-
-#elif defined(MEDOR_KQUEUE)
-        constexpr int MAX_EVENTS = 64;
-        struct kevent events[MAX_EVENTS];
-        struct timespec ts{ 0, 50'000'000L };   // 50 ms
-        int n = ::kevent(reactorFd_, nullptr, 0, events, MAX_EVENTS, &ts);
-        if (n < 0) { if (errno == EINTR) continue; break; }
-        for (int i = 0; i < n; ++i) {
-            const bool err = (events[i].flags & EV_ERROR) != 0;
-            handleReactorEvent(static_cast<int>(events[i].ident), err);
-        }
-
-#else
-        // poll fallback: build the array from the pending map each iteration
-        std::vector<pollfd>          pfds;
-        std::vector<int>             fdList;
-        {
-            std::unique_lock<std::mutex> lock(pendingMutex_);
-            pfds.reserve(pendingConnects_.size());
-            fdList.reserve(pendingConnects_.size());
-            for (const auto &[fd, _] : pendingConnects_) {
-                pfds.push_back({ fd, POLLOUT, 0 });
-                fdList.push_back(fd);
-            }
-        }
-        if (pfds.empty()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            continue;
-        }
-        int n = ::poll(pfds.data(), static_cast<nfds_t>(pfds.size()), 50);
-        if (n < 0) { if (errno == EINTR) continue; break; }
-        for (size_t i = 0; i < pfds.size(); ++i) {
-            if (pfds[i].revents == 0) continue;
-            const bool err = (pfds[i].revents & (POLLERR | POLLHUP)) != 0;
-            handleReactorEvent(fdList[i], err);
-        }
-#endif
-
-        // Evict pending connects whose deadline has passed
-        const uint64_t now = nowMs();
-        std::vector<int> timedOut;
-        {
-            std::unique_lock<std::mutex> lock(pendingMutex_);
-            for (const auto &[fd, pc] : pendingConnects_)
-                if (pc.deadlineMs > 0 && now > pc.deadlineMs)
-                    timedOut.push_back(fd);
-        }
-        for (int fd : timedOut) {
-            std::cerr << "[ConnectionPool] reactor: connect timeout fd="
-                      << fd << "\n";
-            handleReactorEvent(fd, true);   // treat as error
-        }
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// openAsync — DNS on caller thread (fast path: already resolved),
-//             non-blocking connect registered with persistent reactor
-// ─────────────────────────────────────────────────────────────────────────────
-
-void ConnectionPool::openAsync(const std::string &host,
-                                uint16_t           port,
-                                AcquireCallback    cb) noexcept
-{
-    if (openFds_.load(std::memory_order_relaxed) >= cfg_.globalMaxFds) {
-        metGlobalRej_.fetch_add(1, std::memory_order_relaxed);
-        if (cb) try { cb(-1); } catch (...) {}
-        return;
-    }
-
-    struct addrinfo hints{}, *res = nullptr;
-    hints.ai_family   = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags    = AI_NUMERICSERV | AI_ADDRCONFIG;
-
-    const std::string portStr = std::to_string(port);
-    if (::getaddrinfo(host.c_str(), portStr.c_str(), &hints, &res) != 0
-        || !res)
     {
-        metFailed_.fetch_add(1, std::memory_order_relaxed);
-        if (cb) try { cb(-1); } catch (...) {}
-        return;
+        std::lock_guard<std::mutex> lk(tlsQueueMutex_);
+        tlsQueue_.push({ fd, pc.host, pc.port, std::move(pc.cb) });
     }
-
-    FdGuard guard;
-    bool registered = false;
-
-    for (struct addrinfo *ai = res; ai && !registered; ai = ai->ai_next) {
-        guard = FdGuard(::socket(ai->ai_family,
-                                  ai->ai_socktype,
-                                  ai->ai_protocol));
-        if (guard.fd < 0) continue;
-
-        int flags = ::fcntl(guard.fd, F_GETFL, 0);
-        if (flags < 0) continue;
-        ::fcntl(guard.fd, F_SETFL, flags | O_NONBLOCK);
-
-        int rc = ::connect(guard.fd, ai->ai_addr, ai->ai_addrlen);
-        if (rc != 0 && errno != EINPROGRESS) continue;
-
-        PendingConnect pc;
-        pc.fd         = guard.fd;
-        pc.host       = host;
-        pc.port       = port;
-        pc.deadlineMs = nowMs() + cfg_.connectTimeoutMs;
-        pc.cb         = std::move(cb);
-
-        registerWrite(guard.release(), std::move(pc));
-        registered = true;
-    }
-    ::freeaddrinfo(res);
-
-    if (!registered) {
-        metFailed_.fetch_add(1, std::memory_order_relaxed);
-        if (cb) try { cb(-1); } catch (...) {}
-    }
+    tlsCv_.notify_one();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// openBlocking — synchronous path used by the DNS worker and acquire()
-// ─────────────────────────────────────────────────────────────────────────────
+// =============================================================================
+// Worker loops
+// =============================================================================
 
-int ConnectionPool::openBlocking(const std::string &host,
-                                  uint16_t           port) noexcept
-{
-    if (openFds_.load(std::memory_order_relaxed) >= cfg_.globalMaxFds) {
-        metGlobalRej_.fetch_add(1, std::memory_order_relaxed);
-        return -1;
-    }
-
-    struct addrinfo hints{}, *res = nullptr;
-    hints.ai_family   = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags    = AI_NUMERICSERV | AI_ADDRCONFIG;
-
-    const std::string portStr = std::to_string(port);
-    uint32_t delayMs = cfg_.retryBaseDelayMs;
-
-    for (uint32_t attempt = 0; attempt <= cfg_.maxConnectRetries; ++attempt) {
-        if (attempt > 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
-            delayMs = std::min(delayMs * 2u, uint32_t{ 8000 });
-        }
-
-        res = nullptr;
-        if (::getaddrinfo(host.c_str(), portStr.c_str(), &hints, &res) != 0
-            || !res)
-            continue;
-
-        for (struct addrinfo *ai = res; ai; ai = ai->ai_next) {
-            FdGuard guard(::socket(ai->ai_family,
-                                    ai->ai_socktype,
-                                    ai->ai_protocol));
-            if (guard.fd < 0) continue;
-
-            int flags = ::fcntl(guard.fd, F_GETFL, 0);
-            if (flags < 0) continue;
-            ::fcntl(guard.fd, F_SETFL, flags | O_NONBLOCK);
-
-            int rc = ::connect(guard.fd, ai->ai_addr, ai->ai_addrlen);
-            if (rc != 0 && errno != EINPROGRESS) continue;
-
-            // Wait using the best available multiplexer (50 ms slices)
-            uint32_t waited = 0;
-            bool writable   = false;
-            while (waited < cfg_.connectTimeoutMs) {
-                uint32_t slice = std::min(50u, cfg_.connectTimeoutMs - waited);
-
-#if defined(MEDOR_EPOLL)
-                // Use a one-shot ephemeral epoll only as final fallback here
-                // to keep the persistent reactorFd_ uncontaminated.
-                fd_set wfds; FD_ZERO(&wfds); FD_SET(guard.fd, &wfds);
-                struct timeval tv;
-                tv.tv_sec  = slice / 1000;
-                tv.tv_usec = (slice % 1000) * 1000;
-                int sel = ::select(guard.fd + 1, nullptr, &wfds, nullptr, &tv);
-                if (sel > 0) { writable = true; break; }
-                if (sel < 0 && errno != EINTR) break;
-#elif defined(MEDOR_KQUEUE)
-                struct pollfd pfd{ guard.fd, POLLOUT, 0 };
-                int pr = ::poll(&pfd, 1, static_cast<int>(slice));
-                if (pr > 0) { writable = true; break; }
-                if (pr < 0 && errno != EINTR) break;
-#else
-                struct pollfd pfd{ guard.fd, POLLOUT, 0 };
-                int pr = ::poll(&pfd, 1, static_cast<int>(slice));
-                if (pr > 0) { writable = true; break; }
-                if (pr < 0 && errno != EINTR) break;
-#endif
-                waited += slice;
-            }
-            if (!writable) continue;
-
-            int err = 0; socklen_t el = sizeof(err);
-            if (::getsockopt(guard.fd, SOL_SOCKET, SO_ERROR, &err, &el) != 0
-                || err != 0)
-                continue;
-
-            ::fcntl(guard.fd, F_SETFL, flags & ~O_NONBLOCK);
-            applySocketOptions(guard.fd);
-
-            // TLS
-            int finalFd = applyTlsDirect(guard.fd, host, port);
-            if (finalFd < 0) continue;
-            if (finalFd != guard.fd) guard.release();
-            else                     guard.release();
-
-            ::freeaddrinfo(res);
-            openFds_.fetch_add(1, std::memory_order_relaxed);
-            return finalFd;
-        }
-        ::freeaddrinfo(res);
-    }
-
-    metFailed_.fetch_add(1, std::memory_order_relaxed);
-    return -1;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// applyTlsDirect — synchronous TLS for openBlocking() path
-// ─────────────────────────────────────────────────────────────────────────────
-
-int ConnectionPool::applyTlsDirect(int fd,
-                                    const std::string &host,
-                                    uint16_t           port) noexcept
-{
-    std::lock_guard<std::mutex> lock(tlsMutex_);
-    if (!tlsFn_) return fd;
-    int result = -1;
-    try {
-        result = tlsFn_(fd, host, port);
-    } catch (const std::exception &e) {
-        std::cerr << "[ConnectionPool] TLS threw: " << e.what() << "\n";
-    } catch (...) {
-        std::cerr << "[ConnectionPool] TLS threw unknown\n";
-    }
-    if (result < 0) metTlsFail_.fetch_add(1, std::memory_order_relaxed);
-    return result;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// isAlive
-// ─────────────────────────────────────────────────────────────────────────────
-
-bool ConnectionPool::isAlive(int fd) const noexcept
-{
-    if (fd < 0) return false;
-    int err = 0; socklen_t el = sizeof(err);
-    if (::getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &el) != 0 || err != 0)
-        return false;
-    for (uint32_t r = 0; r <= cfg_.maxEINTRRetries; ++r) {
-        ssize_t rc = ::send(fd, "", 0, MSG_NOSIGNAL);
-        if (rc == 0)        return true;
-        if (errno == EINTR) continue;
-        return false;
-    }
-    return false;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// getBucket
-// ─────────────────────────────────────────────────────────────────────────────
-
-std::shared_ptr<ConnectionPool::Bucket>
-ConnectionPool::getBucket(const std::string &key) noexcept
-{
-    {
-        std::shared_lock<std::shared_mutex> rlock(mapMutex_);
-        auto it = pool_.find(key);
-        if (it != pool_.end()) return it->second;
-    }
-    std::unique_lock<std::shared_mutex> wlock(mapMutex_);
-    auto &slot = pool_[key];
-    if (!slot) slot = std::make_shared<Bucket>();
-    return slot;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Constructor / Destructor
-// ─────────────────────────────────────────────────────────────────────────────
-
-ConnectionPool::ConnectionPool(Config cfg)
-    : cfg_(std::move(cfg))
-{
-    if (!initReactor()) {
-        std::cerr << "[ConnectionPool] FATAL: reactor init failed\n";
-        return;
-    }
-
-    reactorRunning_.store(true);
-    reactorThread_ = std::thread([this]() { runReactor(); });
-
-    dnsRunning_.store(true);
-    dnsWorkers_.reserve(cfg_.dnsWorkerCount);
-    for (size_t i = 0; i < cfg_.dnsWorkerCount; ++i)
-        dnsWorkers_.emplace_back([this]() { runDnsWorker(); });
-
-    tlsRunning_.store(true);
-    tlsWorkers_.reserve(cfg_.tlsWorkerCount);
-    for (size_t i = 0; i < cfg_.tlsWorkerCount; ++i)
-        tlsWorkers_.emplace_back([this]() { runTlsWorker(); });
-
-    asyncRunning_.store(true);
-    asyncWorkers_.reserve(cfg_.asyncWorkerCount);
-    for (size_t i = 0; i < cfg_.asyncWorkerCount; ++i)
-        asyncWorkers_.emplace_back([this]() { runAsyncWorker(); });
-
-    janitorRunning_.store(true);
-    janitorWorkers_.reserve(cfg_.janitorWorkerCount);
-    for (size_t i = 0; i < cfg_.janitorWorkerCount; ++i)
-        janitorWorkers_.emplace_back([this, i]() { runJanitorWorker(i); });
-
-    if (cfg_.metricsIntervalMs > 0) {
-        metricsRunning_.store(true);
-        metricsThread_ = std::thread([this]() { runMetricsReporter(); });
-    }
-}
-
-ConnectionPool::~ConnectionPool()
-{
-    reactorRunning_.store(false);
-    if (reactorFd_ >= 0) {
-#if defined(MEDOR_EPOLL) || defined(MEDOR_KQUEUE)
-        ::close(reactorFd_);
-        reactorFd_ = -1;
-#endif
-    }
-    joinWithTimeout(reactorThread_, cfg_.shutdownTimeoutMs);
-
-    dnsRunning_.store(false);
-    dnsCv_.notify_all();
-    for (auto &t : dnsWorkers_) joinWithTimeout(t, cfg_.shutdownTimeoutMs);
-
-    tlsRunning_.store(false);
-    tlsCv_.notify_all();
-    for (auto &t : tlsWorkers_) joinWithTimeout(t, cfg_.shutdownTimeoutMs);
-
-    asyncRunning_.store(false);
-    asyncCv_.notify_all();
-    for (auto &t : asyncWorkers_) joinWithTimeout(t, cfg_.shutdownTimeoutMs);
-
-    janitorRunning_.store(false);
-    janitorCv_.notify_all();
-    for (auto &t : janitorWorkers_) joinWithTimeout(t, cfg_.shutdownTimeoutMs);
-
-    metricsRunning_.store(false);
-    metricsCv_.notify_all();
-    joinWithTimeout(metricsThread_, cfg_.shutdownTimeoutMs);
-
-    clear();
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Callback setters
-// ─────────────────────────────────────────────────────────────────────────────
-
-void ConnectionPool::setTlsHandshake(TlsHandshakeFn fn) noexcept
-{
-    std::lock_guard<std::mutex> lock(tlsMutex_);
-    tlsFn_ = std::move(fn);
-}
-
-void ConnectionPool::setMetricsPush(MetricsPushFn fn) noexcept
-{
-    std::lock_guard<std::mutex> lock(metricsPushMutex_);
-    metricsPushFn_ = std::move(fn);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// acquire — synchronous; returns immediately when a pooled slot is available
-// ─────────────────────────────────────────────────────────────────────────────
-
-int ConnectionPool::acquire(const std::string &host, uint16_t port) noexcept
-{
-    const std::string k      = makeKey(host, port);
-    const uint64_t    cutoff = nowSecs() - cfg_.idleTimeoutSecs;
-    auto bucket              = getBucket(k);
-
-    {
-        std::unique_lock<std::mutex> lock(bucket->mtx);
-        while (!bucket->slots.empty()) {
-            Slot slot = bucket->slots.front();
-            bucket->slots.pop();
-            if (slot.lastUsed < cutoff || !isAlive(slot.fd)) {
-                closeFd(slot.fd);
-                metEvicted_.fetch_add(1, std::memory_order_relaxed);
-                continue;
-            }
-            metAcquired_.fetch_add(1, std::memory_order_relaxed);
-            return slot.fd;
-        }
-    }
-
-    // No pooled connection — open synchronously (called from non-async path)
-    int fd = openBlocking(host, port);
-    if (fd >= 0) metAcquired_.fetch_add(1, std::memory_order_relaxed);
-    return fd;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// acquireAsync — fully non-blocking; cb is always invoked on a bg thread
-// ─────────────────────────────────────────────────────────────────────────────
-
-void ConnectionPool::acquireAsync(const std::string &host,
-                                   uint16_t           port,
-                                   AcquireCallback    cb) noexcept
-{
-    if (!cb) return;
-
-    // Fast path: serve from pool without touching any worker thread
-    const std::string k      = makeKey(host, port);
-    const uint64_t    cutoff = nowSecs() - cfg_.idleTimeoutSecs;
-    auto bucket              = getBucket(k);
-    {
-        std::unique_lock<std::mutex> lock(bucket->mtx);
-        while (!bucket->slots.empty()) {
-            Slot slot = bucket->slots.front();
-            bucket->slots.pop();
-            if (slot.lastUsed < cutoff || !isAlive(slot.fd)) {
-                closeFd(slot.fd);
-                metEvicted_.fetch_add(1, std::memory_order_relaxed);
-                continue;
-            }
-            // Deliver on a DNS worker thread so this function is truly
-            // non-blocking for the caller and the callback is always
-            // invoked asynchronously regardless of path taken.
-            metAcquired_.fetch_add(1, std::memory_order_relaxed);
-            const int pooledFd = slot.fd;
-            {
-                std::unique_lock<std::mutex> qlock(dnsMutex_);
-                dnsQueue_.push({ std::string{}, 0,
-                    [pooledFd, cb = std::move(cb)](){ cb(pooledFd); } });
-            }
-            dnsCv_.notify_one();
-            return;
-        }
-    }
-
-    // Slow path: open a new connection via the reactor (non-blocking connect)
-    // DNS resolution is the first blocking step and is delegated to the
-    // DNS worker pool so neither the caller nor the reactor thread blocks.
-    {
-        std::unique_lock<std::mutex> lock(dnsMutex_);
-        dnsQueue_.push({ host, port, std::move(cb) });
-        metAsyncDepth_.fetch_add(1, std::memory_order_relaxed);
-    }
-    dnsCv_.notify_one();
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// release
-// ─────────────────────────────────────────────────────────────────────────────
-
-void ConnectionPool::release(const std::string &host, uint16_t port,
-                               int fd, bool healthy) noexcept
-{
-    if (fd < 0) return;
-    if (!healthy) { closeFd(fd); return; }
-
-    auto bucket = getBucket(makeKey(host, port));
-    {
-        std::unique_lock<std::mutex> lock(bucket->mtx);
-        if (bucket->slots.size() >= cfg_.maxConnsPerPeer) {
-            lock.unlock();
-            closeFd(fd);
-            return;
-        }
-        bucket->slots.push({ fd, nowSecs() });
-    }
-    metReleased_.fetch_add(1, std::memory_order_relaxed);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// evictPeer / clear
-// ─────────────────────────────────────────────────────────────────────────────
-
-void ConnectionPool::evictPeer(const std::string &host, uint16_t port) noexcept
-{
-    const std::string k = makeKey(host, port);
-    std::shared_ptr<Bucket> bucket;
-    {
-        std::shared_lock<std::shared_mutex> rlock(mapMutex_);
-        auto it = pool_.find(k);
-        if (it == pool_.end()) return;
-        bucket = it->second;
-    }
-    {
-        std::unique_lock<std::mutex> lock(bucket->mtx);
-        while (!bucket->slots.empty()) {
-            closeFd(bucket->slots.front().fd);
-            bucket->slots.pop();
-            metEvicted_.fetch_add(1, std::memory_order_relaxed);
-        }
-    }
-    std::unique_lock<std::shared_mutex> wlock(mapMutex_);
-    pool_.erase(k);
-}
-
-void ConnectionPool::clear() noexcept
-{
-    std::unordered_map<std::string, std::shared_ptr<Bucket>> snapshot;
-    {
-        std::unique_lock<std::shared_mutex> wlock(mapMutex_);
-        snapshot = std::move(pool_);
-        pool_.clear();
-    }
-    for (auto &[k, bucket] : snapshot) {
-        std::unique_lock<std::mutex> lock(bucket->mtx);
-        while (!bucket->slots.empty()) {
-            closeFd(bucket->slots.front().fd);
-            bucket->slots.pop();
-            metEvicted_.fetch_add(1, std::memory_order_relaxed);
-        }
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// getMetrics
-// ─────────────────────────────────────────────────────────────────────────────
-
-ConnectionPool::Metrics ConnectionPool::getMetrics() const noexcept
-{
-    Metrics m;
-    m.acquired               = metAcquired_.load(std::memory_order_relaxed);
-    m.released               = metReleased_.load(std::memory_order_relaxed);
-    m.evicted                = metEvicted_.load(std::memory_order_relaxed);
-    m.failed                 = metFailed_.load(std::memory_order_relaxed);
-    m.currentOpenFds         = openFds_.load(std::memory_order_relaxed);
-    m.globalBudgetRejections = metGlobalRej_.load(std::memory_order_relaxed);
-    m.tlsFailures            = metTlsFail_.load(std::memory_order_relaxed);
-    m.asyncQueueDepth        = metAsyncDepth_.load(std::memory_order_relaxed);
-    m.reactorEvents          = metReactorEvt_.load(std::memory_order_relaxed);
-    return m;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// runDnsWorker — resolves hostnames and dispatches to the reactor
-// ─────────────────────────────────────────────────────────────────────────────
-
-void ConnectionPool::runDnsWorker() noexcept
-{
+void ConnectionPool::runDnsWorker() noexcept {
     while (dnsRunning_.load()) {
         DnsRequest req;
         {
-            std::unique_lock<std::mutex> lock(dnsMutex_);
-            dnsCv_.wait(lock, [this]() {
-                return !dnsRunning_.load() || !dnsQueue_.empty();
+            std::unique_lock<std::mutex> lk(dnsMutex_);
+            dnsCv_.wait(lk, [this] {
+                return !dnsQueue_.empty() || !dnsRunning_.load();
             });
             if (!dnsRunning_.load() && dnsQueue_.empty()) return;
             req = std::move(dnsQueue_.front());
             dnsQueue_.pop();
         }
 
-        // Empty host signals a fast-path pooled delivery — just invoke cb
-        if (req.host.empty()) {
-            if (req.cb) try { req.cb(-1); } catch (...) {}
+        // Global budget check
+        if (openFds_.load() >= cfg_.globalMaxFds) {
+            ++metGlobalRej_;
+            ++metFailed_;
+            req.cb(-1);
             continue;
         }
 
-        if (metAsyncDepth_.load(std::memory_order_relaxed) > 0)
-            metAsyncDepth_.fetch_sub(1, std::memory_order_relaxed);
+        // DNS resolution (blocking — on this worker thread, not the caller)
+        addrinfo* res = resolveHost(req.host, req.port);
+        if (!res) {
+            ++metFailed_;
+            req.cb(-1);
+            continue;
+        }
 
-        // DNS getaddrinfo happens here on the DNS worker thread.
-        // After resolution, we hand off to the reactor for the connect.
-        openAsync(req.host, req.port, std::move(req.cb));
+        // Create non-blocking socket and initiate connect
+        int fd = -1;
+        for (addrinfo* ai = res; ai; ai = ai->ai_next) {
+            fd = ::socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+            if (fd < 0) continue;
+
+            applySocketOptions(fd);
+            setNonBlocking(fd);
+
+            int r = ::connect(fd, ai->ai_addr,
+                              static_cast<socklen_t>(ai->ai_addrlen));
+            if (r == 0 || errno == EINPROGRESS) {
+                // Register with reactor
+                ++openFds_;
+                PendingConnect pc;
+                pc.fd         = fd;
+                pc.host       = req.host;
+                pc.port       = req.port;
+                pc.deadlineMs = nowMs() + cfg_.connectTimeoutMs;
+                pc.cb         = std::move(req.cb);
+                registerWrite(fd, std::move(pc));
+                fd = -1;
+                break;
+            }
+            ::close(fd);
+            fd = -1;
+        }
+        ::freeaddrinfo(res);
+
+        if (fd >= 0) {
+            // All addresses failed immediately
+            ::close(fd);
+            ++metFailed_;
+            req.cb(-1);
+        }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// runTlsWorker — performs TLS handshakes asynchronously
-// ─────────────────────────────────────────────────────────────────────────────
-
-void ConnectionPool::runTlsWorker() noexcept
-{
+void ConnectionPool::runTlsWorker() noexcept {
     while (tlsRunning_.load()) {
         TlsRequest req;
         {
-            std::unique_lock<std::mutex> lock(tlsQueueMutex_);
-            tlsCv_.wait(lock, [this]() {
-                return !tlsRunning_.load() || !tlsQueue_.empty();
+            std::unique_lock<std::mutex> lk(tlsQueueMutex_);
+            tlsCv_.wait(lk, [this] {
+                return !tlsQueue_.empty() || !tlsRunning_.load();
             });
             if (!tlsRunning_.load() && tlsQueue_.empty()) return;
             req = std::move(tlsQueue_.front());
             tlsQueue_.pop();
         }
 
-        int finalFd = applyTlsDirect(req.fd, req.host, req.port);
-        if (finalFd < 0) {
-            closeFd(req.fd);
-            if (req.cb) try { req.cb(-1); } catch (...) {}
-            continue;
+        TlsHandshakeFn fn;
+        {
+            std::lock_guard<std::mutex> lk(tlsMutex_);
+            fn = tlsFn_;
         }
 
-        openFds_.fetch_add(1, std::memory_order_relaxed);
-        metAcquired_.fetch_add(1, std::memory_order_relaxed);
-        if (req.cb) try { req.cb(finalFd); } catch (...) { closeFd(finalFd); }
+        int finalFd = req.fd;
+        if (fn) {
+            finalFd = fn(req.fd, req.host, req.port);
+            if (finalFd < 0) {
+                ::close(req.fd);
+                ++metTlsFail_;
+                ++metFailed_;
+                req.cb(-1);
+                continue;
+            }
+        }
+
+        ++metAcquired_;
+        req.cb(finalFd);
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// runAsyncWorker — handles callers that used the old acquireAsync API before
-//                  the fast-path pooled delivery was introduced above
-// ─────────────────────────────────────────────────────────────────────────────
-
-void ConnectionPool::runAsyncWorker() noexcept
-{
+void ConnectionPool::runAsyncWorker() noexcept {
     while (asyncRunning_.load()) {
         AsyncRequest req;
         {
-            std::unique_lock<std::mutex> lock(asyncMutex_);
-            asyncCv_.wait(lock, [this]() {
-                return !asyncRunning_.load() || !asyncQueue_.empty();
+            std::unique_lock<std::mutex> lk(asyncMutex_);
+            asyncCv_.wait(lk, [this] {
+                return !asyncQueue_.empty() || !asyncRunning_.load();
             });
             if (!asyncRunning_.load() && asyncQueue_.empty()) return;
             req = std::move(asyncQueue_.front());
             asyncQueue_.pop();
         }
-        int fd = acquire(req.host, req.port);
-        try { req.cb(fd); }
-        catch (const std::exception &e) {
-            std::cerr << "[ConnectionPool] async cb threw: " << e.what() << "\n";
-            if (fd >= 0) release(req.host, req.port, fd, false);
-        } catch (...) {
-            std::cerr << "[ConnectionPool] async cb threw unknown\n";
-            if (fd >= 0) release(req.host, req.port, fd, false);
+        if (metAsyncDepth_.load() > 0) --metAsyncDepth_;
+
+        // Fast path: reuse pooled connection
+        const std::string key = makeKey(req.host, req.port);
+        auto bucket = getBucket(key);
+        {
+            std::lock_guard<std::mutex> lk(bucket->mtx);
+            while (!bucket->slots.empty()) {
+                Slot s = bucket->slots.front();
+                bucket->slots.pop();
+                if (s.fd >= 0 && isAlive(s.fd)) {
+                    ++metAcquired_;
+                    req.cb(s.fd);
+                    goto next;
+                }
+                closeFd(s.fd);
+            }
         }
+
+        // Slow path: open asynchronously via DNS worker → reactor → TLS worker
+        openAsync(req.host, req.port, std::move(req.cb));
+    next:;
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// runJanitorWorker — parallel idle-connection reaper
-// ─────────────────────────────────────────────────────────────────────────────
-
-void ConnectionPool::runJanitorWorker(size_t /*idx*/) noexcept
-{
+void ConnectionPool::runJanitorWorker(size_t index) noexcept {
     while (janitorRunning_.load()) {
         {
-            std::unique_lock<std::mutex> lock(janitorMutex_);
-            janitorCv_.wait_for(lock,
+            std::unique_lock<std::mutex> lk(janitorMutex_);
+            janitorCv_.wait_for(lk,
                 std::chrono::seconds(cfg_.janitorIntervalSecs),
-                [this]() { return !janitorRunning_.load(); });
+                [this] { return !janitorRunning_.load(); });
         }
         if (!janitorRunning_.load()) return;
 
-        const uint64_t cutoff = nowSecs() - cfg_.idleTimeoutSecs;
-        std::vector<std::string> keys;
+        // Each janitor worker processes a shard of the map
+        std::vector<std::shared_ptr<Bucket>> buckets;
         {
-            std::shared_lock<std::shared_mutex> rlock(mapMutex_);
-            keys.reserve(pool_.size());
-            for (const auto &[k, _] : pool_) keys.push_back(k);
-        }
-        for (const auto &k : keys) {
-            std::shared_ptr<Bucket> bucket;
-            {
-                std::shared_lock<std::shared_mutex> rlock(mapMutex_);
-                auto it = pool_.find(k);
-                if (it == pool_.end()) continue;
-                bucket = it->second;
+            std::shared_lock<std::shared_mutex> lk(mapMutex_);
+            buckets.reserve(pool_.size());
+            size_t idx = 0;
+            for (auto& [_, b] : pool_) {
+                if (idx++ % cfg_.janitorWorkerCount == index)
+                    buckets.push_back(b);
             }
-            std::unique_lock<std::mutex> lock(bucket->mtx, std::try_to_lock);
-            if (!lock.owns_lock()) continue;
-            std::queue<Slot> survivors;
+        }
+
+        const uint64_t now = nowSecs();
+        for (auto& bucket : buckets) {
+            std::lock_guard<std::mutex> blk(bucket->mtx);
+            std::queue<Slot> kept;
             while (!bucket->slots.empty()) {
-                Slot slot = bucket->slots.front(); bucket->slots.pop();
-                if (slot.lastUsed < cutoff || !isAlive(slot.fd)) {
-                    closeFd(slot.fd);
-                    metEvicted_.fetch_add(1, std::memory_order_relaxed);
+                Slot s = bucket->slots.front();
+                bucket->slots.pop();
+                if (s.fd >= 0
+                    && (now - s.lastUsed) < cfg_.idleTimeoutSecs
+                    && isAlive(s.fd))
+                {
+                    kept.push(s);
                 } else {
-                    survivors.push(slot);
+                    closeFd(s.fd);
+                    ++metEvicted_;
                 }
             }
-            bucket->slots = std::move(survivors);
+            bucket->slots = std::move(kept);
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// runMetricsReporter — live push to registered sink
-// ─────────────────────────────────────────────────────────────────────────────
-
-void ConnectionPool::runMetricsReporter() noexcept
-{
+void ConnectionPool::runMetricsReporter() noexcept {
     while (metricsRunning_.load()) {
         {
-            std::unique_lock<std::mutex> lock(metricsMutex_);
-            metricsCv_.wait_for(lock,
+            std::unique_lock<std::mutex> lk(metricsMutex_);
+            metricsCv_.wait_for(lk,
                 std::chrono::milliseconds(cfg_.metricsIntervalMs),
-                [this]() { return !metricsRunning_.load(); });
+                [this] { return !metricsRunning_.load(); });
         }
         if (!metricsRunning_.load()) return;
 
-        Metrics snap = getMetrics();
-        std::lock_guard<std::mutex> lock(metricsPushMutex_);
-        if (metricsPushFn_) {
-            try { metricsPushFn_(snap); }
-            catch (const std::exception &e) {
-                std::cerr << "[ConnectionPool] metrics push threw: "
-                          << e.what() << "\n";
-            } catch (...) {}
+        MetricsPushFn fn;
+        {
+            std::lock_guard<std::mutex> lk(metricsPushMutex_);
+            fn = metricsPushFn_;
         }
+        if (fn) fn(getMetrics());
     }
 }

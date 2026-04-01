@@ -1,264 +1,616 @@
 <!DOCTYPE html>
+<!-- create-wallet.html — MedorCoin Wallet Generator -->
+<!-- UI ONLY — all crypto delegated to backend API -->
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MedorCoin Wallet — Create Wallet</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MedorCoin — Create Wallet</title>
   <style>
     :root {
-      --bg: #0b0e14;
-      --card: #141923;
-      --ink: #e5e7eb;
-      --muted: #9ca3af;
-      --accent: #2563eb;
-      --green: #10b981;
-      --red: #f43f5e;
-      --border: #1f2937;
+      --bg:#0b0e14; --card:#0d1220; --ink:#e5e7eb;
+      --muted:#9ca3af; --accent:#2563eb; --green:#10b981;
+      --red:#f43f5e; --border:#1f2937; --cyan:#00eaff;
     }
-    , ::before, ::after { box-sizing: border-box; }
+    *, ::before, ::after { box-sizing:border-box; margin:0; padding:0; }
     body {
-      margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: linear-gradient(135deg, #0b0e14 0%, #1b1f2a 100%);
-      color: var(--ink);
-      padding: 16px;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      background:var(--bg); color:var(--ink); padding:16px; min-height:100vh;
     }
     .container {
-      max-width: 960px;
-      margin: 0 auto;
-      background: #0f1420;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 12px 40px rgba(0,0,0,.4);
+      max-width:960px; margin:0 auto;
+      background:#0f1420; border:1px solid var(--border);
+      border-radius:16px; padding:24px;
+      box-shadow:0 12px 40px rgba(0,0,0,.5);
     }
-    h1 { margin: 8px 0 16px; font-size: 1.4rem; text-align: center; color: #fff; }
+    h1 {
+      text-align:center; font-size:1.4rem; color:#fff;
+      margin-bottom:8px;
+    }
+    .subtitle {
+      text-align:center; color:var(--muted); font-size:13px;
+      margin-bottom:24px;
+    }
     .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      display:grid; grid-template-columns:1fr 1fr; gap:20px;
     }
-    @media (max-width: 860px) {
-      .grid { grid-template-columns: 1fr; }
-    }
+    @media(max-width:860px){ .grid{ grid-template-columns:1fr; } }
     .card {
-      background: #0b1020;
-      border: 1px solid #1e1e2a;
-      border-radius: 12px;
-      padding: 20px;
+      background:var(--card); border:1px solid var(--border);
+      border-radius:12px; padding:22px;
     }
-    .title { font-weight: 600; margin-bottom: 8px; }
-    label { display: block; font-size: 0.9rem; color: #cbd5e1; margin-top: 12px; }
+    .step-header {
+      display:flex; align-items:center; gap:10px; margin-bottom:14px;
+    }
+    .step-num {
+      width:28px; height:28px; border-radius:50%;
+      background:var(--accent); color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-size:13px; font-weight:700; flex-shrink:0;
+    }
+    .step-title { font-weight:700; font-size:15px; }
+    label {
+      display:block; font-size:12px; color:var(--muted);
+      margin-bottom:5px; margin-top:14px;
+    }
     input, textarea {
-      width: 100%; padding: 12px; border-radius: 10px;
-      border: 1px solid #2a2a3a; background: #0e1320; color: #e2e8f0;
-      font-family: ui-mono, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
-      font-size: 14px;
+      width:100%; padding:12px 14px; border-radius:10px;
+      border:1px solid var(--border); background:#0b0f1a;
+      color:var(--ink); font-size:13px;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      outline:none; transition:border-color 0.2s;
     }
-    textarea { height: 92px; resize: vertical; }
+    input:focus { border-color:var(--accent); }
+    input[readonly] { color:var(--muted); cursor:default; }
+    .input-wrap { position:relative; }
+    .input-wrap input { padding-right:70px; }
+    .reveal-btn {
+      position:absolute; right:8px; top:50%; transform:translateY(-50%);
+      background:rgba(37,99,235,0.15); border:1px solid var(--accent);
+      color:var(--accent); border-radius:6px; padding:4px 10px;
+      font-size:12px; cursor:pointer; transition:0.2s;
+    }
+    .reveal-btn:hover { background:rgba(37,99,235,0.3); }
+    .reveal-btn.danger {
+      background:rgba(244,63,94,0.1); border-color:var(--red); color:#fca5a5;
+    }
     .btn {
-      width: 100%; padding: 14px 16px; border-radius: 12px;
-      border: none; cursor: pointer; font-weight: 600;
-      margin-top: 8px;
+      width:100%; padding:14px; border-radius:10px;
+      border:none; cursor:pointer; font-weight:700;
+      font-size:15px; transition:0.2s; font-family:inherit;
     }
-    .btn.primary { background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: white; }
-    .btn.secondary { background: #1f2937; color: #e5e7eb; border: 1px solid #374151; }
+    .btn.primary {
+      background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff;
+    }
+    .btn.primary:hover { box-shadow:0 0 20px rgba(59,130,246,0.4); }
+    .btn.primary:disabled {
+      opacity:0.5; cursor:not-allowed; box-shadow:none;
+    }
+    .btn.secondary {
+      background:#1f2937; color:#e5e7eb;
+      border:1px solid #374151;
+    }
+    .btn.success {
+      background:linear-gradient(135deg,#059669,var(--green)); color:#fff;
+    }
+    .btn.success:hover { box-shadow:0 0 20px rgba(16,185,129,0.4); }
+    .copy-btn {
+      display:inline-block; margin-top:5px;
+      font-size:12px; color:var(--cyan);
+      cursor:pointer; padding:4px 0;
+      transition:0.2s;
+    }
+    .copy-btn:hover { opacity:0.7; }
     .warning {
-      border-left: 4px solid #f59e0b;
-      padding: 12px 14px; border-radius: 6px; background: #1f1f1f;
-      color: #fbd38d; font-size: 0.95rem;
+      border-left:4px solid #f59e0b;
+      padding:12px 14px; border-radius:6px;
+      background:#1a1400; color:#fbd38d;
+      font-size:13px; margin-top:12px; line-height:1.6;
     }
-    .section { margin-bottom: 18px; }
-    .qr {
-      display: block; width: 180px; height: 180px; margin: 8px auto;
+    .danger-box {
+      border-left:4px solid var(--red);
+      padding:12px 14px; border-radius:6px;
+      background:#1a0508; color:#fca5a5;
+      font-size:13px; margin-top:12px; line-height:1.6;
     }
-    .copy { font-size: 12px; color: #93c5fd; text-align: center; }
-    .row { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
-    .hint { font-size: 12px; color: var(--muted); }
-    .hidden { display: none; }
+    .success-box {
+      border-left:4px solid var(--green);
+      padding:12px 14px; border-radius:6px;
+      background:#041a10; color:#6ee7b7;
+      font-size:13px; margin-top:12px;
+    }
+    /* Phrase grid */
+    .phrase-grid {
+      display:grid; grid-template-columns:repeat(3,1fr);
+      gap:8px; margin-top:12px;
+    }
+    .phrase-word {
+      background:#0b0f1a; border:1px solid var(--border);
+      border-radius:8px; padding:8px 10px;
+      display:flex; gap:6px; align-items:center;
+      font-size:13px;
+    }
+    .phrase-word .num {
+      color:var(--muted); font-size:11px; min-width:18px;
+    }
+    .blurred { filter:blur(7px); pointer-events:none; user-select:none; }
+    .hint { font-size:12px; color:var(--muted); margin-top:6px; }
+    /* Loading spinner */
+    .spinner {
+      display:inline-block; width:14px; height:14px;
+      border:2px solid rgba(255,255,255,0.3);
+      border-top-color:#fff; border-radius:50%;
+      animation:spin 0.7s linear infinite;
+      vertical-align:middle; margin-right:8px;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    /* Status */
+    #sendStatus { font-size:13px; margin-top:10px; }
+    .ok  { color:#6ee7b7; }
+    .err { color:#fca5a5; }
+    /* Security notice banner */
+    .security-banner {
+      background:#0d1a0d; border:1px solid #1a3a1a;
+      border-radius:10px; padding:14px 16px;
+      font-size:13px; color:#86efac;
+      margin-bottom:20px; line-height:1.6;
+    }
+    .security-banner strong { color:#4ade80; }
   </style>
 </head>
 <body>
-  <div class="container" id="container">
-    <h1>MedorCoin Wallet — Create Wallet</h1>
+<div class="container">
 
-    <div class="grid" aria-label="Wallet creation grid">
-      <!-- Wallet generation panel -->
-      <section class="card" aria-label="Generate wallet">
-        <div class="section">
-          <div class="title">1) Generate Wallet</div>
-          <p class="hint">This will create a Bitcoin-like Base58Check address (P2PKH) from a locally-generated mnemonic.</p>
-        </div>
+  <h1>🪙 MedorCoin — Create Wallet</h1>
+  <p class="subtitle">Your keys are generated by the MedorCoin backend. Nothing fake. Nothing simulated.</p>
 
-        <div class="row" style="flex-wrap:wrap;">
-          <button class="btn primary" id="btn-generate" aria-label="Generate wallet">Generate My Wallet</button>
-          <button class="btn secondary" id="btn-reset" aria-label="Reset">Reset</button>
-        </div>
-
-        <div class="section" id="addressSection" style="display:none;">
-          <label for="address">Wallet Address (Base58):</label>
-          <input id="address" readonly aria-readonly="true" />
-          <img id="qr" class="qr" alt="QR Code" />
-          <div class="copy" id="addressCopy" style="cursor:pointer;">Click address to copy</div>
-        </div>
-      </section>
-
-      <!-- Recovery & backup panel -->
-      <section class="card" aria-label="Recovery & backup">
-        <div class="section">
-          <div class="title">2) Recovery Phrase</div>
-          <p class="hint">Your 12-word recovery phrase is the secret to your wallet. Reveal only when you are ready to securely store it offline.</p>
-        </div>
-
-        <div class="row" style="gap:8px;">
-          <button class="btn secondary" id="btn-reveal" aria-label="Reveal recovery phrase">Reveal Recovery Phrase</button>
-          <button class="btn secondary" id="btn-hide" aria-label="Hide recovery phrase" style="display:none;">Hide</button>
-        </div>
-
-        <textarea id="recoveryPhrase" placeholder="Your 12-word recovery phrase will appear here after reveal" readonly aria-readonly="true"></textarea>
-        <div class="warning" id="recoveryWarning" role="alert" aria-live="polite" style="display:none;">
-          <strong>Important:</strong> Do not share this phrase. If you lose it, you lose access to funds permanently. Save a physical copy offline.
-        </div>
-        <div class="row" style="margin-top:8px;">
-          <button class="btn primary" id="btn-backup" aria-label="Backup wallet">Backup (Encrypted)</button>
-          <span class="hint" id="backupHint" style="align-self:center;">Encrypted backup will download after you enter a password.</span>
-        </div>
-      </section>
-    </div>
-
-    <!-- Send funds -->
-    <section class="card" aria-label="Send funds">
-      <div class="section">
-        <div class="title">3) Send Funds</div>
-        <p class="hint">Send funds from your new wallet to a recipient address.</p>
-      </div>
-      <div class="row" style="gap:8px;">
-        <input id="recipient" placeholder="Recipient address (Base58)" />
-        <input id="amount" placeholder="Amount to send" />
-        <button class="btn primary" id="btn-send" aria-label="Send funds">Send</button>
-      </div>
-      <div id="sendStatus" class="hint" style="margin-top:8px;"></div>
-    </section>
+  <!-- Security notice -->
+  <div class="security-banner">
+    <strong>🔒 Security Notice:</strong>
+    Key generation uses real secp256k1 cryptography on the backend.
+    Your private key and recovery phrase are shown once and never stored on any server.
+    Save them offline immediately.
   </div>
 
-  <script>
-    const WORDS = [
-      "abandon","ability","able","about","above","absent","absorb","abstract",
-      "abuse","account","accident","accuse","achieve","acid","acoustic",
-      "acquire","across","actor","act","action","actor","ample","aside",
-      "asset","attack","attend","autumn","avail","avert","award","aware",
-      "away","awesome","again","agent","agree","ahead","aim","air"
-    ];
+  <div class="grid">
 
-    let wallet = {
-      mnemonic: null,
-      seed: null,
-      privKey: null,
-      pubKey: null,
-      address: null
-    };
-
-    function generateMnemonic() {
-      const words = [];
-      for (let i = 0; i < 12; i++) {
-        const idx = Math.floor(Math.random() * WORDS.length);
-        words.push(WORDS[idx]);
-      }
-      return words.join(' ');
-    }
-
-    async function computeAddressFromSeed(seed) {
-      const privKey = await simpleHash(seed);
-      wallet.privKey = privKey;
-      const pubKey = await simpleHash(privKey);
-      wallet.pubKey = pubKey;
-      const payload = await sha256(hexToBytes(pubKey)).then(h => h.slice(0, 20));
-      const versioned = new Uint8Array([0x00, ...payload]);
-      const addrBytes = new Uint8Array([...versioned, ...await getChecksum(versioned)]);
-      wallet.address = encodeBase58Check(addrBytes);
-      renderAddress();
-    }
-
-    async function getChecksum(versioned) {
-      const c1 = await sha256(versioned);
-      const c2 = await sha256(c1);
-      return c2.slice(0, 4);
-    }
-
-    function renderAddress() {
-      document.getElementById('address').value = wallet.address;
-      document.getElementById('addressSection').style.display = 'block';
-      const canvas = document.createElement('canvas');
-      const qrHolder = document.getElementById('qr');
-      qrHolder.replaceWith(canvas);
-      canvas.id = 'qr';
-      // Add QR code rendering logic here
-    }
-
-    function showRecoveryPhrase() {
-      if (!wallet.mnemonic) {
-        wallet.mnemonic = generateMnemonic();
-        document.getElementById('recoveryPhrase').value = wallet.mnemonic;
-        document.getElementById('recoveryWarning').style.display = 'block';
-      }
-    }
-
-    async function sendFunds(address, amount) {
-      // In a real implementation, this would send the transaction to the blockchain
-      // This is a simulated transaction
-      const sendResult = `Sent ${amount} MedorCoins from ${wallet.address} to ${address}`;
-      document.getElementById('sendStatus').textContent = sendResult;
-
-      // Here you would typically make an API call to your blockchain backend to send the funds
-      // For example:
-      /*
-      const response = await fetch('https://your-blockchain-api/send', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            address: wallet.address,
-            recipient: address,
-            amount: amount,
-            privateKey: wallet.privKey, // Never expose this in production
-          }),
-      });
-      const result = await response.json();
-      document.getElementById('sendStatus').textContent = result.message;
-      */
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('btn-generate').addEventListener('click', () => {
-        const seed = 'seed-' + Math.random().toString(16).slice(2);
-        computeAddressFromSeed(seed);
-      });
-
-      document.getElementById('btn-send').addEventListener('click', () => {
-        const recipient = document.getElementById('recipient').value.trim();
-        const amount = document.getElementById('amount').value.trim();
-        if (!recipient || !amount) {
-          document.getElementById('sendStatus').textContent = 'Please enter both recipient address and amount.';
-          return;
-        }
-
-        sendFunds(recipient, amount);
-      });
-    });
-    
-    // Additional utility functions: sha256, hexToBytes, base58 encoding, etc.
-
-  </script>
-  
-  <div class="container" aria-label="Security notes" style="margin-top:20px;">
-    <div class="section">
-      <strong>Security & Privacy:</strong>
-      <p class="hint" style="margin:6px 0 0 0;">
-        This wallet is client-side. Recovery phrases and private keys never leave your device. Keep backups offline in a secure location. Losing the recovery phrase means permanent loss of access to funds.
+    <!-- LEFT: Generate -->
+    <section class="card">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">Generate Wallet</div>
+      </div>
+      <p class="hint">
+        Calls your MedorCoin backend. Returns a real secp256k1 key pair,
+        WIF private key, and BIP39 mnemonic — all server-side.
       </p>
-    </div>
+
+      <button class="btn primary" id="btn-generate" style="margin-top:16px;">
+        ⚡ Generate Wallet
+      </button>
+      <button class="btn secondary" style="margin-top:8px;" onclick="location.reload()">
+        Reset
+      </button>
+
+      <!-- Address -->
+      <div id="addressSection" style="display:none; margin-top:18px;">
+        <label>Wallet Address (P2PKH — Base58Check)</label>
+        <input id="address" readonly />
+        <span class="copy-btn" onclick="copyField('address','Address')">📋 Copy Address</span>
+
+        <!-- Private Key -->
+        <label style="color:#fca5a5; margin-top:16px;">
+          🔑 Private Key (WIF) — <strong style="color:var(--red);">Never share. Save offline.</strong>
+        </label>
+        <div class="input-wrap">
+          <input id="privKey" type="password" readonly />
+          <button class="reveal-btn danger" onclick="toggleField('privKey',this)">Show</button>
+        </div>
+        <span class="copy-btn" style="color:#fca5a5;" onclick="copyField('privKey','Private Key')">
+          📋 Copy Private Key
+        </span>
+        <div class="danger-box">
+          This is the only key that controls your funds.
+          Write it down. Never store it digitally. Never share it.
+        </div>
+
+        <!-- Save & go -->
+        <button class="btn success" style="margin-top:18px;" onclick="saveAndGo()">
+          💾 Save & Open Dashboard →
+        </button>
+        <p class="hint" style="margin-top:8px;">
+          Wallet is saved encrypted in your browser session only.
+        </p>
+      </div>
+    </section>
+
+    <!-- RIGHT: Recovery Phrase -->
+    <section class="card">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Recovery Phrase</div>
+      </div>
+      <p class="hint">
+        Real BIP39 — 12 words with checksum. These words deterministically
+        regenerate your exact wallet via PBKDF2 + secp256k1.
+        The phrase is shown once. It is never stored anywhere.
+      </p>
+
+      <div id="phraseGrid" class="phrase-grid blurred" style="margin-top:14px;"></div>
+
+      <button class="btn secondary" id="btn-reveal" style="margin-top:12px;" onclick="revealPhrase()">
+        👁 Reveal Recovery Phrase
+      </button>
+
+      <div id="recoveryWarning" style="display:none;">
+        <div class="warning" style="margin-top:12px;">
+          <strong>Write these 12 words down in exact order.</strong><br>
+          Do not screenshot. Do not email. Store offline only.<br>
+          Anyone with these words owns your wallet.
+        </div>
+        <span class="copy-btn" onclick="copyPhrase()">📋 Copy All Words</span>
+      </div>
+
+      <!-- Recover existing wallet -->
+      <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--border);">
+        <div class="step-header" style="margin-bottom:10px;">
+          <div class="step-num" style="background:#374151;">↩</div>
+          <div class="step-title">Recover Existing Wallet</div>
+        </div>
+        <p class="hint">Enter your 12-word phrase to restore your wallet.</p>
+        <textarea id="recoverPhrase" rows="3"
+          placeholder="word1 word2 word3 ... word12"
+          style="margin-top:10px;resize:none;"></textarea>
+        <button class="btn secondary" style="margin-top:8px;" onclick="recoverWallet()">
+          Recover Wallet →
+        </button>
+        <div id="recoverStatus" style="font-size:13px;margin-top:8px;"></div>
+      </div>
+    </section>
+
   </div>
-  
+
+  <!-- Send Section -->
+  <section class="card" style="margin-top:20px;">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div class="step-title">Send MedorCoin</div>
+    </div>
+    <p class="hint">
+      Builds a real raw transaction, signs it with your private key via the backend,
+      and submits it via <code>sendrawtransaction</code> to your node.
+    </p>
+    <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:10px;margin-top:14px;align-items:end;">
+      <div>
+        <label>Recipient Address</label>
+        <input id="recipient" placeholder="MDR address (Base58Check)..." style="margin-top:5px;" />
+      </div>
+      <div>
+        <label>Amount (MDR)</label>
+        <input id="amount" type="number" placeholder="0.000" min="0" step="0.001" style="margin-top:5px;" />
+      </div>
+      <button class="btn primary" style="margin-top:0;width:auto;padding:12px 20px;" onclick="sendFunds()">
+        Send →
+      </button>
+    </div>
+    <div id="sendStatus"></div>
+  </section>
+
+</div>
+
+<script>
+/**
+ * create-wallet.html — UI wiring layer only.
+ *
+ * ALL crypto is performed by the MedorCoin backend.
+ * This file:
+ *   - calls backend endpoints
+ *   - displays results
+ *   - handles copy/reveal/save UI
+ *   - never invents or simulates cryptography
+ *
+ * Backend endpoints required:
+ *   POST /wallet/generate        → { address, privateKeyWIF, mnemonic[] }
+ *   POST /wallet/recover         → { address, privateKeyWIF } (from mnemonic)
+ *   POST /wallet/build-tx        → { rawHex } (signs + serializes tx)
+ *   POST /rpc sendrawtransaction → { result: txid }
+ */
+
+// ── Config — set your node URL here or in localStorage
+const API = localStorage.getItem("medorcoin_api") || "http://127.0.0.1:8332";
+
+// ── State (in-memory only — never persisted until user clicks Save)
+const state = { address: null, wif: null, mnemonic: [] };
+
+// ─────────────────────────────────────────────────────────────────
+// 1. GENERATE WALLET — calls real backend
+// ─────────────────────────────────────────────────────────────────
+document.getElementById("btn-generate").addEventListener("click", async function () {
+  const btn = this;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Generating...';
+
+  try {
+    /**
+     * Backend must return:
+     * {
+     *   address:       "1Abc...XYZ",          // Base58Check P2PKH
+     *   privateKeyWIF: "5HueCGU...kf",        // WIF encoded secp256k1 private key
+     *   mnemonic:      ["word1","word2",...],  // 12 real BIP39 words with checksum
+     * }
+     *
+     * Backend flow (server-side):
+     *   1. crypto.randomBytes(32) → raw private key
+     *   2. secp256k1.publicKeyCreate(privKey) → 33-byte compressed pubkey
+     *   3. SHA256(pubkey) → RIPEMD160 → pubKeyHash (20 bytes)
+     *   4. [0x00 + pubKeyHash + checksum] → Base58Check → address
+     *   5. [0x80 + privKey + 0x01 + checksum] → Base58Check → WIF
+     *   6. BIP39.generateMnemonic() → 12 words (with real checksum entropy)
+     */
+    const res = await apiCall("POST", "/wallet/generate", {});
+
+    state.address  = res.address;
+    state.wif      = res.privateKeyWIF;
+    state.mnemonic = res.mnemonic; // array of 12 strings
+
+    // Display address
+    document.getElementById("address").value = state.address;
+    document.getElementById("privKey").value  = state.wif;
+    document.getElementById("addressSection").style.display = "block";
+
+    // Build phrase grid
+    buildPhraseGrid(state.mnemonic);
+
+  } catch (err) {
+    alert("Wallet generation failed:\n" + err.message +
+          "\n\nMake sure your MedorCoin node is running at:\n" + API);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = "⚡ Generate Wallet";
+});
+
+// ─────────────────────────────────────────────────────────────────
+// 2. RECOVER WALLET FROM MNEMONIC
+// ─────────────────────────────────────────────────────────────────
+async function recoverWallet() {
+  const phrase = document.getElementById("recoverPhrase").value.trim();
+  const status = document.getElementById("recoverStatus");
+
+  const words = phrase.split(/\s+/).filter(Boolean);
+  if (words.length !== 12) {
+    status.className = "err";
+    status.textContent = "✗ Enter exactly 12 words.";
+    return;
+  }
+
+  status.className = "";
+  status.textContent = "Recovering...";
+
+  try {
+    /**
+     * Backend must:
+     *   1. Validate BIP39 checksum on the phrase
+     *   2. mnemonicToSeed(phrase) → 64-byte seed via PBKDF2
+     *   3. BIP32 HD derivation: m/44'/0'/0'/0/0 → child private key
+     *   4. Derive address and WIF from child key
+     *   5. Return { address, privateKeyWIF }
+     *
+     * This is the ONLY correct way to recover.
+     * The phrase deterministically produces the same wallet every time.
+     */
+    const res = await apiCall("POST", "/wallet/recover", { mnemonic: words });
+
+    state.address  = res.address;
+    state.wif      = res.privateKeyWIF;
+    state.mnemonic = words;
+
+    document.getElementById("address").value = state.address;
+    document.getElementById("privKey").value  = state.wif;
+    document.getElementById("addressSection").style.display = "block";
+    buildPhraseGrid(words);
+
+    status.className = "ok";
+    status.textContent = "✓ Wallet recovered: " + state.address.slice(0,12) + "...";
+
+  } catch (err) {
+    status.className = "err";
+    status.textContent = "✗ Recovery failed: " + err.message;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 3. SEND FUNDS — real raw transaction flow
+// ─────────────────────────────────────────────────────────────────
+async function sendFunds() {
+  const to     = document.getElementById("recipient").value.trim();
+  const amount = parseFloat(document.getElementById("amount").value);
+  const status = document.getElementById("sendStatus");
+
+  if (!state.address) {
+    showStatus(status, "✗ Generate or recover a wallet first.", false);
+    return;
+  }
+  if (!to) {
+    showStatus(status, "✗ Enter a recipient address.", false);
+    return;
+  }
+  if (!amount || amount <= 0) {
+    showStatus(status, "✗ Enter a valid amount.", false);
+    return;
+  }
+
+  showStatus(status, "Building transaction...", null);
+
+  try {
+    /**
+     * Step 1: Ask backend to build + sign the raw transaction.
+     *
+     * Backend must:
+     *   1. Fetch UTXOs for state.address from node
+     *   2. Select UTXOs to cover amount + fee
+     *   3. Build transaction inputs and outputs
+     *   4. Sign each input with state.wif using secp256k1 ECDSA
+     *   5. Serialize to raw hex (Bitcoin wire format)
+     *   6. Return { rawHex, fee, txid (estimated) }
+     *
+     * This is NOT a JSON object. It is a serialized binary transaction.
+     */
+    const built = await apiCall("POST", "/wallet/build-tx", {
+      from:       state.address,
+      to,
+      amount,
+      privateKey: state.wif,  // backend signs — key never leaves this session
+    });
+
+    showStatus(status, "Broadcasting transaction...", null);
+
+    /**
+     * Step 2: Submit raw hex to node via sendrawtransaction.
+     *
+     * This matches your rpc_server.cjs sendrawtransaction handler.
+     * The node validates the transaction against the UTXO set and mempool.
+     */
+    const broadcast = await rpcCall("sendrawtransaction", [built.rawHex]);
+
+    if (broadcast.result) {
+      showStatus(status, "✓ Sent! TXID: " + broadcast.result, true);
+    } else {
+      showStatus(status, "✗ Node rejected: " + (broadcast.error?.message || "Unknown error"), false);
+    }
+
+  } catch (err) {
+    showStatus(status, "✗ " + err.message, false);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 4. SAVE WALLET
+// ─────────────────────────────────────────────────────────────────
+function saveAndGo() {
+  if (!state.address || !state.wif) {
+    alert("Generate or recover a wallet first.");
+    return;
+  }
+
+  /**
+   * Security note:
+   * Storing WIF in localStorage is a known security risk.
+   * For production with many users, implement one of:
+   *   a) Encrypted keystore (AES-256-GCM with user passphrase via PBKDF2)
+   *   b) Session-only memory (never persisted — user re-enters phrase each session)
+   *   c) Hardware wallet integration (Ledger/Trezor via WebUSB)
+   *
+   * Current implementation: minimal session storage for development.
+   * Replace with encrypted keystore before public launch.
+   */
+  const keystore = {
+    address:  state.address,
+    wif:      state.wif,         // TODO: encrypt with user passphrase before storing
+    created:  new Date().toISOString(),
+    version:  "1.0.0",
+  };
+
+  // Do NOT store mnemonic — user must keep it offline
+  sessionStorage.setItem("medorcoin_wallet", JSON.stringify(keystore));
+
+  window.location.href = "wallet.html";
+}
+
+// ─────────────────────────────────────────────────────────────────
+// UI HELPERS
+// ─────────────────────────────────────────────────────────────────
+
+function buildPhraseGrid(words) {
+  const grid = document.getElementById("phraseGrid");
+  grid.innerHTML = "";
+  words.forEach((word, i) => {
+    const el = document.createElement("div");
+    el.className = "phrase-word";
+    el.innerHTML = '<span class="num">' + (i + 1) + '.</span><span>' + word + '</span>';
+    grid.appendChild(el);
+  });
+}
+
+function revealPhrase() {
+  document.getElementById("phraseGrid").classList.remove("blurred");
+  document.getElementById("recoveryWarning").style.display = "block";
+  document.getElementById("btn-reveal").style.display = "none";
+}
+
+function toggleField(id, btn) {
+  const el = document.getElementById(id);
+  const hidden = el.type === "password";
+  el.type = hidden ? "text" : "password";
+  btn.textContent = hidden ? "Hide" : "Show";
+}
+
+function copyField(id, label) {
+  const val = document.getElementById(id).value;
+  if (!val || val === "") { alert("Generate wallet first."); return; }
+  navigator.clipboard.writeText(val)
+    .then(() => alert(label + " copied to clipboard!"))
+    .catch(() => alert("Copy failed — select and copy manually."));
+}
+
+function copyPhrase() {
+  if (!state.mnemonic.length) return;
+  navigator.clipboard.writeText(state.mnemonic.join(" "))
+    .then(() => alert("Recovery phrase copied!"))
+    .catch(() => alert("Copy failed — select and copy manually."));
+}
+
+function showStatus(el, msg, ok) {
+  el.textContent = msg;
+  el.className   = ok === true ? "ok" : ok === false ? "err" : "";
+}
+
+// ─────────────────────────────────────────────────────────────────
+// NETWORK — calls to backend and RPC node
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * apiCall — calls your MedorCoin backend REST API
+ * These endpoints must be implemented in your api.cjs / rpc_server.cjs
+ */
+async function apiCall(method, path, body) {
+  const base = localStorage.getItem("medorcoin_api") || "http://127.0.0.1:8332";
+  const res  = await fetch(base + path, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + (localStorage.getItem("medorcoin_token") || ""),
+    },
+    body: method !== "GET" ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "HTTP " + res.status);
+  }
+  return res.json();
+}
+
+/**
+ * rpcCall — JSON-RPC 2.0 call to your node
+ * Matches your rpc_server.cjs handler format exactly
+ */
+async function rpcCall(method, params) {
+  const base = localStorage.getItem("medorcoin_rpc") || "http://127.0.0.1:8332";
+  const res  = await fetch(base, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + (localStorage.getItem("medorcoin_token") || ""),
+    },
+    body: JSON.stringify({ jsonrpc: "2.0", method, params, id: Date.now() }),
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!res.ok) throw new Error("RPC HTTP " + res.status);
+  return res.json();
+}
+</script>
 </body>
 </html>

@@ -1,30 +1,42 @@
-#ifndef TRANSACTION_H
-#define TRANSACTION_H
+#pragma once
 
+#include <array>
+#include <cstdint>
 #include <string>
 #include <vector>
-#include <cstdint>
+
+struct TxInput {
+    std::string prevTxHash;
+    int         outputIndex = 0;
+};
+
+// TxOutput is defined here only.
+// utxo.h includes transaction.h instead of redefining TxOutput.
+struct TxOutput {
+    uint64_t    value   = 0;
+    std::string address;
+};
 
 class Transaction {
 public:
-    uint64_t chainId = 0;
-    uint64_t nonce = 0;
-    uint64_t maxPriorityFeePerGas = 0;
-    uint64_t maxFeePerGas = 0;
-    uint64_t gasLimit = 0;
-    std::string toAddress;
-    uint64_t value = 0;
+    uint64_t             chainId              = 0;
+    uint64_t             nonce                = 0;
+    uint64_t             maxPriorityFeePerGas = 0;
+    uint64_t             maxFeePerGas         = 0;
+    uint64_t             gasLimit             = 0;
+    std::string          toAddress;
+    uint64_t             value                = 0;
     std::vector<uint8_t> data;
 
-    // Signature fields
-    uint64_t v = 0;
-    std::vector<uint8_t> r;
-    std::vector<uint8_t> s;
+    std::vector<TxInput>  inputs;
+    std::vector<TxOutput> outputs;
 
-    // The computed transaction hash
+    uint64_t                v = 0;
+    std::array<uint8_t, 32> r{};
+    std::array<uint8_t, 32> s{};
+
     std::string txHash;
 
-    void calculateHash();
+    bool calculateHash();
+    bool isValid() const;
 };
-
-#endif // TRANSACTION_H

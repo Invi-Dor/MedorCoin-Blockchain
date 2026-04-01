@@ -1,13 +1,17 @@
-// File: routes/twofa.js
+routes/twofa.cjs
+/**
+ * File: routes/twofa.cjs
+ * MEDORCOIN PRODUCTION AUTHENTICATION & 2FA
+ */
 
 const express = require("express");
 const nodemailer = require("nodemailer");
-const User = require("../models/User");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const User = require("../models/User"); // Ensure your Model path is correct
 
 const router = express.Router();
 
-// Email transporter
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -16,51 +20,72 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// SEND 2FA
-router.post("/2fa/send", async (req, res) => {
+// LOGIN & SEND 2FA (POST /api/auth/login)
+router.post("/auth/login", async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, password } = req.body;
+    
+    // 1. Verify User
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ msg: "User not found" });
+    if (!user) return res.status(401).json({ msg: "Invalid credentials" });
 
+    // 2. Verify Password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ msg: "Invalid credentials" });
+
+    // 3. Generate 6-Digit Code
     const twoFACode = Math.floor(100000 + Math.random() * 900000);
     user.twoFACode = twoFACode;
+    user.twoFAExpires = Date.now() + 600000; // 10 Min Expiry
     await user.save();
 
+    // 4. Dispatch Email
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"MedorCoin Auth" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "MedorCoin 2FA Code",
-      text: `Your 2FA code is: ${twoFACode}`
+      text: `Your 2FA security code is: ${twoFACode}. This code expires in 10 minutes.`
     });
 
-    res.json({ msg: "2FA sent" });
+    res.json({ msg: "2FA_SENT", email: email });
   } catch (err) {
-    console.error(err);
+    console.error("[AUTH_ERR]", err);
     res.status(500).json({ msg: "Internal server error" });
   }
 });
 
-// CONFIRM 2FA
+// CONFIRM 2FA & ISSUE SESSION (POST /api/2fa/confirm)
 router.post("/2fa/confirm", async (req, res) => {
   try {
     const { email, code } = req.body;
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ msg: "User not found" });
 
-    if (user.twoFACode != code)
-      return res.status(400).json({ msg: "Invalid 2FA code" });
+    if (!user || user.twoFACode != code || Date.now() > user.twoFAExpires) {
+      return res.status(400).json({ msg: "Invalid or expired 2FA code" });
+    }
 
+    // Clear code and finalize session
     user.twoFACode = null;
+    user.twoFAExpires = null;
     await user.save();
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    // Sign Industrial JWT
+    const token = jwt.sign(
+      { id: user._id, wallet: user.walletAddress }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: "1d" }
+    );
 
-    res.json({ token });
+    res.json({ 
+      token: token, 
+      address: user.walletAddress,
+      msg: "AUTHENTICATED" 
+    });
   } catch (err) {
-    console.error(err);
+    console.error("[2FA_CONFIRM_ERR]", err);
     res.status(500).json({ msg: "Internal server error" });
   }
 });
 
 module.exports = router;
+

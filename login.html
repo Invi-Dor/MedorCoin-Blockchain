@@ -1,155 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MedorCoin Login</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #0f172a;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: top;
-    padding-top: 60px;
-  }
-  .container {
-    background: #1e293b;
-    padding: 40px;
-    border-radius: 8px;
-    width: 380px;
-  }
-  input {
-    width: 100%;
-    padding: 10px;
-    margin-top: 8px;
-    margin-bottom: 18px;
-    border-radius: 5px;
-    border: none;
-  }
-  button {
-    width: 100%;
-    padding: 12px;
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  button:hover {
-    background: #1d4ed8;
-  }
-  .error {
-    color: #f87171;
-    font-size: 14px;
-    margin-bottom: 12px;
-  }
-  .social-btn {
-    background: #fff;
-    color: #000;
-    text-align: center;
-    margin: 8px 0;
-    display: block;
-    border-radius: 6px;
-    text-decoration: none;
-    padding: 10px;
-    font-weight: bold;
-  }
-  .social-btn img {
-    vertical-align: middle;
-    margin-right: 8px;
-    width: 20px;
-    height: 20px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedorCoin - Welcome</title>
+  <style>
+    :root {
+      --bg: #0b1020; --surface: #0e1520; --accent: #ff8a00; --text: #e5e7eb;
+      --muted: #9ca3af; --error: #e11d48; --success: #10b981; --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif;
+      display: flex; align-items: center; justify-content: center; min-height: 100vh;
+      background-image: radial-gradient(circle at 50% 50%, rgba(255,138,0,0.05) 0%, transparent 80%);
+    }
+    .auth-card {
+      background: var(--surface); border: 1px solid rgba(255,255,255,0.1);
+      padding: 40px; border-radius: 16px; width: 100%; max-width: 420px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .logo { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 8px; text-align: center; }
+    .kicker { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 32px; }
+
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
+    input {
+      width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
+      padding: 14px; border-radius: var(--radius); color: #fff; font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    input:focus { outline: none; border-color: var(--accent); background: rgba(0,0,0,0.3); }
+
+    .btn {
+      width: 100%; padding: 14px; border-radius: var(--radius); border: none;
+      background: linear-gradient(135deg, #ffb84d, var(--accent));
+      color: #000; font-weight: 700; font-size: 1rem; cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s; margin-top: 10px;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { background: #374151; color: #6b7280; cursor: not-allowed; }
+
+    #twofa-section { display: none; }
+    .status-msg { font-size: 0.85rem; padding: 12px; border-radius: 8px; margin-top: 20px; display: none; text-align: center; }
+    .status-msg.err { display: block; background: rgba(225,29,72,0.1); color: var(--error); border: 1px solid rgba(225,29,72,0.2); }
+    .status-msg.ok { display: block; background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.2); }
+  </style>
 </head>
 <body>
 
-<div class="container">
+<div class="auth-card">
+  <div class="logo">MEDORCOIN</div>
+  <div class="kicker"></div>
 
-  <h2>MedorCoin Login</h2>
-
-  <!-- Social Login Options -->
-  <a class="social-btn" href="#" id="googleLogin">
-    <img src="google-icon.png" alt="Google"> Login with Google
-  </a>
-
-  <a class="social-btn" href="#" id="appleLogin">
-    <img src="apple-icon.png" alt="Apple"> Login with Apple
-  </a>
-
-  <hr style="border:1px solid #334155; margin:15px 0;">
-
-  <form id="loginForm">
-    <label>Email or Username</label>
-    <input type="text" id="loginIdentifier" required placeholder="Your email or username">
-
-    <label>Password</label>
-    <input type="password" id="loginPassword" required placeholder="Your password">
-
-    <div id="loginError" class="error"></div>
-
-    <div style="margin-bottom:20px;">
-      <input type="checkbox" id="loginCaptcha" required>
-      <label for="loginCaptcha">I am not a robot</label>
+  <form id="login-form">
+    <div class="form-group">
+      <label>Enter Your Email Address</label>
+      <input type="email" id="email" required placeholder="name@domain.com" autocomplete="username">
     </div>
-
-    <button type="submit">Log In</button>
+    <div class="form-group">
+      <label>Enter Your Password</label>
+      <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn" id="login-btn">Login</button>
   </form>
 
+  <form id="twofa-section">
+    <div class="form-group">
+      <label>6-Digit Verification Code</label>
+      <input type="text" id="2fa-code" maxlength="6" pattern="\d{6}" placeholder="000000" inputmode="numeric">
+    </div>
+    <button type="submit" class="btn" id="verify-btn">Confirm Identity</button>
+    <button type="submit" class="btn" id="verify-btn">Confirm</button>
+    <p style="text-align: center; font-size: 0.75rem; color: var(--muted); margin-top: 15px; cursor: pointer;" onclick="location.reload()">Back to login</p>
+  </form>
+
+  <div id="status" class="status-msg"></div>
 </div>
 
 <script>
-document.getElementById("loginForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
+(function() {
+  const loginForm = document.getElementById('login-form');
+  const twofaForm = document.getElementById('twofa-section');
+  const statusEl = document.getElementById('status');
 
-  const identifier = document.getElementById("loginIdentifier").value.trim();
-  const password = document.getElementById("loginPassword").value;
-  const captchaChecked = document.getElementById("loginCaptcha").checked;
-  const errorDiv = document.getElementById("loginError");
+  let tempEmail = "";
 
-  if (!identifier || !password) {
-    errorDiv.textContent = "Please fill in both fields.";
-    return;
+  function showStatus(msg, type) {
+    statusEl.textContent = msg;
+    statusEl.className = `status-msg ${type}`;
   }
 
-  if (!captchaChecked) {
-    errorDiv.textContent = "Please verify you are not a robot.";
-    return;
-  }
+  // --- 1. INITIALIZE LOGIN ---
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const btn = document.getElementById('login-btn');
 
-  // Example request — adapt to your backend endpoint
-  try {
-    const response = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identifier, password })
-    });
+    btn.disabled = true;
+    btn.textContent = "Verifying...";
+    showStatus("", "");
 
-    if (response.ok) {
-      const result = await response.json();
-      // Store session token or user info
-      localStorage.setItem("medorUser", JSON.stringify(result.user));
-      window.location.href = "crypto-dashboard.html";
-    } else {
-      const error = await response.json();
-      errorDiv.textContent = error.message || "Login failed.";
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.msg === "2FA_SENT") {
+        tempEmail = email;
+        loginForm.style.display = 'none';
+        twofaForm.style.display = 'block';
+        showStatus("Verification code has been sent to your email.", "ok");
+      } else {
+        throw new Error(data.msg || "Authentication Failed");
+      }
+    } catch (err) {
+      showStatus(err.message, "err");
+      btn.disabled = false;
+      btn.textContent = "Initialize Session";
     }
-  } catch (err) {
-    errorDiv.textContent = "Network error, try again.";
+  });
+
+  // --- 2. CONFIRM 2FA & ISSUE INDUSTRIAL TOKEN ---
+  twofaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = document.getElementById('2fa-code').value;
+    const btn = document.getElementById('verify-btn');
+
+    btn.disabled = true;
+    btn.textContent = "Authorizing...";
+
+    try {
+      const res = await fetch('/api/2fa/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: tempEmail, code: code })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.token) {
+        // GLOBAL LOG: Store critical identity fragments
+        localStorage.setItem('medor_token', data.token);
+        localStorage.setItem('medor_address', data.address);
+        localStorage.setItem('medor_session_start', Date.now());
+
+        showStatus("Access Granted. Handshaking with cluster...", "ok");
+
+        // Final redirection to the mining dashboard
+        setTimeout(() => { window.location.href = 'miners.html'; }, 1000);
+      } else {
+        throw new Error(data.msg || "Invalid Code");
+      }
+    } catch (err) {
+      showStatus(err.message, "err");
+      btn.disabled = false;
+      btn.textContent = "Confirm Identity";
+    }
+  });
+
+  // --- 3. AUTO-GUARD: Check for existing active session ---
+  async function checkGlobalSession() {
+    const token = localStorage.getItem('medor_token');
+    if (!token) return;
+
+    try {
+      const res = await fetch('/api/auth/me', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) window.location.href = 'miners.html';
+    } catch (e) {
+      localStorage.clear(); // Clear corrupt/expired state
+    }
   }
-});
 
-// OAuth stubs
-document.getElementById("googleLogin").addEventListener("click", function() {
-  alert("Google OAuth login not implemented.");
-});
-document.getElementById("appleLogin").addEventListener("click", function() {
-  alert("Apple OAuth login not implemented.");
-});
+  checkGlobalSession();
+})();
 </script>
-
 </body>
 </html>

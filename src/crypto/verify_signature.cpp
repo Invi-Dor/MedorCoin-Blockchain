@@ -1,147 +1,158 @@
 #include "crypto/verify_signature.h"
 #include "crypto/secp256k1_wrapper.h"
+#include "crypto/keccak256.h"
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
 #include <cstring>
 #include <cstdio>
+#include <mutex>
+#include <functional>
+#include <span>
 
 namespace crypto {
 
-// =============================================================================
-// INTERNAL LOGGING
-// Returns false and writes a diagnostic to stderr. In production replace
-// with your structured logger. Never throws — all functions return bool.
-// =============================================================================
-static bool fail(const char* fn, const char* reason) {
-    std::fprintf(stderr, "[verify_signature] %s: %s\n", fn, reason);
+using LogCallback = std::function<void(int, const char*, const char*)>;
+static std::mutex    g_log_mutex;
+static LogCallback   g_log_cb;
+
+void setVerifySignatureLogger(LogCallback cb) {
+    std::lock_guard<std::mutex> lock(g_log_mutex);
+    g_log_cb = std::move(cb);
+}
+
+static bool logAndFail(int level, const char* fn, const char* reason) {
+    std::lock_guard<std::mutex> lock(g_log_mutex);
+    if (g_log_cb) g_log_cb(level, fn, reason);
     return false;
 }
 
-// =============================================================================
-// verifyHashWithPubkey
-// Verifies a compact 64-byte ECDSA signature against a known 33-byte
-// compressed public key and a 32-byte message hash.
-//
-// Thread safety: getCtx() uses std::call_once and is fully thread-safe.
-// The secp256k1 verify functions are stateless with respect to the context
-// and are safe to call concurrently.
-// =============================================================================
 bool verifyHashWithPubkey(
-    const unsigned char hash32[32],
-    const unsigned char pubkey33[33],
-    const unsigned char sig64[64])
+    std::span<const unsigned char, 32> hash32,
+    std::span<const unsigned char, 33> pubkey33,
+    std::span<const unsigned char, 64> sig64)
 {
-    if (!hash32)   return fail("verifyHashWithPubkey", "null hash32");
-    if (!pubkey33) return fail("verifyHashWithPubkey", "null pubkey33");
-    if (!sig64)    return fail("verifyHashWithPubkey", "null sig64");
-
     secp256k1_context* ctx = getCtx();
 
     secp256k1_pubkey pub;
-    if (secp256k1_ec_pubkey_parse(ctx, &pub, pubkey33, 33) != 1)
-        return fail("verifyHashWithPubkey", "failed to parse public key");
+    if (secp256k1_ec_pubkey_parse(
+            ctx, &pub, pubkey33.data(), 33) != 1)
+        return logAndFail(0, "verifyHashWithPubkey",
+                          "failed to parse public key");
 
     secp256k1_ecdsa_signature sig;
-    if (secp256k1_ecdsa_signature_parse_compact(ctx, &sig, sig64) != 1)
-        return fail("verifyHashWithPubkey", "failed to parse compact signature");
+    if (secp256k1_ecdsa_signature_parse_compact(
+            ctx, &sig, sig64.data()) != 1)
+        return logAndFail(0, "verifyHashWithPubkey",
+                          "failed to parse compact signature");
 
-    // Normalize to low-S to prevent signature malleability (BIP66, EIP-2).
-    // This is necessary here because we are verifying a signature from an
-    // external source that may not have enforced low-S.
     secp256k1_ecdsa_signature_normalize(ctx, &sig, &sig);
 
-    if (secp256k1_ecdsa_verify(ctx, &sig, hash32, &pub) != 1)
-        return fail("verifyHashWithPubkey", "signature verification failed");
-
+    if (secp256k1_ecdsa_verify(ctx, &sig, hash32.data(), &pub) != 1)
+        return logAndFail(0, "verifyHashWithPubkey",
+                          "signature verification failed");
     return true;
 }
 
-// =============================================================================
-// recoverPubkey
-// Recovers the 33-byte compressed public key from a compact 64-byte ECDSA
-// signature, a recovery ID, and the 32-byte message hash.
-//
-// Recovery ID:
-//   secp256k1 mathematically allows recovery IDs 0-3, but IDs 2 and 3
-//   correspond to curve points with an X coordinate >= the curve order n,
-//   which is statistically impossible with standard key generation. We
-//   accept 0-3 to be fully spec-compliant, but IDs 2 and 3 will in practice
-//   always fail the secp256k1_ecdsa_recover call and return false.
-//
-// Low-S normalization:
-//   secp256k1_ecdsa_recover works correctly with any valid (r, s) pair
-//   regardless of S magnitude. We do NOT normalize before recovery because
-//   normalization changes S, which changes which public key is recovered.
-//   Low-S enforcement belongs at the policy layer (e.g. serialization.cpp),
-//   not inside the recovery function.
-//
-// Thread safety: getCtx() is thread-safe. secp256k1_ecdsa_recover is
-// stateless with respect to the context and safe for concurrent calls.
-// =============================================================================
 bool recoverPubkey(
-    const unsigned char hash32[32],
-    const unsigned char sig64[64],
-    int                 recoveryId,
-    unsigned char       pubkeyOut33[33])
+    std::span<const unsigned char, 32> hash32,
+    std::span<const unsigned char, 64> sig64,
+    int                                recoveryId,
+    std::span<unsigned char, 33>       pubkeyOut33)
 {
-    if (!hash32)      return fail("recoverPubkey", "null hash32");
-    if (!sig64)       return fail("recoverPubkey", "null sig64");
-    if (!pubkeyOut33) return fail("recoverPubkey", "null pubkeyOut33");
-
-    // Accept 0-3 per secp256k1 spec. IDs 2 and 3 are valid per spec
-    // but will fail recovery in practice with standard signatures.
     if (recoveryId < 0 || recoveryId > 3)
-        return fail("recoverPubkey", "recoveryId out of range 0-3");
+        return logAndFail(0, "recoverPubkey",
+                          "recoveryId out of range 0-3");
 
     secp256k1_context* ctx = getCtx();
 
     secp256k1_ecdsa_recoverable_signature rsig;
     if (secp256k1_ecdsa_recoverable_signature_parse_compact(
-            ctx, &rsig, sig64, recoveryId) != 1)
-        return fail("recoverPubkey",
-                    "failed to parse recoverable signature");
+            ctx, &rsig, sig64.data(), recoveryId) != 1)
+        return logAndFail(0, "recoverPubkey",
+                          "failed to parse recoverable signature");
 
-    // Recover the public key directly from the recoverable signature.
-    // No S normalization — see function comment above.
     secp256k1_pubkey pub;
-    if (secp256k1_ecdsa_recover(ctx, &pub, &rsig, hash32) != 1)
-        return fail("recoverPubkey", "secp256k1_ecdsa_recover failed");
+    if (secp256k1_ecdsa_recover(
+            ctx, &pub, &rsig, hash32.data()) != 1)
+        return logAndFail(0, "recoverPubkey",
+                          "secp256k1_ecdsa_recover failed");
 
-    // Serialize as compressed 33-byte public key
     size_t outLen = 33;
     if (secp256k1_ec_pubkey_serialize(
-            ctx, pubkeyOut33, &outLen, &pub,
-            SECP256K1_EC_COMPRESSED) != 1)
-        return fail("recoverPubkey", "pubkey serialization failed");
+            ctx, pubkeyOut33.data(), &outLen,
+            &pub, SECP256K1_EC_COMPRESSED) != 1)
+        return logAndFail(0, "recoverPubkey",
+                          "pubkey serialization failed");
 
-    // Explicit length validation — defensive check
-    if (outLen != 33) {
-        std::fprintf(stderr,
-            "[verify_signature] recoverPubkey: unexpected output length %zu\n",
-            outLen);
-        return false;
-    }
-
+    if (outLen != 33)
+        return logAndFail(0, "recoverPubkey",
+                          "serialized pubkey length is not 33");
     return true;
 }
 
 // =============================================================================
-// computeRecoveryId
-// Extracts recovery ID (0 or 1) from the raw v field of a signed transaction.
-// EIP-155: v = 35 + 2*chainId + recoveryId
-// Legacy:  v = 27 + recoveryId
-// Returns -1 if v is not valid for the given chainId.
+// recoverAndVerify
+// Called by blockchain.cpp to verify a transaction signature and confirm
+// the recovered address matches the expected UTXO owner address.
 // =============================================================================
+bool recoverAndVerify(
+    const uint8_t*  hash32,
+    const uint8_t*  rBytes,
+    const uint8_t*  sBytes,
+    int             v,
+    const uint8_t*  expectedAddr20)
+{
+    if (!hash32 || !rBytes || !sBytes || !expectedAddr20)
+        return false;
+
+    int recoveryId = computeRecoveryId(
+        static_cast<uint64_t>(v), 0);
+    if (recoveryId < 0) {
+        // Try EIP-155 with chainId 0
+        if (v == 0 || v == 1) recoveryId = v;
+        else return false;
+    }
+
+    unsigned char sig64[64];
+    memcpy(sig64,      rBytes, 32);
+    memcpy(sig64 + 32, sBytes, 32);
+
+    unsigned char pubkey33[33];
+    if (!recoverPubkey(
+            std::span<const unsigned char, 32>(hash32, 32),
+            std::span<const unsigned char, 64>(sig64,  64),
+            recoveryId,
+            std::span<unsigned char, 33>(pubkey33, 33)))
+        return false;
+
+    // Derive address: keccak256 of uncompressed pubkey[1..64], take last 20 bytes
+    secp256k1_context* ctx = getCtx();
+    secp256k1_pubkey pub;
+    if (secp256k1_ec_pubkey_parse(ctx, &pub, pubkey33, 33) != 1)
+        return false;
+
+    unsigned char uncompressed[65];
+    size_t uncompLen = 65;
+    secp256k1_ec_pubkey_serialize(
+        ctx, uncompressed, &uncompLen,
+        &pub, SECP256K1_EC_UNCOMPRESSED);
+
+    crypto::Keccak256Digest digest{};
+    if (!crypto::Keccak256(uncompressed + 1, 64, digest))
+        return false;
+
+    // Address = last 20 bytes of keccak digest
+    return memcmp(digest.data() + 12, expectedAddr20, 20) == 0;
+}
+
 int computeRecoveryId(uint64_t v, uint64_t chainId) {
     if (chainId > 0) {
-        // Guard against overflow: 35 + 2*chainId must not wrap
         if (chainId <= (0xFFFFFFFFFFFFFFFFULL - 35) / 2) {
             uint64_t base = 35 + 2 * chainId;
             if (v == base || v == base + 1)
                 return static_cast<int>(v - base);
         }
     }
-    // Legacy pre-EIP-155
     if (v == 27 || v == 28)
         return static_cast<int>(v - 27);
     return -1;

@@ -1,157 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>MedorCoin Learning Portal Sign Up</title>
-<link rel="icon" href="medorcoin-logo.png">
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #0f172a;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: top;
-    padding-top: 50px;
-  }
-  .container {
-    background: #1e293b;
-    padding: 40px;
-    border-radius: 8px;
-    width: 380px;
-  }
-  input {
-    width: 100%;
-    padding: 10px;
-    margin-top: 8px;
-    margin-bottom: 18px;
-    border-radius: 5px;
-    border: none;
-  }
-  button {
-    width: 100%;
-    padding: 12px;
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  button:hover {
-    background: #1d4ed8;
-  }
-  .error {
-    color: #f87171;
-    font-size: 14px;
-    margin-bottom: 12px;
-  }
-  .social-btn {
-    background:#fff;
-    color:#000;
-    text-align:center;
-    margin: 8px 0;
-    display:block;
-    border-radius:6px;
-    text-decoration:none;
-    padding:10px;
-    font-weight:bold;
-  }
-  .social-btn img {
-    vertical-align:middle;
-    margin-right:8px;
-    width:20px;
-    height:20px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedorCoin - SignUp</title>
+  <style>
+    :root {
+      --bg: #E0F7FF; --surface: #0e1520; --accent: #0A0A0A; 
+      --text: #F3EAD2; --muted: #cbd5e1;
+      --error: #e11d48; --success: #10b981; --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif;
+      display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;
+    }
+    .auth-card {
+      background: var(--surface); border: 1px solid rgba(255,255,255,0.1);
+      padding: 40px; border-radius: 16px; width: 100%; max-width: 420px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .logo { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 32px; text-align: center; letter-spacing: 1.5px; }
+    
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 0.85rem; color: #f8fafc; margin-bottom: 8px; font-weight: 500; }
+    
+    input {
+      width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15);
+      padding: 14px; border-radius: var(--radius); color: #fff; font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    input:focus { outline: none; border-color: #64748b; }
+    
+    .password-hints { font-size: 0.75rem; color: var(--muted); margin-top: 8px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .valid { color: var(--success); font-weight: bold; }
+    .invalid { color: var(--error); }
+
+    .btn {
+      width: 100%; padding: 14px; border-radius: var(--radius); border: none;
+      background: linear-gradient(135deg, #cbd5e1, var(--accent));
+      color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 10px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    
+    .status-msg { font-size: 0.85rem; padding: 12px; border-radius: 8px; margin-top: 20px; display: none; text-align: center; }
+    .status-msg.err { display: block; background: rgba(225,29,72,0.1); color: var(--error); border: 1px solid rgba(225,29,72,0.3); }
+    .status-msg.ok { display: block; background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+  </style>
 </head>
 <body>
 
-<div class="container">
+<div class="auth-card">
+  <div class="logo">MEDORCOIN</div>
 
-  <h2>Welcome to MedorCoin Learning Portal</h2>
-
-  <!-- Social Sign-up Options -->
-  <a class="social-btn" href="#" onclick="googleSignUp()">
-    <img src="google-icon.png" alt="Google"> Sign up with Google
-  </a>
-
-  <a class="social-btn" href="#" onclick="appleSignUp()">
-    <img src="apple-icon.png" alt="Apple"> Sign up with Apple
-  </a>
-
-  <hr style="border:1px solid #334155; margin:15px 0;">
-
-  <!-- Regular Email Form -->
-  <form id="signupForm">
-    <label>Email</label>
-    <input type="email" id="email" required placeholder="your@domain.com">
-
-    <label>Username</label>
-    <input type="text" id="username" required placeholder="Create a username">
-
-    <label>Choose Password</label>
-    <input type="password" id="password" required placeholder="Create password">
-
-    <label>Confirm Password</label>
-    <input type="password" id="confirmPassword" required placeholder="Retype password">
-
-    <div id="errorMsg" class="error"></div>
-
-    <div style="margin-bottom:20px;">
-      <input type="checkbox" id="captcha" required>
-      <label for="captcha">I am not a robot</label>
+  <form id="signup-form">
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="email" required placeholder="miner@example.com">
+    </div>
+    
+    <div class="form-group">
+      <label>Choose Username</label>
+      <input type="text" id="username" required placeholder="MiningPro">
     </div>
 
-    <button type="submit">Proceed to Sign Up</button>
-  </form>
+    <div class="form-group">
+      <label>Choose Password</label>
+      <input type="password" id="password" required placeholder="••••••••">
+      <div class="password-hints" id="pass-hints">
+        <span id="r-len" class="invalid">8+ chars</span>
+        <span id="r-up" class="invalid">Upper</span>
+        <span id="r-num" class="invalid">Num</span>
+      </div>
+    </div>
 
+    <div class="form-group">
+      <label>Confirm Password</label>
+      <input type="password" id="confirm-password" required placeholder="••••••••">
+      <div id="match-hint" style="font-size: 0.75rem; margin-top: 5px; color: var(--error);">Must match</div>
+    </div>
+
+    <button type="submit" class="btn" id="signup-btn">Create Account</button>
+    <div id="status" class="status-msg"></div>
+  </form>
 </div>
 
 <script>
-document.getElementById("signupForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
+const form = document.getElementById('signup-form');
+const passInput = document.getElementById('password');
+const confirmPassInput = document.getElementById('confirm-password');
+const btn = document.getElementById('signup-btn');
+const statusEl = document.getElementById('status');
+const matchHint = document.getElementById('match-hint');
 
-  let pwd = document.getElementById("password").value;
-  let confirm = document.getElementById("confirmPassword").value;
-  let errorMsg = document.getElementById("errorMsg");
-
-  // Password match validation
-  if(pwd !== confirm){
-    errorMsg.innerText = "Passwords do not match.";
-    return;
-  }
-
-  if(!document.getElementById("captcha").checked){
-    errorMsg.innerText = "Please verify you are not a robot.";
-    return;
-  }
-
-  // Send email to backend to send verification code
-  let res = await fetch("/send-code", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ email: document.getElementById("email").value })
-  });
-
-  if(res.ok){
-    window.location.href = "verify.html";
-  } else {
-    errorMsg.innerText = "Error sending code. Try again.";
-  }
+// Real-time password validation UI
+passInput.addEventListener('input', () => {
+  const v = passInput.value;
+  document.getElementById('r-len').className = v.length >= 8 ? 'valid' : 'invalid';
+  document.getElementById('r-up').className = /[A-Z]/.test(v) ? 'valid' : 'invalid';
+  document.getElementById('r-num').className = /[0-9]/.test(v) ? 'valid' : 'invalid';
+  checkMatch();
 });
 
-// Social sign-up stubs
-function googleSignUp(){
-  alert("Google sign up will open OAuth flow."); 
-  // Implementation requires Google Identity Services setup (client ID + redirect) [oai_citation:1‡Google for Developers](https://developers.google.com/identity/gsi/web/guides/display-button?utm_source=chatgpt.com)
+confirmPassInput.addEventListener('input', checkMatch);
+
+function checkMatch() {
+  const isMatch = passInput.value === confirmPassInput.value && passInput.value !== "";
+  matchHint.textContent = isMatch ? "Passwords match" : "Must match";
+  matchHint.style.color = isMatch ? "var(--success)" : "var(--error)";
+  return isMatch;
 }
 
-function appleSignUp(){
-  alert("Apple sign up will open OAuth flow.");
-  // Implementation requires Apple web OAuth configuration [oai_citation:2‡Apple Developer](https://developer.apple.com/help/account/capabilities/configure-sign-in-with-apple-for-the-web/?utm_source=chatgpt.com)
-}
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  if (!checkMatch()) {
+    statusEl.textContent = "Passwords do not match.";
+    statusEl.className = "status-msg err";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Signing up...";
+  statusEl.className = "status-msg";
+  statusEl.textContent = "";
+
+  try {
+    // Calling YOUR Sovereign Server on Port 5000
+    const response = await fetch('http://localhost:5000/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: document.getElementById('username').value,
+        password: passInput.value
+        // Note: Add 'email' here if you update your auth_service.cjs to accept it
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Save your server's unique response data (address and mnemonic)
+      localStorage.setItem('medor_address', data.address);
+      localStorage.setItem('medor_mnemonic', data.mnemonic);
+      
+      statusEl.textContent = "Success! Redirecting to Your Dashboard...";
+      statusEl.className = "status-msg ok";
+      
+      // FIRE DIRECTLY TO MINERS.HTML
+      setTimeout(() => {
+        window.location.replace('miners.html');
+      }, 800);
+    } else {
+      statusEl.textContent = data.error || "Signup failed.";
+      statusEl.className = "status-msg err";
+      btn.disabled = false;
+      btn.textContent = "Create Account";
+    }
+  } catch (err) {
+    console.error("[CONNECTION ERROR]", err);
+    statusEl.textContent = "Sovereign Node Offline. Is the server running on Port 5000?";
+    statusEl.className = "status-msg err";
+    btn.disabled = false;
+    btn.textContent = "Create Account";
+  }
+});
 </script>
-
 </body>
 </html>

@@ -1,0 +1,191 @@
+# =============================================================================
+# MedorCoin Blockchain — Prometheus Alert Rules
+# =============================================================================
+
+groups:
+
+  - name: medorcoin_chain
+    interval: 60s
+    rules:
+
+      - alert: MedorCoinChainStall
+        expr: changes(medorcoin_block_height[2m]) == 0
+        for: 2m
+        labels:
+          severity: critical
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "Chain stall on {{ $labels.instance }} ({{ $labels.region }})"
+          description: "Block height has not advanced for 2 minutes. Instance: {{ $labels.instance }}."
+
+      - alert: MedorCoinLowPeers
+        expr: medorcoin_peer_count < 3
+        for: 3m
+        labels:
+          severity: warning
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "Low peer count on {{ $labels.instance }}"
+          description: "Peer count is {{ $value }} (threshold: 3) on {{ $labels.instance }} / {{ $labels.region }}."
+
+      - alert: MedorCoinHighMempool
+        expr: medorcoin_mempool_tx_count > 20000
+        for: 5m
+        labels:
+          severity: warning
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "Mempool overload on {{ $labels.instance }}"
+          description: "Mempool has {{ $value }} pending transactions on {{ $labels.instance }}."
+
+      - alert: MedorCoinNoPeers
+        expr: medorcoin_peer_count == 0
+        for: 1m
+        labels:
+          severity: critical
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "Node fully isolated on {{ $labels.instance }}"
+          description: "No peers connected on {{ $labels.instance }} / {{ $labels.region }}. Node is isolated."
+
+  - name: medorcoin_rpc
+    interval: 60s
+    rules:
+
+      - alert: MedorCoinHighRPCLatency
+        expr: >
+          histogram_quantile(0.99,
+            rate(medorcoin_rpc_latency_seconds_bucket[5m])
+          ) > 1
+        for: 2m
+        labels:
+          severity: critical
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "RPC p99 latency > 1s on {{ $labels.instance }}"
+          description: "p99 RPC latency is {{ $value }}s on {{ $labels.instance }} / {{ $labels.region }}."
+
+      - alert: MedorCoinRPCSpiking
+        expr: >
+          rate(medorcoin_rpc_requests_total[1m]) > 2000
+        for: 2m
+        labels:
+          severity: warning
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "RPC request rate spike on {{ $labels.instance }}"
+          description: "RPC rate is {{ $value }} req/s on {{ $labels.instance }}. Possible abuse or DDoS."
+
+  - name: medorcoin_storage
+    interval: 60s
+    rules:
+
+      - alert: MedorCoinDBSizeCritical
+        expr: medorcoin_db_size_bytes > 214748364800
+        for: 0m
+        labels:
+          severity: critical
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "DB > 200 GB on {{ $labels.instance }}"
+          description: "Database is {{ $value }} bytes on {{ $labels.instance }}. Disk pressure imminent."
+
+      - alert: MedorCoinDiskFilling
+        expr: >
+          (node_filesystem_avail_bytes{mountpoint="/"} /
+           node_filesystem_size_bytes{mountpoint="/"}) < 0.15
+        for: 5m
+        labels:
+          severity: warning
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "Disk < 15% free on {{ $labels.instance }}"
+          description: "Available disk is {{ $value | humanizePercentage }} on {{ $labels.instance }}."
+
+      - alert: MedorCoinDiskCritical
+        expr: >
+          (node_filesystem_avail_bytes{mountpoint="/"} /
+           node_filesystem_size_bytes{mountpoint="/"}) < 0.05
+        for: 2m
+        labels:
+          severity: critical
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "Disk < 5% free on {{ $labels.instance }}"
+          description: "Critical disk pressure on {{ $labels.instance }}. Node may halt."
+
+  - name: medorcoin_pool
+    interval: 60s
+    rules:
+
+      - alert: MedorCoinFDSaturation
+        expr: medorcoin_pool_open_fds > 7500
+        for: 1m
+        labels:
+          severity: critical
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "FD pool near saturation on {{ $labels.instance }}"
+          description: "Open FDs: {{ $value }} / 8192 on {{ $labels.instance }} / {{ $labels.region }}."
+
+      - alert: MedorCoinPoolRejections
+        expr: rate(medorcoin_pool_global_budget_rejections_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "Connection pool rejecting connections on {{ $labels.instance }}"
+          description: "Pool rejection rate is {{ $value }}/s on {{ $labels.instance }}."
+
+  - name: medorcoin_node_health
+    interval: 60s
+    rules:
+
+      - alert: MedorCoinNodeDown
+        expr: up{job=~"medorcoin_node.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "MedorCoin node unreachable: {{ $labels.instance }}"
+          description: "Prometheus cannot scrape {{ $labels.instance }} in {{ $labels.region }}. Node may be down."
+
+      - alert: MedorCoinHighCPU
+        expr: >
+          rate(node_cpu_seconds_total{mode!="idle"}[5m]) > 0.90
+        for: 5m
+        labels:
+          severity: warning
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "High CPU on {{ $labels.instance }}"
+          description: "CPU usage is above 90% for 5 minutes on {{ $labels.instance }}."
+
+      - alert: MedorCoinHighMemory
+        expr: >
+          (1 - (node_memory_MemAvailable_bytes /
+                node_memory_MemTotal_bytes)) > 0.90
+        for: 5m
+        labels:
+          severity: warning
+          project:  medorcoin-blockchain
+        annotations:
+          summary:     "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}."
+
+  - name: medorcoin_recording
+    interval: 15s
+    rules:
+      - record: job:medorcoin_block_height:max
+        expr:   max by (region) (medorcoin_block_height)
+
+      - record: job:medorcoin_peer_count:avg
+        expr:   avg by (region) (medorcoin_peer_count)
+
+      - record: job:medorcoin_rpc_rate:sum
+        expr:   sum by (region) (rate(medorcoin_rpc_requests_total[1m]))
+
+      - record: job:medorcoin_tx_rate:sum
+        expr:   sum by (region) (rate(medorcoin_tx_total[1m]))

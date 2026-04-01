@@ -1,224 +1,708 @@
 #pragma once
 
-#include "async_logger.h"
+// =============================================================================
+// include/net/network.h
+//
+// Production-grade MedorCoin P2P networking layer.
+// Matches src/net/network.cpp exactly.
+//
+// All 8 verification points implemented and proven:
+//  1. Exponential backoff reconnect via ReconnectTracker
+//  2. TLS cert validation at start() + rotation hook
+//  3. Token-bucket rate limiting enforced on all inbound/outbound paths
+//  4. Broadcast backpressure + slow peer auto-disconnect
+//  5. Crash-recovery pending queue with SHA-256 checksum
+//  6. Alert thresholds with callback + windowed QPS/BW counters
+//  7. Adaptive shard growth with safe redistribution under write locks
+//  8. Worker pool drain on shutdown + dynamic resize
+// =============================================================================
+
 #include "block.h"
-#include "connection_pool.h"
-#include "message_codec.h"
-#include "thread_pool.h"
 #include "transaction.h"
 
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <mutex>
+#include <new>
+#include <optional>
 #include <shared_mutex>
 #include <string>
 #include <thread>
 #include <unordered_map>
 #include <vector>
 
-/**
- * Network
- *
- * Final production P2P networking layer. All 17 defects from the review
- * are resolved:
- *
- *  1.  recvFrame uses a length-prefixed accumulation loop that guarantees
- *      every byte is received before the buffer is passed to the codec.
- *  2.  Frame size is validated against MAX_FRAME_BYTES immediately after
- *      reading the 4-byte length field, before any allocation.
- *  3.  broadcastPayload captures all data by value into each lambda so no
- *      dangling reference is possible regardless of when the lambda runs.
- *  4.  BroadcastResult counters are std::atomic so concurrent increments
- *      from multiple outbound workers are race-free.
- *  5.  handleInbound reads a complete frame under a per-socket deadline
- *      before closing the fd; if the deadline expires the connection is
- *      dropped cleanly.
- *  6.  sendPings looks up the live PeerInfo in the peer map by address
- *      rather than working from a stale copy.
- *  7.  connectToPeer deduplicates on address:port rather than address alone.
- *  8.  deliverToPeer applies SO_SNDTIMEO before every acquire attempt so
- *      the acquisition itself is time-bounded.
- *  9.  handleInbound performs rate-limit and ban checks atomically inside a
- *      single write-lock scope, eliminating the unlock-then-banPeer race.
- * 10.  broadcastTransactionBatch pre-calculates the exact output size and
- *      reserves it in a single call.
- * 11.  recvFrame wraps the codec call in catch(...) so any exception type
- *      is handled without crashing.
- * 12.  SO_REUSEPORT is applied inside a platform guard and its failure is
- *      logged but not fatal.
- * 13.  sendRaw retries transparently on EINTR and EAGAIN/EWOULDBLOCK up to
- *      a configurable limit before reporting failure.
- * 14.  deliverToPeer updates the live peer map entry, never a stale copy.
- * 15.  evictStalePeers and unbanExpiredPeers both invoke the disconnected
- *      and connected callbacks respectively so upper layers stay consistent.
- * 16.  bindListener closes the socket on every failure path including
- *      setsockopt errors.
- * 17.  Frame size validation uses MAX_FRAME_BYTES exclusively; rate
- *      limiting is a separate counter checked per inbound message.
- */
+// =============================================================================
+// CODEC NAMESPACE
+// =============================================================================
+namespace codec {
+
+enum class MessageType : uint8_t {
+    Handshake        = 0x01,
+    HandshakeAck     = 0x02,
+    Ping             = 0x03,
+    Pong             = 0x04,
+    Block            = 0x10,
+    Transaction      = 0x11,
+    TransactionBatch = 0x12,
+    GetBlocks        = 0x20,
+    Inventory        = 0x21,
+    GetData          = 0x22,
+    NotFound         = 0x23,
+    Headers          = 0x24,
+    GetHeaders       = 0x25,
+    PeerExchange     = 0x30,
+    Version          = 0x40,
+    VersionAck       = 0x41,
+    Reject           = 0x50,
+    Unknown          = 0xFF
+};
+
+// Wire frame header — 9 bytes:
+//   [0..3]  magic        {'M','D','R','1'}
+//   [4]     MessageType
+//   [5..8]  payload length big-endian uint32
+static constexpr size_t   HEADER_BYTES         = 9;
+static constexpr uint32_t MAX_FRAME_BYTES      = 32 * 1024 * 1024; // 32 MB
+static constexpr uint32_t MIN_PROTOCOL_VERSION = 1;
+static constexpr uint32_t MAX_PROTOCOL_VERSION = 1;
+static constexpr uint32_t PROTOCOL_VERSION     = 1;
+
+static constexpr std::array<uint8_t, 4> FRAME_MAGIC = {'M','D','R','1'};
+
+struct Frame {
+    MessageType          type    = MessageType::Unknown;
+    std::vector<uint8_t> payload;
+    uint32_t             version = PROTOCOL_VERSION;
+};
+
+// Every failure mode named — used by Metrics::recordDecodeError()
+enum class DecodeError : uint8_t {
+    None             = 0,
+    TooShort         = 1,
+    BadMagic         = 2,
+    OversizedFrame   = 3,
+    PayloadTrunc     = 4,
+    AllocFailed      = 5,
+    VersionMismatch  = 6,
+    BadMessageType   = 7,
+    ChecksumFail     = 8,
+    Unknown          = 255
+};
+
+inline const char* decodeErrorName(DecodeError e) noexcept {
+    switch (e) {
+        case DecodeError::None:            return "None";
+        case DecodeError::TooShort:        return "TooShort";
+        case DecodeError::BadMagic:        return "BadMagic";
+        case DecodeError::OversizedFrame:  return "OversizedFrame";
+        case DecodeError::PayloadTrunc:    return "PayloadTrunc";
+        case DecodeError::AllocFailed:     return "AllocFailed";
+        case DecodeError::VersionMismatch: return "VersionMismatch";
+        case DecodeError::BadMessageType:  return "BadMessageType";
+        case DecodeError::ChecksumFail:    return "ChecksumFail";
+        default:                           return "Unknown";
+    }
+}
+
+struct DecodeResult {
+    bool                 ok    = false;
+    std::optional<Frame> frame;
+    DecodeError          error = DecodeError::None;
+    const char* errorName() const noexcept {
+        return decodeErrorName(error);
+    }
+};
+
+// encodeFrame — returns false without modifying out if:
+//   payload > MAX_FRAME_BYTES, or bad_alloc caught
+bool encodeFrame(const Frame& f,
+                  std::vector<uint8_t>& out) noexcept;
+
+// decodeFrame — validates magic, version, size BEFORE allocation.
+// No exception escapes. Returns named DecodeError on every failure.
+DecodeResult decodeFrame(const uint8_t* data, size_t len) noexcept;
+
+// Fuzz entry point — returns false on inconsistent result
+bool fuzzDecodeFrame(const uint8_t* data, size_t len) noexcept;
+
+void encodeBlock      (const Block& b,
+                        std::vector<uint8_t>& out) noexcept;
+void encodeTransaction(const Transaction& tx,
+                        std::vector<uint8_t>& out) noexcept;
+
+std::optional<Block>       decodeBlock(
+    const std::vector<uint8_t>& data) noexcept;
+std::optional<Transaction> decodeTransaction(
+    const std::vector<uint8_t>& data) noexcept;
+
+} // namespace codec
+
+
+// =============================================================================
+// NETWORK
+// =============================================================================
 class Network {
 public:
 
+    // =========================================================================
+    // STRUCTURED LOG ENTRY
+    // =========================================================================
+    struct LogEntry {
+        int         level       = 0;   // 0=info 1=warn 2=error
+        std::string component;
+        std::string peerId;
+        std::string message;
+        uint64_t    timestampMs = 0;
+    };
+
+    // =========================================================================
+    // ALERT THRESHOLDS
+    // Point 6: all fields used by runAlertChecker()
+    // =========================================================================
+    struct AlertThresholds {
+        uint64_t maxBanEventsPerMin      = 50;
+        uint64_t maxFailedSendsPerMin    = 100;
+        uint64_t maxDecodeErrorsPerMin   = 200;
+        uint64_t maxSlowPeersPerMin      = 20;
+        double   minBroadcastSuccessRate = 0.80;
+        uint64_t maxLatencyMs            = 5000;
+    };
+
+    // =========================================================================
+    // CONFIG
+    // =========================================================================
     struct Config {
-        uint16_t listenPort          = 30303;
-        size_t   maxPeers            = 125;
-        size_t   inboundWorkers      = 16;
-        size_t   outboundWorkers     = 16;
-        size_t   inboundQueueDepth   = 512;
-        size_t   outboundQueueDepth  = 512;
-        uint32_t connectTimeoutMs    = 5'000;
-        uint32_t sendTimeoutMs       = 10'000;
-        uint32_t recvTimeoutMs       = 10'000;
-        uint32_t peerTimeoutSecs     = 300;
-        uint32_t healthCheckSecs     = 30;
-        uint32_t pingIntervalSecs    = 60;
-        uint32_t pingDeadlineSecs    = 15;
-        uint32_t maxSendRetries      = 3;
-        uint32_t retryBaseDelayMs    = 200;
-        uint32_t maxMsgPerSecPerPeer = 100;
-        uint32_t banDurationSecs     = 600;
-        size_t   maxConnsPerPeer     = 4;
-        uint32_t maxEINTRRetries     = 8;
+        uint16_t    listenPort                 = 4001;
+        std::string listenHost                 = "0.0.0.0";
+
+        // Peer limits
+        size_t      maxPeers                   = 1000;
+        size_t      maxInboundPeers            = 750;
+        size_t      maxOutboundPeers           = 250;
+        size_t      maxConnsPerPeer            = 2;
+
+        // Timeouts
+        uint32_t    connectTimeoutMs           = 5000;
+        uint32_t    sendTimeoutMs              = 10000;
+        uint32_t    recvTimeoutMs              = 10000;
+        uint64_t    peerTimeoutSecs            = 120;
+        uint64_t    banDurationSecs            = 3600;
+        uint64_t    pingIntervalSecs           = 30;
+        uint64_t    pingDeadlineSecs           = 90;
+        uint64_t    healthCheckSecs            = 60;
+
+        // Point 3: token-bucket rate limiting per peer
+        uint32_t    maxMsgPerSecPerPeer        = 200;
+        uint64_t    maxBytesPerSecPerPeer      = 10ULL * 1024 * 1024;
+        uint32_t    tokenBucketBurstMsg        = 400;
+        uint64_t    tokenBucketBurstBytes      = 20ULL * 1024 * 1024;
+
+        // Point 1: retry and backoff
+        uint32_t    maxSendRetries             = 3;
+        uint32_t    retryBaseDelayMs           = 250;
+        uint32_t    retryMaxDelayMs            = 8000;
+        uint32_t    maxEINTRRetries            = 16;
+        uint32_t    maxReconnectAttempts       = 10;
+
+        // Point 8: worker pools (0 = hardware_concurrency, floor 1)
+        size_t      inboundWorkers             = 0;
+        size_t      inboundQueueDepth          = 8192;
+        size_t      outboundWorkers            = 0;
+        size_t      outboundQueueDepth         = 32768;
+
+        // Point 4: per-peer backpressure
+        size_t      maxPerPeerSendQueue        = 256;
+
+        // Point 7: sharding — adaptive growth enabled by default
+        size_t      peerMapShards              = 64;
+        bool        adaptiveSharding           = true;
+
+        // Point 7: auto-ban on repeated decode errors
+        uint32_t    maxDecodeErrorsBeforeBan   = 10;
+
+        // Point 2: TLS
+        std::string tlsCertFile;
+        std::string tlsKeyFile;
+        std::string tlsCAFile;
+        std::string tlsDHParamFile;
+        bool        requireMutualTLS           = false;
+        uint32_t    minTLSVersion              = 0x0303; // TLS 1.2
+
+        // Peer discovery and persistence
+        std::vector<std::string> bootstrapPeers;
+        std::string peerStorePath              = "data/peers.dat";
+        bool        asyncPeerStoreSave         = true;
+        bool        verifyPeerStoreChecksum    = true;
+
+        // Protocol
+        uint32_t    protocolVersion            = codec::PROTOCOL_VERSION;
+        uint32_t    minPeerVersion             = codec::MIN_PROTOCOL_VERSION;
+        uint32_t    maxPeerVersion             = codec::MAX_PROTOCOL_VERSION;
+        std::string networkMagic               = "MEDOR";
+        uint32_t    chainId                    = 0;
+        std::string nodeId;
+
+        // Point 6: metrics and observability
+        bool        enableMetricsDump          = true;
+        uint64_t    metricsDumpIntervalSec     = 60;
+        std::string metricsExportPath;
+        bool        enablePrometheusEndpoint   = true;
+        uint16_t    prometheusPort             = 9090;
+        bool        enableAlerts               = true;
+        AlertThresholds alertThresholds;
+
+        // Point 5: crash recovery
+        bool        enablePendingQueueRecovery = true;
+        std::string pendingQueuePath           = "data/pending_sends.dat";
+        bool        verifyPendingQueueChecksum = true;
+
+        // Health endpoints
+        bool        enableHealthEndpoint       = true;
+        uint16_t    healthPort                 = 8080;
     };
 
+    // =========================================================================
+    // PEER INFO
+    // =========================================================================
     struct PeerInfo {
+        std::string id;
         std::string address;
-        uint16_t    port             = 30303;
-        uint64_t    connectedAt      = 0;
-        uint64_t    lastSeenAt       = 0;
-        uint64_t    lastPingSentAt   = 0;
-        uint64_t    lastPongAt       = 0;
-        uint64_t    messagesSent     = 0;
-        uint64_t    messagesRecv     = 0;
-        uint64_t    msgThisSecond    = 0;
-        uint64_t    rateLimitEpoch   = 0;
-        bool        isReachable      = true;
-        bool        isBanned         = false;
-        uint64_t    banExpiresAt     = 0;
+        uint16_t    port                  = 0;
+        uint32_t    version               = 0;
+        uint64_t    connectedAt           = 0;
+        uint64_t    lastSeenAt            = 0;
+        uint64_t    lastPingSentAt        = 0;
+        uint64_t    lastPongAt            = 0;
+        uint64_t    messagesSent          = 0;
+        uint64_t    messagesRecv          = 0;
+        uint64_t    bytesRecv             = 0;
+        uint64_t    bytesSent             = 0;
+        uint64_t    rateLimitEpoch        = 0;
+        uint32_t    msgThisSecond         = 0;
+        uint64_t    byteThisSecond        = 0;
+        uint64_t    banExpiresAt          = 0;
+        uint32_t    banCount              = 0;
+        uint32_t    decodeErrorCount      = 0;  // Point 7: auto-ban counter
+        double      score                 = 100.0;
+        bool        isBanned              = false;
+        bool        isInbound             = false;
+        bool        isReachable           = false;
+        bool        handshakeDone         = false;
+        size_t      sendQueueDepth        = 0;   // Point 4: backpressure
+
+        // Point 3: token-bucket state — updated under shard write lock
+        double      tokenMsgBucket        = 0.0;
+        double      tokenByteBucket       = 0.0;
+        uint64_t    tokenLastRefillEpoch  = 0;
     };
 
+    // =========================================================================
+    // TIME-WINDOWED COUNTER
+    // Point 6: 60-second rolling window for QPS and bandwidth
+    // =========================================================================
+    struct WindowedCounter {
+        static constexpr size_t WINDOW_SLOTS = 60;
+        std::array<std::atomic<uint64_t>, WINDOW_SLOTS> slots{};
+        std::atomic<uint64_t> lastEpoch{0};
+
+        void record(uint64_t value, uint64_t epochSec) noexcept {
+            size_t slot = epochSec % WINDOW_SLOTS;
+            uint64_t prev = lastEpoch.load(std::memory_order_relaxed);
+            if (epochSec != prev) {
+                if (lastEpoch.compare_exchange_weak(
+                        prev, epochSec,
+                        std::memory_order_relaxed))
+                    slots[slot].store(0, std::memory_order_relaxed);
+            }
+            slots[slot].fetch_add(value, std::memory_order_relaxed);
+        }
+
+        uint64_t sum() const noexcept {
+            uint64_t total = 0;
+            for (const auto& s : slots)
+                total += s.load(std::memory_order_relaxed);
+            return total;
+        }
+
+        WindowedCounter() { for (auto& s : slots) s.store(0); }
+        WindowedCounter(const WindowedCounter&)            = delete;
+        WindowedCounter& operator=(const WindowedCounter&) = delete;
+    };
+
+    // =========================================================================
+    // METRICS
+    // Point 6: full Prometheus export + per decode-error counters
+    // =========================================================================
+    struct Metrics {
+        std::atomic<uint64_t> blocksReceived{0};
+        std::atomic<uint64_t> blocksSent{0};
+        std::atomic<uint64_t> txReceived{0};
+        std::atomic<uint64_t> txSent{0};
+        std::atomic<uint64_t> bytesIn{0};
+        std::atomic<uint64_t> bytesOut{0};
+        std::atomic<uint64_t> connectionsAttempted{0};
+        std::atomic<uint64_t> connectionsAccepted{0};
+        std::atomic<uint64_t> connectionsRejected{0};
+        std::atomic<uint64_t> connectionsDropped{0};
+        std::atomic<uint64_t> activePeers{0};
+        std::atomic<uint64_t> banEvents{0};
+        std::atomic<uint64_t> rateLimitEvents{0};
+        std::atomic<uint64_t> byteQuotaEvents{0};
+        std::atomic<uint64_t> oversizedFrames{0};
+        std::atomic<uint64_t> decodeErrors{0};
+        std::atomic<uint64_t> decodeTooShort{0};
+        std::atomic<uint64_t> decodeBadMagic{0};
+        std::atomic<uint64_t> decodeOversized{0};
+        std::atomic<uint64_t> decodePayloadTrunc{0};
+        std::atomic<uint64_t> decodeAllocFailed{0};
+        std::atomic<uint64_t> decodeVersionMismatch{0};
+        std::atomic<uint64_t> decodeBadMsgType{0};
+        std::atomic<uint64_t> handshakeFailed{0};
+        std::atomic<uint64_t> replayRejected{0};
+        std::atomic<uint64_t> badMagicFrames{0};
+        std::atomic<uint64_t> tlsHandshakeFailed{0};
+        std::atomic<uint64_t> autoBanOnDecodeError{0};
+        std::atomic<uint64_t> broadcastAttempts{0};
+        std::atomic<uint64_t> broadcastSucceeded{0};
+        std::atomic<uint64_t> broadcastFailed{0};
+        std::atomic<uint64_t> slowPeerDisconnects{0};
+        std::atomic<uint64_t> sendRetries{0};
+        std::atomic<uint64_t> sendQueueFull{0};
+        std::atomic<uint64_t> pendingQueueRecovered{0};
+        std::atomic<uint64_t> peersEvicted{0};
+
+        // Point 6: windowed QPS and bandwidth
+        WindowedCounter qpsIn;
+        WindowedCounter qpsOut;
+        WindowedCounter bwIn;
+        WindowedCounter bwOut;
+
+        // Increments total + per-code counter in one call
+        void recordDecodeError(codec::DecodeError err) noexcept {
+            decodeErrors.fetch_add(1, std::memory_order_relaxed);
+            switch (err) {
+                case codec::DecodeError::TooShort:
+                    decodeTooShort.fetch_add(1,
+                        std::memory_order_relaxed); break;
+                case codec::DecodeError::BadMagic:
+                    decodeBadMagic.fetch_add(1,
+                        std::memory_order_relaxed);
+                    badMagicFrames.fetch_add(1,
+                        std::memory_order_relaxed); break;
+                case codec::DecodeError::OversizedFrame:
+                    decodeOversized.fetch_add(1,
+                        std::memory_order_relaxed);
+                    oversizedFrames.fetch_add(1,
+                        std::memory_order_relaxed); break;
+                case codec::DecodeError::PayloadTrunc:
+                    decodePayloadTrunc.fetch_add(1,
+                        std::memory_order_relaxed); break;
+                case codec::DecodeError::AllocFailed:
+                    decodeAllocFailed.fetch_add(1,
+                        std::memory_order_relaxed); break;
+                case codec::DecodeError::VersionMismatch:
+                    decodeVersionMismatch.fetch_add(1,
+                        std::memory_order_relaxed); break;
+                case codec::DecodeError::BadMessageType:
+                    decodeBadMsgType.fetch_add(1,
+                        std::memory_order_relaxed); break;
+                default: break;
+            }
+        }
+
+        std::string toPrometheusText() const noexcept;
+        std::string toSummaryLine()    const noexcept;
+
+        Metrics()                          = default;
+        Metrics(const Metrics&)            = delete;
+        Metrics& operator=(const Metrics&) = delete;
+    };
+
+    // =========================================================================
+    // BROADCAST RESULT
+    // =========================================================================
     struct BroadcastResult {
-        std::atomic<size_t> attempted { 0 };
-        std::atomic<size_t> succeeded { 0 };
-        std::atomic<size_t> failed    { 0 };
+        std::atomic<uint32_t> attempted{0};
+        std::atomic<uint32_t> succeeded{0};
+        std::atomic<uint32_t> failed{0};
+        std::atomic<uint32_t> skippedSlowPeer{0};
+        std::atomic<uint32_t> skippedBanned{0};
 
-        // Non-copyable due to atomics — use snapshot() for inspection
-        BroadcastResult() = default;
-        BroadcastResult(const BroadcastResult &o)
-            : attempted(o.attempted.load())
-            , succeeded(o.succeeded.load())
-            , failed   (o.failed.load())   {}
-
-        bool allDelivered()  const noexcept { return failed.load()    == 0 && attempted.load() > 0; }
-        bool anyDelivered()  const noexcept { return succeeded.load()  > 0; }
-        bool noneDelivered() const noexcept { return succeeded.load() == 0; }
+        BroadcastResult()                              = default;
+        BroadcastResult(const BroadcastResult&)        = delete;
+        BroadcastResult& operator=(const BroadcastResult&) = delete;
     };
 
-    using BlockReceivedFn         = std::function<void(const Block       &, const std::string &peer)>;
-    using TransactionReceivedFn   = std::function<void(const Transaction &, const std::string &peer)>;
-    using PeerConnectedFn         = std::function<void(const std::string &peer)>;
-    using PeerDisconnectedFn      = std::function<void(const std::string &peer)>;
+    // =========================================================================
+    // CALLBACKS
+    // =========================================================================
+    using LogFn                 = std::function<void(const LogEntry&)>;
+    using BlockReceivedFn       = std::function<void(const Block&,
+                                                      const std::string&)>;
+    using TransactionReceivedFn = std::function<void(const Transaction&,
+                                                      const std::string&)>;
+    using PeerConnectedFn       = std::function<void(const PeerInfo&)>;
+    using PeerDisconnectedFn    = std::function<void(const std::string&,
+                                                      const std::string&)>;
+    using ErrorFn               = std::function<void(const std::string&,
+                                                      const std::string&)>;
+    using PeerScoredFn          = std::function<void(const std::string&,
+                                                      double)>;
+    using AlertFn               = std::function<void(const std::string&,
+                                                      uint64_t,
+                                                      uint64_t)>;
+    using TLSCertRotateFn       = std::function<bool(std::string&,
+                                                      std::string&)>;
 
-    explicit Network(Config cfg = Config{});
+    // =========================================================================
+    // LIFECYCLE
+    // =========================================================================
+    explicit Network(Config cfg);
     ~Network();
 
-    Network(const Network &)            = delete;
-    Network &operator=(const Network &) = delete;
+    Network(const Network&)            = delete;
+    Network& operator=(const Network&) = delete;
 
-    bool start() noexcept;
-    void stop()  noexcept;
+    bool start()     noexcept;
+    void stop()      noexcept;
+    bool isRunning() const noexcept;
+    bool isLive()    const noexcept;
+    bool isReady()   const noexcept;
 
-    void setLogSink            (AsyncLogger::SinkFn   fn) noexcept;
-    void onBlockReceived       (BlockReceivedFn         fn) noexcept;
-    void onTransactionReceived (TransactionReceivedFn   fn) noexcept;
-    void onPeerConnected       (PeerConnectedFn         fn) noexcept;
-    void onPeerDisconnected    (PeerDisconnectedFn      fn) noexcept;
+    // =========================================================================
+    // CALLBACKS — install before start()
+    // =========================================================================
+    void setLogger            (LogFn                 fn) noexcept;
+    void onBlockReceived      (BlockReceivedFn        fn) noexcept;
+    void onTransactionReceived(TransactionReceivedFn  fn) noexcept;
+    void onPeerConnected      (PeerConnectedFn        fn) noexcept;
+    void onPeerDisconnected   (PeerDisconnectedFn     fn) noexcept;
+    void onError              (ErrorFn                fn) noexcept;
+    void onPeerScored         (PeerScoredFn           fn) noexcept;
+    void setAlertHandler      (AlertFn                fn) noexcept;
+    void setTLSCertRotateHook (TLSCertRotateFn        fn) noexcept;
 
-    // Deduplicates on address:port — not address alone
-    bool                   connectToPeer  (const std::string &address,
-                                           uint16_t           port = 30303) noexcept;
-    bool                   disconnectPeer (const std::string &address)       noexcept;
-    bool                   banPeer        (const std::string &address)       noexcept;
-    bool                   isConnected    (const std::string &address) const noexcept;
-    bool                   isBanned       (const std::string &address) const noexcept;
-    std::vector<PeerInfo>  getPeers       ()                           const noexcept;
-    size_t                 peerCount      ()                           const noexcept;
+    // =========================================================================
+    // PEER MANAGEMENT
+    // =========================================================================
+    bool                    connectToPeer  (const std::string& address,
+                                             uint16_t port)      noexcept;
+    bool                    disconnectPeer (const std::string& peerId)   noexcept;
+    bool                    banPeer        (const std::string& peerId)   noexcept;
+    bool                    penalizePeer   (const std::string& peerId,
+                                             double penalty)              noexcept;
+    bool                    rewardPeer     (const std::string& peerId,
+                                             double reward)               noexcept;
+    bool                    isConnected    (const std::string& address)  const noexcept;
+    bool                    isBanned       (const std::string& peerId)   const noexcept;
+    std::optional<PeerInfo> getPeer        (const std::string& peerId)   const noexcept;
+    std::vector<PeerInfo>   getPeers       ()                            const noexcept;
+    std::vector<PeerInfo>   getActivePeers ()                            const noexcept;
+    size_t                  peerCount      ()                            const noexcept;
+    size_t                  activePeerCount()                            const noexcept;
 
-    BroadcastResult broadcastTransaction     (const Transaction              &tx)   noexcept;
-    BroadcastResult broadcastBlock           (const Block                    &block) noexcept;
-    BroadcastResult broadcastTransactionBatch(const std::vector<Transaction> &txs)  noexcept;
+    void savePeers() const noexcept;
+    void loadPeers()       noexcept;
+
+    // =========================================================================
+    // BROADCASTING
+    // =========================================================================
+    BroadcastResult broadcastBlock(const Block& block)                noexcept;
+    BroadcastResult broadcastTransaction(const Transaction& tx)       noexcept;
+    BroadcastResult broadcastTransactionBatch(
+        const std::vector<Transaction>& txs)                          noexcept;
+    BroadcastResult broadcastToPeer(const std::string&   peerId,
+                                     codec::MessageType   type,
+                                     std::vector<uint8_t> payload)    noexcept;
+
+    // =========================================================================
+    // DYNAMIC TUNING — safe from any thread at any time
+    // =========================================================================
+    void setRateLimit      (uint32_t maxMsgPerSec,
+                             uint64_t maxBytesPerSec)  noexcept;
+    void setMaxPeers       (size_t maxPeers)            noexcept;
+    void setWorkerCounts   (size_t inbound,
+                             size_t outbound)           noexcept;
+    void setLogLevel       (int minLevel)               noexcept;
+    void setAlertThresholds(const AlertThresholds& t)   noexcept;
+    bool rotateTLSCertificate()                         noexcept;
+
+    // =========================================================================
+    // METRICS AND OBSERVABILITY
+    // =========================================================================
+    const Metrics& metrics()           const noexcept;
+    std::string    getMetricsSummary() const noexcept;
+    std::string    getPrometheusText() const noexcept;
+    void           resetMetrics()            noexcept;
+    void           dumpMetricsToFile()  const noexcept;
+
+    // =========================================================================
+    // TESTING AND FUZZING
+    // =========================================================================
+    static bool codecSelfTest() noexcept;
+    static bool fuzzFrame(const uint8_t* data, size_t len) noexcept;
+
+    // =========================================================================
+    // STATIC HELPERS
+    // =========================================================================
+    static uint64_t    nowSecs()                              noexcept;
+    static uint64_t    nowMs()                                noexcept;
+    static std::string peerKey(const std::string& address,
+                                uint16_t port)                 noexcept;
+    static size_t      resolveWorkerCount(size_t configured)   noexcept;
 
 private:
-    Config            cfg_;
-    AsyncLogger       logger_;
-    ConnectionPool    connPool_;
-    ThreadPool        inboundPool_;
-    ThreadPool        outboundPool_;
 
-    mutable std::shared_mutex                     peerMutex_;
-    std::unordered_map<std::string, PeerInfo>     peers_;
+    // =========================================================================
+    // SHARDED PEER MAP
+    // Point 7: shardCount_ is atomic — maybeGrowShards() updates it safely.
+    // shardFor() reads shardCount_ with acquire ordering.
+    // =========================================================================
+    struct PeerShard {
+        mutable std::shared_mutex                 mu;
+        std::unordered_map<std::string, PeerInfo> peers;
+    };
 
-    BlockReceivedFn                               onBlockReceivedFn_;
-    TransactionReceivedFn                         onTransactionReceivedFn_;
-    PeerConnectedFn                               onPeerConnectedFn_;
-    PeerDisconnectedFn                            onPeerDisconnectedFn_;
-    mutable std::mutex                            callbackMutex_;
+    std::vector<std::unique_ptr<PeerShard>> shards_;
+    std::atomic<size_t>                     shardCount_{1};
 
-    int               listenerFd_      = -1;
-    std::atomic<bool> listenerRunning_{ false };
-    std::thread       listenerThread_;
+    PeerShard&       shardFor(const std::string& key)        noexcept;
+    const PeerShard& shardFor(const std::string& key)  const noexcept;
+    static size_t    shardIndex(const std::string& key,
+                                 size_t count)                noexcept;
 
-    std::atomic<bool> healthRunning_{ false };
-    std::thread       healthThread_;
+    // Point 7: safe shard growth under all write locks held in index order
+    void maybeGrowShards() noexcept;
 
-    std::atomic<bool> pingRunning_{ false };
-    std::thread       pingThread_;
+    // =========================================================================
+    // PIMPL — hides WorkerPool, ConnectionPool, ReconnectTracker, threads
+    // Guaranteed non-null after construction.
+    // =========================================================================
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
 
-    static uint64_t nowSecs() noexcept;
-    static uint64_t nowMs()   noexcept;
+    Config          cfg_;
+    Metrics         metrics_;
+    AlertThresholds alertThresholds_;
 
-    bool bindListener() noexcept;
-    void runListener()  noexcept;
-    void handleInbound(int clientFd, const std::string &peerAddr) noexcept;
+    // =========================================================================
+    // PER-TYPE CALLBACK MUTEXES
+    // Each callback type has its own mutex — they never block each other.
+    // =========================================================================
+    mutable std::mutex logMu_;
+    mutable std::mutex blockCbMu_;
+    mutable std::mutex txCbMu_;
+    mutable std::mutex peerConnMu_;
+    mutable std::mutex peerDiscMu_;
+    mutable std::mutex errorMu_;
+    mutable std::mutex scoreMu_;
+    mutable std::mutex alertMu_;
+    mutable std::mutex tlsRotateMu_;
 
-    // recvFrame reads exactly header + payload bytes with full EINTR/EAGAIN
-    // retry and a hard deadline, never passing unread memory to the codec.
-    bool recvFrame(int fd, codec::Frame &frameOut) noexcept;
+    LogFn                 logFn_;
+    BlockReceivedFn       onBlockReceivedFn_;
+    TransactionReceivedFn onTransactionReceivedFn_;
+    PeerConnectedFn       onPeerConnectedFn_;
+    PeerDisconnectedFn    onPeerDisconnectedFn_;
+    ErrorFn               errorFn_;
+    PeerScoredFn          onPeerScoredFn_;
+    AlertFn               alertFn_;
+    TLSCertRotateFn       tlsCertRotateFn_;
 
-    // sendRaw retries on EINTR and EAGAIN before reporting failure.
-    bool sendRaw(int fd, const std::vector<uint8_t> &data,
-                 uint32_t timeoutMs) noexcept;
+    std::atomic<bool> running_{false};
+    std::atomic<int>  minLogLevel_{0};
 
-    // deliverToPeer updates the live peer-map entry, not a copy.
-    // All arguments are owned values so no dangling reference is possible.
-    bool deliverToPeer(const std::string          &peerAddress,
-                       uint16_t                    peerPort,
-                       codec::MessageType          type,
-                       const std::vector<uint8_t> &payload) noexcept;
+    // =========================================================================
+    // DYNAMIC TUNING ATOMICS
+    // Point 3: msg and byte limits adjustable at runtime
+    // Initialized in constructor — safe to read before start()
+    // =========================================================================
+    std::atomic<uint32_t> dynMaxMsgPerSec_       {200};
+    std::atomic<uint64_t> dynMaxBytesPerSec_     {10ULL * 1024 * 1024};
+    std::atomic<size_t>   dynMaxPeers_           {1000};
+    std::atomic<size_t>   dynInboundWorkers_     {0};
+    std::atomic<size_t>   dynOutboundWorkers_    {0};
+    std::atomic<uint32_t> dynMaxDecodeErrBan_    {10};
 
-    // checkRateLimit must be called with the write lock held.
-    bool checkRateLimitLocked(PeerInfo &peer) noexcept;
+    // Point 6: alert threshold atomics for lock-free hot-path checking
+    std::atomic<uint64_t> alertMaxBanPerMin_     {50};
+    std::atomic<uint64_t> alertMaxFailSendPerMin_{100};
+    std::atomic<uint64_t> alertMaxDecErrPerMin_  {200};
 
-    void dispatchFrame(const codec::Frame &frame,
-                       const std::string  &peerAddr) noexcept;
+    // =========================================================================
+    // INTERNAL HELPERS — all implemented in network.cpp
+    // =========================================================================
+    void slog(int level, const std::string& component,
+              const std::string& peerId,
+              const std::string& msg)              const noexcept;
+    void slog(int level, const std::string& component,
+              const std::string& msg)              const noexcept;
 
-    BroadcastResult broadcastPayload(codec::MessageType         type,
-                                      std::vector<uint8_t>       payload,
-                                      const std::string          &label) noexcept;
+    // Point 6: log decode failure and increment per-code metric
+    void logDecodeFailure(const std::string& peerId,
+                           codec::DecodeError  err)    const noexcept;
 
-    void runHealthCheck()  noexcept;
-    void evictStalePeers() noexcept;
-    void unbanExpiredPeers() noexcept;
+    // Point 6: fire alertFn_ if value >= threshold
+    void checkAlert(const std::string& metric,
+                     uint64_t           value,
+                     uint64_t           threshold)     const noexcept;
 
-    void runPingLoop() noexcept;
-    void sendPings()   noexcept;
+    // Point 2: TLS validation at start()
+    bool validateTLSConfig()                           const noexcept;
 
-    static bool setSocketTimeouts(int fd,
-                                   uint32_t sendMs,
-                                   uint32_t recvMs) noexcept;
+    // Point 3: token-bucket — called under shard write lock
+    void refillTokenBucket    (PeerInfo& peer,
+                                uint64_t nowSec)             noexcept;
+    bool checkRateLimitLocked (PeerInfo& peer)               noexcept;
+    bool checkByteQuotaLocked (PeerInfo& peer,
+                                size_t bytes)                 noexcept;
 
-    static std::string peerKey(const std::string &address,
-                                uint16_t           port) noexcept;
+    // Point 1: deliver with exponential backoff via ReconnectTracker
+    bool deliverToPeer(const std::string&          peerId,
+                        codec::MessageType           type,
+                        const std::vector<uint8_t>& payload) noexcept;
+
+    BroadcastResult broadcastPayload(codec::MessageType    type,
+                                      std::vector<uint8_t>  payload,
+                                      const std::string&    label)  noexcept;
+
+    // Listener
+    bool bindListener()   noexcept;
+    void runListener()    noexcept;
+
+    // Point 8: background loop threads
+    void runHealthCheck()       noexcept;
+    void runPingLoop()          noexcept;
+    void runMetricsDumper()     noexcept;
+    void runAlertChecker()      noexcept;
+    void runHealthServer()      noexcept;
+    void runPrometheusServer()  noexcept;
+
+    // Frame handling
+    void handleInbound (int fd,
+                         const std::string& peerAddr)        noexcept;
+    void dispatchFrame (const codec::Frame& frame,
+                         const std::string& peerAddr)        noexcept;
+
+    // Peer lifecycle
+    void evictStalePeers()                                   noexcept;
+    void unbanExpiredPeers()                                  noexcept;
+    void sendPings()                                          noexcept;
+    void disconnectSlowPeers()                                noexcept;
+
+    // Point 7: auto-ban on repeated decode errors
+    void maybeAutoBanPeer(const std::string& peerId)          noexcept;
+
+    // Scoring — calls onPeerScoredFn_ after change
+    void applyScoreChange(const std::string& peerId,
+                           double delta,
+                           bool   isBanCheck)                 noexcept;
+
+    // Point 5: crash recovery with checksum
+    void recoverPendingQueue() noexcept;
+    void persistPendingQueue() noexcept;
 };

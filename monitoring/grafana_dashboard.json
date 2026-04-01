@@ -1,0 +1,810 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "Prometheus datasource for MedorCoin metrics",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    },
+    {
+      "name": "DS_LOKI",
+      "label": "Loki",
+      "description": "Loki datasource for MedorCoin logs",
+      "type": "datasource",
+      "pluginId": "loki",
+      "pluginName": "Loki"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "10.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "loki",
+      "name": "Loki",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "logs",
+      "name": "Logs",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "alertlist",
+      "name": "Alert list",
+      "version": ""
+    }
+  ],
+
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "enable": true,
+        "expr": "changes(medorcoin_block_height{instance=~\"$instance\",region=~\"$region\"}[2m]) == 0",
+        "hide": false,
+        "iconColor": "red",
+        "name": "Chain Stall",
+        "step": "60s",
+        "titleFormat": "Chain Stall",
+        "textFormat": "Block height stopped advancing on {{instance}}"
+      },
+      {
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "enable": true,
+        "expr": "changes(medorcoin_node_restart_total{instance=~\"$instance\",region=~\"$region\"}[1m]) > 0",
+        "hide": false,
+        "iconColor": "orange",
+        "name": "Node Restart",
+        "step": "60s",
+        "titleFormat": "Node Restarted",
+        "textFormat": "Node restarted on {{instance}}"
+      },
+      {
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "enable": true,
+        "expr": "changes(medorcoin_chain_upgrade_total{instance=~\"$instance\",region=~\"$region\"}[1m]) > 0",
+        "hide": false,
+        "iconColor": "blue",
+        "name": "Chain Upgrade",
+        "step": "60s",
+        "titleFormat": "Chain Upgrade",
+        "textFormat": "Chain upgrade applied on {{instance}}"
+      }
+    ]
+  },
+
+  "description": "MedorCoin Blockchain — production node dashboard. Multi-instance, multi-region. Requires Grafana 10+ with unified alerting enabled.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+
+  "links": [
+    {
+      "title": "MedorCoin Node Logs (Loki)",
+      "type": "link",
+      "url": "/explore?orgId=1&left=%7B%22datasource%22%3A%22${DS_LOKI}%22%7D",
+      "tooltip": "Open Loki log explorer for MedorCoin nodes",
+      "icon": "external link",
+      "targetBlank": true
+    },
+    {
+      "title": "MedorCoin Blockchain Runbook",
+      "type": "link",
+      "url": "https://wiki.internal/medorcoin-blockchain/runbook",
+      "tooltip": "MedorCoin Blockchain operations runbook",
+      "icon": "doc",
+      "targetBlank": true
+    }
+  ],
+
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "label": "Prometheus",
+        "pluginId": "prometheus",
+        "refresh": 1,
+        "hide": 0
+      },
+      {
+        "name": "instance",
+        "type": "query",
+        "label": "Instance",
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "query": "label_values(medorcoin_block_height, instance)",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "sort": 1,
+        "hide": 0
+      },
+      {
+        "name": "region",
+        "type": "query",
+        "label": "Region",
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "query": "label_values(medorcoin_block_height, region)",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "sort": 1,
+        "hide": 0
+      },
+      {
+        "name": "interval",
+        "type": "interval",
+        "label": "Rate Interval",
+        "query": "1m,5m,10m,30m,1h,6h,12h,1d",
+        "current": { "text": "5m", "value": "5m" },
+        "hide": 0
+      }
+    ]
+  },
+
+  "time": { "from": "now-24h", "to": "now" },
+  "timepicker": {
+    "refresh_intervals": ["5s","10s","30s","1m","5m","15m","30m","1h"],
+    "time_options": ["5m","15m","1h","6h","12h","24h","2d","7d","30d"]
+  },
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["medorcoin", "medorcoin-blockchain", "blockchain", "p2p"],
+  "timezone": "utc",
+  "title": "MedorCoin Blockchain — Node Dashboard",
+  "uid": "medorcoin-blockchain-node-v2",
+  "version": 2,
+
+  "panels": [
+
+    {
+      "id": 1,
+      "title": "Block Height",
+      "description": "Current chain tip. If this stops advancing for >2 minutes the Chain Stall alert fires.",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "medorcoin_block_height{instance=~\"$instance\",region=~\"$region\"}",
+          "legendFormat": "{{instance}}"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "text": {}
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red",    "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "green",  "value": 1000 }
+            ]
+          },
+          "color": { "mode": "thresholds" },
+          "links": [
+            {
+              "title": "Logs for ${__field.labels.instance}",
+              "url": "/explore?orgId=1&left={\"datasource\":\"${DS_LOKI}\",\"queries\":[{\"expr\":\"{instance=\\\"${__field.labels.instance}\\\"}\"} ]}",
+              "targetBlank": true
+            }
+          ]
+        }
+      }
+    },
+
+    {
+      "id": 2,
+      "title": "Total Supply",
+      "description": "Total MedorCoin (MDR) in circulation across all accounts.",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "medorcoin_total_supply{instance=~\"$instance\",region=~\"$region\"}",
+          "legendFormat": "{{instance}}"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      }
+    },
+
+    {
+      "id": 3,
+      "title": "Connected Peers",
+      "description": "Active P2P peers. Red < 1, yellow 1–7, green ≥ 8. Alert fires if below 3 for 3 minutes.",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "medorcoin_peer_count{instance=~\"$instance\",region=~\"$region\"}",
+          "legendFormat": "{{instance}}"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red",    "value": null },
+              { "color": "red",    "value": 0 },
+              { "color": "yellow", "value": 1 },
+              { "color": "green",  "value": 8 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      }
+    },
+
+    {
+      "id": 4,
+      "title": "Mempool Transactions",
+      "description": "Pending transactions awaiting confirmation. Yellow > 5000, red > 20000.",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "medorcoin_mempool_tx_count{instance=~\"$instance\",region=~\"$region\"}",
+          "legendFormat": "{{instance}}"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 5000 },
+              { "color": "red",    "value": 20000 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      }
+    },
+
+    {
+      "id": 5,
+      "title": "Block Height Over Time",
+      "description": "Chain tip per instance. Flatline = chain stall.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "medorcoin_block_height{instance=~\"$instance\",region=~\"$region\"}",
+          "legendFormat": "{{instance}} / {{region}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 2 }
+        }
+      }
+    },
+
+    {
+      "id": 6,
+      "title": "Hash Rate",
+      "description": "Mining hash rate in hashes per second per instance.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "medorcoin_hash_rate{instance=~\"$instance\",region=~\"$region\"}",
+          "legendFormat": "{{instance}} H/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 2 }
+        }
+      }
+    },
+
+    {
+      "id": 7,
+      "title": "Transactions Per Second",
+      "description": "Confirmed transaction throughput over the selected rate interval.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "rate(medorcoin_tx_total{instance=~\"$instance\",region=~\"$region\"}[$interval])",
+          "legendFormat": "{{instance}} TPS"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 2 }
+        }
+      }
+    },
+
+    {
+      "id": 8,
+      "title": "Network Fees Collected",
+      "description": "Cumulative transaction fees collected. Metric: medorcoin_tx_fees_total.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "medorcoin_tx_fees_total{instance=~\"$instance\",region=~\"$region\"}",
+          "legendFormat": "{{instance}} fees"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 2 }
+        }
+      }
+    },
+
+    {
+      "id": 9,
+      "title": "RPC Request Rate",
+      "description": "Incoming RPC requests/s. Metric: medorcoin_rpc_requests_total. Spike may indicate abuse or DDoS.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "rate(medorcoin_rpc_requests_total{instance=~\"$instance\",region=~\"$region\"}[$interval])",
+          "legendFormat": "{{instance}} req/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 2 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 500 },
+              { "color": "red",    "value": 2000 }
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "id": 10,
+      "title": "RPC Latency — p50 / p95 / p99",
+      "description": "RPC response time percentiles. Metric: medorcoin_rpc_latency_seconds (histogram). p99 > 1s triggers critical alert.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, rate(medorcoin_rpc_latency_seconds_bucket{instance=~\"$instance\",region=~\"$region\"}[$interval]))",
+          "legendFormat": "{{instance}} p99"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(medorcoin_rpc_latency_seconds_bucket{instance=~\"$instance\",region=~\"$region\"}[$interval]))",
+          "legendFormat": "{{instance}} p95"
+        },
+        {
+          "expr": "histogram_quantile(0.50, rate(medorcoin_rpc_latency_seconds_bucket{instance=~\"$instance\",region=~\"$region\"}[$interval]))",
+          "legendFormat": "{{instance}} p50"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "lineWidth": 2 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "red",    "value": 1.0 }
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "id": 11,
+      "title": "UTXO Set Size",
+      "description": "Number of unspent transaction outputs. Metric: medorcoin_utxo_count.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "medorcoin_utxo_count{instance=~\"$instance\",region=~\"$region\"}",
+          "legendFormat": "{{instance}} UTXOs"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 2 }
+        }
+      }
+    },
+
+    {
+      "id": 12,
+      "title": "Database Size (GB)",
+      "description": "On-disk database size. Metric: medorcoin_db_size_bytes. Yellow > 50 GB, red > 200 GB.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "medorcoin_db_size_bytes{instance=~\"$instance\",region=~\"$region\"} / 1073741824",
+          "legendFormat": "{{instance}} DB GB"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": { "lineWidth": 2 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 53687091200 },
+              { "color": "red",    "value": 214748364800 }
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "id": 13,
+      "title": "Error Rate",
+      "description": "Rate of ERROR and FATAL log events. Metric: medorcoin_log_errors_total. Any sustained non-zero value warrants investigation.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "rate(medorcoin_log_errors_total{instance=~\"$instance\",region=~\"$region\"}[$interval])",
+          "legendFormat": "{{instance}} errors/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 2 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 0.1 },
+              { "color": "red",    "value": 1.0 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      }
+    },
+
+    {
+      "id": 14,
+      "title": "P2P Connection Pool — Open FDs",
+      "description": "Open file descriptors in the ConnectionPool. Metric: medorcoin_pool_open_fds. Approaching 8192 (globalMaxFds) indicates saturation.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "medorcoin_pool_open_fds{instance=~\"$instance\",region=~\"$region\"}",
+          "legendFormat": "{{instance}} open FDs"
+        },
+        {
+          "expr": "rate(medorcoin_pool_global_budget_rejections_total{instance=~\"$instance\",region=~\"$region\"}[$interval])",
+          "legendFormat": "{{instance}} budget rejections/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 2 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 6000 },
+              { "color": "red",    "value": 7500 }
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "id": 15,
+      "title": "Live Node Logs",
+      "description": "Tail of MedorCoin Blockchain node logs for selected instance via Loki. Filter by level or module inline.",
+      "type": "logs",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 44 },
+      "datasource": { "type": "loki", "uid": "${DS_LOKI}" },
+      "targets": [
+        {
+          "expr": "{instance=~\"$instance\",region=~\"$region\"} |= \"\"",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "wrapLogMessage": false,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      }
+    },
+
+    {
+      "id": 16,
+      "title": "Active Alerts",
+      "description": "Grafana unified alerting — requires Grafana 10+ with unified alerting enabled. Shows firing, pending, and no-data states for MedorCoin Blockchain alerts.",
+      "type": "alertlist",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 54 },
+      "options": {
+        "alertName": "",
+        "dashboardAlerts": false,
+        "groupBy": ["instance", "region"],
+        "groupMode": "tags",
+        "maxItems": 20,
+        "sortOrder": 1,
+        "stateFilter": {
+          "firing": true,
+          "pending": true,
+          "noData": true,
+          "error": true,
+          "inactive": false
+        },
+        "tags": ["medorcoin", "medorcoin-blockchain"]
+      }
+    }
+
+  ],
+
+  "alerting": {
+    "rules": [
+      {
+        "uid": "medorcoin-blockchain-alert-chain-stall",
+        "title": "[MedorCoin Blockchain] Chain Stall",
+        "condition": "A",
+        "data": [
+          {
+            "refId": "A",
+            "datasourceUid": "${DS_PROMETHEUS}",
+            "model": {
+              "expr": "changes(medorcoin_block_height{instance=~\"$instance\",region=~\"$region\"}[2m]) == 0",
+              "intervalMs": 60000,
+              "maxDataPoints": 43200
+            }
+          }
+        ],
+        "for": "2m",
+        "labels": {
+          "severity": "critical",
+          "team": "medorcoin-ops",
+          "project": "medorcoin-blockchain"
+        },
+        "annotations": {
+          "summary": "[MedorCoin Blockchain] Chain stall on {{ $labels.instance }}",
+          "description": "Block height has not advanced for 2 minutes on {{ $labels.instance }} / {{ $labels.region }}. Check node process and peers."
+        }
+      },
+      {
+        "uid": "medorcoin-blockchain-alert-low-peers",
+        "title": "[MedorCoin Blockchain] Low Peer Count",
+        "condition": "A",
+        "data": [
+          {
+            "refId": "A",
+            "datasourceUid": "${DS_PROMETHEUS}",
+            "model": {
+              "expr": "medorcoin_peer_count{instance=~\"$instance\",region=~\"$region\"} < 3",
+              "intervalMs": 60000,
+              "maxDataPoints": 43200
+            }
+          }
+        ],
+        "for": "3m",
+        "labels": {
+          "severity": "warning",
+          "team": "medorcoin-ops",
+          "project": "medorcoin-blockchain"
+        },
+        "annotations": {
+          "summary": "[MedorCoin Blockchain] Low peer count on {{ $labels.instance }}",
+          "description": "Peer count is {{ $value }} (threshold: 3) on {{ $labels.instance }} / {{ $labels.region }}."
+        }
+      },
+      {
+        "uid": "medorcoin-blockchain-alert-high-mempool",
+        "title": "[MedorCoin Blockchain] High Mempool",
+        "condition": "A",
+        "data": [
+          {
+            "refId": "A",
+            "datasourceUid": "${DS_PROMETHEUS}",
+            "model": {
+              "expr": "medorcoin_mempool_tx_count{instance=~\"$instance\",region=~\"$region\"} > 20000",
+              "intervalMs": 60000,
+              "maxDataPoints": 43200
+            }
+          }
+        ],
+        "for": "5m",
+        "labels": {
+          "severity": "warning",
+          "team": "medorcoin-ops",
+          "project": "medorcoin-blockchain"
+        },
+        "annotations": {
+          "summary": "[MedorCoin Blockchain] Mempool overload on {{ $labels.instance }}",
+          "description": "Mempool has {{ $value }} pending transactions (threshold: 20000) on {{ $labels.instance }}."
+        }
+      },
+      {
+        "uid": "medorcoin-blockchain-alert-rpc-latency",
+        "title": "[MedorCoin Blockchain] High RPC Latency",
+        "condition": "A",
+        "data": [
+          {
+            "refId": "A",
+            "datasourceUid": "${DS_PROMETHEUS}",
+            "model": {
+              "expr": "histogram_quantile(0.99, rate(medorcoin_rpc_latency_seconds_bucket{instance=~\"$instance\",region=~\"$region\"}[5m])) > 1",
+              "intervalMs": 60000,
+              "maxDataPoints": 43200
+            }
+          }
+        ],
+        "for": "2m",
+        "labels": {
+          "severity": "critical",
+          "team": "medorcoin-ops",
+          "project": "medorcoin-blockchain"
+        },
+        "annotations": {
+          "summary": "[MedorCoin Blockchain] RPC p99 > 1s on {{ $labels.instance }}",
+          "description": "p99 RPC latency is {{ $value }}s on {{ $labels.instance }} / {{ $labels.region }}. Metric: medorcoin_rpc_latency_seconds."
+        }
+      },
+      {
+        "uid": "medorcoin-blockchain-alert-db-size",
+        "title": "[MedorCoin Blockchain] Database Size Critical",
+        "condition": "A",
+        "data": [
+          {
+            "refId": "A",
+            "datasourceUid": "${DS_PROMETHEUS}",
+            "model": {
+              "expr": "medorcoin_db_size_bytes{instance=~\"$instance\",region=~\"$region\"} > 214748364800",
+              "intervalMs": 60000,
+              "maxDataPoints": 43200
+            }
+          }
+        ],
+        "for": "0m",
+        "labels": {
+          "severity": "critical",
+          "team": "medorcoin-ops",
+          "project": "medorcoin-blockchain"
+        },
+        "annotations": {
+          "summary": "[MedorCoin Blockchain] DB > 200 GB on {{ $labels.instance }}",
+          "description": "Database is {{ $value }} bytes on {{ $labels.instance }}. Disk pressure imminent. Metric: medorcoin_db_size_bytes."
+        }
+      },
+      {
+        "uid": "medorcoin-blockchain-alert-fd-saturation",
+        "title": "[MedorCoin Blockchain] Connection Pool FD Saturation",
+        "condition": "A",
+        "data": [
+          {
+            "refId": "A",
+            "datasourceUid": "${DS_PROMETHEUS}",
+            "model": {
+              "expr": "medorcoin_pool_open_fds{instance=~\"$instance\",region=~\"$region\"} > 7500",
+              "intervalMs": 60000,
+              "maxDataPoints": 43200
+            }
+          }
+        ],
+        "for": "1m",
+        "labels": {
+          "severity": "critical",
+          "team": "medorcoin-ops",
+          "project": "medorcoin-blockchain"
+        },
+        "annotations": {
+          "summary": "[MedorCoin Blockchain] FD pool near saturation on {{ $labels.instance }}",
+          "description": "Open FDs are {{ $value }} (threshold: 7500 / globalMaxFds: 8192) on {{ $labels.instance }}. Metric: medorcoin_pool_open_fds."
+        }
+      }
+    ]
+  }
+}

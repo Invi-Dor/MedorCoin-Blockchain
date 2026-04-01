@@ -5,17 +5,33 @@
 #include "crypto/verify_signature.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cstring>
 #include <ctime>
-#include <future>
+#include <iomanip>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <thread>
 #include <unordered_set>
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Constructor
-// ─────────────────────────────────────────────────────────────────────────────
+// =============================================================================
+// NETWORK FEE
+// Transactions up to 1000 MEDOR: flat fee of 0.009 MEDOR (9 base units)
+// Transactions above 1000 MEDOR: 2% of the output value
+// Fee is deducted from recipient and credited to cfg_.treasuryAddress
+// Coinbase transactions are exempt from network fee
+// =============================================================================
+static constexpr uint64_t NETWORK_FEE_THRESHOLD  = 1000;
+static constexpr uint64_t NETWORK_FEE_FLAT       = 9;
+static constexpr uint64_t NETWORK_FEE_PERCENT    = 2;
+
+static uint64_t calculateNetworkFee(uint64_t value) noexcept
+{
+    if (value <= NETWORK_FEE_THRESHOLD)
+        return NETWORK_FEE_FLAT;
+    return (value * NETWORK_FEE_PERCENT) / 100;
+}
 
 Blockchain::Blockchain(Config cfg)
     : cfg_(std::move(cfg))
@@ -26,30 +42,20 @@ Blockchain::Blockchain(Config cfg)
         std::cerr << "[Blockchain] FATAL: ownerAddress must not be empty\n";
         return;
     }
-
-    // Open block storage
     auto openResult = blockDB_.open(cfg_.blockDBPath);
     if (!openResult) {
         std::cerr << "[Blockchain] FATAL: BlockDB failed to open at '"
                   << cfg_.blockDBPath << "': " << openResult.error << "\n";
         return;
     }
-
     if (!accountDB_.isOpen()) {
         std::cerr << "[Blockchain] FATAL: AccountDB failed to open at '"
                   << cfg_.accountDBPath << "'\n";
         return;
     }
-
-    // Restore persisted state (totalSupply, baseFee) before loading chain
     loadPersistedState();
-
-    // Load blocks from storage
-    if (!loadChainFromDB()) {
+    if (!loadChainFromDB())
         std::cerr << "[Blockchain] WARNING: Chain reload encountered errors\n";
-    }
-
-    // Create genesis block if the chain is empty
     if (chain_.empty()) {
         std::vector<Transaction> empty;
         if (!addBlock(cfg_.ownerAddress, empty)) {
@@ -57,10 +63,8 @@ Blockchain::Blockchain(Config cfg)
             return;
         }
     }
-
     initialised_ = true;
-    std::cout << "[Blockchain] Initialised — height="
-              << chain_.size() - 1
+    std::cout << "[Blockchain] Initialised -- height=" << chain_.size() - 1
               << " supply=" << totalSupply_.load()
               << " baseFee=" << baseFeePerGas_.load() << "\n";
 }
@@ -70,10 +74,6 @@ Blockchain::~Blockchain()
     persistState();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Chain reload — RAII iterator prevents leak under exceptions
-// ─────────────────────────────────────────────────────────────────────────────
-
 bool Blockchain::loadChainFromDB() noexcept
 {
     auto it = blockDB_.newIterator();
@@ -81,14 +81,13 @@ bool Blockchain::loadChainFromDB() noexcept
         std::cerr << "[Blockchain] loadChainFromDB: failed to create iterator\n";
         return false;
     }
-
     size_t loaded = 0, failed = 0;
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
         const std::string key = it->key().ToString();
         Block b;
         auto result = blockDB_.readBlock(key, b);
         if (!result) {
-            std::cerr << "[Blockchain] loadChainFromDB: failed to read block '"
+            std::cerr << "[Blockchain] loadChainFromDB: failed to read '"
                       << key << "': " << result.error << "\n";
             ++failed;
             continue;
@@ -96,57 +95,36 @@ bool Blockchain::loadChainFromDB() noexcept
         chain_.push_back(std::move(b));
         ++loaded;
     }
-
     if (!it->status().ok()) {
         std::cerr << "[Blockchain] loadChainFromDB: iterator error: "
                   << it->status().ToString() << "\n";
         return false;
     }
-
-    // Sort by block timestamp to ensure correct order after DB iteration
     std::sort(chain_.begin(), chain_.end(),
               [](const Block &a, const Block &b) {
                   return a.timestamp < b.timestamp;
               });
-
     std::cout << "[Blockchain] Loaded " << loaded << " block(s) from DB";
-    if (failed > 0)
-        std::cout << " (" << failed << " read failure(s))";
+    if (failed > 0) std::cout << " (" << failed << " read failure(s))";
     std::cout << "\n";
-
     return failed == 0;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Persisted state — totalSupply and baseFee survive restarts
-// ─────────────────────────────────────────────────────────────────────────────
 
 bool Blockchain::loadPersistedState() noexcept
 {
     std::string val;
-
     auto r1 = accountDB_.get(KEY_TOTAL_SUPPLY, val);
     if (r1) {
         try { totalSupply_.store(std::stoull(val)); }
-        catch (...) {
-            std::cerr << "[Blockchain] loadPersistedState: corrupt totalSupply "
-                         "record — defaulting to 0\n";
-            totalSupply_.store(0);
-        }
+        catch (...) { totalSupply_.store(0); }
     }
-
     auto r2 = accountDB_.get(KEY_BASE_FEE, val);
     if (r2) {
         try { baseFeePerGas_.store(std::stoull(val)); }
-        catch (...) {
-            std::cerr << "[Blockchain] loadPersistedState: corrupt baseFee "
-                         "record — defaulting to 1\n";
-            baseFeePerGas_.store(1);
-        }
+        catch (...) { baseFeePerGas_.store(1); }
     } else {
         baseFeePerGas_.store(cfg_.initialBaseFee);
     }
-
     return true;
 }
 
@@ -157,14 +135,18 @@ bool Blockchain::persistState() noexcept
                               std::to_string(totalSupply_.load()));
     auto r2 = accountDB_.put(KEY_BASE_FEE,
                               std::to_string(baseFeePerGas_.load()));
-    if (!r1) { std::cerr << "[Blockchain] persistState: totalSupply write failed: " << r1.error << "\n"; ok = false; }
-    if (!r2) { std::cerr << "[Blockchain] persistState: baseFee write failed: "     << r2.error << "\n"; ok = false; }
+    if (!r1) {
+        std::cerr << "[Blockchain] persistState: totalSupply failed: "
+                  << r1.error << "\n";
+        ok = false;
+    }
+    if (!r2) {
+        std::cerr << "[Blockchain] persistState: baseFee failed: "
+                  << r2.error << "\n";
+        ok = false;
+    }
     return ok;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Chain state accessors
-// ─────────────────────────────────────────────────────────────────────────────
 
 size_t Blockchain::height() const noexcept
 {
@@ -172,13 +154,36 @@ size_t Blockchain::height() const noexcept
     return chain_.empty() ? 0 : chain_.size() - 1;
 }
 
-uint64_t Blockchain::totalSupply() const noexcept { return totalSupply_.load(); }
-uint64_t Blockchain::baseFee()     const noexcept { return baseFeePerGas_.load(); }
-bool     Blockchain::isOpen()      const noexcept { return initialised_; }
+uint64_t Blockchain::totalSupply() const noexcept
+{
+    return totalSupply_.load();
+}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Account balances
-// ─────────────────────────────────────────────────────────────────────────────
+uint64_t Blockchain::baseFee() const noexcept
+{
+    return baseFeePerGas_.load();
+}
+
+bool Blockchain::isOpen() const noexcept
+{
+    return initialised_;
+}
+
+bool Blockchain::hasBlock(const std::string &hash) const noexcept
+{
+    if (hash.empty()) return false;
+    std::shared_lock<std::shared_mutex> lock(rwMutex_);
+    for (const auto &b : chain_)
+        if (b.hash == hash) return true;
+    return false;
+}
+
+std::optional<Block> Blockchain::getLatestBlock() const noexcept
+{
+    std::shared_lock<std::shared_mutex> lock(rwMutex_);
+    if (chain_.empty()) return std::nullopt;
+    return chain_.back().clone();
+}
 
 uint64_t Blockchain::getBalance(const std::string &addr) const noexcept
 {
@@ -190,16 +195,19 @@ uint64_t Blockchain::getBalance(const std::string &addr) const noexcept
     catch (...) { return 0; }
 }
 
-bool Blockchain::setBalance(const std::string &addr, uint64_t amount) noexcept
+bool Blockchain::setBalance(const std::string &addr,
+                             uint64_t           amount) noexcept
 {
     if (addr.empty()) return false;
     auto r = accountDB_.put("bal:" + addr, std::to_string(amount));
-    if (!r) std::cerr << "[Blockchain] setBalance failed for " << addr
-                      << ": " << r.error << "\n";
+    if (!r)
+        std::cerr << "[Blockchain] setBalance failed for "
+                  << addr << ": " << r.error << "\n";
     return static_cast<bool>(r);
 }
 
-bool Blockchain::addBalance(const std::string &addr, uint64_t amount) noexcept
+bool Blockchain::addBalance(const std::string &addr,
+                             uint64_t           amount) noexcept
 {
     if (addr.empty()) return false;
     const uint64_t current = getBalance(addr);
@@ -210,21 +218,18 @@ bool Blockchain::addBalance(const std::string &addr, uint64_t amount) noexcept
     return setBalance(addr, current + amount);
 }
 
-bool Blockchain::deductBalance(const std::string &addr, uint64_t amount) noexcept
+bool Blockchain::deductBalance(const std::string &addr,
+                                uint64_t           amount) noexcept
 {
     if (addr.empty()) return false;
     const uint64_t current = getBalance(addr);
     if (amount > current) {
-        std::cerr << "[Blockchain] deductBalance: insufficient balance for "
-                  << addr << " (has " << current << ", needs " << amount << ")\n";
+        std::cerr << "[Blockchain] deductBalance: insufficient for " << addr
+                  << " (has " << current << ", needs " << amount << ")\n";
         return false;
     }
     return setBalance(addr, current - amount);
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Base fee management
-// ─────────────────────────────────────────────────────────────────────────────
 
 void Blockchain::setBaseFee(uint64_t fee) noexcept
 {
@@ -237,53 +242,37 @@ void Blockchain::burnBaseFees(uint64_t amount) noexcept
         std::cerr << "[Blockchain] burnBaseFees: failed to credit treasury\n";
 }
 
-void Blockchain::adjustBaseFee(uint64_t gasUsed, uint64_t gasLimit) noexcept
+void Blockchain::adjustBaseFee(uint64_t gasUsed,
+                                uint64_t gasLimit) noexcept
 {
     if (gasLimit == 0) return;
-
     const uint64_t current = baseFeePerGas_.load();
     uint64_t next = current;
-
     if (gasUsed * 2 > gasLimit) {
-        // Block more than 50% full — increase by up to 12.5%
         const uint64_t delta = std::max(uint64_t{1}, current / 8);
         next = current + delta;
     } else {
-        // Block less than 50% full — decrease by up to 12.5%
         const uint64_t delta = std::max(uint64_t{1}, current / 8);
         next = (current > delta) ? current - delta : 1;
     }
-
-    // Hard floor of 1
     baseFeePerGas_.store(std::max(next, uint64_t{1}));
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Reward calculation — uses actual seconds, not approximate months
-// ─────────────────────────────────────────────────────────────────────────────
-
 uint64_t Blockchain::calculateReward() const noexcept
 {
-    if (chain_.empty()) {
-        // Genesis block — use the first schedule entry
-        return cfg_.rewardSchedule.empty() ? 0
-               : cfg_.rewardSchedule.front().second;
-    }
-
-    const uint64_t genesisTime  = static_cast<uint64_t>(chain_.front().timestamp);
-    const uint64_t now          = static_cast<uint64_t>(std::time(nullptr));
-    const uint64_t elapsed      = (now >= genesisTime) ? (now - genesisTime) : 0;
-
+    if (chain_.empty())
+        return cfg_.rewardSchedule.empty()
+               ? 0 : cfg_.rewardSchedule.front().second;
+    const uint64_t genesisTime =
+        static_cast<uint64_t>(chain_.front().timestamp);
+    const uint64_t now =
+        static_cast<uint64_t>(std::time(nullptr));
+    const uint64_t elapsed =
+        (now >= genesisTime) ? (now - genesisTime) : 0;
     for (const auto &[threshold, reward] : cfg_.rewardSchedule)
         if (elapsed < threshold) return reward;
-
-    // Fallback — last entry
     return cfg_.rewardSchedule.back().second;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Transaction validation
-// ─────────────────────────────────────────────────────────────────────────────
 
 bool Blockchain::hasDuplicateTxInBlock(
     const std::vector<Transaction> &txs) const noexcept
@@ -292,7 +281,7 @@ bool Blockchain::hasDuplicateTxInBlock(
     for (const auto &tx : txs) {
         if (tx.txHash.empty()) continue;
         if (!seen.insert(tx.txHash).second) {
-            std::cerr << "[Blockchain] hasDuplicateTxInBlock: duplicate txHash "
+            std::cerr << "[Blockchain] hasDuplicateTxInBlock: duplicate "
                       << tx.txHash << "\n";
             return true;
         }
@@ -306,82 +295,61 @@ bool Blockchain::validateTransactions(
     uint64_t                        blockHeight) const noexcept
 {
     if (txs.empty()) return true;
-
     if (hasDuplicateTxInBlock(txs)) return false;
 
-    // Track spent outpoints within this block to catch intra-block double spends
     std::unordered_set<std::string> spentThisBlock;
 
     for (size_t i = 0; i < txs.size(); ++i) {
         const Transaction &tx = txs[i];
-
-        // Coinbase (index 0) — verify reward amount, skip signature check
         if (i == 0) {
             uint64_t cbValue = 0;
-            for (const auto &out : tx.outputs)
-                cbValue += out.value;
-            const uint64_t expected = calculateReward();
-            // Allow rewards capped at remaining supply
+            for (const auto &out : tx.outputs) cbValue += out.value;
+            const uint64_t expected  = calculateReward();
             const uint64_t remaining = cfg_.maxSupply - totalSupply_.load();
             const uint64_t allowed   = std::min(expected, remaining);
             if (cbValue > allowed) {
-                std::cerr << "[Blockchain] validateTransactions: coinbase "
-                             "claims " << cbValue << " but max allowed is "
-                          << allowed << "\n";
+                std::cerr << "[Blockchain] validateTransactions: coinbase claims "
+                          << cbValue << " max allowed " << allowed << "\n";
                 return false;
             }
             continue;
         }
-
-        // Verify the transaction hash is present and consistent
         if (tx.txHash.empty()) {
             std::cerr << "[Blockchain] validateTransactions: tx[" << i
-                      << "] has empty txHash\n";
+                      << "] empty txHash\n";
             return false;
         }
         if (!tx.isValid()) {
             std::cerr << "[Blockchain] validateTransactions: tx[" << i
-                      << "] failed isValid() — hash=" << tx.txHash << "\n";
+                      << "] failed isValid() hash=" << tx.txHash << "\n";
             return false;
         }
-
-        // Verify inputs are unspent and not double-spent in this block
         uint64_t inputSum = 0;
         for (const auto &in : tx.inputs) {
             const std::string outpointKey =
                 in.prevTxHash + ":" + std::to_string(in.outputIndex);
-
             if (!spentThisBlock.insert(outpointKey).second) {
-                std::cerr << "[Blockchain] validateTransactions: intra-block "
-                             "double-spend on " << outpointKey << "\n";
+                std::cerr << "[Blockchain] validateTransactions: double-spend on "
+                          << outpointKey << "\n";
                 return false;
             }
-
             auto utxo = utxoSet_.getUTXO(in.prevTxHash, in.outputIndex);
             if (!utxo) {
                 std::cerr << "[Blockchain] validateTransactions: UTXO "
-                          << outpointKey << " not found or already spent\n";
+                          << outpointKey << " not found\n";
                 return false;
             }
-
-            // Verify the signature authorising spend of this UTXO
-            if (tx.r != std::array<uint8_t,32>{} ||
-                tx.s != std::array<uint8_t,32>{})
-            {
-                // Re-compute the signing hash (pre-signature RLP)
+            if (tx.r != std::array<uint8_t, 32>{}
+             || tx.s != std::array<uint8_t, 32>{}) {
                 crypto::Keccak256Digest signingHash{};
                 if (!crypto::Keccak256(
                         reinterpret_cast<const uint8_t *>(tx.txHash.data()),
-                        tx.txHash.size(), signingHash))
-                {
-                    std::cerr << "[Blockchain] validateTransactions: Keccak256 "
-                                 "failed for tx " << tx.txHash << "\n";
+                        tx.txHash.size(), signingHash)) {
+                    std::cerr << "[Blockchain] validateTransactions: "
+                                 "Keccak256 failed\n";
                     return false;
                 }
-
-                // Derive expected address from UTXO
                 std::array<uint8_t, 20> expectedAddr{};
-                // hexToAddr — convert utxo->address (40 hex chars) to bytes
                 const std::string &addrHex = utxo->address;
                 if (addrHex.size() == 40) {
                     for (size_t j = 0; j < 20; ++j) {
@@ -391,69 +359,79 @@ bool Blockchain::validateTransactions(
                         expectedAddr[j] = static_cast<uint8_t>(byte);
                     }
                 }
-
-                uint8_t sig64[64] = {};
-                std::memcpy(sig64,      tx.r.data(), 32);
-                std::memcpy(sig64 + 32, tx.s.data(), 32);
-
                 if (!crypto::recoverAndVerify(
                         signingHash.data(),
-                        tx.r.data(), tx.s.data(), static_cast<int>(tx.v),
-                        expectedAddr.data()))
-                {
-                    std::cerr << "[Blockchain] validateTransactions: signature "
-                                 "verification failed for tx " << tx.txHash << "\n";
+                        tx.r.data(), tx.s.data(),
+                        static_cast<int>(tx.v),
+                        expectedAddr.data())) {
+                    std::cerr << "[Blockchain] validateTransactions: "
+                                 "sig failed for " << tx.txHash << "\n";
                     return false;
                 }
             }
-
             inputSum += utxo->value;
         }
-
-        // Output sum must not exceed input sum (fee = inputSum - outputSum)
         uint64_t outputSum = 0;
-        for (const auto &out : tx.outputs)
-            outputSum += out.value;
-
+        for (const auto &out : tx.outputs) outputSum += out.value;
         if (outputSum > inputSum) {
-            std::cerr << "[Blockchain] validateTransactions: tx " << tx.txHash
-                      << " outputs (" << outputSum
-                      << ") exceed inputs (" << inputSum << ")\n";
+            std::cerr << "[Blockchain] validateTransactions: "
+                         "outputs exceed inputs for " << tx.txHash << "\n";
             return false;
         }
     }
-
     return true;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Apply/rollback block state — UTXO and balance updates
-// ─────────────────────────────────────────────────────────────────────────────
-
-bool Blockchain::applyBlockToState(const Block &block,
-                                    uint64_t     blockHeight) noexcept
+bool Blockchain::applyBlockToState(const Block  &block,
+                                    uint64_t      blockHeight) noexcept
 {
-    for (const auto &tx : block.transactions) {
-        // Spend inputs
+    for (size_t txIdx = 0; txIdx < block.transactions.size(); ++txIdx) {
+        const Transaction &tx = block.transactions[txIdx];
+        const bool isCoinbase = (txIdx == 0);
+
         for (const auto &in : tx.inputs) {
-            if (!utxoSet_.spendUTXO(in.prevTxHash, in.outputIndex, blockHeight)) {
+            if (!utxoSet_.spendUTXO(in.prevTxHash,
+                                     in.outputIndex, blockHeight)) {
                 std::cerr << "[Blockchain] applyBlockToState: spendUTXO failed "
-                             "for " << in.prevTxHash << ":" << in.outputIndex << "\n";
+                          << in.prevTxHash << ":" << in.outputIndex << "\n";
                 return false;
             }
         }
-        // Create outputs
+
         for (size_t i = 0; i < tx.outputs.size(); ++i) {
-            const bool isCoinbase = (&tx == &block.transactions.front());
             if (!utxoSet_.addUTXO(tx.outputs[i], tx.txHash,
                                    static_cast<int>(i),
                                    blockHeight, isCoinbase)) {
                 std::cerr << "[Blockchain] applyBlockToState: addUTXO failed "
-                             "for " << tx.txHash << ":" << i << "\n";
+                          << tx.txHash << ":" << i << "\n";
                 return false;
             }
-            // Mirror to account balance for fast lookups
+
+            // Credit recipient balance
             addBalance(tx.outputs[i].address, tx.outputs[i].value);
+
+            // =================================================================
+            // NETWORK FEE
+            // Exempt: coinbase transactions (block rewards)
+            // Up to 1000 MEDOR: flat 0.009 MEDOR (9 base units)
+            // Above 1000 MEDOR: 2% of output value
+            // Deducted from recipient, credited to treasury
+            // =================================================================
+            if (!isCoinbase && !cfg_.treasuryAddress.empty()) {
+                uint64_t fee = calculateNetworkFee(tx.outputs[i].value);
+                // Clamp fee so it never exceeds the output value
+                fee = std::min(fee, tx.outputs[i].value);
+                if (fee > 0) {
+                    if (deductBalance(tx.outputs[i].address, fee)) {
+                        addBalance(cfg_.treasuryAddress, fee);
+                        std::cout << "[Blockchain] Network fee "
+                                  << fee
+                                  << " collected from "
+                                  << tx.outputs[i].address
+                                  << " to treasury\n";
+                    }
+                }
+            }
         }
     }
     return true;
@@ -461,7 +439,6 @@ bool Blockchain::applyBlockToState(const Block &block,
 
 void Blockchain::rollbackBlockFromState(const Block &block) noexcept
 {
-    // Rollback in reverse transaction order
     for (auto txIt = block.transactions.rbegin();
          txIt != block.transactions.rend(); ++txIt)
     {
@@ -471,10 +448,6 @@ void Blockchain::rollbackBlockFromState(const Block &block) noexcept
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// addBlock — validates, mines, persists, and applies state atomically
-// ─────────────────────────────────────────────────────────────────────────────
-
 bool Blockchain::addBlock(const std::string       &minerAddr,
                            std::vector<Transaction> transactions) noexcept
 {
@@ -482,17 +455,11 @@ bool Blockchain::addBlock(const std::string       &minerAddr,
         std::cerr << "[Blockchain] addBlock: empty minerAddr rejected\n";
         return false;
     }
-
     std::unique_lock<std::shared_mutex> lock(rwMutex_);
-
-    const uint64_t blockHeight =
-        static_cast<uint64_t>(chain_.size());
-
-    // ── Build coinbase transaction ─────────────────────────────────────────
-    uint64_t reward = calculateReward();
-    const uint64_t remaining = cfg_.maxSupply - totalSupply_.load();
+    const uint64_t blockHeight = static_cast<uint64_t>(chain_.size());
+    uint64_t reward            = calculateReward();
+    const uint64_t remaining   = cfg_.maxSupply - totalSupply_.load();
     reward = std::min(reward, remaining);
-
     if (reward > 0) {
         Transaction coinbaseTx;
         TxOutput minerOut, ownerOut;
@@ -503,20 +470,15 @@ bool Blockchain::addBlock(const std::string       &minerAddr,
         coinbaseTx.outputs.push_back(minerOut);
         coinbaseTx.outputs.push_back(ownerOut);
         if (!coinbaseTx.calculateHash()) {
-            std::cerr << "[Blockchain] addBlock: coinbase hash calculation "
-                         "failed\n";
+            std::cerr << "[Blockchain] addBlock: coinbase hash failed\n";
             return false;
         }
         transactions.insert(transactions.begin(), coinbaseTx);
     }
-
-    // ── Validate all transactions ──────────────────────────────────────────
     if (!validateTransactions(transactions, minerAddr, blockHeight)) {
         std::cerr << "[Blockchain] addBlock: transaction validation failed\n";
         return false;
     }
-
-    // ── Construct block ────────────────────────────────────────────────────
     Block newBlock;
     if (!chain_.empty())
         newBlock = Block(chain_.back().hash, "MedorCoin Block",
@@ -529,47 +491,40 @@ bool Blockchain::addBlock(const std::string       &minerAddr,
     newBlock.reward       = reward;
     newBlock.transactions = transactions;
     newBlock.baseFee      = baseFeePerGas_.load();
-
-    // ── Mine (PoW) ─────────────────────────────────────────────────────────
     {
-        ProofOfWork pow(cfg_.initialMedor);
-        pow.mineBlock(newBlock);
+        ProofOfWork::Config powCfg;
+        powCfg.minDifficulty = cfg_.initialMedor;
+        powCfg.maxDifficulty = cfg_.initialMedor;
+        ProofOfWork pow(std::move(powCfg));
+        std::atomic<bool> abort{false};
+        auto result = pow.mine(newBlock, abort);
+        if (!result.found) {
+            std::cerr << "[Blockchain] addBlock: PoW mining failed\n";
+            return false;
+        }
     }
-
-    // ── Persist to BlockDB ─────────────────────────────────────────────────
     auto writeResult = blockDB_.writeBlock(newBlock);
     if (!writeResult) {
         std::cerr << "[Blockchain] addBlock: BlockDB write failed: "
                   << writeResult.error << "\n";
         return false;
     }
-
-    // ── Apply state changes ────────────────────────────────────────────────
-    if (!applyBlockToState(newBlock, blockHeight)) {
-        // Rollback partial state changes so the chain stays consistent
+        if (!applyBlockToState(newBlock, blockHeight)) {
         rollbackBlockFromState(newBlock);
-        // Remove the block we just wrote — best effort
-        std::cerr << "[Blockchain] addBlock: state application failed — "
-                     "rolling back\n";
+        std::cerr << "[Blockchain] addBlock: state application failed "
+                     "-- rolling back\n";
         return false;
     }
-
-    chain_.push_back(newBlock);
-
+    chain_.push_back(std::move(newBlock));
     totalSupply_.fetch_add(reward);
     adjustBaseFee(newBlock.gasUsed, cfg_.targetGasPerBlock);
     persistState();
-
     std::cout << "[Blockchain] Block " << blockHeight
-              << " committed | hash=" << newBlock.hash
+              << " committed | hash=" << chain_.back().hash
               << " | reward=" << reward
               << " | baseFee=" << baseFeePerGas_.load() << "\n";
     return true;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// mineBlockAsync — non-blocking mining on a detached thread
-// ─────────────────────────────────────────────────────────────────────────────
 
 void Blockchain::mineBlockAsync(const std::string       &minerAddr,
                                  std::vector<Transaction> transactions,
@@ -584,7 +539,7 @@ void Blockchain::mineBlockAsync(const std::string       &minerAddr,
         Block minedBlock;
         if (success) {
             std::shared_lock<std::shared_mutex> lock(rwMutex_);
-            if (!chain_.empty()) minedBlock = chain_.back();
+            if (!chain_.empty()) minedBlock = chain_.back().clone();
         }
         if (cb) {
             try { cb(success, std::move(minedBlock)); }
@@ -593,122 +548,4 @@ void Blockchain::mineBlockAsync(const std::string       &minerAddr,
             }
         }
     }).detach();
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// validateBlock — full PoW, reward, timestamp, and transaction checks
-// ─────────────────────────────────────────────────────────────────────────────
-
-Blockchain::ValidationResult
-Blockchain::validateBlock(const Block &block,
-                           const Block &prevBlock) const noexcept
-{
-    ValidationResult r;
-
-    if (block.previousHash != prevBlock.hash) {
-        r.reason = "previousHash mismatch";
-        return r;
-    }
-    if (block.timestamp <= prevBlock.timestamp) {
-        r.reason = "timestamp not strictly increasing";
-        return r;
-    }
-    if (block.baseFee < 1) {
-        r.reason = "baseFee below minimum";
-        return r;
-    }
-    if (block.hash.empty()) {
-        r.reason = "block hash is empty";
-        return r;
-    }
-
-    // Verify PoW — the block hash must satisfy the difficulty target
-    ProofOfWork pow(cfg_.initialMedor);
-    if (!pow.isValidHash(block.hash)) {
-        r.reason = "PoW hash does not meet difficulty target";
-        return r;
-    }
-
-    // Verify coinbase reward does not exceed allowed supply
-    if (!block.transactions.empty()) {
-        uint64_t cbValue = 0;
-        for (const auto &out : block.transactions.front().outputs)
-            cbValue += out.value;
-        if (cbValue > block.reward) {
-            r.reason = "coinbase claims more than block.reward";
-            return r;
-        }
-    }
-
-    r.ok = true;
-    return r;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// validateChain — reports first failing block index and reason
-// ─────────────────────────────────────────────────────────────────────────────
-
-Blockchain::ValidationResult Blockchain::validateChain() const noexcept
-{
-    std::shared_lock<std::shared_mutex> lock(rwMutex_);
-
-    ValidationResult r;
-    if (chain_.size() <= 1) { r.ok = true; return r; }
-
-    for (size_t i = 1; i < chain_.size(); ++i) {
-        auto blockResult = validateBlock(chain_[i], chain_[i - 1]);
-        if (!blockResult.ok) {
-            r.failedIndex = i;
-            r.reason      = "Block " + std::to_string(i)
-                          + " failed: " + blockResult.reason;
-            return r;
-        }
-    }
-
-    r.ok = true;
-    return r;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Fork resolution
-// ─────────────────────────────────────────────────────────────────────────────
-
-bool Blockchain::resolveFork(const std::vector<Block> &candidateChain) noexcept
-{
-    std::unique_lock<std::shared_mutex> lock(rwMutex_);
-    return resolveLongestChain(candidateChain, chain_);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// UTXO lookup
-// ─────────────────────────────────────────────────────────────────────────────
-
-std::optional<UTXO> Blockchain::getUTXO(const std::string &txHash,
-                                          int                outputIndex) const noexcept
-{
-    return utxoSet_.getUTXO(txHash, outputIndex);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Diagnostics — logs metadata only, not raw hashes or private fields
-// ─────────────────────────────────────────────────────────────────────────────
-
-void Blockchain::printChain() const noexcept
-{
-    std::shared_lock<std::shared_mutex> lock(rwMutex_);
-    std::cout << "══════ MedorCoin Blockchain ══════\n"
-              << "Height:       " << (chain_.empty() ? 0 : chain_.size() - 1) << "\n"
-              << "Total Supply: " << totalSupply_.load() << "\n"
-              << "Base Fee:     " << baseFeePerGas_.load() << "\n"
-              << "──────────────────────────────────\n";
-    for (size_t i = 0; i < chain_.size(); ++i) {
-        const Block &b = chain_[i];
-        std::cout << "Block " << std::setw(6) << i
-                  << "  txs=" << b.transactions.size()
-                  << "  reward=" << b.reward
-                  << "  baseFee=" << b.baseFee
-                  << "  time=" << b.timestamp
-                  << "\n";
-    }
-    std::cout << "══════════════════════════════════\n";
 }

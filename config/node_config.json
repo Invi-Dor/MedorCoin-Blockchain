@@ -1,0 +1,250 @@
+{
+  "_comment": "MedorCoin Node Configuration — Production v1.0.0",
+  "_docs": "https://medorcoin.io/docs/node-config",
+
+  "node": {
+    "id": "medor-node-001",
+    "version": "1.0.0",
+    "network": "mainnet",
+    "chain_id": 1337,
+    "data_dir": "./data",
+    "log_level": "info",
+    "log_dir": "./logs",
+    "pid_file": "./data/node.pid",
+    "locale": "UTC"
+  },
+
+  "network": {
+    "listen_host": "0.0.0.0",
+    "listen_port": 30303,
+    "external_ip": "",
+    "max_inbound_peers": 125,
+    "max_outbound_peers": 25,
+    "min_peers": 4,
+    "io_threads": 4,
+    "connect_timeout_ms": 5000,
+    "handshake_timeout_ms": 10000,
+    "ping_interval_secs": 30,
+    "peer_timeout_secs": 120,
+    "reconnect_interval_secs": 60,
+    "max_reconnect_attempts": 10,
+    "max_msg_size_bytes": 8388608,
+    "max_msg_per_sec_per_peer": 100,
+    "network_magic": "MEDOR",
+    "protocol_version": 1,
+    "min_peer_version": 1,
+    "max_peer_version": 1,
+    "peer_store_file": "data/peers.dat",
+
+    "FIX3_bootnodes": "Initial seed peers so node discovers the network on first start",
+    "bootnodes": [
+      "enode://NODE_PUBKEY_1@seed1.medorcoin.io:30303",
+      "enode://NODE_PUBKEY_2@seed2.medorcoin.io:30303",
+      "enode://NODE_PUBKEY_3@seed3.medorcoin.io:30303"
+    ],
+
+    "FIX4_rate_limiting": "Per-IP and per-second controls — not just max_connections",
+    "rate_limit": {
+      "enabled": true,
+      "max_requests_per_ip_per_sec": 50,
+      "max_connections_per_ip": 5,
+      "ban_threshold_violations": 10,
+      "ban_duration_secs": 3600,
+      "whitelist_ips": []
+    }
+  },
+
+  "tls": {
+    "enabled": true,
+    "cert_file": "config/tls/node.crt",
+    "key_file": "config/tls/node.key",
+    "ca_file": "config/tls/ca.crt",
+    "dh_param_file": "config/tls/dhparam.pem",
+
+    "FIX2_enforcement": "TLS must be enforced on RPC and API ports — not just defined",
+    "enforce_on_rpc": true,
+    "enforce_on_api": true,
+    "min_tls_version": "TLSv1.3",
+    "cipher_suites": [
+      "TLS_AES_256_GCM_SHA384",
+      "TLS_CHACHA20_POLY1305_SHA256"
+    ],
+    "require_client_cert": false,
+    "ocsp_stapling": true
+  },
+
+  "rpc": {
+    "enabled": true,
+
+    "FIX1_security": "RPC must never be open — token required, CORS locked, localhost only",
+    "host": "127.0.0.1",
+    "port": 8545,
+    "tls_enabled": true,
+    "max_connections": 100,
+    "request_timeout_ms": 10000,
+    "max_request_body_bytes": 102400,
+
+    "FIX1_auth": "Generate with: openssl rand -hex 32",
+    "auth_token": "REPLACE_WITH_STRONG_SECRET_32BYTE_HEX",
+    "auth_method": "bearer",
+
+    "FIX1_cors": "Lock to known origins — never use wildcard in production",
+    "cors_origins": [
+      "https://dashboard.medorcoin.io"
+    ],
+    "cors_methods": ["POST"],
+    "cors_headers": ["Content-Type", "Authorization"],
+
+    "FIX4_rpc_rate_limit": "Prevent RPC spam and denial of service",
+    "rate_limit": {
+      "enabled": true,
+      "max_requests_per_ip_per_sec": 20,
+      "max_burst": 50,
+      "ban_on_exceed": true
+    },
+
+    "allowed_methods": [
+      "eth_blockNumber",
+      "eth_getBalance",
+      "eth_sendRawTransaction",
+      "eth_getTransactionReceipt",
+      "eth_getBlockByHash",
+      "eth_getBlockByNumber",
+      "net_peerCount",
+      "web3_clientVersion",
+      "medor_getMiningInfo",
+      "medor_getMempoolInfo"
+    ]
+  },
+
+  "api": {
+    "enabled": true,
+
+    "FIX8_api_security": "API must not be exposed to 0.0.0.0 without auth — bind to internal interface",
+    "host": "127.0.0.1",
+    "port": 8080,
+    "tls_enabled": true,
+    "max_connections": 500,
+    "request_timeout_ms": 15000,
+
+    "auth": {
+      "enabled": true,
+      "method": "bearer",
+      "token": "REPLACE_WITH_STRONG_API_SECRET_HEX"
+    },
+
+    "FIX4_api_rate_limit": "Per-IP rate limiting on public API",
+    "rate_limit": {
+      "enabled": true,
+      "max_requests_per_ip_per_sec": 100,
+      "max_burst": 200,
+      "ban_on_exceed": true
+    },
+
+    "public_routes": [
+      "/api/v1/block",
+      "/api/v1/tx",
+      "/api/v1/address",
+      "/api/v1/status"
+    ],
+    "private_routes": [
+      "/api/v1/admin",
+      "/api/v1/mining",
+      "/api/v1/peers"
+    ]
+  },
+
+  "blockchain": {
+    "db_path": "data/blocks",
+    "account_db_path": "data/accounts",
+    "state_db_path": "data/state",
+    "max_supply": 50000000,
+
+    "FIX6_addresses": "Owner and treasury must be set before mainnet deployment",
+    "owner_address": "REPLACE_WITH_OWNER_ADDRESS",
+    "treasury_address": "REPLACE_WITH_TREASURY_ADDRESS",
+    "validator_key_dir": "config/keys",
+
+    "genesis_file": "config/genesis.json",
+    "max_block_size_bytes": 2097152,
+    "max_tx_per_block": 5000,
+    "block_reward": 50,
+    "halving_interval": 210000,
+    "max_reorg_depth": 100
+  },
+
+  "mempool": {
+    "max_tx_count": 100000,
+    "max_total_bytes": 268435456,
+    "min_fee_per_gas": 1,
+    "max_tx_age_seconds": 3600,
+    "eviction_check_interval_secs": 60,
+    "persist_to_disk": true,
+    "db_path": "data/mempool",
+    "persist_batch_size": 512,
+    "max_persist_queue_size": 50000,
+    "persist_write_bytes_per_sec": 52428800,
+    "double_spend_check": true,
+    "fee_bump_min_percent": 10
+  },
+
+  "mining": {
+    "enabled": false,
+
+    "FIX5_mining": "miner_address and threads must be set before enabling mining",
+    "miner_address": "REPLACE_WITH_MINER_ADDRESS",
+    "threads": 4,
+    "target_block_time_secs": 10,
+    "min_difficulty": 4,
+    "max_difficulty": 64,
+    "difficulty_adjust_interval": 2016,
+    "nonce_state_path": "data/nonce.state",
+    "extra_data": "MedorCoin/v1.0.0",
+    "coinbase_maturity_blocks": 100
+  },
+
+  "monitoring": {
+    "prometheus_enabled": true,
+    "prometheus_host": "127.0.0.1",
+    "prometheus_port": 9090,
+    "health_host": "127.0.0.1",
+    "health_port": 8081,
+    "metrics_export_path": "monitoring/metrics.txt",
+    "metrics_flush_interval_secs": 15,
+    "alert_on_peer_count_below": 4,
+    "alert_on_mempool_above": 80000,
+    "alert_on_block_time_above_secs": 60
+  },
+
+  "FIX7_backup": "Snapshot and recovery strategy — required for production",
+  "backup": {
+    "enabled": true,
+    "snapshot_dir": "data/snapshots",
+    "snapshot_interval_blocks": 1000,
+    "snapshot_keep_count": 5,
+    "compress_snapshots": true,
+    "remote_backup": {
+      "enabled": false,
+      "provider": "s3",
+      "bucket": "medorcoin-backups",
+      "region": "us-east-1",
+      "prefix": "mainnet/snapshots/",
+      "credentials_file": "config/backup_credentials.json"
+    },
+    "recovery": {
+      "auto_recover_on_startup": true,
+      "verify_checksum": true,
+      "max_restore_attempts": 3
+    }
+  },
+
+  "security": {
+    "disable_debug_endpoints": true,
+    "max_log_size_mb": 500,
+    "secret_rotation_days": 90,
+    "audit_log_path": "logs/audit.log",
+    "ban_list_path": "data/banned_peers.dat",
+    "allow_private_ips": false,
+    "ddos_protection": true
+  }
+}

@@ -2,55 +2,59 @@
 #include "blockchain.h"
 #include "mempool.h"
 #include "transaction.h"
-#include <vector>
+
 #include <iostream>
+#include <vector>
 
-// Mine a block with only reward + no mempool txs
-void Miner::mineMedor(Blockchain &chain, const std::string &minerAddress) {
+// =============================================================================
+// mineMedor
+// Mine a block with only the coinbase reward and no mempool transactions.
+// =============================================================================
+void Miner::mineMedor(Blockchain        &chain,
+                       const std::string &minerAddress)
+{
     std::cout << "[Miner] Starting mining with miner address: "
-              << minerAddress << std::endl;
+              << minerAddress << "\n";
 
-    // Prepare an empty transaction list
     std::vector<Transaction> txs;
-
-    // Add block to chain (this will include coinbase reward)
     chain.addBlock(minerAddress, txs);
 
-    std::cout << "[Miner] Block mined and added to chain." << std::endl;
+    std::cout << "[Miner] Block mined and added to chain.\n";
 }
 
-// Mine including transactions from the mempool
-void Miner::mineWithMempool(Blockchain &chain,
-                            const std::string &minerAddress) {
-    std::cout << "[Miner] Mining with mempool transactions." << std::endl;
+// =============================================================================
+// mineWithMempool
+// Mine a block including valid transactions from the mempool.
+// =============================================================================
+void Miner::mineWithMempool(Blockchain        &chain,
+                             const std::string &minerAddress,
+                             Mempool           &mempool,
+                             uint64_t           baseFee)
+{
+    std::cout << "[Miner] Mining with mempool transactions.\n";
 
-    // Fetch pending transactions from mempool
-    std::vector<Transaction> pendingTxs = Mempool::getPendingTxs();
+    // getTransactions() returns all current mempool txs -- not static
+    std::vector<Transaction> pendingTxs = mempool.getTransactions();
 
     std::vector<Transaction> validTxs;
     validTxs.reserve(pendingTxs.size());
 
-    // Validate + process each pending TX
     for (auto &tx : pendingTxs) {
-        // Calculate TX ID
         tx.calculateHash();
-
-        // Try to process the transaction with fees
-        bool ok = processTransaction(tx, chain, minerAddress);
-        if (ok) {
+        // Only include txs that meet the current base fee
+        if (Mempool::effectiveFee(tx, baseFee) >= baseFee) {
             validTxs.push_back(tx);
         } else {
-            std::cout << "[Miner] Skipping invalid or unpaid TX: "
-                      << tx.txHash << std::endl;
+            std::cout << "[Miner] Skipping low-fee TX: "
+                      << tx.txHash << "\n";
         }
     }
 
-    // Now add block with valid transactions
     chain.addBlock(minerAddress, validTxs);
 
     std::cout << "[Miner] Block mined with "
-              << validTxs.size() << " transactions." << std::endl;
+              << validTxs.size() << " transactions.\n";
 
-    // Clear those transactions from mempool
-    Mempool::removeConfirmed(validTxs);
+    // removeConfirmed takes a vector<Transaction> and an instance
+    mempool.removeConfirmed(validTxs);
 }

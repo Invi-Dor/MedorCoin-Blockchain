@@ -21,7 +21,11 @@ APT_GET:FILEPATH=/usr/bin/apt-get
 ASSERT_STATUS_CHECKED:BOOL=OFF
 
 //the time we first built rocksdb
+<<<<<<< HEAD
 BUILD_DATE:STRING=2026-03-17 22:57:10
+=======
+BUILD_DATE:STRING=2026-03-18 18:30:42
+>>>>>>> 481b0b68d6a0018fa69f5e27c830c7a318edac7a
 
 //Path to a file.
 BZIP2_INCLUDE_DIR:PATH=/usr/include
@@ -407,6 +411,21 @@ LEVELDB_INCLUDE:PATH=/usr/include
 
 //Path to a library.
 LEVELDB_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libleveldb.so
+<<<<<<< HEAD
+=======
+
+//Value Computed by CMake
+MedorCoin_BINARY_DIR:STATIC=/workspaces/MedorCoin-Blockchain/build
+
+//Value Computed by CMake
+MedorCoin_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+MedorCoin_SOURCE_DIR:STATIC=/workspaces/MedorCoin-Blockchain
+
+//Value Computed by CMake
+MedorcoinSrc_BINARY_DIR:STATIC=/workspaces/MedorCoin-Blockchain/build/src
+>>>>>>> 481b0b68d6a0018fa69f5e27c830c7a318edac7a
 
 //Value Computed by CMake
 MedorCoin_BINARY_DIR:STATIC=/workspaces/MedorCoin-Blockchain/build
@@ -541,6 +560,106 @@ WITH_ZLIB:BOOL=ON
 WITH_ZSTD:BOOL=ON
 
 //Path to a file.
+SECP256K1_INCLUDE:PATH=/usr/include
+
+//Path to a library.
+SECP256K1_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libsecp256k1.so
+
+//The directory containing a CMake configuration file for Snappy.
+Snappy_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/Snappy
+
+USE_RTTI:BOOL=ON
+
+//Accelerate build speed and reduce build artifect size for github
+// CI with MSVC
+WIN_CI:BOOL=OFF
+
+//Build all test, rather than a small subset
+WITH_ALL_TESTS:BOOL=ON
+
+//build with ASAN
+WITH_ASAN:BOOL=OFF
+
+//build benchmark tests
+WITH_BENCHMARK:BOOL=OFF
+
+//build with benchmarks
+WITH_BENCHMARK_TOOLS:BOOL=OFF
+
+//build with bzip2
+WITH_BZ2:BOOL=ON
+
+//build with ldb and sst_dump
+WITH_CORE_TOOLS:BOOL=ON
+
+//build with dynamic extension support
+WITH_DYNAMIC_EXTENSION:BOOL=OFF
+
+//build with examples
+WITH_EXAMPLES:BOOL=OFF
+
+//build with fallocate
+WITH_FALLOCATE:BOOL=ON
+
+//build with GFlags
+WITH_GFLAGS:BOOL=ON
+
+//Enable IO stats context
+WITH_IOSTATS_CONTEXT:BOOL=ON
+
+//build with JeMalloc
+WITH_JEMALLOC:BOOL=ON
+
+//build with JNI
+WITH_JNI:BOOL=OFF
+
+//build with liburing
+WITH_LIBURING:BOOL=ON
+
+//build with lz4
+WITH_LZ4:BOOL=ON
+
+//build with MD
+WITH_MD_LIBRARY:BOOL=ON
+
+//build with NUMA policy support
+WITH_NUMA:BOOL=OFF
+
+//Enable perf context
+WITH_PERF_CONTEXT:BOOL=ON
+
+//build with debug version of runtime library
+WITH_RUNTIME_DEBUG:BOOL=ON
+
+//build with SNAPPY
+WITH_SNAPPY:BOOL=ON
+
+//build with Threading Building Blocks (TBB)
+WITH_TBB:BOOL=OFF
+
+//build with tools
+WITH_TOOLS:BOOL=ON
+
+//build with trace tools
+WITH_TRACE_TOOLS:BOOL=ON
+
+//build with TSAN
+WITH_TSAN:BOOL=OFF
+
+//build with UBSAN
+WITH_UBSAN:BOOL=OFF
+
+//use UTF8 as characterset for opening files, regardles of the
+// system code page
+WITH_WINDOWS_UTF8_FILENAMES:BOOL=OFF
+
+//build with zlib
+WITH_ZLIB:BOOL=ON
+
+//build with zstd
+WITH_ZSTD:BOOL=ON
+
+//Path to a file.
 ZLIB_INCLUDE_DIR:PATH=/usr/include
 
 //Path to a library.
@@ -558,6 +677,21 @@ gflags_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/gflags
 //Path to a file.
 lz4_INCLUDE_DIRS:PATH=/usr/include
 
+<<<<<<< HEAD
+=======
+//Path to a library.
+lz4_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/liblz4.so
+
+//The directory containing a CMake configuration file for nlohmann_json.
+nlohmann_json_DIR:PATH=/opt/conda/share/cmake/nlohmann_json
+
+//Path to a library.
+pkgcfg_lib_JEMALLOC_jemalloc:FILEPATH=/usr/lib/x86_64-linux-gnu/libjemalloc.so
+
+//Path to a library.
+pkgcfg_lib_LZ4_lz4:FILEPATH=/usr/lib/x86_64-linux-gnu/liblz4.so
+
+>>>>>>> 481b0b68d6a0018fa69f5e27c830c7a318edac7a
 //Path to a library.
 lz4_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/liblz4.so
 
@@ -848,7 +982,11 @@ CPACK_SOURCE_ZIP-ADVANCED:INTERNAL=1
 //Details about finding BZip2
 FIND_PACKAGE_MESSAGE_DETAILS_BZip2:INTERNAL=[/usr/lib/x86_64-linux-gnu/libbz2.so][/usr/include][v1.0.8()]
 //Details about finding Git
+<<<<<<< HEAD
 FIND_PACKAGE_MESSAGE_DETAILS_Git:INTERNAL=[/usr/local/bin/git][v2.53.0()]
+=======
+FIND_PACKAGE_MESSAGE_DETAILS_Git:INTERNAL=[/usr/local/bin/git][v2.52.0()]
+>>>>>>> 481b0b68d6a0018fa69f5e27c830c7a318edac7a
 //Details about finding JeMalloc
 FIND_PACKAGE_MESSAGE_DETAILS_JeMalloc:INTERNAL=[/usr/lib/x86_64-linux-gnu/libjemalloc.so][/usr/include][v()]
 //Details about finding OpenSSL
@@ -864,7 +1002,11 @@ FIND_PACKAGE_MESSAGE_DETAILS_lz4:INTERNAL=[/usr/lib/x86_64-linux-gnu/liblz4.so][
 //Details about finding uring
 FIND_PACKAGE_MESSAGE_DETAILS_uring:INTERNAL=[/usr/lib/x86_64-linux-gnu/liburing.a][/usr/include][v()]
 //Details about finding zstd
+<<<<<<< HEAD
 FIND_PACKAGE_MESSAGE_DETAILS_zstd:INTERNAL=[/usr/lib/x86_64-linux-gnu/libzstd.so][/usr/include][v()]
+=======
+FIND_PACKAGE_MESSAGE_DETAILS_zstd:INTERNAL=[zstd][/usr/include][v()]
+>>>>>>> 481b0b68d6a0018fa69f5e27c830c7a318edac7a
 //ADVANCED property for variable: GIT_EXECUTABLE
 GIT_EXECUTABLE-ADVANCED:INTERNAL=1
 //Have symbol getauxval
@@ -922,6 +1064,7 @@ JEMALLOC_jemalloc_VERSION:INTERNAL=
 JeMalloc_INCLUDE_DIRS-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: JeMalloc_LIBRARIES
 JeMalloc_LIBRARIES-ADVANCED:INTERNAL=1
+<<<<<<< HEAD
 LEVELDB_CFLAGS:INTERNAL=
 LEVELDB_CFLAGS_I:INTERNAL=
 LEVELDB_CFLAGS_OTHER:INTERNAL=
@@ -947,6 +1090,8 @@ LEVELDB_libleveldb_INCLUDEDIR:INTERNAL=
 LEVELDB_libleveldb_LIBDIR:INTERNAL=
 LEVELDB_libleveldb_PREFIX:INTERNAL=
 LEVELDB_libleveldb_VERSION:INTERNAL=
+=======
+>>>>>>> 481b0b68d6a0018fa69f5e27c830c7a318edac7a
 LZ4_CFLAGS:INTERNAL=-I/usr/include
 LZ4_CFLAGS_I:INTERNAL=
 LZ4_CFLAGS_OTHER:INTERNAL=
@@ -1152,12 +1297,20 @@ _OPENSSL_openssl_PREFIX:INTERNAL=
 _OPENSSL_openssl_VERSION:INTERNAL=
 __pkg_config_arguments_JEMALLOC:INTERNAL=QUIET;jemalloc
 __pkg_config_arguments_LZ4:INTERNAL=QUIET;liblz4
+<<<<<<< HEAD
+=======
+__pkg_config_arguments_ROCKSDB:INTERNAL=REQUIRED;rocksdb
+>>>>>>> 481b0b68d6a0018fa69f5e27c830c7a318edac7a
 __pkg_config_arguments_SECP256K1:INTERNAL=REQUIRED;libsecp256k1
 __pkg_config_arguments_SNAPPY:INTERNAL=QUIET;snappy
 __pkg_config_arguments_ZSTD:INTERNAL=QUIET;libzstd
 __pkg_config_arguments__OPENSSL:INTERNAL=QUIET;openssl
 __pkg_config_checked_JEMALLOC:INTERNAL=1
 __pkg_config_checked_LZ4:INTERNAL=1
+<<<<<<< HEAD
+=======
+__pkg_config_checked_ROCKSDB:INTERNAL=1
+>>>>>>> 481b0b68d6a0018fa69f5e27c830c7a318edac7a
 __pkg_config_checked_SECP256K1:INTERNAL=1
 __pkg_config_checked_SNAPPY:INTERNAL=1
 __pkg_config_checked_ZSTD:INTERNAL=1
@@ -1170,6 +1323,11 @@ lz4_LIBRARIES-ADVANCED:INTERNAL=1
 pkgcfg_lib_JEMALLOC_jemalloc-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib_LZ4_lz4
 pkgcfg_lib_LZ4_lz4-ADVANCED:INTERNAL=1
+<<<<<<< HEAD
+=======
+//ADVANCED property for variable: pkgcfg_lib_ROCKSDB_rocksdb
+pkgcfg_lib_ROCKSDB_rocksdb-ADVANCED:INTERNAL=1
+>>>>>>> 481b0b68d6a0018fa69f5e27c830c7a318edac7a
 //ADVANCED property for variable: pkgcfg_lib_SECP256K1_secp256k1
 pkgcfg_lib_SECP256K1_secp256k1-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib_SNAPPY_snappy

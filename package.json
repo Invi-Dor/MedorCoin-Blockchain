@@ -1,25 +1,26 @@
 {
-  "name": "medorcoin-backend",
+  "name": "medorcoin-node",
   "version": "1.0.0",
-  "description": "MedorCoin backend server",
-  "main": "server.js",
+  "description": "MedorCoin Blockchain Node - Sovereign Edition",
+  "main": "server.cjs",
+  "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.cjs",
+    "mine": "MINE=true node server.cjs",
+    "test": "node log_test.js",
+    "start:dev": "LOG_LEVEL=DEBUG node server.cjs"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Invi-Dor/MedorCoin-Blockchain.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
     "express": "^4.22.1",
+    "ioredis": "^5.4.1",
     "jsonwebtoken": "^9.0.3",
-    "level": "^7.0.1",
+    "level": "^8.0.0",
     "lodash": "^4.17.23",
-    "nodemailer": "^7.0.13"
+    "msgpack5": "^6.0.2",
+    "nodemailer": "^7.0.13",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^0.15.16",
@@ -27,17 +28,23 @@
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.3",
     "@types/node": "^22.19.15",
     "ethers": "^6.16.0",
-    "forge-std": "github:foundry-rs/forge-std#v1.9.4",
     "hardhat": "^3.1.11",
     "typescript": "~5.8.0",
     "viem": "^2.47.0"
   },
-  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "keywords": [
+    "blockchain",
+    "pow",
+    "distributed-systems",
+    "medorcoin"
+  ],
+  "author": "Invi-Dor",
   "bugs": {
     "url": "https://github.com/Invi-Dor/MedorCoin-Blockchain/issues"
   },
-  "homepage": "https://github.com/Invi-Dor/MedorCoin-Blockchain#readme",
-  "directories": {
-    "test": "test"
-  }
+  "homepage": "https://github.com/Invi-Dor/MedorCoin-Blockchain#readme"
 }

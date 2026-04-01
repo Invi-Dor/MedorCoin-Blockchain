@@ -1,0 +1,374 @@
+# =============================================================================
+# MedorCoin Blockchain — Prometheus Metrics Registry
+# Production-grade | Multi-node | Multi-region | Label-consistent
+#
+# All metrics include a common label set:
+#   instance   — hostname or node identifier
+#   region     — deployment region (us-east, eu-west, ap-south)
+#   network    — mainnet | testnet | devnet
+#   chain_id   — 1337 | 1338 | 1339
+#   version    — node software version (e.g. 1.0.0)
+#
+# Counters are monotonically increasing and never reset except on node restart.
+# On node restart, Prometheus handles counter resets via the rate() function
+# which detects discontinuities automatically.
+# Histograms include an explicit +Inf bucket to catch values beyond upper bound.
+# =============================================================================
+
+metrics:
+  enabled:  true
+  port:     9090
+  path:     /metrics
+  interval: 15
+
+  # Common labels applied to every metric at export time.
+  # Values are populated at runtime from environment or config.
+  common_labels:
+    instance:  "${MEDORCOIN_INSTANCE}"
+    region:    "${MEDORCOIN_REGION}"
+    network:   "${MEDORCOIN_NETWORK}"
+    chain_id:  "${MEDORCOIN_CHAIN_ID}"
+    version:   "${MEDORCOIN_VERSION}"
+
+# =============================================================================
+# Blockchain — chain state
+# =============================================================================
+
+blockchain:
+  - name: medorcoin_block_height
+    help: Current block height of the canonical chain tip.
+    type: gauge
+    labels: [instance, region, network, chain_id, version]
+
+  - name: medorcoin_total_supply
+    help: Total supply of MEDOR in circulation (base units).
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_base_fee
+    help: Current EIP-1559 base fee per gas unit.
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_blocks_total
+    help: >
+      Total number of blocks appended to the canonical chain since node start.
+      Monotonic counter — use rate() for per-second throughput.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_block_time_seconds
+    help: >
+      Wall-clock time in seconds between consecutive block timestamps.
+      Target: 10s. Buckets cover normal range plus overflow for stalls.
+    type: histogram
+    buckets: [1, 2, 5, 8, 10, 12, 15, 20, 30, 60, 120, 300, "+Inf"]
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_reorg_depth
+    help: >
+      Depth of the most recent chain reorganisation in blocks.
+      Alert if this exceeds 6 (suspicious) or 100 (critical per protocol spec).
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_reorg_total
+    help: Total number of chain reorganisations handled since node start.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_node_restart_total
+    help: >
+      Total number of times this node process has started.
+      Used as an annotation trigger in Grafana dashboards.
+      Incremented once at startup by writing a persistent counter to disk.
+    type: counter
+    labels: [instance, region, network, chain_id, version]
+
+  - name: medorcoin_chain_upgrade_total
+    help: >
+      Total number of hard fork / protocol upgrade activations observed.
+      Used as an annotation trigger in Grafana dashboards.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+# =============================================================================
+# Mempool
+# =============================================================================
+
+mempool:
+  - name: medorcoin_mempool_tx_count
+    help: Number of pending transactions currently in the mempool.
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_mempool_bytes
+    help: Total serialized byte size of all transactions in the mempool.
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_mempool_tx_added_total
+    help: Total transactions added to the mempool since node start.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_mempool_tx_rejected_total
+    help: >
+      Total transactions rejected at mempool ingress since node start.
+      Label 'reason' distinguishes rejection causes.
+    type: counter
+    labels: [instance, region, network, chain_id, reason]
+    label_values:
+      reason: [invalid_sig, insufficient_fee, nonce_too_low,
+               gas_limit_exceeded, double_spend, chain_id_mismatch,
+               mempool_full]
+
+  - name: medorcoin_mempool_tx_evicted_total
+    help: >
+      Total transactions evicted from a full mempool since node start.
+      Eviction is lowest-fee-first per protocol spec Section 13.4.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+# =============================================================================
+# Transactions
+# =============================================================================
+
+transactions:
+  - name: medorcoin_tx_total
+    help: >
+      Total transactions included in confirmed blocks since node start.
+      Use rate() for TPS. Label 'type' distinguishes coinbase vs transfer.
+    type: counter
+    labels: [instance, region, network, chain_id, type]
+    label_values:
+      type: [coinbase, transfer]
+
+  - name: medorcoin_tx_fees_total
+    help: >
+      Cumulative network fees collected in base units since node start.
+      Coinbase transactions are excluded per protocol spec Section 6.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_tx_value_total
+    help: Cumulative value transferred in base units since node start.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_double_spend_rejected_total
+    help: >
+      Total double-spend attempts rejected since node start.
+      Any non-zero rate is a security signal worth alerting on.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_tx_gas_used_total
+    help: Cumulative gas consumed by all confirmed transactions since node start.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_tx_size_bytes
+    help: >
+      Distribution of serialized transaction sizes in bytes.
+      Useful for detecting abnormally large transactions.
+    type: histogram
+    buckets: [128, 256, 512, 1024, 2048, 4096, 8192, 16384, "+Inf"]
+    labels: [instance, region, network, chain_id]
+
+# =============================================================================
+# Network / P2P
+# =============================================================================
+
+network:
+  - name: medorcoin_peer_count
+    help: Total number of currently connected P2P peers.
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_peer_inbound
+    help: Number of inbound peer connections.
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_peer_outbound
+    help: Number of outbound peer connections.
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_messages_received_total
+    help: >
+      Total P2P messages received since node start, labelled by message type
+      (BLOCK_ANNOUNCE, TX_BROADCAST, PEER_DISCOVER, PING, STATUS, etc.).
+    type: counter
+    labels: [instance, region, network, chain_id, message_type]
+    label_values:
+      message_type: [block_announce, block_request, block_response,
+                     tx_broadcast, tx_request, tx_response,
+                     peer_discover, peer_list, ping, pong,
+                     status, disconnect]
+
+  - name: medorcoin_messages_sent_total
+    help: Total P2P messages sent since node start, labelled by message type.
+    type: counter
+    labels: [instance, region, network, chain_id, message_type]
+    label_values:
+      message_type: [block_announce, block_request, block_response,
+                     tx_broadcast, tx_request, tx_response,
+                     peer_discover, peer_list, ping, pong,
+                     status, disconnect]
+
+  - name: medorcoin_peer_disconnect_total
+    help: >
+      Total peer disconnections since node start, labelled by reason code.
+      High rates of incompatible_chain indicate misconfigured nodes.
+    type: counter
+    labels: [instance, region, network, chain_id, reason]
+    label_values:
+      reason: [timeout, incompatible_chain, too_many_peers,
+               protocol_error, banned, requested]
+
+  - name: medorcoin_handshake_failures_total
+    help: >
+      Total failed P2P STATUS handshakes since node start.
+      Failures due to chain_id or genesis_hash mismatch per protocol spec
+      Section 11.2.
+    type: counter
+    labels: [instance, region, network, chain_id, reason]
+    label_values:
+      reason: [chain_id_mismatch, genesis_mismatch,
+               protocol_version_mismatch, timeout]
+
+# =============================================================================
+# Mining
+# =============================================================================
+
+mining:
+  - name: medorcoin_hash_rate
+    help: Current mining hash rate in hashes per second on this node.
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_blocks_mined_total
+    help: Total blocks successfully mined and accepted by this node.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_mining_reward_total
+    help: Cumulative mining rewards earned in base units since node start.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_difficulty
+    help: Current PoW difficulty target value.
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_stale_blocks_total
+    help: >
+      Total stale (orphaned) blocks produced by this miner since node start.
+      High rate relative to mined_total indicates poor network connectivity.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+# =============================================================================
+# Storage
+# =============================================================================
+
+storage:
+  - name: medorcoin_db_size_bytes
+    help: >
+      Total on-disk size of the block and state database in bytes.
+      Raw bytes — Grafana unit 'bytes' auto-scales to KB/MB/GB.
+      Alert thresholds: 50 GB (warning), 200 GB (critical) per protocol spec.
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_utxo_count
+    help: Total number of unspent transaction outputs in the UTXO set.
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_account_count
+    help: Total number of accounts with non-zero balances.
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_spent_outpoints_total
+    help: >
+      Total number of spent outpoints tracked for double-spend prevention.
+      Grows monotonically; used to estimate UTXO churn rate.
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+# =============================================================================
+# RPC
+# =============================================================================
+
+rpc:
+  - name: medorcoin_rpc_requests_total
+    help: >
+      Total RPC requests received since node start, labelled by method.
+      Use rate() for req/s. Alert if rate > 2000/s per prometheus_config.yaml.
+    type: counter
+    labels: [instance, region, network, chain_id, method]
+
+  - name: medorcoin_rpc_errors_total
+    help: Total RPC errors returned since node start, labelled by error code.
+    type: counter
+    labels: [instance, region, network, chain_id, method, error_code]
+
+  - name: medorcoin_rpc_latency_seconds
+    help: >
+      RPC request latency in seconds. p99 > 1s triggers critical alert.
+      Buckets cover 1ms–2s plus +Inf overflow for spike capture.
+    type: histogram
+    buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, "+Inf"]
+    labels: [instance, region, network, chain_id, method]
+
+# =============================================================================
+# Connection Pool — matches ConnectionPool::Metrics in ConnectionPool.hpp
+# =============================================================================
+
+connection_pool:
+  - name: medorcoin_pool_open_fds
+    help: >
+      Current number of open file descriptors in the TCP connection pool.
+      Alert threshold: 7500 / globalMaxFds: 8192 per ConnectionPool::Config.
+    type: gauge
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_pool_acquired_total
+    help: Total connections acquired from the pool since node start.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_pool_released_total
+    help: Total connections returned to the pool since node start.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_pool_evicted_total
+    help: Total idle connections evicted by the janitor since node start.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_pool_failed_total
+    help: Total failed connection attempts since node start.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_pool_global_budget_rejections_total
+    help: >
+      Total connection attempts rejected because globalMaxFds was reached.
+      Any non-zero value indicates FD saturation.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_pool_tls_failures_total
+    help: Total TLS handshake failures since node start.
+    type: counter
+    labels: [instance, region, network, chain_id]
+
+  - name: medorcoin_pool_async_queue_depth
+    help: Current number of pending async acquire​​​​​​​​​​​​​​​​
