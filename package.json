@@ -3,19 +3,15 @@
   "version": "1.0.0",
   "description": "MedorCoin Blockchain Node - Sovereign Edition",
   "main": "server.cjs",
-  "type": "module",
   "scripts": {
     "start": "node server.cjs",
     "mine": "MINE=true node server.cjs",
     "test": "node log_test.js",
-    "start:dev": "LOG_LEVEL=DEBUG node server.cjs"
-    "scripts": {
+    "start:dev": "LOG_LEVEL=DEBUG node", 
   "build": "node-gyp rebuild",
   "build:debug": "node-gyp rebuild --debug",
-  "start": "node server.cjs",
   "test:asan": "node-gyp rebuild --build-type=CI_ASAN && node server.cjs"
-}
-  },
+},
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
