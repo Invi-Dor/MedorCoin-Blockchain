@@ -9,6 +9,12 @@
     "mine": "MINE=true node server.cjs",
     "test": "node log_test.js",
     "start:dev": "LOG_LEVEL=DEBUG node server.cjs"
+    "scripts": {
+  "build": "node-gyp rebuild",
+  "build:debug": "node-gyp rebuild --debug",
+  "start": "node server.cjs",
+  "test:asan": "node-gyp rebuild --build-type=CI_ASAN && node server.cjs"
+}
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
