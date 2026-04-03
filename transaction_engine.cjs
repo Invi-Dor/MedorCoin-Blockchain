@@ -13,22 +13,26 @@ const logger = pino({
     transport: { target: 'pino-pretty' }
 });
 
-class TransactionEngine {
-  constructor(redisClients, secretKey, nodeId = 'node-01') {
-    this.nodeId = nodeId;
-    this.keys = { current: secretKey, previous: process.env.PREVIOUS_JWT_KEY || null };
-    this.webhookUrl = process.env.ALERT_WEBHOOK_URL;
-    
-    this.isRunning = false;
-    this.safeMode = false;
-    this.MAX_PARALLEL_WORKERS = process.env.MAX_WORKERS || os.cpus().length;
-    this.lastSyncPublish = 0;
+    /**
+     * PRODUCTION CLUSTER CONFIGURATION
+     * Connects to your 3 local Redis nodes on ports 6379, 6380, and 6381.
+     */
+    this.redisClients = [
+        new Redis(6379, "127.0.0.1", redisOptions),
+        new Redis(6380, "127.0.0.1", redisOptions),
+        new Redis(6381, "127.0.0.1", redisOptions)
+    ];
 
-    const redisOptions = {
-        retryStrategy: (times) => Math.min(times * 100, 3000),
-        maxRetriesPerRequest: null,
-        enableOfflineQueue: true 
-    };
+    // Primary command interface (uses the first node)
+    this.redis = this.redisClients[0];
+
+    // GLOBAL REDLOCK: Distributed consensus across all 3 nodes.
+    // This fixes the "split-brain" warning.
+    this.redlock = new Redlock(this.redisClients, { 
+        driftFactor: 0.01, 
+        retryCount: 50, 
+        retryDelay: 150 
+    });
 
     /**
      * INFRASTRUCTURE NOTE: Redlock Drift
