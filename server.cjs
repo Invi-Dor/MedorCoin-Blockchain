@@ -172,21 +172,78 @@ app.post("/tx", async (req, res) => {
     }
 });
 
+// --- MINING & CONSENSUS GATEWAY ---
+
+/**
+ * Provides the current block height and hash to web miners.
+ */
+app.get('/api/get-mining-job', async (req, res) => {
+    try {
+        const consensus = await getConsensusState();
+        res.json({
+            height: consensus.height + 1,
+            blockHash: consensus.lastHash,
+            difficulty: "0000" // Matches the C++ target
+        });
+    } catch (e) {
+        res.status(500).json({ error: "Could not fetch mining job" });
+    }
+});
+
+/**
+ * Receives and validates Proof-of-Work from the miners.html frontend.
+ * Uses the C++ addon for high-speed hash verification.
+ */
+app.post('/api/submit-block', async (req, res) => {
+    if (!addon) return res.status(503).json({ error: "Core Addon Offline" });
+
+    try {
+        const { address, nonce, hash, height } = req.body;
+        const consensus = await getConsensusState();
+
+        // Use the C++ verifyPoW function we added to medorcoin_addon.cpp
+        // Parameters: (lastBlockHash, nonce, minerAddress)
+        const isValid = addon.verifyPoW(consensus.lastHash, nonce.toString(), address);
+
+        if (isValid) {
+            // Reward: Add 50 MedorCoins (using integer representation for Redis)
+            await engine.redis.hincrby("mdc:balances", address, 50000000); 
+            
+            // Update the global stats in your 3-node Redis cluster
+            await engine.redis.hset('mdc:meta:stats', 'lastMiner', address);
+            
+            console.log(`[BLOCK MINED] Height ${height} verified for ${address}`);
+            
+            // Notify other nodes/UI via Redis Pub/Sub
+            await globalDispatch(address, { type: 'BLOCK_REWARD', amount: 50 }, 'HIGH');
+            
+            res.json({ success: true });
+        } else {
+            res.status(400).json({ success: false, error: "Invalid Proof of Work" });
+        }
+    } catch (e) {
+        res.status(500).json({ error: "Internal Verification Error" });
+    }
+});
+
 // --- LIFECYCLE MANAGEMENT ---
 
 async function bootstrap() {
     try {
         await engine.recoverFromCrash().catch((err) => console.error("Recovery err:", err));
         
-        server.listen(PORT, () => {
+        // Added '0.0.0.0' to allow external mining connections from medorcoin.org
+        server.listen(PORT, '0.0.0.0', () => {
             console.log(`\n[SOVEREIGN-API] Node: ${NODE_ID}`);
-            console.log(`[SOVEREIGN-API] Observer active on port ${PORT}\n`);
+            console.log(`[SOVEREIGN-API] Observer active on port ${PORT}`);
+            console.log(`[SOVEREIGN-API] Global access enabled via 0.0.0.0\n`);
         });
     } catch (err) {
         console.error("[FATAL] Bootstrap failed:", err);
         process.exit(1);
     }
 }
+
 
 process.on('SIGTERM', async () => {
     await engine.redis.del(`medor:node_live:${NODE_ID}`);
