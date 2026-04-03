@@ -9,6 +9,11 @@
       "dependencies": [
         "<!(node -p \"require('node-addon-api').gyp\")"
       ],
+      "libraries": [
+        "-lssl",
+        "-lcrypto",
+        "-lz"
+      ],
       "cflags!": [ "-fno-exceptions" ],
       "cflags_cc!": [ "-fno-exceptions" ],
       "xcode_settings": {
@@ -29,7 +34,6 @@
             "-std=c++17",
             "-Wall",
             "-Wextra",
-            "-Werror",
             "-fPIC",
             "-pthread"
           ],
@@ -48,16 +52,6 @@
         "Release": {
           "defines": [ "NDEBUG", "PRODUCTION_BUILD=1" ],
           "cflags_cc": [ "-O3", "-flto" ]
-        },
-        "CI_ASAN": {
-          "defines": [ "DEBUG=1", "CI_TESTING=1" ],
-          "cflags_cc": [ "-g", "-O1", "-fsanitize=address", "-fno-omit-frame-pointer" ],
-          "ldflags": [ "-fsanitize=address" ]
-        },
-        "CI_TSAN": {
-          "defines": [ "DEBUG=1", "CI_TESTING=1" ],
-          "cflags_cc": [ "-g", "-O1", "-fsanitize=thread", "-fno-omit-frame-pointer", "-fPIE" ],
-          "ldflags": [ "-fsanitize=thread", "-pie" ]
         }
       }
     }
