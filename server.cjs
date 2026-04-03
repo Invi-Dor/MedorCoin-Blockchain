@@ -178,15 +178,18 @@ async function bootstrap() {
     try {
         await engine.recoverFromCrash().catch((err) => console.error("Recovery err:", err));
         
-        server.listen(PORT, () => {
+        // Added '0.0.0.0' to allow external mining connections from medorcoin.org
+        server.listen(PORT, '0.0.0.0', () => {
             console.log(`\n[SOVEREIGN-API] Node: ${NODE_ID}`);
-            console.log(`[SOVEREIGN-API] Observer active on port ${PORT}\n`);
+            console.log(`[SOVEREIGN-API] Observer active on port ${PORT}`);
+            console.log(`[SOVEREIGN-API] Global access enabled via 0.0.0.0\n`);
         });
     } catch (err) {
         console.error("[FATAL] Bootstrap failed:", err);
         process.exit(1);
     }
 }
+
 
 process.on('SIGTERM', async () => {
     await engine.redis.del(`medor:node_live:${NODE_ID}`);
