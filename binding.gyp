@@ -40,23 +40,24 @@
         }]
       ],
       "defines": [ "NAPI_CPP_EXCEPTIONS" ],
-      
       "configurations": {
         "Debug": {
           "defines": [ "DEBUG=1", "_DEBUG" ],
-          "cflags_cc": [ "-g", "-O0" ],
-          "xcode_settings": {
-            "GCC_OPTIMIZATION_LEVEL": "0",
-            "GENERATE_DEBUGGING_SYMBOLS": "YES"
-          }
+          "cflags_cc": [ "-g", "-O0" ]
         },
         "Release": {
           "defines": [ "NDEBUG", "PRODUCTION_BUILD=1" ],
-          "cflags_cc": [ "-O3", "-flto" ],
-          "xcode_settings": {
-            "GCC_OPTIMIZATION_LEVEL": "3",
-            "LLVM_LTO": "YES"
-          }
+          "cflags_cc": [ "-O3", "-flto" ]
+        },
+        "CI_ASAN": {
+          "defines": [ "DEBUG=1", "CI_TESTING=1" ],
+          "cflags_cc": [ "-g", "-O1", "-fsanitize=address", "-fno-omit-frame-pointer" ],
+          "ldflags": [ "-fsanitize=address" ]
+        },
+        "CI_TSAN": {
+          "defines": [ "DEBUG=1", "CI_TESTING=1" ],
+          "cflags_cc": [ "-g", "-O1", "-fsanitize=thread", "-fno-omit-frame-pointer", "-fPIE" ],
+          "ldflags": [ "-fsanitize=thread", "-pie" ]
         }
       }
     }
