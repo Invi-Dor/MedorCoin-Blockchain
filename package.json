@@ -4,14 +4,16 @@
   "description": "MedorCoin Blockchain Node - Sovereign Edition",
   "main": "server.cjs",
   "scripts": {
+    "infra": "lsof -i :6379 -sTCP:LISTEN -t >/dev/null && echo 'Infrastructure already active' || bash setup-cluster.sh",
     "start": "node server.cjs",
+    "dev": "npm run infra && npm start",
     "mine": "MINE=true node server.cjs",
     "test": "node log_test.js",
-    "start:dev": "LOG_LEVEL=DEBUG node", 
-  "build": "node-gyp rebuild",
-  "build:debug": "node-gyp rebuild --debug",
-  "test:asan": "node-gyp rebuild --build-type=CI_ASAN && node server.cjs"
-},
+    "build": "node-gyp rebuild",
+    "build:debug": "node-gyp rebuild --debug",
+    "test:asan": "node-gyp rebuild --build-type=CI_ASAN && node server.cjs",
+    "clean": "rm -rf build"
+  },
   "dependencies": {
     "axios": "^1.14.0",
     "bcryptjs": "^2.4.3",
