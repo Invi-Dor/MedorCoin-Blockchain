@@ -234,34 +234,38 @@ async function bootstrap() {
     try {
         console.log("⏳ Starting MedorCoin Engine...");
 
-        // FIX: If Redis doesn't answer in 2 seconds, we MOVE ON to start the server anyway.
+        // If Redis is slow, we skip and start the server anyway after 2 seconds
         await Promise.race([
             engine.recoverFromCrash(),
             new Promise((resolve) => setTimeout(resolve, 2000)) 
-        ]);
+        ]).catch(() => console.log("⚠️ Sync delayed..."));
         
-        // This is the line that actually opens Port 5000
-        server.listen(PORT, () => {
+        // FIX: Added '0.0.0.0' so GitHub Codespaces can see the server
+        server.listen(PORT, '0.0.0.0', () => {
             console.log(`\n=========================================`);
             console.log(`🚀 MEDORCOIN API ONLINE: http://localhost:${PORT}`);
             console.log(`📡 NODE ID: ${NODE_ID}`);
+            console.log(`📡 STATUS: Listening for Signups...`);
             console.log(`=========================================\n`);
         });
 
     } catch (e) {
         console.error("⚠️ Startup Warning:", e.message);
-        // Force start the server so the HTML can connect
-        server.listen(PORT); 
+        // Force start on all interfaces if bootstrap fails
+        server.listen(PORT, '0.0.0.0'); 
     }
 }
 
-// EXECUTE THE BOOTSTRAP (ONLY ONCE)
+// EXECUTE THE BOOTSTRAP
 bootstrap();
 
 // GRACEFUL SHUTDOWN
 process.on('SIGTERM', async () => {
-    await engine.redis.del(`medor:node_live:${NODE_ID}`);
+    try {
+        await engine.redis.del(`medor:node_live:${NODE_ID}`);
+    } catch (e) {}
     server.close(() => {
         process.exit(0);
     });
 });
+
