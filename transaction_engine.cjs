@@ -45,6 +45,9 @@ class TransactionEngine {
         natMap: process.env.REDIS_NAT_MAP ? JSON.parse(process.env.REDIS_NAT_MAP) : undefined,
         clusterRetryStrategy: (times) => Math.min(100 + times * 500, 10000)
     });
+        
+    this.redis = this.cluster; // Global Alias for backward compatibility
+
 
     // 3. DISTRIBUTED QUORUM: Canonical Redlock across independent clients
     this.redlockNodes = seeds.map(s => new Redis(s.port, s.host, redisOptions));
