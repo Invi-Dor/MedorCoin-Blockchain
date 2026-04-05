@@ -226,30 +226,36 @@ app.post('/api/submit-block', async (req, res) => {
     }
 });
 
+// ... everything above this stays the same ...
+
 // --- LIFECYCLE MANAGEMENT ---
 
 async function bootstrap() {
     try {
-        await engine.recoverFromCrash().catch((err) => console.error("Recovery err:", err));
+        // 1. Sync the blockchain state from Redis
+        await engine.recoverFromCrash();
         
-        // Added '0.0.0.0' to allow external mining connections from medorcoin.org
-        server.listen(PORT, '0.0.0.0', () => {
-            console.log(`\n[SOVEREIGN-API] Node: ${NODE_ID}`);
-            console.log(`[SOVEREIGN-API] Observer active on port ${PORT}`);
-            console.log(`[SOVEREIGN-API] Global access enabled via 0.0.0.0\n`);
+        // 2. Start the API Server
+        server.listen(PORT, () => {
+            console.log(`\n=========================================`);
+            console.log(`🚀 MEDORCOIN API ONLINE: http://localhost:${PORT}`);
+            console.log(`📡 NODE ID: ${NODE_ID}`);
+            console.log(`=========================================\n`);
         });
-    } catch (err) {
-        console.error("[FATAL] Bootstrap failed:", err);
+
+    } catch (e) {
+        console.error("❌ FATAL BOOTSTRAP ERROR:", e.message);
         process.exit(1);
     }
 }
 
+// EXECUTE THE BOOTSTRAP (ONLY ONCE)
+bootstrap();
 
+// GRACEFUL SHUTDOWN
 process.on('SIGTERM', async () => {
     await engine.redis.del(`medor:node_live:${NODE_ID}`);
     server.close(() => {
         process.exit(0);
     });
 });
-
-bootstrap();
