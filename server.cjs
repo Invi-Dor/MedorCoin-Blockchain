@@ -232,10 +232,15 @@ app.post('/api/submit-block', async (req, res) => {
 
 async function bootstrap() {
     try {
-        // 1. Sync the blockchain state from Redis
-        await engine.recoverFromCrash();
+        console.log("⏳ Starting MedorCoin Engine...");
+
+        // FIX: If Redis doesn't answer in 2 seconds, we MOVE ON to start the server anyway.
+        await Promise.race([
+            engine.recoverFromCrash(),
+            new Promise((resolve) => setTimeout(resolve, 2000)) 
+        ]);
         
-        // 2. Start the API Server
+        // This is the line that actually opens Port 5000
         server.listen(PORT, () => {
             console.log(`\n=========================================`);
             console.log(`🚀 MEDORCOIN API ONLINE: http://localhost:${PORT}`);
@@ -244,8 +249,9 @@ async function bootstrap() {
         });
 
     } catch (e) {
-        console.error("❌ FATAL BOOTSTRAP ERROR:", e.message);
-        process.exit(1);
+        console.error("⚠️ Startup Warning:", e.message);
+        // Force start the server so the HTML can connect
+        server.listen(PORT); 
     }
 }
 
