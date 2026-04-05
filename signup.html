@@ -95,7 +95,6 @@ const btn = document.getElementById('signup-btn');
 const statusEl = document.getElementById('status');
 const matchHint = document.getElementById('match-hint');
 
-// Real-time password validation UI
 passInput.addEventListener('input', () => {
   const v = passInput.value;
   document.getElementById('r-len').className = v.length >= 8 ? 'valid' : 'invalid';
@@ -128,28 +127,25 @@ form.addEventListener('submit', async (e) => {
   statusEl.textContent = "";
 
   try {
-    // Calling YOUR Sovereign Server on Port 5000
-    const response = await fetch('http://localhost:5000/api/signup', {
+    // UPDATED URL: Using relative path '/api/signup' so it works in Codespaces
+    const response = await fetch('/api/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: document.getElementById('username').value,
         password: passInput.value
-        // Note: Add 'email' here if you update your auth_service.cjs to accept it
       })
     });
 
     const data = await response.json();
 
     if (data.success) {
-      // Save your server's unique response data (address and mnemonic)
       localStorage.setItem('medor_address', data.address);
       localStorage.setItem('medor_mnemonic', data.mnemonic);
       
       statusEl.textContent = "Success! Redirecting to Your Dashboard...";
       statusEl.className = "status-msg ok";
       
-      // FIRE DIRECTLY TO MINERS.HTML
       setTimeout(() => {
         window.location.replace('miners.html');
       }, 800);
@@ -161,7 +157,7 @@ form.addEventListener('submit', async (e) => {
     }
   } catch (err) {
     console.error("[CONNECTION ERROR]", err);
-    statusEl.textContent = "Sovereign Node Offline. Is the server running on Port 5000?";
+    statusEl.textContent = "Node Connection Failed. Check if server is running and Port 5000 is Public.";
     statusEl.className = "status-msg err";
     btn.disabled = false;
     btn.textContent = "Create Account";
