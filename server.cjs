@@ -33,13 +33,19 @@ try {
     addon = null; 
 }
 
+// --- Initialization & Middleware ---
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
-app.use(cors());  
 
+// 1. UNLOCK ALL DOORS FIRST (Crucial Order)
+app.use(cors());                    // Allows the browser to connect
+app.use(express.json());             // Decodes your signup data
+app.use(express.static(__dirname));  // Serves your signup.html file
+
+// 2. START SERVICES AFTER DOORS ARE UNLOCKED
 const wsHub = new MedorWS(server, engine);
-app.use(express.json());
+
 
 // --- GLOBAL DISPATCH ENGINE ---
 async function globalDispatch(address, data, priority = 'LOW') {
