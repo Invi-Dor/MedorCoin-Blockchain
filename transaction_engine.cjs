@@ -55,6 +55,15 @@ class TransactionEngine {
 
     // 3. DISTRIBUTED QUORUM: Canonical Redlock across independent clients
     this.redlockNodes = seeds.map(s => new Redis(s.port, s.host, redisOptions));
+    this.redlockNodes.forEach((node, index) => {
+    node.on('error', (err) => {
+        logger.error({ 
+            err: err.message, 
+            host: seeds[index].host, 
+            port: seeds[index].port 
+        }, `Redlock Node ${index} Error`);
+    });
+
     this.redlock = new Redlock(this.redlockNodes, { 
         driftFactor: 0.01, 
         retryCount: 60, 
