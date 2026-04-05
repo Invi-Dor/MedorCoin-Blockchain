@@ -46,7 +46,11 @@ class TransactionEngine {
         clusterRetryStrategy: (times) => Math.min(100 + times * 500, 10000)
     });
         
-    this.redis = this.cluster; // Global Alias for backward compatibility
+    this.redis = this.cluster; 
+     this.cluster.on('error', (err) => {
+    logger.error({ err: err.message }, 'Redis Cluster Error');
+});
+ 
 
 
     // 3. DISTRIBUTED QUORUM: Canonical Redlock across independent clients
