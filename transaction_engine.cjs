@@ -102,7 +102,7 @@ class TransactionEngine {
 
     this._setupGracefulShutdown();
     this.init();
-  }
+  });
 
   async validateTransaction(tx, signature) {
     if (this.safeMode) return false; // [4] Safe Mode blocking
