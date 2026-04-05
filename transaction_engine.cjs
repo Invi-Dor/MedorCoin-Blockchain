@@ -29,14 +29,12 @@ class TransactionEngine {
         commandTimeout: 10000
     };
 
-    // 2. [5] INDUSTRIAL SEED INJECTION: Listing all known regional nodes
-    const seeds = process.env.REDIS_SEEDS 
-        ? JSON.parse(process.env.REDIS_SEEDS) 
-        : [
-            { port: 6379, host: "127.0.0.1" },
-            { port: 6380, host: "127.0.0.1" },
-            { port: 6381, host: "127.0.0.1" }
-          ];
+    // 2. [5] INDUSTRIAL SEED INJECTION
+const seeds = process.env.REDIS_SEEDS 
+    ? JSON.parse(process.env.REDIS_SEEDS) 
+    : [
+        { port: 6379, host: "127.0.0.1" }
+      ];
 
     this.cluster = new Redis.Cluster(seeds, { 
         redisOptions, 
