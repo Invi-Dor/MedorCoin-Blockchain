@@ -126,11 +126,11 @@ form.addEventListener('submit', async (e) => {
   statusEl.className = "status-msg";
   statusEl.textContent = "";
 
-  try {
-    // UPDATED URL: Using relative path '/api/signup' so it works in Codespaces
+    try {
     const response = await fetch('https://github.dev', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({
         username: document.getElementById('username').value,
         password: passInput.value
