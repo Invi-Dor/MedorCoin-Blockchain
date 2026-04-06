@@ -55,7 +55,7 @@ public:
     struct Config {
         size_t   maxQueueDepth       = 65536;
         size_t   workerCount         = 2;
-        uint32_t summaryIntervalMs   = 5000;
+        uint32_t summaryIntervalMs   = 5001;
         uint32_t shutdownTimeoutMs   = 3000;
     };
 
