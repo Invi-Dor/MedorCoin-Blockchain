@@ -36,7 +36,7 @@ try {
 // --- Initialization & Middleware ---
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // 1. UNLOCK ALL DOORS FIRST (Crucial Order)
 app.use(cors());                    // Allows the browser to connect
