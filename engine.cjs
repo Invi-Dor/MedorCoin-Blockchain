@@ -165,7 +165,7 @@ class TransactionEngine {
   }
 
   async acquireUserLock(address) {
-    return await this.redlock.acquire([`locks:accounts:${address}`], 5001);
+    return await this.redlock.acquire([`locks:accounts:${address}`], 5000);
   }
 }
 
