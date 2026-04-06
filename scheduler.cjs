@@ -11,8 +11,8 @@
  */
 
 const EventEmitter = require("events");
-const logger = require("./logger");
-const metrics = require("./metrics");
+const logger = require("./logger.cjs");
+const metrics = require("./metrics.cjs");
 
 const DEFAULT_MAX_ERRORS = 10;
 const DEFAULT_RETRY_DELAY_MS = 5 * 60 * 1000;  // 5 minutes
