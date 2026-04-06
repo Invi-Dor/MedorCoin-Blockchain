@@ -15,7 +15,7 @@ const bs58check = require("bs58check"); // Proper Base58 decoding
 const logger = require("./logger.cjs");
 const metrics = require("./metrics.cjs");
 const scheduler = require("./scheduler.cjs");
-const Miner = require("./miner.cjs");
+const Miner = require("./mining.cjs");
 
 // ─── Worker thread: parallel PoW + TX validation ──────────────────
 
