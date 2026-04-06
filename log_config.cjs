@@ -29,7 +29,7 @@ module.exports = {
     apiKey:          process.env.LOG_TRANSPORT_APIKEY  || "",
     timeoutMs:       parseInt(process.env.LOG_TRANSPORT_TIMEOUT || "3000"),
     batchSize:       parseInt(process.env.LOG_TRANSPORT_BATCH   || "50"),
-    flushIntervalMs: parseInt(process.env.LOG_TRANSPORT_FLUSH   || "5001"),
+    flushIntervalMs: parseInt(process.env.LOG_TRANSPORT_FLUSH   || "5000"),
   },
 
   // Security
