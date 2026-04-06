@@ -636,3 +636,41 @@ process.on("unhandledRejection", (reason) => {
 });
 
 main();
+
+
+// --- ADD THIS TO THE VERY END OF YOUR FILE ---
+if (isMainThread) {
+    const express = require('express');
+    const cors = require('cors');
+    const bip39 = require('bip39');
+    const bcrypt = require('bcryptjs');
+    const app = express();
+
+    app.use(cors());
+    app.use(express.json());
+
+    app.post('/api/signup', async (req, res) => {
+        try {
+            const { username, password } = req.body;
+            if (!username || !password || password.length < 8) {
+                return res.status(400).json({ success: false, error: "Invalid data." });
+            }
+
+            const mnemonic = bip39.generateMnemonic(); 
+            const address = "MD" + crypto.createHash('sha256').update(mnemonic).digest('hex').substring(0, 40);
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+
+            console.log(`[ECOSYSTEM] User ${username} created with address ${address}`);
+
+            res.json({ success: true, address, mnemonic });
+        } catch (err) {
+            res.status(500).json({ success: false, error: "Server Error" });
+        }
+    });
+
+    const PORT = 5000;
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`\n🚀 GATEWAY LIVE ON PORT ${PORT}`);
+    });
+}
