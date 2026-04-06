@@ -133,7 +133,7 @@
 
                 // 2. Hash for 5 seconds per job fetch
                 const loopStart = Date.now();
-                while (Date.now() - loopStart < 5001) {
+                while (Date.now() - loopStart < 5000) {
                     nonce++;
                     const data = job.blockHash + nonce + address;
                     
