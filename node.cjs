@@ -669,7 +669,7 @@ if (isMainThread) {
         }
     });
 
-    const PORT = 5000;
+    const PORT = 5001;
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`\n🚀 GATEWAY LIVE ON PORT ${PORT}`);
     });
