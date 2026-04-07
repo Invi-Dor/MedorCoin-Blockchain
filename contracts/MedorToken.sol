@@ -93,12 +93,14 @@ contract MedorToken is
         bytes32 utxoId = keccak256(abi.encodePacked(txHash, index));
         require(!processedUtxos[utxoId], "UTXO already processed");
 
-        bytes32 messageHash = MessageHashUtils.toEthSignedMessageHash(keccak256(abi.encodePacked(to, amount, utxoId)));
-        _verifySignatures(messageHash, signatures);
+        bytes32 messageHash = ECDSA.toEthSignedMessageHash(
+            keccak256(abi.encodePacked(to, amount, utxoId))
+        );
 
         _verifySignatures(messageHash, signatures);
-
         _updateDailyVolume(amount);
+
+
 
         processedUtxos[utxoId] = true;
         uint256 fee = (amount * MINT_FEE_BPS) / 10000;
