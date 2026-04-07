@@ -121,7 +121,7 @@ contract MedorToken is
     // =============================================================================
 
     function _verifySignatures(bytes32 hash, bytes[] calldata signatures) internal view {
-        address lastSigner = address(0);
+        address signer = ECDSA.recover(hash, signatures[i]);
         for (uint256 i = 0; i < signatures.length; i++) {
             address signer = hash.recover(signatures[i]);
             require(hasRole(RELAYER_ROLE, signer), "Unauthorized signer");
