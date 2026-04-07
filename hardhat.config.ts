@@ -1,8 +1,7 @@
-// import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 import { configVariable, defineConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox";
 
 export default defineConfig({
-  // plugins: [hardhatToolboxViemPlugin],
   solidity: {
     profiles: {
       default: {
@@ -13,7 +12,7 @@ export default defineConfig({
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 1000, // Increased for large-scale production efficiency
           },
         },
       },
@@ -34,5 +33,16 @@ export default defineConfig({
       url: configVariable("SEPOLIA_RPC_URL"),
       accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
     },
+    // Adding Mainnet block for when you go global
+    mainnet: {
+      type: "http",
+      chainType: "l1",
+      url: configVariable("MAINNET_RPC_URL"),
+      accounts: [configVariable("MAINNET_PRIVATE_KEY")],
+    },
+  },
+  // This section is what makes your contract "Verified" globally
+  etherscan: {
+    apiKey: configVariable("ETHERSCAN_API_KEY"),
   },
 });
