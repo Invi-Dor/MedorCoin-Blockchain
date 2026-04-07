@@ -7,11 +7,12 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
- 
 
+/**
  * @title MedorToken Industrial Bridge
  * @notice Production-grade ERC20 with Multi-Relayer Consensus & Rate Limiting.
  */
+
 contract MedorToken is 
     Initializable, ERC20Upgradeable, AccessControlUpgradeable, 
     PausableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable 
