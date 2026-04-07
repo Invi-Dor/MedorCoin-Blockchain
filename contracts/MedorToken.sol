@@ -119,15 +119,16 @@ contract MedorToken is
     // INTERNAL HELPERS
     // =============================================================================
 
-    function _verifySignatures(bytes32 hash, bytes[] calldata signatures) internal view {
-        address signer = ECDSA.recover(hash, signatures[i]);
+        function _verifySignatures(bytes32 hash, bytes[] calldata signatures) internal view {
+        address lastSigner = address(0);
         for (uint256 i = 0; i < signatures.length; i++) {
-            address signer = hash.recover(signatures[i]);
+            address signer = ECDSA.recover(hash, signatures[i]);
             require(hasRole(RELAYER_ROLE, signer), "Unauthorized signer");
             require(signer > lastSigner, "Duplicate/Unordered signatures");
             lastSigner = signer;
         }
     }
+
 
     function _updateDailyVolume(uint256 amount) internal {
         if (block.timestamp >= lastResetTimestamp + 1 days) {
