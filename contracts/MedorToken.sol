@@ -69,7 +69,7 @@ contract MedorToken is
 
         // --- 3. PRIVATE ALLOCATION (20 Million) ---
         // Sent directly to your hardcoded address
-        address myAddress = 0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D; 
+        address myAddress = 0x75E642510D48df5fff33d507748f6dE2FaB3592A; 
         _mint(myAddress, 20_000_000 * 10**decimals());
 
         // --- 4. PUBLIC POOL (30 Million) ---
