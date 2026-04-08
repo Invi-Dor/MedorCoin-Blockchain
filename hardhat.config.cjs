@@ -1,12 +1,12 @@
-const { configVariable, defineConfig } = require("@nomicfoundation/hardhat-toolbox"); 
-require("@nomiclabs/hardhat-ethers"); 
-require("@nomiclabs/hardhat-etherscan");
+import { configVariable, defineConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-ethers";
+import "@nomicfoundation/hardhat-verify";
 
 const SEPOLIA_RPC = configVariable("SEPOLIA_RPC_URL", "https://alchemy.com");
 const MAINNET_RPC = configVariable("MAINNET_RPC_URL", "https://alchemy.com");
 const PRIVATE_KEY = configVariable("MAINNET_PRIVATE_KEY", "0x0000000000000000000000000000000000000000000000000000000000000000");
 
-module.exports = defineConfig({
+export default defineConfig({
   solidity: {
     compilers: [
       {
@@ -33,7 +33,7 @@ module.exports = defineConfig({
     mainnet: {
       url: MAINNET_RPC,
       accounts: [PRIVATE_KEY],
-      chainId: 60808,
+      chainId: 60808, // BOB Mainnet
       gas: "auto",
       gasPrice: "auto",
       timeout: 120000,
@@ -41,5 +41,15 @@ module.exports = defineConfig({
   },
   etherscan: {
     apiKey: configVariable("ETHERSCAN_API_KEY", ""),
+    customChains: [
+      {
+        network: "mainnet",
+        chainId: 60808,
+        urls: {
+          apiURL: "https://gobob.xyz",
+          browserURL: "https://gobob.xyz"
+        }
+      }
+    ]
   },
 });
