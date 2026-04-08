@@ -1,4 +1,5 @@
-import { configVariable, defineConfig } from "hardhat/config";
+// Replace this line in your config:
+const MAINNET_RPC = "https://bob-mainnet.g.alchemy.com/v2/kqKxHB6MaANuxIgI0ALdf"; 
 import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-verify";
 
