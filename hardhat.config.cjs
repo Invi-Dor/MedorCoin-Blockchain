@@ -1,6 +1,4 @@
-// Change the first line to this:
-const { configVariable, defineConfig } = await import("hardhat/config");
-
+const { configVariable, defineConfig } = require("@nomicfoundation/hardhat-toolbox"); 
 require("@nomiclabs/hardhat-ethers"); 
 require("@nomiclabs/hardhat-etherscan");
 
