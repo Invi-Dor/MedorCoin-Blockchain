@@ -1,48 +1,49 @@
 import { configVariable, defineConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
+import "@nomicfoundation/hardhat-ethers";
+import "@nomicfoundation/hardhat-verify";
+
+// 3. Fallback handling for safety
+const SEPOLIA_RPC = configVariable("SEPOLIA_RPC_URL", "https://alchemy.com");
+const MAINNET_RPC = configVariable("MAINNET_RPC_URL", "https://alchemy.com");
+const PRIVATE_KEY = configVariable("MAINNET_PRIVATE_KEY", "0x0000000000000000000000000000000000000000000000000000000000000000");
 
 export default defineConfig({
+  // 4. Future-proof compilers array
   solidity: {
-    profiles: {
-      default: {
-        version: "0.8.28",
-      },
-      production: {
+    compilers: [
+      {
         version: "0.8.28",
         settings: {
-          optimizer: {
-            enabled: true,
-            runs: 1000, // Increased for large-scale production efficiency
-          },
+          optimizer: { enabled: true, runs: 1000 },
         },
       },
-    },
+    ],
+  },
+  // 5. Explicit paths for project structure
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
   },
   networks: {
-    hardhatMainnet: {
-      type: "edr-simulated",
-      chainType: "l1",
-    },
-    hardhatOp: {
-      type: "edr-simulated",
-      chainType: "op",
-    },
+    // 1 & 2. Network control with gas, timeouts, and chainIds
     sepolia: {
-      type: "http",
-      chainType: "l1",
-      url: configVariable("SEPOLIA_RPC_URL"),
-      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+      url: SEPOLIA_RPC,
+      accounts: [PRIVATE_KEY],
+      chainId: 11155111,
+      timeout: 60000, // 60 seconds
     },
-    // Adding Mainnet block for when you go global
     mainnet: {
-      type: "http",
-      chainType: "l1",
-      url: configVariable("MAINNET_RPC_URL"),
-      accounts: [configVariable("MAINNET_PRIVATE_KEY")],
+      url: MAINNET_RPC,
+      accounts: [PRIVATE_KEY],
+      chainId: 60808, // BOB Mainnet Chain ID
+      gas: "auto",
+      gasPrice: "auto",
+      timeout: 120000, // 120 seconds
     },
   },
-  // This section is what makes your contract "Verified" globally
   etherscan: {
-    apiKey: configVariable("ETHERSCAN_API_KEY"),
+    apiKey: configVariable("ETHERSCAN_API_KEY", ""),
   },
 });
