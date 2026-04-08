@@ -1,14 +1,12 @@
-import { configVariable, defineConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-ethers";
-import "@nomicfoundation/hardhat-verify";
+const { configVariable, defineConfig } = require("hardhat/config");
+require("@nomicfoundation/hardhat-ethers");
+require("@nomicfoundation/hardhat-verify");
 
-// 3. Fallback handling for safety
 const SEPOLIA_RPC = configVariable("SEPOLIA_RPC_URL", "https://alchemy.com");
 const MAINNET_RPC = configVariable("MAINNET_RPC_URL", "https://alchemy.com");
 const PRIVATE_KEY = configVariable("MAINNET_PRIVATE_KEY", "0x0000000000000000000000000000000000000000000000000000000000000000");
 
-export default defineConfig({
-  // 4. Future-proof compilers array
+module.exports = defineConfig({
   solidity: {
     compilers: [
       {
@@ -19,7 +17,6 @@ export default defineConfig({
       },
     ],
   },
-  // 5. Explicit paths for project structure
   paths: {
     sources: "./contracts",
     tests: "./test",
@@ -27,20 +24,19 @@ export default defineConfig({
     artifacts: "./artifacts"
   },
   networks: {
-    // 1 & 2. Network control with gas, timeouts, and chainIds
     sepolia: {
       url: SEPOLIA_RPC,
       accounts: [PRIVATE_KEY],
       chainId: 11155111,
-      timeout: 60000, // 60 seconds
+      timeout: 60000,
     },
     mainnet: {
       url: MAINNET_RPC,
       accounts: [PRIVATE_KEY],
-      chainId: 60808, // BOB Mainnet Chain ID
+      chainId: 60808,
       gas: "auto",
       gasPrice: "auto",
-      timeout: 120000, // 120 seconds
+      timeout: 120000,
     },
   },
   etherscan: {
