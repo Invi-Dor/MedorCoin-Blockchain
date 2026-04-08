@@ -1,4 +1,6 @@
-const { configVariable, defineConfig } = require("hardhat/config");
+// Change the first line to this:
+const { configVariable, defineConfig } = await import("hardhat/config");
+
 require("@nomiclabs/hardhat-ethers"); 
 require("@nomiclabs/hardhat-etherscan");
 
