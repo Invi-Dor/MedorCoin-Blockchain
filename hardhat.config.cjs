@@ -1,6 +1,6 @@
 const { configVariable, defineConfig } = require("hardhat/config");
-require("@nomicfoundation/hardhat-ethers");
-require("@nomicfoundation/hardhat-verify");
+require("@nomiclabs/hardhat-ethers"); 
+require("@nomiclabs/hardhat-etherscan");
 
 const SEPOLIA_RPC = configVariable("SEPOLIA_RPC_URL", "https://alchemy.com");
 const MAINNET_RPC = configVariable("MAINNET_RPC_URL", "https://alchemy.com");
