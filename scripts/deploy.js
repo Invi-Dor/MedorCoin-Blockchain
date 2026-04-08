@@ -1,8 +1,13 @@
 async function main() {
   const MedorCoin = await ethers.getContractFactory("MedorCoin");
   const contract = await MedorCoin.deploy();
-  await contract.deployed();
-  console.log("SUCCESS! Contract Address:", contract.address);
+  
+  // Wait for the deployment to finish
+  await contract.waitForDeployment();
+  
+  // Get the global address
+  const address = await contract.getAddress();
+  console.log("SUCCESS! Contract Address:", address);
 }
 
 main().catch((error) => {
