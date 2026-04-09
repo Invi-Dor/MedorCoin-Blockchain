@@ -1,34 +1,35 @@
 cmake_minimum_required(VERSION 3.19)
 
 # =============================================================================
-# ROCKSDB SUBMODULE
+# ROCKSDB SUBMODULE (HARDENED)
 # =============================================================================
 set(ROCKSDB_ROOT "${CMAKE_SOURCE_DIR}/src/rocksdb")
 
 if(NOT EXISTS "${ROCKSDB_ROOT}/CMakeLists.txt")
-    message(FATAL_ERROR
-        "RocksDB source not found at ${ROCKSDB_ROOT}.\n"
-        "Run: git submodule update --init --recursive")
+    message(STATUS "RocksDB source missing. Attempting submodule update...")
+    # Added a try-catch style check for submodules
+    execute_process(COMMAND git submodule update --init --recursive WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+endif()
+
+if(NOT EXISTS "${ROCKSDB_ROOT}/CMakeLists.txt")
+    message(FATAL_ERROR "RocksDB source not found. Run 'git submodule update --init --recursive' in terminal.")
 endif()
 
 add_subdirectory(${ROCKSDB_ROOT} rocksdb_build EXCLUDE_FROM_ALL)
 
 # =============================================================================
-# FIND PACKAGES (re-confirmed in src scope)
+# FIND PACKAGES (ALIGNED WITH ROOT)
 # =============================================================================
 find_package(OpenSSL   REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Threads   REQUIRED)
 
-if(NOT DEFINED SECP256K1_LIBRARIES OR NOT DEFINED SECP256K1_INCLUDE_DIRS)
-    find_library(SECP256K1_LIB secp256k1
-        PATHS /usr/lib/x86_64-linux-gnu /usr/local/lib)
-    find_path(SECP256K1_INC secp256k1.h
-        PATHS /usr/include /usr/local/include)
-    if(NOT SECP256K1_LIB OR NOT SECP256K1_INC)
-        message(FATAL_ERROR
-            "secp256k1 not found. Run: sudo apt-get install -y libsecp256k1-dev")
-    endif()
+# Re-use the variables found in root to avoid duplicate FATAL_ERRORS
+if(NOT SECP256K1_LIBRARIES)
+    find_library(SECP256K1_LIB NAMES secp256k1 libsecp256k1)
+    set(SECP256K1_LIBRARIES ${SECP256K1_LIB})
+endif()
+
     set(SECP256K1_LIBRARIES    ${SECP256K1_LIB})
     set(SECP256K1_INCLUDE_DIRS ${SECP256K1_INC})
 endif()
