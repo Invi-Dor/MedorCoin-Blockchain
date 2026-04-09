@@ -15,11 +15,19 @@
     "clean": "rm -rf build"
   },
   "dependencies": {
+    "@noble/hashes": "^2.0.1",
+    "@noble/secp256k1": "^3.0.0",
+    "@openzeppelin/contracts": "^4.9.3",
+    "@openzeppelin/contracts-upgradeable": "^4.9.3",
     "axios": "^1.14.0",
     "bcryptjs": "^2.4.3",
+<<<<<<< HEAD
     "bs58check": "^3.0.1",
+=======
+    "bs58check": "^4.0.0",
+>>>>>>> 4e162098 (Merge and fix package sync)
     "cors": "^2.8.6",
-    "dotenv": "^16.6.1",
+    "debug": "^4.4.3",
     "express": "^4.22.1",
     "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
@@ -35,12 +43,14 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^4.0.7",
     "@nomicfoundation/hardhat-ignition": "^0.15.16",
-    "@nomicfoundation/hardhat-toolbox": "^7.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.2",
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.3",
     "@types/node": "^22.19.15",
+    "dotenv": "^17.4.1",
     "ethers": "^6.16.0",
-    "hardhat": "^3.1.11",
+    "hardhat": "^3.3.0",
     "typescript": "~5.8.0",
     "viem": "^2.47.0"
   },
@@ -58,5 +68,6 @@
   "bugs": {
     "url": "https://github.com/Invi-Dor/MedorCoin-Blockchain/issues"
   },
-  "homepage": "https://github.com/Invi-Dor/MedorCoin-Blockchain#readme"
+  "homepage": "https://github.com/Invi-Dor/MedorCoin-Blockchain#readme",
+  "type": "module"
 }
