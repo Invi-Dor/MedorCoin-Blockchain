@@ -34,7 +34,7 @@ find_package(Threads   REQUIRED)
     endif()
     set(SECP256K1_LIBRARIES    ${SECP256K1_LIB})
     set(SECP256K1_INCLUDE_DIRS ${SECP256K1_INC})
-endif() # <--- Ensure this 'endif' exists to match the first 'if'
+    endif() # <--- Ensure this 'endif' exists to match the first 'if'
 
 message(STATUS "secp256k1: ${SECP256K1_LIBRARIES}")
 
