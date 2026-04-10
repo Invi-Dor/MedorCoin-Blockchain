@@ -10,14 +10,12 @@
 #include <unordered_map>
 #include <vector>
 #include <condition_variable>
+#include "transaction.h"
+
 
 // =============================================================================
 // UTXO STRUCT
 // =============================================================================
-struct TxOutput {
-    uint64_t    value;
-    std::string address;
-};
 
 struct UTXO {
     std::string txHash;

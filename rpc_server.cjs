@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 class RPCServer {
     static PORT = 8332;
     static MAX_BODY_SIZE = 256 * 1024; 
-    static REQUEST_TIMEOUT = 5000;      
+    static REQUEST_TIMEOUT = 5001;      
 
     constructor(chain, mempool, miner, p2p) {
         // --- 1. INDUSTRIAL SECURITY LOCK ---

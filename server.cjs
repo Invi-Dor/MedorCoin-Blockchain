@@ -1,5 +1,5 @@
 /**
- * MEDORCOIN PRODUCTION API SERVER (v5.9 Sovereign)
+ * MEDORCOIN PRODUCTION API SERVER (v5.9.1 Sovereign - Hardened)
  * Role: State Observer, Auth Gateway, & Global Dispatcher
  */
 
@@ -17,14 +17,14 @@ const cors = require('cors');
 // Core Modules
 const TransactionEngine = require('./transaction_engine.cjs');
 const AuthService = require('./auth_service.cjs');
-const MedorWS = require('./ws_server.cjs'); // The Priority-Aware Hub we built
+const MedorWS = require('./ws_server.cjs');
 
 // --- Initialization ---
 const NODE_ID = process.env.NODE_ID || `api-${crypto.randomBytes(3).toString('hex')}`;
-const engine = new TransactionEngine({ nodeId: NODE_ID });
+const SHARED_SECRET = process.env.JWT_SECRET || "fallback_emergency_key";
+const engine = new TransactionEngine(null, SHARED_SECRET, NODE_ID); 
 const authService = new AuthService(engine);
 
-// Native C++ Core Integration
 let addon;
 try {
     addon = require(path.join(__dirname, "build", "Release", "medorcoin_addon.node"));
@@ -33,37 +33,33 @@ try {
     addon = null; 
 }
 
+// --- Initialization & Middleware ---
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 5000;
-app.use(cors());  
+const PORT = process.env.PORT || 5001;
 
-// Initialize Distributed WebSocket Hub
+// 1. UNLOCK ALL DOORS FIRST (Crucial Order)
+app.use(cors());                    // Allows the browser to connect
+app.use(express.json());             // Decodes your signup data
+app.use(express.static(__dirname));  // Serves your signup.html file
+
+// 2. START SERVICES AFTER DOORS ARE UNLOCKED
 const wsHub = new MedorWS(server, engine);
 
-app.use(express.json());
 
 // --- GLOBAL DISPATCH ENGINE ---
-/**
- * Dispatches updates to the correct node in the global fabric.
- * Ensures immediate consistency across the cluster.
- */
 async function globalDispatch(address, data, priority = 'LOW') {
-    // 1. Locate which node the user is currently connected to
-    const targetNode = await engine.db.get(`medor:registry:users:${address}`).catch(() => null);
-    if (!targetNode) return; // User is offline cluster-wide
+    const targetNode = await engine.redis.get(`medor:registry:users:${address}`).catch(() => null);
+    if (!targetNode) return; 
 
-    // 2. Wrap in MsgPack Binary for High-Speed Bus Transfer
     const payload = msgpack.encode({ address, priority, ...data });
-    
-    // 3. Publish to the target node's specific bus
-    await engine.db.publish(`medor:node_bus:${targetNode}`, payload);
+    await engine.redis.publish(`medor:node_bus:${targetNode}`, payload);
 }
 
 // --- OBSERVATION LAYER ---
 async function getConsensusState() {
     try {
-        const stats = await engine.db.get('network:stats').catch(() => ({}));
+        const stats = await engine.redis.hgetall('mdc:meta:stats').catch(() => ({}));
         return {
             height: Number(engine.currentHeight) || 0,
             lastHash: String(engine.lastBlockHash || "0".repeat(64)),
@@ -91,7 +87,6 @@ app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         const session = await authService.login(username, password);
-        // session.token is a signed JWT
         res.json({ success: true, token: session.token, address: session.address });
     } catch (e) {
         res.status(401).json({ success: false, error: "Authentication failed" });
@@ -105,17 +100,17 @@ app.get('/api/user-stats', async (req, res) => {
         const { addr, token } = req.query;
         if (!addr || !token) return res.status(400).json({ error: "Missing parameters" });
 
-        // Verify JWT via AuthService/Engine
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, SHARED_SECRET);
         if (decoded.wallet !== addr) return res.status(401).json({ error: "Unauthorized" });
 
-        // Fetch state from Master partition
-        const state = await engine.db.get(`${engine.PARTITIONS.STATE}${addr}`).catch(() => ({ balance: "0" }));
+        const balanceRaw = await engine.redis.hget("mdc:balances", addr).catch(() => "0");
+        const state = await engine.redis.hgetall(`user:${addr}:state`).catch(() => ({}));
         const consensus = await getConsensusState();
 
         res.json({
             success: true,
-            balance: (BigInt(state.balance || 0) / 100000000n).toString(),
+            balance: balanceRaw, 
+            units: "atomic",
             speed: state.allocatedSpeed || 0,
             network: consensus
         });
@@ -137,51 +132,146 @@ app.get("/health", async (req, res) => {
     });
 });
 
+/**
+ * ASYNCHRONOUS TRANSACTION GATEWAY
+ * Integrates native C++ Mempool with WAL Persistence and Payload Validation
+ */
 app.post("/tx", async (req, res) => {
     if (!addon) return res.status(503).json({ error: "Core Addon Unavailable" });
 
-    // 1. Submit to Addon's high-speed Mempool (C++)
-    const success = addon.submitTransaction(req.body);
-    
-    if (success) {
-        // 2. If tx changes user balance, trigger Global Dispatch (High Priority)
-        // This ensures the dashboard updates instantly across nodes.
-        await globalDispatch(req.body.from, { 
-            type: 'TX_PENDING', 
-            hash: req.body.hash 
-        }, 'HIGH');
-    }
+    try {
+        // 1. Request Body Validation: Fail fast before hitting the WAL
+        const { from, amount, signature } = req.body;
+        if (!from || amount === undefined || !signature) {
+            return res.status(400).json({ 
+                error: "Invalid Transaction: 'from', 'amount', and 'signature' are required." 
+            });
+        }
 
-    res.json({ success });
+        // 2. Persistence: Write to Engine WAL before processing
+        const walEntry = JSON.stringify({ data: req.body, ts: Date.now() });
+        await engine.redis.lpush("mdc:wal:active", walEntry);
+
+        // 3. Promisified addon call for C++ Mempool submission
+        const success = await new Promise((resolve, reject) => {
+            addon.submitTransaction(JSON.stringify(req.body), (err, result) => {
+                if (err) reject(err);
+                else resolve(result);
+            });
+        });
+
+        if (success) {
+            // 4. WAL Cleanup on Success: Prevent redundant re-processing on reboot
+            await engine.redis.lrem("mdc:wal:active", 1, walEntry);
+
+            // High-Priority Dispatch for Cluster-wide UI Update
+            await globalDispatch(from, { type: 'TX_PENDING' }, 'HIGH');
+            res.json({ success });
+        } else {
+            // Clean up WAL if transaction is rejected by the mempool logic
+            await engine.redis.lrem("mdc:wal:active", 1, walEntry);
+            res.status(400).json({ success: false, error: "Mempool Rejected" });
+        }
+    } catch (e) {
+        // Note: In an extreme failure (e.g. timeout), the WAL entry remains for recoverFromCrash()
+        res.status(500).json({ error: e.message });
+    }
 });
+
+// --- MINING & CONSENSUS GATEWAY ---
+
+/**
+ * Provides the current block height and hash to web miners.
+ */
+app.get('/api/get-mining-job', async (req, res) => {
+    try {
+        const consensus = await getConsensusState();
+        res.json({
+            height: consensus.height + 1,
+            blockHash: consensus.lastHash,
+            difficulty: "0000" // Matches the C++ target
+        });
+    } catch (e) {
+        res.status(500).json({ error: "Could not fetch mining job" });
+    }
+});
+
+/**
+ * Receives and validates Proof-of-Work from the miners.html frontend.
+ * Uses the C++ addon for high-speed hash verification.
+ */
+app.post('/api/submit-block', async (req, res) => {
+    if (!addon) return res.status(503).json({ error: "Core Addon Offline" });
+
+    try {
+        const { address, nonce, hash, height } = req.body;
+        const consensus = await getConsensusState();
+
+        // Use the C++ verifyPoW function we added to medorcoin_addon.cpp
+        // Parameters: (lastBlockHash, nonce, minerAddress)
+        const isValid = addon.verifyPoW(consensus.lastHash, nonce.toString(), address);
+
+        if (isValid) {
+            // Reward: Add 50 MedorCoins (using integer representation for Redis)
+            await engine.redis.hincrby("mdc:balances", address, 50000000); 
+            
+            // Update the global stats in your 3-node Redis cluster
+            await engine.redis.hset('mdc:meta:stats', 'lastMiner', address);
+            
+            console.log(`[BLOCK MINED] Height ${height} verified for ${address}`);
+            
+            // Notify other nodes/UI via Redis Pub/Sub
+            await globalDispatch(address, { type: 'BLOCK_REWARD', amount: 50 }, 'HIGH');
+            
+            res.json({ success: true });
+        } else {
+            res.status(400).json({ success: false, error: "Invalid Proof of Work" });
+        }
+    } catch (e) {
+        res.status(500).json({ error: "Internal Verification Error" });
+    }
+});
+
+// ... everything above this stays the same ...
 
 // --- LIFECYCLE MANAGEMENT ---
 
 async function bootstrap() {
     try {
-        // Recover state & verify DB partitions
-        await engine.recoverFromCrash().catch(() => {});
+        console.log("⏳ Starting MedorCoin Engine...");
+
+        // If Redis is slow, we skip and start the server anyway after 2 seconds
+        await Promise.race([
+            engine.recoverFromCrash(),
+            new Promise((resolve) => setTimeout(resolve, 2000)) 
+        ]).catch(() => console.log("⚠️ Sync delayed..."));
         
-        server.listen(PORT, () => {
-            console.log(`\n[SOVEREIGN-API] Node: ${NODE_ID}`);
-            console.log(`[SOVEREIGN-API] Observer active on port ${PORT}\n`);
+        // FIX: Added '0.0.0.0' so GitHub Codespaces can see the server
+        server.listen(PORT, '0.0.0.0', () => {
+            console.log(`\n=========================================`);
+            console.log(`🚀 MEDORCOIN API ONLINE: http://localhost:${PORT}`);
+            console.log(`📡 NODE ID: ${NODE_ID}`);
+            console.log(`📡 STATUS: Listening for Signups...`);
+            console.log(`=========================================\n`);
         });
-    } catch (err) {
-        console.error("[FATAL] Bootstrap failed:", err);
-        process.exit(1);
+
+    } catch (e) {
+        console.error("⚠️ Startup Warning:", e.message);
+        // Force start on all interfaces if bootstrap fails
+        server.listen(PORT, '0.0.0.0'); 
     }
 }
 
-// Graceful Shutdown (Parity with Master Node)
+// EXECUTE THE BOOTSTRAP
+bootstrap();
+
+// GRACEFUL SHUTDOWN
 process.on('SIGTERM', async () => {
-    console.log("[API] Commencing graceful shutdown...");
-    // 1. Unregister node from global liveness
-    await engine.db.del(`medor:node_live:${NODE_ID}`);
-    // 2. Close connections
+    try {
+        await engine.redis.del(`medor:node_live:${NODE_ID}`);
+    } catch (e) {}
     server.close(() => {
-        console.log("[API] Offline.");
         process.exit(0);
     });
 });
 
-bootstrap();

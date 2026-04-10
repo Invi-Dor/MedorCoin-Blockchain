@@ -14,7 +14,7 @@
 const http = require("http");
 const fs   = require("fs");
 const path = require("path");
-const logger = require("./logger");
+const logger = require('./logger.cjs'); 
 
 const METRICS_PORT        = 9090;
 const SCRAPE_CACHE_TTL    = 2_000;

@@ -1,3 +1,10 @@
+#include <vector>            // Fixes the 'std::vector' error
+#include <cstring>           // Fixes 'std::memcpy'
+#include <future>            // Fixes 'std::future'
+#include "crypto/uint256.h"  // Fixes 'UInt256' error (Check your exact folder path)
+#include "crypto/sha256.h"   // Fixes 'crypto::doubleSHA256' error
+#include "node/threadpool.h" // Fixes 'ThreadPool' error (Check your exact folder path)
+
 /**
  * Fix #4: SPV Proof Generation
  * Returns the list of hashes required for the bridge relayer to verify a TX.

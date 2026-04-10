@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>MedorCoin Mining - Miners</title>
   <style>
-    /* EXACTLY YOUR ORIGINAL CSS - UNTOUCHED */
     :root{ --bg:#0f1013; --bg-elev:#15171b; --ink:#f8fafa; --muted:#a3a3a3; --border:#232630; --accent:#ff8a00; --accent-2:#ffb84d; --pill:#1c2029; }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -30,7 +29,6 @@
     .muted{color:var(--muted);font-size:12px}
     .how-it-works { background: #fdf6e3; color: #333; padding: 30px; border-radius: 12px; margin-top: 20px; }
     .how-it-works h2, .how-it-works h3 { color: #000; margin-top: 0; text-transform: uppercase; }
-    
     #navDropdown.active { display: flex !important; }
   </style>
 </head>
@@ -72,7 +70,6 @@
             <div class="price">4.5 GH/s</div>
             <button class="btn secondary" onclick="sendAction('watchAd')">Watch Ad</button>
         </div>
-
         <div class="card">
             <div class="row"><span>Monthly</span><span class="price">$13</span></div>
             <div class="speed">610 GH/s</div>
@@ -102,8 +99,11 @@
   </div>
 
 <script>
-    let state = { balance: 0.0, speed: 0.0 };
+    // --- SETUP ---
+    // PASTE YOUR CODESPACE PUBLIC URL HERE (from Ports tab)
+    const API_BASE = "https://github.dev"; 
     
+    let state = { balance: 0.0, speed: 0.0, isMining: false };
     const token = localStorage.getItem('medor_token');
     const address = localStorage.getItem('medor_address');
 
@@ -113,8 +113,78 @@
     const authContainer = document.getElementById('authContainer');
 
     function toggleMenu() {
-        const menu = document.getElementById('navDropdown');
-        menu.classList.toggle('active');
+        document.getElementById('navDropdown').classList.toggle('active');
+    }
+
+    // --- REAL MINING ENGINE ---
+    async function runMiningLoop() {
+        if (!address || state.isMining) return;
+        state.isMining = true;
+        console.log("Medor Mining Active...");
+
+        while (state.isMining) {
+            try {
+                // 1. Fetch mining job
+                const jobRes = await fetch(`${API_BASE}/api/get-mining-job`);
+                const job = await jobRes.json();
+                
+                let nonce = Math.floor(Math.random() * 1000000);
+                const target = "0000"; // Difficulty
+
+                // 2. Hash for 5 seconds per job fetch
+                const loopStart = Date.now();
+                while (Date.now() - loopStart < 5000) {
+                    nonce++;
+                    const data = job.blockHash + nonce + address;
+                    
+                    const msgUint8 = new TextEncoder().encode(data);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+                    if (hashHex.startsWith(target)) {
+                        console.log("Winner! Submitting block...");
+                        await submitBlock(nonce, hashHex, job.height);
+                        break; 
+                    }
+                }
+                await new Promise(r => setTimeout(r, 100)); // Prevent browser lag
+            } catch (e) {
+                console.error("Connection failed. Retrying in 5s...");
+                await new Promise(r => setTimeout(r, 5000));
+            }
+        }
+    }
+
+    async function submitBlock(nonce, hash, height) {
+        try {
+            const res = await fetch(`${API_BASE}/api/submit-block`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ address, nonce, hash, height })
+            });
+            const data = await res.json();
+            if (data.success) {
+                console.log("Reward credited!");
+                fetchUserStats(); // Update visual balance
+            }
+        } catch (e) { console.error("Submit failed"); }
+    }
+
+    // --- AUTH & UI ---
+    async function fetchUserStats() {
+        if(!token || !address) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/user-stats?addr=${address}&token=${token}`);
+            const data = await res.json();
+            if(data.success) {
+                state.balance = parseFloat(data.balance);
+                state.speed = parseFloat(data.speed);
+                balEl.innerText = state.balance.toFixed(8) + " MEDOR";
+                wallEl.innerText = state.balance.toFixed(8) + " MEDOR";
+                speedEl.innerText = state.speed.toFixed(2);
+            }
+        } catch(e) {}
     }
 
     function renderAuthUI() {
@@ -125,6 +195,8 @@
                 <button class="badge" style="margin-left:12px; border:none; cursor:pointer;" onclick="logout()">Logout</button>
                 <button class="menu-trigger" style="background:none; border:none; color:#fff; cursor:pointer; font-size:20px; margin-left:15px;" onclick="toggleMenu()">☰</button>
             `;
+            fetchUserStats();
+            runMiningLoop();
         }
     }
 
@@ -134,93 +206,17 @@
         window.location.href = 'login.html';
     }
 
-    // Provisioning Router: Maps buttons to your specific .html payment files
     function navigateToProvision(type) {
         if (!token) {
-            alert("Login required for industrial provisioning.");
+            alert("Login required.");
             window.location.href = "login.html";
             return;
         }
-        // Redirects to Mining-monthly.html, Mining-quarterly.html, or Mining-yearly.html
         window.location.href = `Mining-${type}.html`;
     }
 
-    let lastTick = Date.now();
-    function startTicker() {
-        setInterval(() => {
-            if (state.speed > 0) {
-                const now = Date.now();
-                const deltaMs = now - lastTick;
-                lastTick = now;
-                
-                // Real-time calculation based on GH/s
-                const increment = (state.speed * 0.00000001) * (deltaMs / 1000);
-                state.balance += increment;
-                
-                balEl.innerText = state.balance.toFixed(8) + " MEDOR";
-                wallEl.innerText = state.balance.toFixed(8) + " MEDOR";
-            } else {
-                lastTick = Date.now();
-            }
-        }, 100);
-    }
-
-    async function sendAction(act) {
-        if (!token || !address) {
-            window.location.href = "login.html";
-            return;
-        }
-
-        try {
-            const res = await fetch('/tx', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ 
-                    from: address, 
-                    type: 'CONTRACT',
-                    action: act,
-                    timestamp: Date.now()
-                })
-            });
-            
-            const data = await res.json();
-            if (data.success) {
-                await syncData(); 
-                alert(`Action ${act} synced to blockchain.`);
-            } else {
-                alert(data.error || "Chain rejected transaction.");
-            }
-        } catch (e) {
-            console.error("GATEWAY_OFFLINE");
-        }
-    }
-
-    async function syncData() {
-        if (!token || !address) return; 
-
-        try {
-            const res = await fetch(`/api/user-stats?addr=${address}&token=${token}`);
-            if (res.status === 401) logout();
-
-            const data = await res.json();
-            if (data.success) {
-                state.balance = parseFloat(data.balance);
-                state.speed = parseFloat(data.speed);
-                speedEl.innerText = state.speed.toFixed(2);
-                lastTick = Date.now(); 
-            }
-        } catch (e) {}
-    }
-
-    window.onload = () => {
-        renderAuthUI();
-        syncData();
-        startTicker();
-        if (token) setInterval(syncData, 10000); 
-    };
+    // Initialize
+    renderAuthUI();
 </script>
 </body>
 </html>

@@ -1,37 +1,42 @@
 cmake_minimum_required(VERSION 3.19)
 
 # =============================================================================
-# ROCKSDB SUBMODULE
+# ROCKSDB SUBMODULE (HARDENED)
 # =============================================================================
 set(ROCKSDB_ROOT "${CMAKE_SOURCE_DIR}/src/rocksdb")
 
 if(NOT EXISTS "${ROCKSDB_ROOT}/CMakeLists.txt")
-    message(FATAL_ERROR
-        "RocksDB source not found at ${ROCKSDB_ROOT}.\n"
-        "Run: git submodule update --init --recursive")
+    message(STATUS "RocksDB source missing. Attempting submodule update...")
+    # Added a try-catch style check for submodules
+    execute_process(COMMAND git submodule update --init --recursive WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+endif()
+
+if(NOT EXISTS "${ROCKSDB_ROOT}/CMakeLists.txt")
+    message(FATAL_ERROR "RocksDB source not found. Run 'git submodule update --init --recursive' in terminal.")
 endif()
 
 add_subdirectory(${ROCKSDB_ROOT} rocksdb_build EXCLUDE_FROM_ALL)
 
 # =============================================================================
-# FIND PACKAGES (re-confirmed in src scope)
+# FIND PACKAGES (ALIGNED WITH ROOT)
 # =============================================================================
 find_package(OpenSSL   REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Threads   REQUIRED)
 
 if(NOT DEFINED SECP256K1_LIBRARIES OR NOT DEFINED SECP256K1_INCLUDE_DIRS)
-    find_library(SECP256K1_LIB secp256k1
+    find_library(SECP256K1_LIB NAMES secp256k1 libsecp256k1
         PATHS /usr/lib/x86_64-linux-gnu /usr/local/lib)
-    find_path(SECP256K1_INC secp256k1.h
+    find_path(SECP256K1_INC NAMES secp256k1.h
         PATHS /usr/include /usr/local/include)
+    
     if(NOT SECP256K1_LIB OR NOT SECP256K1_INC)
-        message(FATAL_ERROR
-            "secp256k1 not found. Run: sudo apt-get install -y libsecp256k1-dev")
+        message(FATAL_ERROR "secp256k1 not found.")
     endif()
+    
     set(SECP256K1_LIBRARIES    ${SECP256K1_LIB})
     set(SECP256K1_INCLUDE_DIRS ${SECP256K1_INC})
-endif()
+endif() 
 message(STATUS "secp256k1: ${SECP256K1_LIBRARIES}")
 
 if(NOT DEFINED LEVELDB_LIBRARIES OR NOT DEFINED LEVELDB_INCLUDE_DIRS)
@@ -102,95 +107,93 @@ find_package(evmc QUIET)
 # Applied to every target — links all deps and sets include paths.
 # =============================================================================
 macro(medor_link_common TARGET)
+    if(TARGET ${TARGET})
+        target_compile_features(${TARGET} PUBLIC cxx_std_20)
 
-    target_compile_features(${TARGET} PUBLIC cxx_std_20)
-
-    if(ENABLE_WARNINGS)
-        if(MSVC)
-            target_compile_options(${TARGET} PRIVATE /W4 /permissive-)
-        else()
-            target_compile_options(${TARGET} PRIVATE
-                -Wall -Wextra -Wpedantic -Wconversion
-                -Wshadow -Wundef -Wno-unused-parameter)
+        if(ENABLE_WARNINGS)
+            if(MSVC)
+                target_compile_options(${TARGET} PRIVATE /W4 /permissive-)
+            else()
+                target_compile_options(${TARGET} PRIVATE
+                    -Wall -Wextra -Wpedantic -Wconversion
+                    -Wshadow -Wundef -Wno-unused-parameter)
+            endif()
         endif()
-    endif()
 
-    target_include_directories(${TARGET} PUBLIC
-        # Root headers
-        ${CMAKE_SOURCE_DIR}/include
-        # Subdirectory headers — all group-one components
-        ${CMAKE_SOURCE_DIR}/include/mempool
-        ${CMAKE_SOURCE_DIR}/include/net
-        ${CMAKE_SOURCE_DIR}/include/db
-        ${CMAKE_SOURCE_DIR}/include/crypto
-        ${CMAKE_SOURCE_DIR}/include/consensus
-        # Source-side internal headers
-        ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/src/abi
-        ${CMAKE_SOURCE_DIR}/src/consensus
-        ${CMAKE_SOURCE_DIR}/src/crypto
-        ${CMAKE_SOURCE_DIR}/src/db
-        ${CMAKE_SOURCE_DIR}/src/evm
-        ${CMAKE_SOURCE_DIR}/src/fees
-        ${CMAKE_SOURCE_DIR}/src/net
-        ${CMAKE_SOURCE_DIR}/src/node
-        ${CMAKE_SOURCE_DIR}/src/mempool
-        # External
-        ${OPENSSL_INCLUDE_DIR}
-        ${ROCKSDB_ROOT}/include
-        ${LEVELDB_INCLUDE_DIRS}
-        ${SECP256K1_INCLUDE_DIRS}
-    )
+        target_include_directories(${TARGET} PUBLIC
+            ${CMAKE_SOURCE_DIR}/include
+            ${CMAKE_SOURCE_DIR}/include/mempool
+            ${CMAKE_SOURCE_DIR}/include/net
+            ${CMAKE_SOURCE_DIR}/include/db
+            ${CMAKE_SOURCE_DIR}/include/crypto
+            ${CMAKE_SOURCE_DIR}/include/consensus
+            ${CMAKE_SOURCE_DIR}/src
+            ${CMAKE_SOURCE_DIR}/src/abi
+            ${CMAKE_SOURCE_DIR}/src/consensus
+            ${CMAKE_SOURCE_DIR}/src/crypto
+            ${CMAKE_SOURCE_DIR}/src/db
+            ${CMAKE_SOURCE_DIR}/src/evm
+            ${CMAKE_SOURCE_DIR}/src/fees
+            ${CMAKE_SOURCE_DIR}/src/net
+            ${CMAKE_SOURCE_DIR}/src/node
+            ${CMAKE_SOURCE_DIR}/src/mempool
+            ${OPENSSL_INCLUDE_DIR}
+            ${ROCKSDB_ROOT}/include
+            ${LEVELDB_INCLUDE_DIRS}
+            ${SECP256K1_INCLUDE_DIRS}
+        )
 
-    target_link_libraries(${TARGET} PUBLIC
-        Threads::Threads
-        OpenSSL::SSL
-        OpenSSL::Crypto
-        rocksdb
-        ${LEVELDB_LIBRARIES}
-        ${SECP256K1_LIBRARIES}
-        nlohmann_json::nlohmann_json
-    )
+        target_link_libraries(${TARGET} PRIVATE
+            Threads::Threads
+            OpenSSL::SSL
+            OpenSSL::Crypto
+            rocksdb
+            ${LEVELDB_LIBRARIES}
+            ${SECP256K1_LIBRARIES}
+            nlohmann_json::nlohmann_json
+        )
 
-    target_compile_definitions(${TARGET} PUBLIC
-        HAVE_ROCKSDB=1
-        HAVE_SECP256K1=1
-    )
+        target_compile_definitions(${TARGET} PUBLIC
+            HAVE_ROCKSDB=1
+            HAVE_SECP256K1=1
+        )
 
-    if(ZLIB_FOUND)
-        target_link_libraries(${TARGET} PUBLIC ZLIB::ZLIB)
-        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_Z=1)
-    endif()
-    if(BZIP2_FOUND)
-        target_link_libraries(${TARGET} PUBLIC BZip2::BZip2)
-        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_BZ2=1)
-    endif()
-    if(LZ4_FOUND)
-        target_include_directories(${TARGET} PUBLIC ${LZ4_INCLUDE_DIRS})
-        target_link_libraries(${TARGET} PUBLIC ${LZ4_LIBRARIES})
-        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_LZ4=1)
-    endif()
-    if(SNAPPY_FOUND)
-        target_include_directories(${TARGET} PUBLIC ${SNAPPY_INCLUDE_DIRS})
-        target_link_libraries(${TARGET} PUBLIC ${SNAPPY_LIBRARIES})
-        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_SNAPPY=1)
-    endif()
-    if(ZSTD_FOUND)
-        target_include_directories(${TARGET} PUBLIC ${ZSTD_INCLUDE_DIRS})
-        target_link_libraries(${TARGET} PUBLIC ${ZSTD_LIBRARIES})
-        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_ZSTD=1)
-    endif()
-    if(JEMALLOC_FOUND)
-        target_include_directories(${TARGET} PUBLIC ${JEMALLOC_INCLUDE_DIRS})
-        target_link_libraries(${TARGET} PUBLIC ${JEMALLOC_LIBRARIES})
-        target_compile_definitions(${TARGET} PUBLIC HAVE_JEMALLOC=1)
-    endif()
-    if(evmc_FOUND)
-        target_link_libraries(${TARGET} PUBLIC evmc::evmc)
-        target_compile_definitions(${TARGET} PUBLIC HAVE_EVMC=1)
-    endif()
+        if(ZLIB_FOUND)
+            target_link_libraries(${TARGET} PUBLIC ZLIB::ZLIB)
+            target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_Z=1)
+        endif()
+        if(BZIP2_FOUND)
+            target_link_libraries(${TARGET} PUBLIC BZip2::BZip2)
+            target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_BZ2=1)
+        endif()
+        if(LZ4_FOUND)
+            target_include_directories(${TARGET} PUBLIC ${LZ4_INCLUDE_DIRS})
+            target_link_libraries(${TARGET} PUBLIC ${LZ4_LIBRARIES})
+            target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_LZ4=1)
+        endif()
+        if(SNAPPY_FOUND)
+            target_include_directories(${TARGET} PUBLIC ${SNAPPY_INCLUDE_DIRS})
+            target_link_libraries(${TARGET} PUBLIC ${SNAPPY_LIBRARIES})
+            target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_SNAPPY=1)
+        endif()
+        if(ZSTD_FOUND)
+            target_include_directories(${TARGET} PUBLIC ${ZSTD_INCLUDE_DIRS})
+            target_link_libraries(${TARGET} PUBLIC ${ZSTD_LIBRARIES})
+            target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_ZSTD=1)
+        endif()
+        if(JEMALLOC_FOUND)
+            target_include_directories(${TARGET} PUBLIC ${JEMALLOC_INCLUDE_DIRS})
+            target_link_libraries(${TARGET} PUBLIC ${JEMALLOC_LIBRARIES})
+            target_compile_definitions(${TARGET} PUBLIC HAVE_JEMALLOC=1)
+        endif()
+        if(evmc_FOUND)
+            target_link_libraries(${TARGET} PUBLIC evmc::evmc)
+            target_compile_definitions(${TARGET} PUBLIC HAVE_EVMC=1)
+        endif()
+        
+    endif() # This closes the TARGET check properly
+endmacro() # This is the ONLY endmacro you need
 
-endmacro()
 
 # =============================================================================
 # MEDORCORE SOURCES
@@ -290,7 +293,7 @@ medor_link_common(MedorCore)
 # MEDORCOIN NODE EXECUTABLE
 # =============================================================================
 add_executable(medorcoin-node ${CMAKE_SOURCE_DIR}/src/main.cpp)
-medor_link_common(medorcoin-node)
+medor_link_common(medorcoin-cli nlohmann_json::nlohmann_json)
 target_link_libraries(medorcoin-node PRIVATE MedorCore)
 
 set_target_properties(medorcoin-node PROPERTIES

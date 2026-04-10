@@ -1,6 +1,14 @@
 {
     "name": "MedorCoin Blockchain",
     "image": "mcr.microsoft.com/devcontainers/cpp:ubuntu-24.04",
+    "forwardPorts": [5000, 6379],
+    "portsAttributes": {
+        "5000": {
+            "label": "MedorCoin API",
+            "onAutoForward": "ignore",
+            "visibility": "public"
+        }
+    },
     "postCreateCommand": "sudo apt-get update && sudo apt-get install -y libleveldb-dev libjemalloc-dev liburing-dev libgflags-dev libsnappy-dev liblz4-dev libzstd-dev libbz2-dev zlib1g-dev libssl-dev libsecp256k1-dev nlohmann-json3-dev && bash setup_leveldb_pc.sh",
     "customizations": {
         "vscode": {

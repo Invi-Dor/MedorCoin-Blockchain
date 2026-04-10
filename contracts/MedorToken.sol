@@ -7,12 +7,12 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.h";
 
 /**
  * @title MedorToken Industrial Bridge
  * @notice Production-grade ERC20 with Multi-Relayer Consensus & Rate Limiting.
  */
+
 contract MedorToken is 
     Initializable, ERC20Upgradeable, AccessControlUpgradeable, 
     PausableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable 
@@ -69,7 +69,7 @@ contract MedorToken is
 
         // --- 3. PRIVATE ALLOCATION (20 Million) ---
         // Sent directly to your hardcoded address
-        address myAddress = 0x1ukpJFf4uz3c3gDmM9JASZaGiV4STJEDfzp; 
+        address myAddress = 0x75E642510D48df5fff33d507748f6dE2FaB3592A; 
         _mint(myAddress, 20_000_000 * 10**decimals());
 
         // --- 4. PUBLIC POOL (30 Million) ---
@@ -93,12 +93,14 @@ contract MedorToken is
         bytes32 utxoId = keccak256(abi.encodePacked(txHash, index));
         require(!processedUtxos[utxoId], "UTXO already processed");
 
-        bytes32 messageHash = MessageHashUtils.toEthSignedMessageHash(
+        bytes32 messageHash = ECDSA.toEthSignedMessageHash(
             keccak256(abi.encodePacked(to, amount, utxoId))
         );
-        _verifySignatures(messageHash, signatures);
 
+        _verifySignatures(messageHash, signatures);
         _updateDailyVolume(amount);
+
+
 
         processedUtxos[utxoId] = true;
         uint256 fee = (amount * MINT_FEE_BPS) / 10000;
@@ -119,15 +121,16 @@ contract MedorToken is
     // INTERNAL HELPERS
     // =============================================================================
 
-    function _verifySignatures(bytes32 hash, bytes[] calldata signatures) internal view {
+        function _verifySignatures(bytes32 hash, bytes[] calldata signatures) internal view {
         address lastSigner = address(0);
         for (uint256 i = 0; i < signatures.length; i++) {
-            address signer = hash.recover(signatures[i]);
+            address signer = ECDSA.recover(hash, signatures[i]);
             require(hasRole(RELAYER_ROLE, signer), "Unauthorized signer");
             require(signer > lastSigner, "Duplicate/Unordered signatures");
             lastSigner = signer;
         }
     }
+
 
     function _updateDailyVolume(uint256 amount) internal {
         if (block.timestamp >= lastResetTimestamp + 1 days) {
