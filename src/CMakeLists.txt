@@ -24,18 +24,19 @@ find_package(OpenSSL   REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Threads   REQUIRED)
 
-# if(NOT DEFINED SECP256K1_LIBRARIES OR NOT DEFINED SECP256K1_INCLUDE_DIRS)
+if(NOT DEFINED SECP256K1_LIBRARIES OR NOT DEFINED SECP256K1_INCLUDE_DIRS)
     find_library(SECP256K1_LIB NAMES secp256k1 libsecp256k1
         PATHS /usr/lib/x86_64-linux-gnu /usr/local/lib)
     find_path(SECP256K1_INC NAMES secp256k1.h
         PATHS /usr/include /usr/local/include)
+    
     if(NOT SECP256K1_LIB OR NOT SECP256K1_INC)
         message(FATAL_ERROR "secp256k1 not found.")
     endif()
+    
     set(SECP256K1_LIBRARIES    ${SECP256K1_LIB})
     set(SECP256K1_INCLUDE_DIRS ${SECP256K1_INC})
-    endif() # <--- Ensure this 'endif' exists to match the first 'if'
-
+endif() 
 message(STATUS "secp256k1: ${SECP256K1_LIBRARIES}")
 
 if(NOT DEFINED LEVELDB_LIBRARIES OR NOT DEFINED LEVELDB_INCLUDE_DIRS)
