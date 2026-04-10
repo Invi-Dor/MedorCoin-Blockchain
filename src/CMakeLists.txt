@@ -194,10 +194,12 @@ endmacro()
         target_link_libraries(${TARGET} PUBLIC ${JEMALLOC_LIBRARIES})
         target_compile_definitions(${TARGET} PUBLIC HAVE_JEMALLOC=1)
     endif()
-    if(evmc_FOUND)
+       if(evmc_FOUND)
         target_link_libraries(${TARGET} PUBLIC evmc::evmc)
         target_compile_definitions(${TARGET} PUBLIC HAVE_EVMC=1)
     endif()
+
+    endif() # Closes the if(TARGET) check
 
 endmacro()
 
