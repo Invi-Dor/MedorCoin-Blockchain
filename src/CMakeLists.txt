@@ -107,18 +107,22 @@ find_package(evmc QUIET)
 # Applied to every target — links all deps and sets include paths.
 # =============================================================================
 macro(medor_link_common TARGET)
+    if(TARGET ${TARGET})
+        target_compile_features(${TARGET} PUBLIC cxx_std_20)
 
-    target_compile_features(${TARGET} PUBLIC cxx_std_20)
-
-    if(ENABLE_WARNINGS)
-        if(MSVC)
-            target_compile_options(${TARGET} PRIVATE /W4 /permissive-)
-        else()
-            target_compile_options(${TARGET} PRIVATE
-                -Wall -Wextra -Wpedantic -Wconversion
-                -Wshadow -Wundef -Wno-unused-parameter)
+        if(ENABLE_WARNINGS)
+            if(MSVC)
+                target_compile_options(${TARGET} PRIVATE /W4 /permissive-)
+            else()
+                target_compile_options(${TARGET} PRIVATE
+                    -Wall -Wextra -Wpedantic -Wconversion
+                    -Wshadow -Wundef -Wno-unused-parameter)
+            endif()
         endif()
+    else()
+        message(STATUS "Skipping link_common: ${TARGET} not yet defined.")
     endif()
+endmacro()
 
     target_include_directories(${TARGET} PUBLIC
         # Root headers
