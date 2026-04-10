@@ -1,123 +1,36 @@
-utXo.cpp
-// =============================================================================
-// MODIFIED SPEND UTXO (Ensures locked UTXOs cannot be spent natively)
-// =============================================================================
-bool UTXOSet::spendUTXO(const std::string& txHash,
-                          int                outputIndex,
-                          uint64_t           currentBlockHeight) noexcept
-{
-    if (txHash.empty()) {
-        slog(2, "spendUTXO: empty txHash rejected");
-        return false;
-    }
-    if (outputIndex < 0) {
-        slog(2, "spendUTXO: negative outputIndex rejected");
-        return false;
-    }
+void UTXOSet::removeAddressIndexSafe(const std::string& address, const std::string& utxoKey) {
+    if (address.empty() || utxoKey.empty()) return;
 
-    const std::string key = makeKey(txHash, outputIndex);
-
-    std::unique_lock<std::shared_mutex> lock(rwMutex_);
-
-    auto it = utxos_.find(key);
-    if (it == utxos_.end()) {
-        slog(1, "spendUTXO: key '" + key
-                + "' not found (already spent or nonexistent)");
-        return false;
-    }
-
-    const UTXO& utxo = it->second;
-
-    // CRITICAL SECURITY CHECK: Prevent spending of bridged/locked UTXOs
-    if (utxo.isLocked) {
-        slog(2, "spendUTXO: key '" + key + "' rejected - currently locked for bridge");
-        return false;
-    }
-
-    // Coinbase maturity enforcement
-    if (utxo.isCoinbase &&
-        currentBlockHeight != std::numeric_limits<uint64_t>::max())
-    {
-        if (currentBlockHeight < utxo.blockHeight + COINBASE_MATURITY) {
-            slog(1, "spendUTXO: coinbase not matured key='" + key + "'");
-            metrics_.coinbaseMaturityRejected.fetch_add(
-                1, std::memory_order_relaxed);
-            return false;
+    // Use a separate shard lock based on Address to prevent cross-shard deadlocks
+    size_t addressShardIdx = std::hash<std::string>{}(address) % NUM_SHARDS;
+    std::unique_lock<std::shared_mutex> addressLock(addressIndexMutexes_[addressShardIdx]);
+    
+    // 1. Address Existence Check
+    // Use .find() to avoid the [] operator, which creates an entry even if it doesn't exist.
+    auto& shardMap = addressToUtxoIndex_[addressShardIdx];
+    auto addrIt = shardMap.find(address);
+    
+    if (addrIt != shardMap.end()) {
+        auto& utxoSet = addrIt->second;
+        
+        // 3. Log removals for debugging (Level 1/Info)
+        if (utxoSet.erase(utxoKey) > 0) {
+            slog(LOG_INFO, "IndexRemove: Erased UTXO " + utxoKey + " from address " + address);
+            
+            // Optional: Update a per-address metric if you track those
+            // metrics_.activeAddressesCount.fetch_sub(1, std::memory_order_relaxed);
         }
+
+        // 2. Empty Map Cleanup
+        // If this was the last UTXO for this address, remove the address entry entirely.
+        // This prevents memory exhaustion over millions of transactions.
+        if (utxoSet.empty()) {
+            shardMap.erase(addrIt);
+            slog(LOG_INFO, "IndexRemove: Address " + address + " now empty, cleared from RAM.");
+        }
+    } else {
+        // This should technically not happen if the UTXO exists in the main shard,
+        // but it's a critical safety check for production.
+        slog(LOG_WARNING, "IndexRemove: Attempted to remove UTXO from non-existent address index: " + address);
     }
-
-    metrics_.totalValueTracked.fetch_sub(utxo.value,
-        std::memory_order_relaxed);
-    metrics_.utxosSpent.fetch_add(1, std::memory_order_relaxed);
-
-    indexRemove(utxo.address, key);
-    utxos_.erase(it);
-
-    persist(); // called while write lock is held
-    return true;
-}
-
-// =============================================================================
-// LOCK UTXO (Cross-Chain Wrap Initiation)
-// =============================================================================
-bool UTXOSet::lockUTXO(const std::string& txHash, int outputIndex, const std::string& evmAddress) noexcept {
-    if (txHash.empty() || outputIndex < 0 || evmAddress.empty()) {
-        slog(2, "lockUTXO: invalid parameters");
-        return false;
-    }
-
-    const std::string key = makeKey(txHash, outputIndex);
-    std::unique_lock<std::shared_mutex> lock(rwMutex_);
-
-    auto it = utxos_.find(key);
-    if (it == utxos_.end()) {
-        slog(2, "lockUTXO: key '" + key + "' not found");
-        return false;
-    }
-
-    if (it->second.isLocked) {
-        slog(2, "lockUTXO: key '" + key + "' is already locked");
-        return false;
-    }
-
-    it->second.isLocked = true;
-    it->second.lockedForAddress = evmAddress;
-    
-    // Log the event explicitly so the .cjs relayer can pick it up via RPC/ZMQ
-    slog(0, "WRAP_REQUEST|" + key + "|" + std::to_string(it->second.value) + "|" + evmAddress);
-    
-    persist();
-    return true;
-}
-
-// =============================================================================
-// UNLOCK UTXO (Cross-Chain Unwrap Resolution)
-// =============================================================================
-bool UTXOSet::unlockUTXO(const std::string& txHash, int outputIndex) noexcept {
-    if (txHash.empty() || outputIndex < 0) {
-        slog(2, "unlockUTXO: invalid parameters");
-        return false;
-    }
-
-    const std::string key = makeKey(txHash, outputIndex);
-    std::unique_lock<std::shared_mutex> lock(rwMutex_);
-
-    auto it = utxos_.find(key);
-    if (it == utxos_.end()) {
-        slog(2, "unlockUTXO: key '" + key + "' not found");
-        return false;
-    }
-
-    if (!it->second.isLocked) {
-        slog(2, "unlockUTXO: key '" + key + "' is not locked");
-        return false;
-    }
-
-    it->second.isLocked = false;
-    it->second.lockedForAddress = "";
-    
-    slog(0, "UNWRAP_SUCCESS|" + key);
-    
-    persist();
-    return true;
 }
