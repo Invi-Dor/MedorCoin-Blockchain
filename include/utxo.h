@@ -6,17 +6,23 @@
 #include <optional>
 #include <shared_mutex>
 #include <string>
-#include <thread>
-#include <unordered_map>
 #include <vector>
-#include <condition_variable>
-#include "transaction.h"
+#include <unordered_map>
+#include <unordered_set>
+#include <array>
 
+// Forward declaration for database batching to keep header clean
+namespace rocksdb { class WriteBatch; }
+
+// =============================================================================
+// CONSTANTS & LOG LEVELS
+// =============================================================================
+constexpr size_t NUM_SHARDS = 64; 
+enum LogLevel { LOG_INFO = 1, LOG_WARNING = 2, LOG_CRITICAL = 3 };
 
 // =============================================================================
 // UTXO STRUCT
 // =============================================================================
-
 struct UTXO {
     std::string txHash;
     int         outputIndex = -1;
@@ -24,90 +30,62 @@ struct UTXO {
     std::string address;
     uint64_t    blockHeight = 0;
     bool        isCoinbase  = false;
-    
-    // Cross-chain swap properties
     bool        isLocked    = false;
-    std::string lockedForAddress = ""; // EVM address receiving wrapped tokens
+    std::string lockedForAddress = ""; 
 };
 
 // =============================================================================
-// UTXO SET CLASS
+// UTXO SET CLASS (SHARDED & ATOMIC)
 // =============================================================================
 class UTXOSet {
 public:
     struct Metrics {
         uint64_t utxosAdded;
         uint64_t utxosSpent;
-        size_t   currentUtxoCount;
-        size_t   currentAddressCount;
         uint64_t totalValueTracked;
         uint64_t coinbaseMaturityRejected;
     };
 
-    struct Config {
-        bool   asyncPersist         = true;
-        size_t maxPersistQueueDepth = 100;
-    };
+    using LogFn = std::function<void(int level, const std::string& msg)>;
 
-    using PersistFn = std::function<void(const std::unordered_map<std::string, UTXO>&)>;
-    using LogFn     = std::function<void(int level, const std::string& msg)>;
+    explicit UTXOSet() noexcept;
+    ~UTXOSet() = default;
 
-    // Constructor
-    explicit UTXOSet(PersistFn fn = nullptr) noexcept;
-    ~UTXOSet() { stopPersistWorker(); }
-
-    // Disable copy/move
+    // Disable copy/move for safety in threaded environments
     UTXOSet(const UTXOSet&) = delete;
     UTXOSet& operator=(const UTXOSet&) = delete;
 
-    // Configuration & Logging
-    void setLogger(LogFn fn) noexcept;
-    void startPersistWorker() noexcept;
-    void stopPersistWorker() noexcept;
+    void setLogger(LogFn fn) noexcept { logFn_ = fn; }
 
-    // Core UTXO Operations
-    [[nodiscard]] bool addUTXO(const TxOutput& output, const std::string& txHash, int outputIndex, uint64_t blockHeight, bool isCoinbase = false) noexcept;
-    [[nodiscard]] bool spendUTXO(const std::string& txHash, int outputIndex, uint64_t currentBlockHeight = std::numeric_limits<uint64_t>::max()) noexcept;
-    
-    // Cross-Chain Swap Operations
-    [[nodiscard]] bool lockUTXO(const std::string& txHash, int outputIndex, const std::string& evmAddress) noexcept;
-    [[nodiscard]] bool unlockUTXO(const std::string& txHash, int outputIndex) noexcept;
+    // Core Operations (Now supporting Atomic DB Batches)
+    [[nodiscard]] bool addUTXO(const std::string& address, const std::string& txHash, int outputIndex, 
+                               uint64_t amount, uint64_t blockHeight, bool isCoinbase, 
+                               rocksdb::WriteBatch& dbBatch) noexcept;
 
-    // Queries
+    [[nodiscard]] bool spendUTXO(const std::string& txHash, int outputIndex, uint64_t amount, 
+                                 uint64_t currentBlockHeight, rocksdb::WriteBatch& dbBatch) noexcept;
+
+    // Queries (Thread-safe via Shard Locks)
     [[nodiscard]] std::optional<uint64_t> getBalance(const std::string& address) const noexcept;
     [[nodiscard]] std::vector<UTXO>       getUTXOsForAddress(const std::string& address) const noexcept;
     [[nodiscard]] std::optional<UTXO>     getUTXO(const std::string& txHash, int outputIndex) const noexcept;
-    [[nodiscard]] bool                    isUnspent(const std::string& txHash, int outputIndex) const noexcept;
-    [[nodiscard]] size_t                  size() const noexcept;
-
-    // State Management
-    void clear() noexcept;
-    [[nodiscard]] bool loadSnapshot(const std::unordered_map<std::string, UTXO>& snapshot) noexcept;
 
     // Metrics
-    [[nodiscard]] Metrics     getMetrics() const noexcept;
-    [[nodiscard]] std::string getPrometheusText() const noexcept;
+    [[nodiscard]] Metrics getMetrics() const noexcept;
 
 private:
     static constexpr uint64_t COINBASE_MATURITY = 100;
 
-    Config    cfg_;
-    PersistFn persistFn_;
-    LogFn     logFn_;
-    mutable std::mutex logMu_;
+    // 1. Sharded Data Structures (Eliminates Global Bottlenecks)
+    // Main UTXO Storage: Sharded by UTXO Key (txHash + index)
+    std::array<std::shared_mutex, NUM_SHARDS> shardMutexes_;
+    std::array<std::unordered_map<std::string, UTXO>, NUM_SHARDS> utxoShards_;
 
-    mutable std::shared_mutex rwMutex_;
-    std::unordered_map<std::string, UTXO> utxos_;
-    std::unordered_map<std::string, std::vector<std::string>> addressIndex_;
+    // Address Index: Sharded by Wallet Address
+    std::array<std::shared_mutex, NUM_SHARDS> addressIndexMutexes_;
+    std::array<std::unordered_map<std::string, std::unordered_set<std::string>>, NUM_SHARDS> addressToUtxoIndex_;
 
-    // Async Persist Worker
-    mutable std::mutex              persistQueueMu_;
-    mutable std::condition_variable persistQueueCv_;
-    mutable std::vector<std::unordered_map<std::string, UTXO>> persistQueue_;
-    std::thread                     persistWorkerThread_;
-    std::atomic<bool>               persistWorkerStopped_{true};
-
-    // Atomic Metrics
+    // 2. Atomic Metrics
     struct {
         std::atomic<uint64_t> utxosAdded{0};
         std::atomic<uint64_t> utxosSpent{0};
@@ -115,11 +93,11 @@ private:
         std::atomic<uint64_t> coinbaseMaturityRejected{0};
     } metrics_;
 
-    // Helpers
+    LogFn logFn_;
+
+    // 3. Private Helpers
     static std::string makeKey(const std::string& txHash, int outputIndex) noexcept;
-    void indexAdd(const std::string& address, const std::string& key) noexcept;
-    void indexRemove(const std::string& address, const std::string& key) noexcept;
-    void persist() const noexcept;
-    void runPersistWorker() noexcept;
+    void addAddressIndexSafe(const std::string& address, const std::string& utxoKey) noexcept;
+    void removeAddressIndexSafe(const std::string& address, const std::string& utxoKey) noexcept;
     void slog(int level, const std::string& msg) const noexcept;
 };
