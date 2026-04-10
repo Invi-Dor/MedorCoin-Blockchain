@@ -295,7 +295,7 @@ medor_link_common(MedorCore)
 # MEDORCOIN NODE EXECUTABLE
 # =============================================================================
 add_executable(medorcoin-node ${CMAKE_SOURCE_DIR}/src/main.cpp)
-medor_link_common(medorcoin-node)
+medor_link_common(medorcoin-cli nlohmann_json::nlohmann_json)
 target_link_libraries(medorcoin-node PRIVATE MedorCore)
 
 set_target_properties(medorcoin-node PROPERTIES
