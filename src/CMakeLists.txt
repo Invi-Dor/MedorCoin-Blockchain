@@ -147,7 +147,7 @@ macro(medor_link_common TARGET)
         ${SECP256K1_INCLUDE_DIRS}
     )
 
-    target_link_libraries(${TARGET} PUBLIC
+    target_link_libraries(medorcoin-node PRIVATE nlohmann_json::nlohmann_json)
         Threads::Threads
         OpenSSL::SSL
         OpenSSL::Crypto
