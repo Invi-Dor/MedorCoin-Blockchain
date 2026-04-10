@@ -119,89 +119,81 @@ macro(medor_link_common TARGET)
                     -Wshadow -Wundef -Wno-unused-parameter)
             endif()
         endif()
-    else()
-        message(STATUS "Skipping link_common: ${TARGET} not yet defined.")
-    endif()
-endmacro()
 
-    target_include_directories(${TARGET} PUBLIC
-        # Root headers
-        ${CMAKE_SOURCE_DIR}/include
-        # Subdirectory headers — all group-one components
-        ${CMAKE_SOURCE_DIR}/include/mempool
-        ${CMAKE_SOURCE_DIR}/include/net
-        ${CMAKE_SOURCE_DIR}/include/db
-        ${CMAKE_SOURCE_DIR}/include/crypto
-        ${CMAKE_SOURCE_DIR}/include/consensus
-        # Source-side internal headers
-        ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/src/abi
-        ${CMAKE_SOURCE_DIR}/src/consensus
-        ${CMAKE_SOURCE_DIR}/src/crypto
-        ${CMAKE_SOURCE_DIR}/src/db
-        ${CMAKE_SOURCE_DIR}/src/evm
-        ${CMAKE_SOURCE_DIR}/src/fees
-        ${CMAKE_SOURCE_DIR}/src/net
-        ${CMAKE_SOURCE_DIR}/src/node
-        ${CMAKE_SOURCE_DIR}/src/mempool
-        # External
-        ${OPENSSL_INCLUDE_DIR}
-        ${ROCKSDB_ROOT}/include
-        ${LEVELDB_INCLUDE_DIRS}
-        ${SECP256K1_INCLUDE_DIRS}
-    )
+        target_include_directories(${TARGET} PUBLIC
+            ${CMAKE_SOURCE_DIR}/include
+            ${CMAKE_SOURCE_DIR}/include/mempool
+            ${CMAKE_SOURCE_DIR}/include/net
+            ${CMAKE_SOURCE_DIR}/include/db
+            ${CMAKE_SOURCE_DIR}/include/crypto
+            ${CMAKE_SOURCE_DIR}/include/consensus
+            ${CMAKE_SOURCE_DIR}/src
+            ${CMAKE_SOURCE_DIR}/src/abi
+            ${CMAKE_SOURCE_DIR}/src/consensus
+            ${CMAKE_SOURCE_DIR}/src/crypto
+            ${CMAKE_SOURCE_DIR}/src/db
+            ${CMAKE_SOURCE_DIR}/src/evm
+            ${CMAKE_SOURCE_DIR}/src/fees
+            ${CMAKE_SOURCE_DIR}/src/net
+            ${CMAKE_SOURCE_DIR}/src/node
+            ${CMAKE_SOURCE_DIR}/src/mempool
+            ${OPENSSL_INCLUDE_DIR}
+            ${ROCKSDB_ROOT}/include
+            ${LEVELDB_INCLUDE_DIRS}
+            ${SECP256K1_INCLUDE_DIRS}
+        )
 
-    target_link_libraries(${TARGET} PRIVATE
-        Threads::Threads
-        OpenSSL::SSL
-        OpenSSL::Crypto
-        rocksdb
-        ${LEVELDB_LIBRARIES}
-        ${SECP256K1_LIBRARIES}
-        nlohmann_json::nlohmann_json
-    )
+        target_link_libraries(${TARGET} PRIVATE
+            Threads::Threads
+            OpenSSL::SSL
+            OpenSSL::Crypto
+            rocksdb
+            ${LEVELDB_LIBRARIES}
+            ${SECP256K1_LIBRARIES}
+            nlohmann_json::nlohmann_json
+        )
 
-    target_compile_definitions(${TARGET} PUBLIC
-        HAVE_ROCKSDB=1
-        HAVE_SECP256K1=1
-    )
+        target_compile_definitions(${TARGET} PUBLIC
+            HAVE_ROCKSDB=1
+            HAVE_SECP256K1=1
+        )
 
-    if(ZLIB_FOUND)
-        target_link_libraries(${TARGET} PUBLIC ZLIB::ZLIB)
-        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_Z=1)
-    endif()
-    if(BZIP2_FOUND)
-        target_link_libraries(${TARGET} PUBLIC BZip2::BZip2)
-        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_BZ2=1)
-    endif()
-    if(LZ4_FOUND)
-        target_include_directories(${TARGET} PUBLIC ${LZ4_INCLUDE_DIRS})
-        target_link_libraries(${TARGET} PUBLIC ${LZ4_LIBRARIES})
-        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_LZ4=1)
-    endif()
-    if(SNAPPY_FOUND)
-        target_include_directories(${TARGET} PUBLIC ${SNAPPY_INCLUDE_DIRS})
-        target_link_libraries(${TARGET} PUBLIC ${SNAPPY_LIBRARIES})
-        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_SNAPPY=1)
-    endif()
-    if(ZSTD_FOUND)
-        target_include_directories(${TARGET} PUBLIC ${ZSTD_INCLUDE_DIRS})
-        target_link_libraries(${TARGET} PUBLIC ${ZSTD_LIBRARIES})
-        target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_ZSTD=1)
-    endif()
-    if(JEMALLOC_FOUND)
-        target_include_directories(${TARGET} PUBLIC ${JEMALLOC_INCLUDE_DIRS})
-        target_link_libraries(${TARGET} PUBLIC ${JEMALLOC_LIBRARIES})
-        target_compile_definitions(${TARGET} PUBLIC HAVE_JEMALLOC=1)
-    endif()
-       if(evmc_FOUND)
-        target_link_libraries(${TARGET} PUBLIC evmc::evmc)
-        target_compile_definitions(${TARGET} PUBLIC HAVE_EVMC=1)
-    endif()
+        if(ZLIB_FOUND)
+            target_link_libraries(${TARGET} PUBLIC ZLIB::ZLIB)
+            target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_Z=1)
+        endif()
+        if(BZIP2_FOUND)
+            target_link_libraries(${TARGET} PUBLIC BZip2::BZip2)
+            target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_BZ2=1)
+        endif()
+        if(LZ4_FOUND)
+            target_include_directories(${TARGET} PUBLIC ${LZ4_INCLUDE_DIRS})
+            target_link_libraries(${TARGET} PUBLIC ${LZ4_LIBRARIES})
+            target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_LZ4=1)
+        endif()
+        if(SNAPPY_FOUND)
+            target_include_directories(${TARGET} PUBLIC ${SNAPPY_INCLUDE_DIRS})
+            target_link_libraries(${TARGET} PUBLIC ${SNAPPY_LIBRARIES})
+            target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_SNAPPY=1)
+        endif()
+        if(ZSTD_FOUND)
+            target_include_directories(${TARGET} PUBLIC ${ZSTD_INCLUDE_DIRS})
+            target_link_libraries(${TARGET} PUBLIC ${ZSTD_LIBRARIES})
+            target_compile_definitions(${TARGET} PUBLIC HAVE_LIB_ZSTD=1)
+        endif()
+        if(JEMALLOC_FOUND)
+            target_include_directories(${TARGET} PUBLIC ${JEMALLOC_INCLUDE_DIRS})
+            target_link_libraries(${TARGET} PUBLIC ${JEMALLOC_LIBRARIES})
+            target_compile_definitions(${TARGET} PUBLIC HAVE_JEMALLOC=1)
+        endif()
+        if(evmc_FOUND)
+            target_link_libraries(${TARGET} PUBLIC evmc::evmc)
+            target_compile_definitions(${TARGET} PUBLIC HAVE_EVMC=1)
+        endif()
+        
+    endif() # This closes the TARGET check properly
+endmacro() # This is the ONLY endmacro you need
 
-    endif() # Closes the if(TARGET) check
-
-endmacro()
 
 # =============================================================================
 # MEDORCORE SOURCES
