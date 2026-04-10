@@ -443,7 +443,7 @@ void Blockchain::rollbackBlockFromState(const Block &block) noexcept
          txIt != block.transactions.rend(); ++txIt)
     {
         for (size_t i = 0; i < txIt->outputs.size(); ++i)
-            utxoSet_.spendUTXO(txIt->txHash, static_cast<int>(i),
+            (void)utxoSet_.spendUTXO(txIt->txHash, static_cast<int>(i),
                                std::numeric_limits<uint64_t>::max());
     }
 }
