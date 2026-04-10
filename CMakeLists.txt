@@ -99,6 +99,8 @@ set(PORTABLE             ON               CACHE BOOL "" FORCE)
 find_package(Threads   REQUIRED)
 find_package(OpenSSL   REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(nlohmann_json REQUIRED)
+
 
 # Use NAMES to find both libsecp256k1 and secp256k1 specifically
 find_library(SECP256K1_LIB NAMES secp256k1 libsecp256k1
