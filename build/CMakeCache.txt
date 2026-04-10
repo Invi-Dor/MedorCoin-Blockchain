@@ -26,6 +26,12 @@ BUILD_DATE:STRING=2026-03-18 18:30:42
 //Path to a file.
 BZIP2_INCLUDE_DIR:PATH=/usr/include
 
+//Path to a file.
+BZIP2_INCLUDE_DIRS:PATH=/usr/include
+
+//Path to a library.
+BZIP2_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/libbz2.so
+
 //Path to a library.
 BZIP2_LIBRARY_DEBUG:FILEPATH=BZIP2_LIBRARY_DEBUG-NOTFOUND
 
@@ -42,7 +48,7 @@ CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
 CMAKE_AR:FILEPATH=/usr/bin/ar
 
 //ASM compiler
-CMAKE_ASM_COMPILER:FILEPATH=/usr/bin/cc
+CMAKE_ASM_COMPILER:STRING=/usr/bin/cc
 
 //A wrapper around 'ar' adding the appropriate '--plugin' option
 // for the GCC compiler
@@ -390,6 +396,12 @@ ENABLE_WARNINGS:BOOL=ON
 //Treat compile warnings as errors
 FAIL_ON_WARNINGS:BOOL=OFF
 
+//Path to a file.
+GFLAGS_INCLUDE_DIR:PATH=/usr/include
+
+//Path to a library.
+GFLAGS_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/libgflags.so
+
 //Use gflags import target with namespace.
 GFLAGS_USE_TARGET_NAMESPACE:BOOL=ON
 
@@ -473,6 +485,12 @@ SECP256K1_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libsecp256k1.so
 //The directory containing a CMake configuration file for Snappy.
 Snappy_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/Snappy
 
+//Path to a file.
+Snappy_INCLUDE_DIRS:PATH=/usr/include
+
+//Path to a library.
+Snappy_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/libsnappy.so
+
 USE_RTTI:BOOL=ON
 
 //Accelerate build speed and reduce build artifect size for github
@@ -492,10 +510,10 @@ WITH_BENCHMARK:BOOL=OFF
 WITH_BENCHMARK_TOOLS:BOOL=OFF
 
 //build with bzip2
-WITH_BZ2:BOOL=ON
+WITH_BZ2:BOOL=TRUE
 
 //build with ldb and sst_dump
-WITH_CORE_TOOLS:BOOL=ON
+WITH_CORE_TOOLS:BOOL=OFF
 
 //build with dynamic extension support
 WITH_DYNAMIC_EXTENSION:BOOL=OFF
@@ -507,22 +525,22 @@ WITH_EXAMPLES:BOOL=OFF
 WITH_FALLOCATE:BOOL=ON
 
 //build with GFlags
-WITH_GFLAGS:BOOL=ON
+WITH_GFLAGS:BOOL=TRUE
 
 //Enable IO stats context
 WITH_IOSTATS_CONTEXT:BOOL=ON
 
 //build with JeMalloc
-WITH_JEMALLOC:BOOL=ON
+WITH_JEMALLOC:BOOL=TRUE
 
 //build with JNI
 WITH_JNI:BOOL=OFF
 
 //build with liburing
-WITH_LIBURING:BOOL=ON
+WITH_LIBURING:BOOL=OFF
 
 //build with lz4
-WITH_LZ4:BOOL=ON
+WITH_LZ4:BOOL=TRUE
 
 //build with MD
 WITH_MD_LIBRARY:BOOL=ON
@@ -537,13 +555,13 @@ WITH_PERF_CONTEXT:BOOL=ON
 WITH_RUNTIME_DEBUG:BOOL=ON
 
 //build with SNAPPY
-WITH_SNAPPY:BOOL=ON
+WITH_SNAPPY:BOOL=TRUE
 
 //build with Threading Building Blocks (TBB)
 WITH_TBB:BOOL=OFF
 
 //build with tools
-WITH_TOOLS:BOOL=ON
+WITH_TOOLS:BOOL=OFF
 
 //build with trace tools
 WITH_TRACE_TOOLS:BOOL=ON
@@ -562,7 +580,7 @@ WITH_WINDOWS_UTF8_FILENAMES:BOOL=OFF
 WITH_ZLIB:BOOL=ON
 
 //build with zstd
-WITH_ZSTD:BOOL=ON
+WITH_ZSTD:BOOL=TRUE
 
 //Path to a file.
 ZLIB_INCLUDE_DIR:PATH=/usr/include
@@ -626,6 +644,12 @@ uring_INCLUDE_DIR:PATH=/usr/include
 
 //Path to a library.
 uring_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/liburing.a
+
+//Path to a file.
+zstd_INCLUDE_DIRS:PATH=/usr/include
+
+//Path to a library.
+zstd_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/libzstd.so
 
 
 ########################
@@ -795,7 +819,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=5
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=3
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
