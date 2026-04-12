@@ -17,27 +17,59 @@ endif()
 
 add_subdirectory(${ROCKSDB_ROOT} rocksdb_build EXCLUDE_FROM_ALL)
 
+# cmake_minimum_required(VERSION 3.24) # Minimum for FetchContent_MakeAvailable + FIND_PACKAGE_ARGS
+
 # =============================================================================
-# EXTERNAL DEPENDENCIES (FETCHED)
+# 1. MODERN EXTERNAL DEPENDENCIES (RESILIENT)
 # =============================================================================
 include(FetchContent)
 
+# nlohmann_json: Using the modern "MakeAvailable" pattern.
+# FIND_PACKAGE_ARGS allows CMake to use the system version if it exists,
+# falling back to the URL only if necessary.
 FetchContent_Declare(
   json
-  URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+  URL      https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+  URL_HASH SHA256=96020ef7483084807d4b4a1b80267f53a152332617f1a3089851f50626353d2d
+  FIND_PACKAGE_ARGS 3.11.3
 )
 
-FetchContent_GetProperties(json)
-if(NOT json_POPULATED)
-    FetchContent_Populate(json)
-    add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
+# This replaces the manual Populated/add_subdirectory boilerplate.
+FetchContent_MakeAvailable(json)
 
 # =============================================================================
-# FIND PACKAGES (ALIGNED WITH ROOT)
+# 2. VERSION-PINNED SYSTEM PACKAGES
 # =============================================================================
-find_package(OpenSSL   REQUIRED)
-# ... rest of your file ...
+# Pinning OpenSSL to 3.0+ to avoid legacy 1.1 conflicts in production.
+find_package(OpenSSL 3.0 REQUIRED)
+find_package(Threads REQUIRED)
+find_package(PkgConfig REQUIRED)
+
+# =============================================================================
+# 3. PRODUCTION SECURITY & PERFORMANCE FLAGS
+# =============================================================================
+macro(medor_link_common TARGET)
+    if(TARGET ${TARGET})
+        target_compile_features(${TARGET} PUBLIC cxx_std_20)
+
+        if(NOT MSVC)
+            target_compile_options(${TARGET} PRIVATE 
+                -Wall -Wextra -O3 -march=native
+                -fstack-protector-strong   # Buffer overflow protection
+                -D_FORTIFY_SOURCE=2        # Hardened glibc checks
+            )
+        endif()
+
+        target_link_libraries(${TARGET} PRIVATE
+            Threads::Threads
+            OpenSSL::SSL
+            OpenSSL::Crypto
+            rocksdb
+            nlohmann_json::nlohmann_json
+        )
+    endif()
+endmacro()
+
 
 # =============================================================================
 # FIND PACKAGES (ALIGNED WITH ROOT)
