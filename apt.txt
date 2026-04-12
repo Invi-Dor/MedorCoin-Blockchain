@@ -1,0 +1,4 @@
+libssl-dev
+pkg-config
+libsecp256k1-dev
+libleveldb-dev
