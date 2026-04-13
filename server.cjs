@@ -275,3 +275,6 @@ process.on('SIGTERM', async () => {
     });
 });
 
+module.exports = { app, server, engine, addon, authService };
+
+
