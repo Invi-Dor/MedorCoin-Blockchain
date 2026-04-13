@@ -2,26 +2,27 @@
   "name": "medorcoin-node",
   "version": "1.0.0",
   "description": "MedorCoin Blockchain Node",
-  "main": "server.cjs",
-  "type": "module",
+  "main": "node.cjs",
   "scripts": {
-    "start": "node server.cjs",
+    "start": "node node.cjs",
     "build": "node-gyp rebuild"
   },
   "dependencies": {
-    "axios": "^1.14.0",
+    "axios": "^1.6.0",
     "bcryptjs": "^2.4.3",
     "bs58check": "^4.0.0",
-    "cors": "^2.8.6",
-    "dotenv": "^16.6.1",
-    "express": "^4.22.1",
-    "ioredis": "^5.10.1",
-    "jsonwebtoken": "^9.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "ioredis": "^5.3.2",
+    "jsonwebtoken": "^9.0.2",
     "level": "^8.0.0",
     "msgpack5": "^6.0.2",
+    "pino": "^8.19.0",
     "redlock": "^5.0.0-beta.2",
     "secp256k1": "^5.0.1",
-    "ws": "^8.18.0"
+    "ws": "^8.15.1"
   },
   "engines": {
     "node": ">=18.0.0"
