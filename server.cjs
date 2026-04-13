@@ -267,6 +267,22 @@ process.on('SIGTERM', async () => {
     });
 });
 
+        if (isValid) {
+            await engine.redis.hincrby("mdc:balances", address, 50000000); 
+            await engine.redis.hset('mdc:meta:stats', 'lastMiner', address);
+            console.log(`[BLOCK MINED] Height ${height} verified for ${address}`);
+            await globalDispatch(address, { type: 'BLOCK_REWARD', amount: 50 }, 'HIGH');
+            res.json({ success: true });
+        } else {
+            res.status(400).json({ success: false, error: "Invalid Proof of Work" });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// CRITICAL: Export the components so node.cjs can drive the infrastructure
+// Do NOT call server.listen() here. node.cjs handles that.
 module.exports = { app, server, engine, addon, authService };
 
 
