@@ -99,7 +99,16 @@ set(PORTABLE             ON               CACHE BOOL "" FORCE)
 find_package(Threads   REQUIRED)
 find_package(OpenSSL   REQUIRED)
 find_package(PkgConfig REQUIRED)
-find_package(nlohmann_json REQUIRED)
+include(FetchContent)
+
+FetchContent_Declare(
+  json
+  URL https://github.com
+)
+FetchContent_MakeAvailable(json)
+
+# Now you can use the library without the 'find_package' error
+
 
 
 # Use NAMES to find both libsecp256k1 and secp256k1 specifically
