@@ -246,14 +246,6 @@ async function bootstrap() {
             new Promise((resolve) => setTimeout(resolve, 2000)) 
         ]).catch(() => console.log("⚠️ Sync delayed..."));
         
-        // FIX: Added '0.0.0.0' so GitHub Codespaces can see the server
-        server.listen(PORT, '0.0.0.0', () => {
-            console.log(`\n=========================================`);
-            console.log(`🚀 MEDORCOIN API ONLINE: http://localhost:${PORT}`);
-            console.log(`📡 NODE ID: ${NODE_ID}`);
-            console.log(`📡 STATUS: Listening for Signups...`);
-            console.log(`=========================================\n`);
-        });
 
     } catch (e) {
         console.error("⚠️ Startup Warning:", e.message);
