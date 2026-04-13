@@ -18,6 +18,8 @@
     "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
     "level": "^8.0.0",
+    "msgpack5": "^6.0.2",
+    "redlock": "^5.0.0-beta.2",
     "secp256k1": "^5.0.1",
     "ws": "^8.18.0"
   },
