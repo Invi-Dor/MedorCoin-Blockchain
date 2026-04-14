@@ -1,11 +1,20 @@
 "use strict";
+const { Worker, isMainThread } = require("worker_threads");
+const TransactionEngine = require('./transaction_engine.cjs');
+const AuthService = require('./auth_service.cjs');
 
-require("dotenv").config();
-const { Worker, isMainThread, parentPort } = require("worker_threads");
-const os = require("os");
-const crypto = require("crypto");
-const secp256k1 = require("secp256k1");
-const bs58check = require("bs58check");
+const engine = new TransactionEngine();
+const authService = new AuthService(engine);
+let addon = null; 
+
+try {
+    addon = require("./build/Release/medorcoin_addon.node");
+} catch(e) { console.warn("Addon missing."); }
+
+// Worker Logic and P2P logic stays here...
+
+module.exports = { engine, authService, addon };
+
 
 // ─── 1. HARDENED WORKER LOGIC ──────────────────────────────────
 if (!isMainThread) {
