@@ -1,0 +1,16 @@
+// mining_config.cjs
+const CONFIG = {
+    decimals: 100000000n,      // 10^8 (1.00000000 MEDOR)
+    miningRate: 10n,           // 10 Satoshi per 1 GH/s per second
+    speedScale: 1000n,         // Internal multiplier for precision
+    sessionTTL: 86400000       // 24h
+};
+
+const TIERS = {
+    FREE:      { speed: 4000n,   cooldown: 43200000, duration: 43200000 }, 
+    MONTHLY:   { speed: 600000n, cooldown: 0,        duration: 2592000000 }, 
+    QUARTERLY: { speed: 600000n, cooldown: 0,        duration: 7776000000 }, 
+    YEARLY:    { speed: 600000n, cooldown: 0,        duration: 31536000000 } 
+};
+
+module.exports = { CONFIG, TIERS };
