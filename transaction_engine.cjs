@@ -22,7 +22,7 @@ class TransactionEngine {
     const redisOptions = {
         password: process.env.REDIS_PASSWORD || undefined,
         tls: process.env.REDIS_TLS === 'true' ? { rejectUnauthorized: false } : undefined,
-        retryStrategy: (times) => Math.min(times * 150, 5001), 
+        retryStrategy: (times) => Math.min(times * 150, 5000), 
         maxRetriesPerRequest: 10,
         enableOfflineQueue: true,
         connectTimeout: 20000, 
