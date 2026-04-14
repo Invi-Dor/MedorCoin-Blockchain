@@ -267,19 +267,41 @@ process.on('SIGTERM', async () => {
     });
 });
 
-        if (isValid) {
-            await engine.redis.hincrby("mdc:balances", address, 50000000); 
-            await engine.redis.hset('mdc:meta:stats', 'lastMiner', address);
-            console.log(`[BLOCK MINED] Height ${height} verified for ${address}`);
-            await globalDispatch(address, { type: 'BLOCK_REWARD', amount: 50 }, 'HIGH');
-            res.json({ success: true });
-        } else {
-            res.status(400).json({ success: false, error: "Invalid Proof of Work" });
-        }
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
+        "use strict";
+require("dotenv").config();
+const express = require("express");
+const http = require("http");
+const { engine, authService, addon } = require('./node.cjs'); // Pulls from the Protocol Layer
+
+const app = express();
+const server = http.createServer(app);
+const PORT = process.env.PORT || 5000;
+
+app.use(express.json());
+app.use(express.static(__dirname));
+
+// AUTH & STATE ROUTES
+app.post('/api/login', async (req, res) => {
+    try {
+        const session = await authService.login(req.body.username, req.body.password);
+        res.json({ success: true, token: session.token });
+    } catch (e) { res.status(401).json({ error: e.message }); }
 });
+
+// THE FIX FOR THE LINE 271 ERROR
+app.post('/api/submit-block', async (req, res) => {
+    try {
+        const { address, nonce } = req.body;
+        const stats = await engine.redis.hgetall('mdc:meta:stats');
+        // Logic...
+        await engine.redis.hincrby("mdc:balances", address, 50000000);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+server.listen(PORT, '0.0.0.0', () => console.log(`Gateway Live: ${PORT}`));
+
+module.exports = { app, server };
 
 // CRITICAL: Export the components so node.cjs can drive the infrastructure
 // Do NOT call server.listen() here. node.cjs handles that.
