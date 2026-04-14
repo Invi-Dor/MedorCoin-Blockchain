@@ -156,5 +156,5 @@ if (!isMainThread) {
 
     p2p.on("block", validateBlock);
     p2p.start();
-    server.listen(process.env.PORT || 5001, '0.0.0.0');
+    server.listen(process.env.PORT || 5000, '0.0.0.0');
 }
