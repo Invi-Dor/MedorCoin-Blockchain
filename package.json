@@ -13,18 +13,19 @@
     "prestart": "npm run build"
   },
   "dependencies": {
-    "pino": "8.19.0",
-    "opossum": "8.1.0",
-    "express-rate-limit": "7.1.5",
-    "redis": "4.6.0",
-    "redlock": "5.0.0-beta.2",
+    "bs58check": "4.0.0",
+    "cors": "2.8.5",
     "dotenv": "16.0.0",
     "express": "4.18.0",
-    "cors": "2.8.5",
+    "express-rate-limit": "7.1.5",
+    "ioredis": "^5.10.1",
     "jsonwebtoken": "9.0.2",
     "msgpack5": "6.0.2",
-    "secp256k1": "5.0.1",
-    "bs58check": "4.0.0"
+    "opossum": "8.1.0",
+    "pino": "8.19.0",
+    "redis": "4.6.0",
+    "redlock": "5.0.0-beta.2",
+    "secp256k1": "5.0.1"
   },
   "devDependencies": {
     "node-gyp": "10.0.0"
