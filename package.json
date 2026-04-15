@@ -22,7 +22,8 @@
     "jsonwebtoken": "9.0.2",
     "msgpack5": "6.0.2",
     "opossum": "8.1.0",
-    "pino": "8.19.0",
+    "pino": "^8.19.0",
+    "pretty": "^2.0.0",
     "redis": "4.6.0",
     "redlock": "5.0.0-beta.2",
     "secp256k1": "5.0.1"
