@@ -28,6 +28,20 @@ macro(medor_link_common TARGET)
             endif()
         endif()
         
+       # Add these specific library targets to your existing target_link_libraries block
+target_link_libraries(${TARGET} PUBLIC 
+    leveldb 
+    secp256k1 
+    evmc::evmc
+)
+
+target_include_directories(${TARGET} PUBLIC 
+    ${leveldb_SOURCE_DIR}/include
+    ${secp256k1_SOURCE_DIR}/include
+    ${secp256k1_BINARY_DIR}/include # ADD THIS: some headers are generated here
+    ${evmc_SOURCE_DIR}/include
+)
+
         # ... rest of your target_include_directories and target_link_libraries ...
     endif()
 endmacro()
