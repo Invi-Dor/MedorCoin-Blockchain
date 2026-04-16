@@ -9,7 +9,6 @@ const CircuitBreaker = require('opossum');
 const logger = pino({
     level: process.env.LOG_LEVEL || 'info',
     base: { node_id: process.env.NODE_ID || `global-node-${os.hostname()}` },
-    transport: { target: 'pino-pretty' }
 });
 
 class TransactionEngine {
