@@ -104,7 +104,9 @@ include(FetchContent)
 FetchContent_Declare(
   json
   URL https://github.com
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
+
 FetchContent_MakeAvailable(json)
 
 # Now you can use the library without the 'find_package' error
