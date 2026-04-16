@@ -5,7 +5,7 @@
   "main": "node.cjs",
   "type": "commonjs",
   "engines": {
-    "node": "24.x"
+    "node": ">=18"
   },
   "scripts": {
     "start": "node node.cjs",
