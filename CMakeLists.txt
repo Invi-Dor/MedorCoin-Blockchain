@@ -107,7 +107,14 @@ FetchContent_Declare(
   DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 
-FetchContent_MakeAvailable(json)
+# Replace the URL-based declaration with this in your ROOT CMakeLists.txt
+FetchContent_Declare(
+  json
+  GIT_REPOSITORY https://github.com
+  GIT_TAG        v3.11.3
+  GIT_SHALLOW    TRUE
+)
+
 
 # Now you can use the library without the 'find_package' error
 
