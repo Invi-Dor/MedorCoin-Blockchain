@@ -1,178 +1,41 @@
-📋 MedorCoin Blockchain Full Development & Deployment Checklist
+# --------------------------------------------------------
+# MEDORCOIN INFRASTRUCTURE - CORE DEPENDENCIES
+# --------------------------------------------------------
 
-⸻
+# Fix CMP0135: Essential for URL-based FetchContent in CMake 3.24+
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
 
-🧰 Project Setup
-	•	Repository root has CMakeLists.txt
-	•	src/ and include/ folder structure exists
-	•	All external dependencies installed (LevelDB, secp256k1, evmc, libp2p)
-	•	Development tools installed (CMake, make, compiler toolchain)
-	•	Validator key management strategy defined
-	•	Configuration for PoA validator list established
-	•	Basic config files and env templates added (.env.example, configs)
+include(FetchContent)
 
-⸻
+# 1. LevelDB (Blockchain Persistence Layer)
+FetchContent_Declare(
+  leveldb
+  URL https://github.com/google/leveldb/archive/refs/tags/1.23.tar.gz
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
 
-🛠 Build & Integration
-	•	Create and enter build/ directory
-	•	Run cmake .. successfully
-	•	Build with cmake --build . without errors
-	•	Warnings are resolved or documented
-	•	GitHub Actions CI workflow configured (.github/workflows/ci.yml)
-	•	Coverage reporting enabled with threshold (≥70%)
+# 2. secp256k1 (High-Performance Cryptographic Signatures)
+FetchContent_Declare(
+  secp256k1
+  URL https://github.com/bitcoin-core/secp256k1/archive/refs/tags/v0.4.0.tar.gz
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
 
-⸻
+# 3. EVMC (Ethereum Client-VM Connector Interface)
+FetchContent_Declare(
+  evmc
+  URL https://github.com/ethereum/evmc/archive/refs/tags/v10.1.0.tar.gz
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
 
-🔗 Consensus & Core Logic
+# --------------------------------------------------------
+# POPULATE & CONFIGURE
+# --------------------------------------------------------
 
-Consensus
-	•	PoA validator registry loads authorized validators
-	•	Block signing implemented for validator nodes
-	•	Signature verification rejects unauthorized blocks
-	•	Validator rotation or scheduling strategy documented
-	•	Governance for adding/removing validators scoped
+# Make the above dependencies available to the build system
+FetchContent_MakeAvailable(leveldb secp256k1 evmc)
 
-Consensus Logic
-	•	Block structure and serialization defined
-	•	Transaction pool logic implemented
-	•	EVM execution integration tested
-	•	Merkle/transaction hash calculation verified
-	•	UTXO processing implemented
-
-⸻
-
-📡 Networking / P2P
-	•	NetworkManager interface and structure implemented
-	•	JSON message formats defined for blocks/txs
-	•	Broadcast of signed blocks and transactions
-	•	Peers handle incoming block/tx messages correctly
-	•	Peer discovery mechanism added (e.g., mDNS, bootstrap list)
-	•	NAT traversal and reconnection logic added
-	•	Protocol versioning and handshake defined
-
-⸻
-
-💾 Persistence & Storage
-	•	LevelDB used for block storage and indexing
-	•	AccountDB / balance tracking implemented
-	•	Blockchain state persists across restarts
-	•	UTXO set stored and loaded correctly
-	•	Mempool persistence (optional)
-
-⸻
-
-🧪 Testing & Validation
-
-Unit & Component Tests
-	•	Transaction serialization tests
-	•	Consensus verification and signer tests
-	•	Networking message tests
-	•	Mempool logic tests
-
-Integration & Multi‑Node
-	•	Local multi‑node test environment runs consistently
-	•	Network sync between nodes verified
-	•	Validator block rotation verified
-	•	Fork / reorg scenarios tested
-	•	RPC and APIs validated against spec
-
-Testnet Considerations
-	•	Testnet defined with genesis, validators, seed nodes
-	•	Testnet bootstrap configuration documented
-	•	Testnet executed before mainnet launch and evaluated  ￼
-
-⸻
-
-🌐 JSON‑RPC API
-	•	Implement:
-	•	web3_clientVersion
-	•	net_version
-	•	eth_blockNumber
-	•	eth_getBalance
-	•	eth_sendRawTransaction
-	•	eth_getTransactionByHash
-	•	eth_getTransactionReceipt
-	•	Optional stubs (e.g., eth_call, eth_getCode, eth_estimateGas)
-	•	Documentation for all implemented RPC methods
-
-⸻
-
-🛡 Security & Operations Readiness
-	•	Secure private key storage strategy (HSM/KMS)
-	•	Firewall & server hardening documented
-	•	Logging & monitoring integrated
-	•	Export metrics (Prometheus or similar)
-	•	Alerting for critical failure conditions
-	•	Incident response plan documented
-
-⸻
-
-📄 Documentation
-	•	README with build/run instructions
-	•	API reference (RPC docs)
-	•	Developer onboarding guide
-	•	Consensus mechanism description
-	•	Architecture/ADR docs
-	•	Coding standards and contribution guide
-	•	Release notes template
-
-⸻
-
-🚀 Testnet Launch
-
-Pre‑Launch
-	•	Testnet config finalized
-	•	Bootnodes + seed nodes defined
-	•	Faucet service for test tokens
-	•	Scripts for testnet deployment (automation)
-
-Runtime
-	•	Peer connections verified
-	•	Validator block production measured
-	•	Stability under load tested
-	•	Metrics + logs collected for all nodes
-
-⸻
-
-🏁 Mainnet Readiness
-
-Pre‑Deployment
-	•	Security audit completed
-	•	Penetration / fuzzing tests passed
-	•	Stress tests with real use case volumes
-	•	Key rotation and recovery procedures tested
-
-Deployment
-	•	Mainnet genesis defined
-	•	Validator onboarding documented
-	•	RPC endpoints scaled
-	•	Monitoring/alerting active
-	•	High‑availability infrastructure configured
-
-Post‑Launch
-	•	Early post‑launch monitoring period
-	•	Performance baselines established
-	•	Incident response tested
-
-⸻
-
-🧾 Operational & Governance
-	•	Governance model documented (validator changes, parameters)
-	•	Onchain procedures for validator updates scoped
-	•	Operator support channels defined
-	•	SLA for uptime and performance published
-	•	Upgrade/patch procedures outlined
-
-⸻
-
-📦 Optional Enhancements
-	•	Block explorer integration
-	•	Metrics dashboards
-	•	Fee estimation tools
-	•	Wallet integration guidelines
-
-⸻
-
-📌 Notes
-
-This checklist ensures thorough coverage of development, testing, networking, PoA consensus, operations, security, and deployment readiness — not just basic build tasks but also real network operational needs before launching a testnet and mainnet.  
+# CRITICAL: secp256k1 requires this flag for block signature recovery
+set(SECP256K1_ENABLE_MODULE_RECOVERY ON CACHE BOOL "Enable ECDSA pubkey recovery" FORCE)
