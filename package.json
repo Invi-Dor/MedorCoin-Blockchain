@@ -13,13 +13,15 @@
     "prestart": "npm run build"
   },
   "dependencies": {
+    "argon2": "^0.44.0",
     "bs58check": "^4.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
+    "ethers": "^6.16.0",
     "express": "^4.18.0",
     "express-rate-limit": "^7.1.5",
     "ioredis": "^5.10.1",
-    "jsonwebtoken": "^9.0.2",
+    "jsonwebtoken": "^9.0.3",
     "msgpack5": "^6.0.2",
     "opossum": "^8.1.0",
     "pino": "^8.19.0",
