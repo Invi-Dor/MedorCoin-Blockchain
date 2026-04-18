@@ -28,6 +28,7 @@
     "redis": "^4.6.0",
     "redlock": "^5.0.0-beta.2",
     "secp256k1": "^5.0.1"
+    "ethers": "^6.16.0"
   },
   "devDependencies": {
     "node-gyp": "^10.0.0"
