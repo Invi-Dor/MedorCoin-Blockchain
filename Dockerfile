@@ -16,16 +16,12 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# 2. Install Node dependencies FIRST (to utilize Docker cache)
-COPY package*.json ./
-RUN npm install
-
-# 3. Copy the rest of the code
+# 2. Copy ALL files first (so binding.gyp and src/ are present)
 COPY . .
 
-# 4. Explicitly build the C++ addon
-RUN npm run build
+# 3. Install dependencies and compile the C++ addon
+RUN npm install
 
-# 5. Expose Port and Start
+# 4. Expose Port and Start
 EXPOSE 3000
 CMD ["node", "node.cjs"]
