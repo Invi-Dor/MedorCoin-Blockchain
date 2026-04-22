@@ -4,9 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MedorCoin - SignUp</title>
-  
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  
   <style>
     :root { 
       --bg: #0f172a; 
@@ -23,26 +20,36 @@
       color: var(--text); 
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
       display: flex; 
+      flex-direction: column;
       align-items: center; 
       justify-content: center; 
       min-height: 100vh; 
       padding: 20px;
     }
 
-    .container { 
-      width: 100%; 
-      max-width: 400px; 
-      text-align: center; 
+    /* Professional Circle Logo Alignment */
+    .header-logo {
+      width: 140px;
+      height: 140px;
+      background: var(--orange);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin-bottom: 30px;
+      box-shadow: 0 0 30px rgba(249, 115, 22, 0.2);
     }
 
-    .logo { 
-      font-size: 2.5rem; 
-      font-weight: 900; 
-      letter-spacing: 4px; 
-      margin-bottom: 30px; 
-      text-transform: uppercase; 
+    .logo-text {
+      font-size: 1.1rem;
+      font-weight: 900;
+      line-height: 1.1;
       color: #fff;
+      text-transform: uppercase;
     }
+
+    .container { width: 100%; max-width: 400px; }
 
     .form-card { 
       background: rgba(30, 41, 59, 0.5); 
@@ -52,184 +59,196 @@
       backdrop-filter: blur(10px); 
     }
 
-    .form-group { margin-bottom: 20px; text-align: left; }
+    .form-group { margin-bottom: 15px; text-align: left; }
 
     label { 
       display: block; 
-      font-size: 0.75rem; 
-      margin-bottom: 8px; 
+      font-size: 0.7rem; 
+      margin-bottom: 6px; 
       color: #94a3b8; 
-      padding-left: 5px; 
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: 1px;
     }
 
     input { 
       width: 100%; 
       background: var(--input-bg); 
       border: 1px solid rgba(255, 255, 255, 0.1); 
-      padding: 15px; 
-      border-radius: 12px; 
+      padding: 12px; 
+      border-radius: 10px; 
       color: #fff; 
       outline: none; 
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
 
     input:focus { border-color: var(--orange); }
 
-    /* Centered Orange Circle Button */
+    .captcha-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 5px;
+    }
+
+    .captcha-question {
+      background: #1e293b;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: bold;
+      min-width: 80px;
+      text-align: center;
+      border: 1px solid var(--orange);
+    }
+
     .btn-container {
       display: flex;
       justify-content: center;
-      margin: 30px 0;
+      margin-top: 25px;
     }
 
     .btn-orange-circle { 
-      width: 110px; 
-      height: 110px; 
+      width: 100px; 
+      height: 100px; 
       background: var(--orange); 
       color: white; 
       border: none; 
       border-radius: 50%; 
       font-weight: 800; 
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer; 
       transition: all 0.3s ease;
-      box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
-      text-transform: uppercase;
       display: flex;
       align-items: center;
       justify-content: center;
-      line-height: 1.2;
+      text-align: center;
+      padding: 10px;
     }
 
     .btn-orange-circle:hover { 
       background: var(--orange-hover); 
-      transform: scale(1.05);
-      box-shadow: 0 0 30px rgba(249, 115, 22, 0.5);
-    }
-
-    .btn-orange-circle:disabled {
-      background: #475569;
-      cursor: not-allowed;
-    }
-
-    .divider { 
-      margin: 25px 0; 
-      color: #64748b; 
-      font-size: 0.7rem; 
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    .social-btns { 
-      display: flex; 
-      justify-content: center; 
-      margin-bottom: 10px; 
+      transform: scale(1.05); 
     }
 
     #status { 
-      margin-top: 20px; 
-      padding: 12px; 
+      margin-top: 15px; 
+      padding: 10px; 
       border-radius: 8px; 
       display: none; 
-      font-size: 0.85rem; 
+      font-size: 0.8rem; 
+      text-align: center;
     }
 
-    .err { display: block; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
-    .ok { display: block; color: #22c55e; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); }
+    .err { color: #ef4444; background: rgba(239, 68, 68, 0.1); display: block !important; }
+    .ok { color: #22c55e; background: rgba(34, 197, 94, 0.1); display: block !important; }
   </style>
 </head>
 <body>
 
+<div class="header-logo">
+  <div class="logo-text">MEDOR<br>COIN<br>MINING</div>
+</div>
+
 <div class="container">
-  <div class="logo">MEDORCOIN</div>
-  
   <div class="form-card">
     <form id="signup-form">
       <div class="form-group">
         <label>USERNAME</label>
-        <input type="text" id="username" required placeholder="Pick a username">
+        <input type="text" id="username" required placeholder="Username">
       </div>
       <div class="form-group">
-        <label>PASSWORD</label>
+        <label>CHOOSE PASSWORD</label>
         <input type="password" id="password" required placeholder="••••••••">
+      </div>
+      <div class="form-group">
+        <label>CONFIRM PASSWORD</label>
+        <input type="password" id="confirm_password" required placeholder="••••••••">
+      </div>
+
+      <div class="form-group">
+        <label>VERIFY CAPTCHA</label>
+        <div class="captcha-box">
+          <div id="captcha-display" class="captcha-question"></div>
+          <input type="number" id="captcha-input" required placeholder="Result">
+        </div>
       </div>
 
       <div class="btn-container">
-        <button type="submit" class="btn-orange-circle" id="submit-btn">SIGN UP</button>
+        <button type="submit" class="btn-orange-circle" id="submit-btn">SIGN<br>UP</button>
       </div>
     </form>
-
-    <div class="divider">OR CONTINUE WITH</div>
-
-    <div class="social-btns">
-      <div id="g_id_onload" 
-           data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com" 
-           data-callback="handleSocialLogin">
-      </div>
-      <div class="g_id_signin" data-type="standard" data-theme="filled_blue"></div>
-    </div>
-
     <div id="status"></div>
   </div>
 </div>
 
 <script>
-// GENUINE BACKEND URL (PORT 5000)
 const BACKEND_URL = 'https://super-duper-fishstick-7797j7vr7grw3xq5j-5000.app.github.dev';
+let captchaResult = 0;
+
+function generateCaptcha() {
+  const n1 = Math.floor(Math.random() * 10) + 1;
+  const n2 = Math.floor(Math.random() * 10) + 1;
+  captchaResult = n1 + n2;
+  document.getElementById('captcha-display').textContent = `${n1} + ${n2} = ?`;
+}
+
+// Initialize Captcha
+generateCaptcha();
 
 const form = document.getElementById('signup-form');
 const statusEl = document.getElementById('status');
 const btn = document.getElementById('submit-btn');
 
-// Regular Signup logic
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const payload = {
-    username: document.getElementById('username').value,
-    password: document.getElementById('password').value
-  };
-  await sendRequest('/signup', payload);
-});
+  
+  const user = document.getElementById('username').value;
+  const pass = document.getElementById('password').value;
+  const confirm = document.getElementById('confirm_password').value;
+  const captcha = parseInt(document.getElementById('captcha-input').value);
 
-// Google Login Callback
-async function handleSocialLogin(response) {
-  await sendRequest('/google-signup', { token: response.credential });
-}
+  // Validation
+  if (pass !== confirm) {
+    showStatus("Passwords do not match.", "err");
+    return;
+  }
+  if (captcha !== captchaResult) {
+    showStatus("Incorrect CAPTCHA.", "err");
+    generateCaptcha();
+    return;
+  }
 
-async function sendRequest(endpoint, body) {
   btn.disabled = true;
   btn.textContent = "WAIT...";
-  statusEl.className = "";
-  statusEl.style.display = "block";
-  statusEl.textContent = "Processing...";
-
+  
   try {
-    const res = await fetch(`${https://super-duper-fishstick-7797j7vr7grw3xq5j-5000.app.github.dev/}${endpoint}`, {
+    const res = await fetch(`${BACKEND_URL}/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ username: user, password: pass })
     });
 
     const data = await res.json();
 
     if (data.success) {
-      localStorage.setItem('medor_address', data.address);
-      statusEl.className = "ok";
-      statusEl.textContent = "SUCCESS! Redirecting...";
-      setTimeout(() => { window.location.href = 'miners.html'; }, 1000);
+      showStatus("SUCCESS! Redirecting...", "ok");
+      setTimeout(() => { window.location.href = 'miners.html'; }, 1500);
     } else {
-      statusEl.className = "err";
-      statusEl.textContent = data.error || "Signup failed.";
+      showStatus(data.error || "Signup failed.", "err");
       btn.disabled = false;
-      btn.textContent = "SIGN UP";
+      btn.innerHTML = "SIGN<br>UP";
+      generateCaptcha();
     }
   } catch (err) {
-    statusEl.className = "err";
-    statusEl.textContent = "OFFLINE: Ensure Port 5000 is set to PUBLIC in Codespaces.";
+    showStatus("OFFLINE: Check Port 5000 Visibility.", "err");
     btn.disabled = false;
-    btn.textContent = "SIGN UP";
+    btn.innerHTML = "SIGN<br>UP";
   }
+});
+
+function showStatus(msg, type) {
+  statusEl.textContent = msg;
+  statusEl.className = type;
+  statusEl.style.display = "block";
 }
 </script>
 </body>
