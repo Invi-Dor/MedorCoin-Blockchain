@@ -6,14 +6,15 @@
   <style>
     body { font-family: Verdana, Geneva, sans-serif; background:#0f1b2a; color:#fff; padding:40px; }
     .card { max-width: 520px; margin: 0 auto; background:#1a2a45; padding:20px; border-radius:8px; }
-    input { width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #333; }
+    input { width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #333; box-sizing: border-box; }
     button { width:100%; padding:12px; font-weight:700; border-radius:6px; border:none; background:#2563eb; color:white; cursor:pointer; }
   </style>
 </head>
 <body>
   <div class="card">
     <h2>Sign Up</h2>
-    <input id="email" placeholder="Email" type="email" />
+    <!-- Note: email is not used by your server.cjs signup route -->
+    <input id="email" placeholder="Email (Optional)" type="email" />
     <input id="username" placeholder="Username" type="text" />
     <input id="password" placeholder="Password" type="password" />
     <button id="signupBtn">Create Account</button>
@@ -21,23 +22,27 @@
 
   <script>
     document.getElementById('signupBtn').addEventListener('click', async () => {
-      const email = document.getElementById('email').value.trim();
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value;
-      if (!email || !username || !password) {
-        alert('Please fill in all fields');
+
+      if (!username || !password) {
+        alert('Please fill in username and password');
         return;
       }
+
       try {
-        const res = await fetch('/api/auth/register', {
+        const res = await fetch('/api/signup', {
           method: 'POST',
-          headers: { 'Content-Type':'application/json' },
-          body: JSON.stringify({ email, username, password })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
         });
+
         const data = await res.json();
-        if (res.ok && data.token) {
-          localStorage.setItem('token', data.token);
-          window.location.href = 'verify.html';
+
+        // Updated to match your server.cjs response keys
+        if (res.ok && data.success) {
+          alert(`Account Created!\nAddress: ${data.address}\nMnemonic: ${data.mnemonic}\n\nKEEP YOUR MNEMONIC SAFE!`);
+          window.location.href = 'login.html'; 
         } else {
           alert('Sign up failed: ' + (data.error || 'Unknown error'));
         }
