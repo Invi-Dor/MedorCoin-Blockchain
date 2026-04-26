@@ -1,76 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>MedorCoin | Secure Sign Up</title>
-    <style>
-        :root { --primary: #2563eb; --success: #10b981; --error: #ef4444; --bg: #0b1120; --card: #1e293b; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { width: 100%; max-width: 460px; background: var(--card); padding: 40px; border-radius: 16px; border: 1px solid #334155; }
-        .step { display: none; } .active { display: block; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; }
-        .checklist { font-size: 0.75rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 15px; }
-        .check-item.valid { color: var(--success); } .check-item.invalid { color: #64748b; }
-        .match-msg { font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; display: block; }
-        button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-        button:disabled { opacity: 0.4; cursor: not-allowed; }
-        .mnemonic-box { background: #000; padding: 15px; border-radius: 8px; border: 1px solid var(--success); font-family: monospace; word-break: break-all; margin: 15px 0; }
-    </style>
-</head>
-<body>
-<div class="card">
-    <div id="step1" class="step active">
-        <h2>Create Account</h2>
-        <input id="user" type="text" placeholder="Username (Alphanumeric)">
-        <input id="pass" type="password" placeholder="Choose Password">
-        <div class="checklist">
-            <div id="c-up" class="check-item invalid">○ Uppercase</div>
-            <div id="c-num" class="check-item invalid">○ Number</div>
-            <div id="c-sp" class="check-item invalid">○ Special Char</div>
-            <div id="c-len" class="check-item invalid">○ 8+ Chars</div>
-        </div>
-        <input id="conf" type="password" placeholder="Confirm Password">
-        <span id="match-msg" class="match-msg"></span>
-        <button id="nextBtn" disabled>Generate Secure Keys</button>
-    </div>
-    <div id="step2" class="step">
-        <h2>Secure Backup</h2>
-        <p style="font-size:0.85rem; color:#94a3b8;">Copy your unique 12-word mnemonic. It is your only recovery key.</p>
-        <div class="mnemonic-box" id="mnemonic-display">Generating...</div>
-        <button id="finalBtn">I have backed it up</button>
-    </div>
-</div>
-<script>
-    const user = document.getElementById('user'), pass = document.getElementById('pass'), conf = document.getElementById('conf'), btn = document.getElementById('nextBtn');
-    const validate = () => {
-        const v = pass.value, c = conf.value;
-        const checks = { 'c-up': /[A-Z]/.test(v), 'c-num': /[0-9]/.test(v), 'c-sp': /[^A-Za-z0-9]/.test(v), 'c-len': v.length >= 8 };
-        let allOk = true;
-        for (const [id, ok] of Object.entries(checks)) {
-            document.getElementById(id).className = `check-item ${ok ? 'valid' : 'invalid'}`;
-            if (!ok) allOk = false;
-        }
-        const match = v === c && v !== '';
-        document.getElementById('match-msg').innerText = match ? "✓ Passwords match" : "✗ Passwords do not match";
-        document.getElementById('match-msg').style.color = match ? "var(--success)" : "var(--error)";
-        btn.disabled = !(allOk && match && user.value.length >= 3);
-    };
-    [user, pass, conf].forEach(i => i.addEventListener('input', validate));
-    btn.addEventListener('click', async () => {
-        const res = await fetch('/api/auth/generate-mnemonic', { method: 'POST' });
-        const data = await res.json();
-        document.getElementById('mnemonic-display').innerText = data.mnemonic;
-        document.getElementById('step1').classList.remove('active');
-        document.getElementById('step2').classList.add('active');
-    });
-    document.getElementById('finalBtn').addEventListener('click', async () => {
-        const res = await fetch('/api/auth/signup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: user.value, password: pass.value, mnemonic: document.getElementById('mnemonic-display').innerText })
+// Add or update this route in your node.cjs file
+app.post('/api/signup', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        // This triggers your AuthService which calls the BIP39 C++ logic
+        const result = await authService.signup(username, password);
+        
+        // Return success with address and mnemonic so verify.html can move forward
+        res.json({ 
+            success: true, 
+            address: result.address, 
+            mnemonic: result.mnemonic 
         });
-        if (res.ok) window.location.href = 'verify.html';
-    });
-</script>
-</body>
-</html>
+    } catch (e) { 
+        res.status(400).json({ success: false, error: e.message }); 
+    }
+});
