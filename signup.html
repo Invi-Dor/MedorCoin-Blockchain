@@ -1,151 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MedorCoin | Production Sign Up</title>
-  <style>
-    :root { --primary: #2563eb; --bg: #0b1120; --card: #1e293b; --success: #10b981; --error: #ef4444; }
-    body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-    
-    .card { width: 100%; max-width: 460px; background: var(--card); padding: 40px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-    h2 { margin: 0 0 10px; font-size: 1.5rem; color: #fff; }
-    
-    .input-group { margin-bottom: 18px; }
-    label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #94a3b8; }
-    input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; font-size: 1rem; }
-    input:focus { border-color: var(--primary); outline: none; ring: 2px var(--primary); }
-
-    /* Complexity Checklist */
-    .checklist { font-size: 0.75rem; color: #64748b; margin-bottom: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-    .check-item.valid { color: var(--success); }
-    .check-item.valid::before { content: '✓ '; }
-    .check-item.invalid::before { content: '○ '; }
-
-    .captcha-row { display: flex; align-items: center; gap: 10px; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #475569; margin-bottom: 20px; }
-    
-    button { width: 100%; padding: 14px; font-weight: 700; border-radius: 8px; border: none; background: var(--primary); color: white; cursor: pointer; transition: 0.2s; }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .mnemonic-box { background: #000; padding: 15px; border-radius: 8px; border: 1px solid var(--success); font-family: monospace; margin: 15px 0; position: relative; }
-    .copy-btn { position: absolute; right: 5px; top: 5px; background: var(--primary); font-size: 0.7rem; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
-
-    [role="alert"] { padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; border-left: 4px solid var(--error); background: rgba(239, 68, 68, 0.1); display: none; }
-  </style>
+    <meta charset="UTF-8">
+    <title>MedorCoin | Secure Sign Up</title>
+    <style>
+        :root { --primary: #2563eb; --success: #10b981; --error: #ef4444; --bg: #0b1120; --card: #1e293b; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { width: 100%; max-width: 460px; background: var(--card); padding: 40px; border-radius: 16px; border: 1px solid #334155; }
+        .step { display: none; } .active { display: block; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; }
+        .checklist { font-size: 0.75rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 15px; }
+        .check-item.valid { color: var(--success); } .check-item.invalid { color: #64748b; }
+        .match-msg { font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; display: block; }
+        button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .mnemonic-box { background: #000; padding: 15px; border-radius: 8px; border: 1px solid var(--success); font-family: monospace; word-break: break-all; margin: 15px 0; }
+    </style>
 </head>
 <body>
-
 <div class="card">
-  <h2>Network Registration</h2>
-  <div id="status" role="alert"></div>
-
-  <div class="input-group">
-    <label for="user">Username (Alphanumeric)</label>
-    <input id="user" type="text" placeholder="WalletID_01" aria-required="true">
-  </div>
-
-  <div class="input-group">
-    <label for="pass">Secure Password</label>
-    <input id="pass" type="password" placeholder="••••••••" aria-required="true">
-  </div>
-
-  <!-- Real-time Complexity Tracker -->
-  <div class="checklist" id="checklist">
-    <div id="c-len" class="check-item invalid">8+ Chars</div>
-    <div id="c-up" class="check-item invalid">Uppercase</div>
-    <div id="c-num" class="check-item invalid">Number</div>
-    <div id="c-sp" class="check-item invalid">Special (!@#)</div>
-  </div>
-
-  <div class="input-group">
-    <label for="conf">Confirm Password</label>
-    <input id="conf" type="password" placeholder="••••••••" aria-required="true">
-  </div>
-
-  <div class="captcha-row">
-    <span id="cap-q" style="font-weight:bold; color:var(--primary)"></span>
-    <input id="cap-a" type="text" placeholder="Answer" style="margin-bottom:0">
-  </div>
-
-  <button id="submitBtn" disabled>Initialize Node</button>
+    <div id="step1" class="step active">
+        <h2>Create Account</h2>
+        <input id="user" type="text" placeholder="Username (Alphanumeric)">
+        <input id="pass" type="password" placeholder="Choose Password">
+        <div class="checklist">
+            <div id="c-up" class="check-item invalid">○ Uppercase</div>
+            <div id="c-num" class="check-item invalid">○ Number</div>
+            <div id="c-sp" class="check-item invalid">○ Special Char</div>
+            <div id="c-len" class="check-item invalid">○ 8+ Chars</div>
+        </div>
+        <input id="conf" type="password" placeholder="Confirm Password">
+        <span id="match-msg" class="match-msg"></span>
+        <button id="nextBtn" disabled>Generate Secure Keys</button>
+    </div>
+    <div id="step2" class="step">
+        <h2>Secure Backup</h2>
+        <p style="font-size:0.85rem; color:#94a3b8;">Copy your unique 12-word mnemonic. It is your only recovery key.</p>
+        <div class="mnemonic-box" id="mnemonic-display">Generating...</div>
+        <button id="finalBtn">I have backed it up</button>
+    </div>
 </div>
-
 <script>
-  const pass = document.getElementById('pass');
-  const user = document.getElementById('user');
-  const conf = document.getElementById('conf');
-  const capA = document.getElementById('cap-a');
-  const btn = document.getElementById('submitBtn');
-
-  let sol = 0;
-  const genCap = () => {
-    const a = Math.floor(Math.random() * 10), b = Math.floor(Math.random() * 10);
-    sol = a + b; document.getElementById('cap-q').innerText = `${a} + ${b} =`;
-  };
-
-  const validate = () => {
-    const v = pass.value;
-    const checks = {
-      'c-len': v.length >= 8,
-      'c-up': /[A-Z]/.test(v),
-      'c-num': /[0-9]/.test(v),
-      'c-sp': /[^A-Za-z0-9]/.test(v)
+    const user = document.getElementById('user'), pass = document.getElementById('pass'), conf = document.getElementById('conf'), btn = document.getElementById('nextBtn');
+    const validate = () => {
+        const v = pass.value, c = conf.value;
+        const checks = { 'c-up': /[A-Z]/.test(v), 'c-num': /[0-9]/.test(v), 'c-sp': /[^A-Za-z0-9]/.test(v), 'c-len': v.length >= 8 };
+        let allOk = true;
+        for (const [id, ok] of Object.entries(checks)) {
+            document.getElementById(id).className = `check-item ${ok ? 'valid' : 'invalid'}`;
+            if (!ok) allOk = false;
+        }
+        const match = v === c && v !== '';
+        document.getElementById('match-msg').innerText = match ? "✓ Passwords match" : "✗ Passwords do not match";
+        document.getElementById('match-msg').style.color = match ? "var(--success)" : "var(--error)";
+        btn.disabled = !(allOk && match && user.value.length >= 3);
     };
-    
-    let allValid = true;
-    for (const [id, valid] of Object.entries(checks)) {
-      const el = document.getElementById(id);
-      el.className = `check-item ${valid ? 'valid' : 'invalid'}`;
-      if (!valid) allValid = false;
-    }
-
-    const isMatch = v === conf.value && v !== '';
-    const isUser = /^[a-zA-Z0-9_]{3,20}$/.test(user.value);
-    
-    btn.disabled = !(allValid && isMatch && isUser && capA.value !== '');
-  };
-
-  [user, pass, conf, capA].forEach(i => i.addEventListener('input', validate));
-
-  btn.addEventListener('click', async () => {
-    if (parseInt(capA.value) !== sol) { alert('Bot check failed.'); return genCap(); }
-    
-    btn.innerText = 'Syncing...';
-    btn.disabled = true;
-
-    try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username: user.value, password: pass.value})
-      });
-      const data = await res.json();
-
-      if(res.ok) {
-        document.querySelector('.card').innerHTML = `
-          <h2 style="color:var(--success)">Node Activated</h2>
-          <p style="font-size:0.9rem">Copy and secure your recovery phrase immediately.</p>
-          <div class="mnemonic-box">
-            <span id="m-text">${data.mnemonic}</span>
-            <div class="copy-btn" onclick="copyMnemonic()">COPY</div>
-          </div>
-          <button onclick="location.href='/login.html'">I have backed it up</button>`;
-      } else {
-        showError(data.error);
-        btn.disabled = false;
-        btn.innerText = 'Initialize Node';
-      }
-    } catch (e) { showError('Network Sync Error.'); btn.disabled = false; }
-  });
-
-  function showError(m) { const s = document.getElementById('status'); s.innerText = m; s.style.display = 'block'; }
-  
-  window.copyMnemonic = () => {
-    navigator.clipboard.writeText(document.getElementById('m-text').innerText);
-    document.querySelector('.copy-btn').innerText = 'COPIED!';
-  };
-
-  genCap();
+    [user, pass, conf].forEach(i => i.addEventListener('input', validate));
+    btn.addEventListener('click', async () => {
+        const res = await fetch('/api/auth/generate-mnemonic', { method: 'POST' });
+        const data = await res.json();
+        document.getElementById('mnemonic-display').innerText = data.mnemonic;
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+    });
+    document.getElementById('finalBtn').addEventListener('click', async () => {
+        const res = await fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: user.value, password: pass.value, mnemonic: document.getElementById('mnemonic-display').innerText })
+        });
+        if (res.ok) window.location.href = 'verify.html';
+    });
 </script>
 </body>
 </html>
