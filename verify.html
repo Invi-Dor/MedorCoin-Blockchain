@@ -1,149 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Verify Your MedorCoin Account</title>
-<link rel="icon" href="medorcoin-logo.png">
-
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f8fafc;
-    margin: 0;
-    padding: 30px;
-    display: flex;
-    justify-content: center;
-  }
-  .verify-container {
-    width: 420px;
-    background: #f5fddf; /* light lemon green */
-    border-radius: 10px;
-    padding: 30px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    color: #333333; /* dark pencil gray */
-  }
-  .verify-container h2 {
-    margin-top: 0;
-    font-size: 26px;
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 25px;
-  }
-  .input-group {
-    margin-bottom: 20px;
-  }
-  .input-group label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 8px;
-  }
-  .input-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #999;
-    border-radius: 6px;
-    font-size: 16px;
-  }
-  .error {
-    color: #d60000;
-    font-size: 14px;
-    margin-bottom: 12px;
-    text-align: center;
-  }
-  .verify-btn {
-    width: 100%;
-    padding: 14px;
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 18px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  .verify-btn:hover {
-    background: #1d4ed8;
-  }
-  .resend-link {
-    font-size: 14px;
-    margin-top: 15px;
-    text-align: center;
-  }
-  .resend-link a {
-    color: #2563eb;
-    text-decoration: none;
-    font-weight: bold;
-  }
-  .resend-link a:hover {
-    text-decoration: underline;
-  }
-</style>
+    <meta charset="UTF-8">
+    <title>Verify Account | MedorCoin</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f8fafc; display: flex; justify-content: center; padding: 40px; }
+        .verify-container { width: 420px; background: #f5fddf; border-radius: 10px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #999; font-size: 1.1rem; text-align: center; }
+        .verify-btn { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .error { color: #d60000; text-align: center; margin-bottom: 10px; font-weight: bold; }
+    </style>
 </head>
 <body>
-
 <div class="verify-container">
-
-  <h2>Email Verification</h2>
-
-  <div id="errorMsg" class="error"></div>
-
-  <div class="input-group">
-    <label for="code">Enter Verification Code</label>
-    <input type="text" id="code" placeholder="6-digit code" maxlength="6" required>
-  </div>
-
-  <button class="verify-btn" id="verifyBtn">Verify</button>
-
-  <p class="resend-link">
-    Didn’t receive a code? <a href="#" id="resendLink">Resend</a>
-  </p>
+    <h2>Email Verification</h2>
+    <div id="errorMsg" class="error"></div>
+    <input type="text" id="code" placeholder="6-digit code" maxlength="6">
+    <button class="verify-btn" id="verifyBtn">Verify & Activate</button>
 </div>
-
 <script>
-document.getElementById("verifyBtn").addEventListener("click", function(e) {
-  e.preventDefault();
-
-  let code  = document.getElementById("code").value.trim();
-  let error = document.getElementById("errorMsg");
-
-  error.textContent = "";
-
-  if (!code || code.length < 6) {
-    error.textContent = "Please enter the 6-digit verification code.";
-    return;
-  }
-
-  fetch("/api/verify", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ code })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      window.location.href = "account.html";
-    } else {
-      error.textContent = data.message || "Verification failed. Please try again.";
-    }
-  })
-  .catch(() => {
-    error.textContent = "Network error. Try again later.";
-  });
-});
-
-document.getElementById("resendLink").addEventListener("click", function(e) {
-  e.preventDefault();
-
-  fetch("/api/resend-code", { method: "POST" })
-    .then(res => res.json())
-    .then(data => {
-      alert(data.message || "Verification code resent!");
-    })
-    .catch(() => {
-      alert("Unable to resend right now.");
+    document.getElementById("verifyBtn").addEventListener("click", async () => {
+        const code = document.getElementById("code").value.trim();
+        const res = await fetch("/api/verify", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        if (data.success) window.location.href = "account.html";
+        else document.getElementById("errorMsg").textContent = data.message || "Invalid Code";
     });
-});
 </script>
-
 </body>
 </html>
