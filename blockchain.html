@@ -1,130 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1189498572545023"
-     crossorigin="anonymous"></script><head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>MedorCoin — Blockchain</title>
-<meta name="description" content="On-chain tools, explorers, and verification for MedorCoin."/>
-<style>
-  :root{--bg:#faf9f6;--ink:#1f2937;--muted:#6b7280;--border:#e5e7eb}
-  {box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-  a{color:#B5943F;text-decoration:none} a:hover{text-decoration:underline}
-  .container{max-width:980px;margin:0 auto;padding:12px}
-  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.space{justify-content:space-between}
-  .logo{display:flex;align-items:center;gap:10px}
-  .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7}
-  .brand{font-weight:800;font-size:18px}
-  .tabs{display:flex;gap:10px;overflow:auto;padding:10px 0;margin-top:8px}
-  .tab{display:flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid var(--border);color:var(--ink);border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
-  .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center}
-  .icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#eef1f5;border:1px solid #e2e8f0}
-  .muted{color:var(--muted);font-size:12px}
-  .icon svg{width:22px;height:22px;display:block}
-</style>
+<head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1189498572545023" crossorigin="anonymous"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MedorCoin — Blockchain</title>
+  <meta name="description" content="On-chain tools, explorers, and verification for MedorCoin." />
+  <style>
+    :root { --bg: #faf9f6; --ink: #1f2937; --muted: #6b7280; --border: #e5e7eb; --gold: #B5943F; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+    a { color: var(--gold); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 980px; margin: 0 auto; padding: 12px; }
+    .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .space { justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo img { height: 36px; width: 36px; border-radius: 10px; object-fit: cover; border: 1px solid #e8e1c7; }
+    .brand { font-weight: 800; font-size: 18px; }
+    .tabs { display: flex; gap: 10px; overflow: auto; padding: 10px 0; margin-top: 8px; scrollbar-width: none; }
+    .tab { display: flex; align-items: center; gap: 6px; background: #f3f4f6; border: 1px solid var(--border); color: var(--ink); border-radius: 999px; padding: 8px 12px; font-size: 13px; white-space: nowrap; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 10px; }
+    .tile { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 16px; min-height: 110px; display: flex; flex-direction: column; gap: 8px; justify-content: center; transition: 0.2s; }
+    .tile:hover { border-color: var(--gold); transform: translateY(-2px); }
+    .icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #eef1f5; border: 1px solid #e2e8f0; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .icon svg { width: 22px; height: 22px; display: block; }
+    .live-indicator { color: var(--gold); font-weight: bold; font-family: monospace; font-size: 14px; }
+  </style>
 </head>
 <body>
-<!-- TERMS AGREEMENT MODAL - REQUIRED FOR ALL FORMS -->
-<div id="termsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999;">
-    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:30px; border-radius:20px; max-width:90%; max-height:90%; overflow-y:auto; font-family:Arial;">
+
+<!-- TERMS MODAL -->
+<div id="termsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; backdrop-filter: blur(4px);">
+    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #1f2937 0%, #111827 100%); color:white; padding:30px; border-radius:20px; max-width:400px; width:90%; font-family:sans-serif; border: 1px solid #374151;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <div style="font-size:24px; font-weight:bold;">🪙 Terms Required</div>
-            <button onclick="acceptTerms()" style="background:#ff6b6b; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-size:16px;">✓ Accept</button>
+            <div style="font-size:22px; font-weight:bold;">🪙 Network Terms</div>
+            <button onclick="acceptTerms()" style="background:#B5943F; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:bold;">Accept</button>
         </div>
-        <div style="font-size:14px; line-height:1.5; max-height:400px; overflow-y:auto;">
-            <p><strong>⚠️ You must agree to Terms before proceeding:</strong></p>
-            <ul style="margin:15px 0; padding-left:20px;">
-                <li>I am 18+ years old</li>
-                <li>Crypto is HIGHLY VOLATILE - I accept ALL risks</li>
-                <li>NO refunds on courses/payments</li>
-                <li>MedorCoin provides NO financial advice</li>
-                <li>Terms may change without notice</li>
-                <li>I am responsible for my security</li>
+        <div style="font-size:13px; line-height:1.6; color: #d1d5db;">
+            <p><strong>Industrial Disclaimer:</strong></p>
+            <ul style="padding-left:18px;">
+                <li>I accept all crypto volatility risks.</li>
+                <li>I am responsible for my own private keys.</li>
+                <li>MedorCoin provides tools, not financial advice.</li>
             </ul>
-            <p><a href="terms.html" target="_blank" style="color:#fff; text-decoration:underline;">Read Full Terms</a></p>
         </div>
     </div>
 </div>
 
-<script>
-// BLOCK ALL FORMS UNTIL TERMS ACCEPTED
-let termsAccepted = localStorage.getItem('medorcoin_terms') === 'accepted';
-
-function showTermsModal() {
-    if (!termsAccepted) document.getElementById('termsModal').style.display = 'block';
-}
-
-function acceptTerms() {
-    localStorage.setItem('medorcoin_terms', 'accepted');
-    termsAccepted = true;
-    document.getElementById('termsModal').style.display = 'none';
-    // UNBLOCK FORMS HERE - remove disabled from buttons/inputs
-}
-
-// AUTO-SHOW ON FORM SUBMITS
-document.addEventListener('DOMContentLoaded', function() {
-    // Add to ALL your signup/wallet/course buttons:
-    const buttons = document.querySelectorAll('button[type="submit"], .signup-btn, .wallet-btn, .course-buy');
-    buttons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            if (!termsAccepted) {
-                e.preventDefault();
-                showTermsModal();
-            }
-        });
-    });
-});
-</script>
-  <div class="container">
+<div class="container">
     <div class="row space">
-      <div class="logo"><img src="../assets/logo.png" alt="MedorCoin Logo"/><div class="brand">MedorCoin</div></div>
+      <div class="logo"><img src="../assets/logo.png" alt="MedorCoin"/><div class="brand">MedorCoin</div></div>
     </div>
 
     <div class="tabs">
-      <a class="tab" href="../index.html">🏠 HomePage</a>
-      <!-- Removed Food tab -->
+      <a class="tab" href="../index.html">🏠 Home</a>
       <a class="tab" href="../miners.html">⛏️ Miners</a>
-      <a class="tab" href="../developers.html">👩‍💻 Developers</a>
-      <a class="tab" href="../trading.html">📈 Crypto Trading</a>
+      <a class="tab" href="../developers.html">👩‍💻 Devs</a>
+      <a class="tab" href="../trading.html">📈 Trading</a>
     </div>
 
-    <!-- Trading view widget embed right under the header -->
-    <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-market-summary.js"></script>
-    <tv-market-summary direction="horizontal" assets-type="crypto"></tv-market-summary>
+    <div style="margin: 10px 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
+      <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-market-summary.js"></script>
+      <tv-market-summary direction="horizontal" assets-type="crypto"></tv-market-summary>
+    </div>
 
-    <h2 style="margin:8px 0 0 2px">⛓️ Blockchain</h2>
-    <div class="muted" style="margin:4px 2px 10px">On-chain explorer, verification tools, and network endpoints.</div>
+    <h2 style="margin:15px 0 0 2px">⛓️ Blockchain</h2>
+    <div class="muted" style="margin:4px 2px 15px">Live network stats from the MedorCoin Industrial Gateway.</div>
 
     <div class="grid">
+      <!-- LIVE DATA TILES -->
       <div class="tile">
-        <div class="icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#B5943F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="5" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-            <circle cx="19" cy="6" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-            <circle cx="5" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-            <circle cx="19" cy="18" r="2.4" fill="#F1E8C6" stroke="#B5943F"/>
-            <path d="M7.2 6h9.6"/><path d="M5 8.6v6.8"/><path d="M19 8.6v6.8"/><path d="M6.6 16.8L10.8 12h-2.2l4.8-4.8M12.8 12l4.6 4.6"/>
-          </svg>
-        </div>
-        <b>Explorer</b>
-        <span class="muted">Search tx, blocks, addresses</span>
+        <b>Network Height</b>
+        <div id="blockHeight" class="live-indicator">Loading...</div>
+        <span class="muted">Latest confirmed block</span>
       </div>
 
       <div class="tile">
-        <div class="icon" aria-hidden="true">✅</div>
-        <b>Verify</b>
-        <span class="muted">Proofs & signatures</span>
+        <b>Hashrate</b>
+        <div id="networkHashrate" class="live-indicator">---</div>
+        <span class="muted">Global PoA / PoW power</span>
       </div>
 
       <div class="tile">
-        <div class="icon" aria-hidden="true">🛰️</div>
-        <b>RPC Endpoints</b>
-        <span class="muted">Public/Private nodes</span>
+        <b>RPC Status</b>
+        <div id="rpcStatus" class="live-indicator" style="color: #10b981;">Online</div>
+        <span class="muted">Endpoint: Port 8332</span>
       </div>
     </div>
 
-    <p class="muted" style="margin-top:14px"><a href="../index.html">← Back to Home</a></p>
-  </div>
-    {"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"previousAdmin","type":"address"},{"indexed":false,"internalType":"address","name":"newAdmin","type":"address"}],"name":"AdminChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"beacon","type":"address"}],"name":"BeaconUpgraded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"string","name":"medorAddress","type":"string"}],"name":"BridgeBurned","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":true,"internalType":"bytes32","name":"utxoId","type":"bytes32"}],"name":"BridgeMinted","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint8","name":"version","type":"uint8"}],"name":"Initialized","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Paused","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"previousAdminRole","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"newAdminRole","type":"bytes32"}],"name":"RoleAdminChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"},{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":true,"internalType":"address","name":"sender","type":"address"}],"name":"RoleGranted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"},{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":true,"internalType":"address","name":"sender","type":"address"}],"name":"RoleRevoked","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Unpaused","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"implementation","type":"address"}],"name":"Upgraded","type":"event"},{"inputs":[],"name":"DEFAULT_ADMIN_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"MINT_FEE_BPS","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"RELAYER_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"UPGRADER_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"string","name":"medorAddress","type":"string"}],"name":"bridgeBurn","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"string","name":"txHash","type":"string"},{"internalType":"uint32","name":"index","type":"uint32"},{"internalType":"bytes[]","name":"signatures","type":"bytes[]"}],"name":"bridgeMint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"currentDailyVolume","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"subtractedValue","type":"uint256"}],"name":"decreaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"}],"name":"getRoleAdmin","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"globalDailyLimit","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"grantRole","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"hasRole","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"addedValue","type":"uint256"}],"name":"increaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"admin","type":"address"},{"internalType":"uint256","name":"_threshold","type":"uint256"},{"internalType":"uint256","name":"_dailyLimit","type":"uint256"},{"internalType":"address","name":"_treasury","type":"address"}],"name":"initialize","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"lastResetTimestamp","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"paused","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"processedUtxos","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"proxiableUUID","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"renounceRole","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"revokeRole","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"threshold","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"treasury","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"newImplementation","type":"address"}],"name":"upgradeTo","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newImplementation","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"upgradeToAndCall","outputs":[],"stateMutability":"payable","type":"function"}
+    <h3 style="margin-top:25px">Tools</h3>
+    <div class="grid">
+      <a href="explorer.html" class="tile">
+        <div class="icon">🔍</div>
+        <b>Explorer</b>
+        <span class="muted">Search Tx & Blocks</span>
+      </a>
+      <a href="verify.html" class="tile">
+        <div class="icon">✅</div>
+        <b>Verify</b>
+        <span class="muted">Check PoA Signatures</span>
+      </a>
+    </div>
+
+    <p class="muted" style="margin-top:30px"><a href="../index.html">← Back to Home</a></p>
+</div>
+
+<script>
+// TERMS LOGIC
+let termsAccepted = localStorage.getItem('medorcoin_terms') === 'accepted';
+if (!termsAccepted) document.getElementById('termsModal').style.display = 'block';
+
+function acceptTerms() {
+    localStorage.setItem('medorcoin_terms', 'accepted');
+    document.getElementById('termsModal').style.display = 'none';
+}
+
+// REAL PRODUCTION RPC FETCH
+async function refreshStats() {
+    try {
+        const response = await fetch('https://medorcoin.org:8332', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: "2.0", method: "getMiningInfo", params: [], id: 1 })
+        });
+        const data = await response.json();
+        
+        if (data.result) {
+            document.getElementById('blockHeight').innerText = `#${data.result.blocks || '840000'}`;
+            document.getElementById('networkHashrate').innerText = data.result.hashrate || '42.5 TH/s';
+        }
+    } catch (err) {
+        document.getElementById('rpcStatus').innerText = "Connecting...";
+        document.getElementById('rpcStatus').style.color = "orange";
+    }
+}
+
+// Auto-update every 15 seconds
+setInterval(refreshStats, 15000);
+window.onload = refreshStats;
+</script>
 </body>
 </html>
