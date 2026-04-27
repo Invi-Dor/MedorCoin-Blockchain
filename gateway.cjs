@@ -1,83 +1,91 @@
 /**
- * MEDORCOIN INDUSTRIAL GATEWAY - V1.0.0
- * FULL PRODUCTION BUILD
+ * FILE: medorcoin-node/services/db_service.cjs
+ * INDUSTRIAL VERSION: High-Concurrency & Secure State Management
  */
-import https from "https";
-import fs from "fs";
-import { rateLimit } from "express-rate-limit";
-import RedisStore from "rate-limit-redis";
 import Redis from "ioredis";
-import logger from "./utils/logger.cjs";
-import { validateRPC } from "./middleware/validation.cjs";
-import { handleRPCRequest } from "./routes/rpc.cjs";
+import logger from "../utils/logger.cjs";
 
-// 1. STATEFUL REDIS FOR RATE LIMITING & SESSIONS
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
-// 2. INDUSTRIAL TLS CONFIGURATION (A+ RATING)
-const tlsOptions = {
-    key: fs.readFileSync('./certs/server.key'),
-    cert: fs.readFileSync('./certs/server.cert'),
-    minVersion: 'TLSv1.2',
-    ciphers: 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256'
+// CONFIG FOR PRODUCTION HARDENING
+const AUTH_CONFIG = {
+    MAX_ATTEMPTS: 5,        // Risk #3: Brute-force cap
+    LOCKOUT_TIME: 900,      // 15 minutes in seconds
+    CURRENT_HASH_VER: "v1"  // Risk #1: Hash versioning
 };
 
-// 3. THE SECURE SERVER
-const server = https.createServer(tlsOptions, async (req, res) => {
-    // SECURITY HEADERS
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
-    res.setHeader('Access-Control-Allow-Origin', 'https://medorcoin.org');
+/**
+ * The 'dbLookupFunc' required by auth.cjs
+ * Includes Brute-Force Check & Versioning Metadata
+ */
+export async function findUserInDB(username) {
+    const key = `user:${username}`;
+    const lockKey = `lockout:${username}`;
 
-    if (req.method === 'OPTIONS') {
-        res.writeHead(204);
-        return res.end();
+    // 1. BRUTE FORCE CHECK (Risk #3)
+    const attempts = await redis.get(lockKey);
+    if (attempts && parseInt(attempts) >= AUTH_CONFIG.MAX_ATTEMPTS) {
+        logger.warn("SECURITY", `Blocked login attempt for locked account: ${username}`);
+        throw new Error("ACCOUNT_LOCKED_TOO_MANY_ATTEMPTS");
     }
 
-    if (req.method !== 'POST') {
-        res.writeHead(405);
-        return res.end("Method Not Allowed");
+    const data = await redis.get(key);
+    if (!data) return null;
+
+    const user = JSON.parse(data);
+    
+    // 2. HASH VERSIONING CHECK (Risk #1)
+    if (user.version !== AUTH_CONFIG.CURRENT_HASH_VER) {
+        logger.info("MAINTENANCE", `User ${username} flagged for hash migration.`);
+        user.requiresUpdate = true; 
     }
 
-    // PAYLOAD PROTECTION (MAX 1MB)
-    let body = '';
-    req.on('data', chunk => {
-        body += chunk;
-        if (body.length > 1048576) {
-            req.destroy();
-            logger.warn("SECURITY", "Payload limit exceeded", { ip: req.socket.remoteAddress });
-        }
-    });
-
-    req.on('end', async () => {
-        try {
-            const rpcBody = JSON.parse(body);
-            
-            // VALIDATION LAYER
-            const validated = validateRPC(rpcBody);
-            if (!validated.success) {
-                return sendError(res, -32602, validated.error);
-            }
-
-            // EXECUTION LAYER (Forward to C++ or Auth)
-            const result = await handleRPCRequest(validated.data);
-            sendResponse(res, result, validated.data.id);
-
-        } catch (e) {
-            logger.error("GATEWAY_FATAL", e.message);
-            sendError(res, -32603, "Internal System Error");
-        }
-    });
-});
-
-function sendResponse(res, result, id) {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ jsonrpc: "2.0", result, id }));
+    return user;
 }
 
-function sendError(res, code, message) {
-    res.writeHead(400, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ jsonrpc: "2.0", error: { code, message }, id: null }));
+/**
+ * ATOMIC USER REGISTRATION (Risk #5)
+ * Uses Redis Transaction to ensure data integrity
+ */
+export async function saveUser(username, hash, role = "user") {
+    const key = `user:${username}`;
+    
+    const userData = JSON.stringify({
+        username,
+        passwordHash: hash,
+        role,
+        version: AUTH_CONFIG.CURRENT_HASH_VER, // Risk #1 fix
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+    });
+
+    try {
+        // Multi/Exec ensures the set happens atomically
+        const result = await redis.multi()
+            .set(key, userData)
+            .set(`user_status:${username}`, "active")
+            .exec();
+        
+        return result;
+    } catch (err) {
+        logger.error("DB_ERROR", `Failed atomic save for ${username}: ${err.message}`);
+        throw new Error("TRANSACTION_SAVE_FAILURE");
+    }
 }
 
-server.listen(8332, () => logger.info("SYSTEM", "Industrial Gateway Online"));
+/**
+ * BRUTE FORCE INCREMENTOR (Risk #3 Fix)
+ */
+export async function trackLoginFailure(username) {
+    const lockKey = `lockout:${username}`;
+    await redis.incr(lockKey);
+    await redis.expire(lockKey, AUTH_CONFIG.LOCKOUT_TIME);
+}
+
+/**
+ * SESSION INVALIDATION (Risk #2 Fix)
+ */
+export async function invalidateSession(username) {
+    // This allows us to "blacklist" a JWT before it expires
+    await redis.set(`blacklist:${username}`, "true", "EX", 7200); // 2 hour TTL
+}
