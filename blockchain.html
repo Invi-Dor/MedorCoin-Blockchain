@@ -4,111 +4,173 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1189498572545023" crossorigin="anonymous"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MedorCoin — Blockchain</title>
-  <meta name="description" content="On-chain tools, explorers, and verification for MedorCoin." />
+  <title>MedorCoin | Mainnet Explorer</title>
   <style>
-    :root { --bg: #faf9f6; --ink: #1f2937; --muted: #6b7280; --border: #e5e7eb; --gold: #B5943F; }
+    :root { 
+      --bg: #0b0e11; 
+      --card: #181a20; 
+      --ink: #eaecef; 
+      --muted: #848e9c; 
+      --border: #2b2f36; 
+      --gold: #B5943F; 
+      --gold-hover: #d4b35e;
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--ink); }
-    a { color: var(--gold); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .container { max-width: 980px; margin: 0 auto; padding: 12px; }
-    .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .space { justify-content: space-between; }
-    .logo { display: flex; align-items: center; gap: 10px; }
-    .logo img { height: 36px; width: 36px; border-radius: 10px; object-fit: cover; border: 1px solid #e8e1c7; }
-    .brand { font-weight: 800; font-size: 18px; }
-    .tabs { display: flex; gap: 10px; overflow: auto; padding: 10px 0; margin-top: 8px; scrollbar-width: none; }
-    .tab { display: flex; align-items: center; gap: 6px; background: #f3f4f6; border: 1px solid var(--border); color: var(--ink); border-radius: 999px; padding: 8px 12px; font-size: 13px; white-space: nowrap; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 10px; }
-    .tile { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 16px; min-height: 110px; display: flex; flex-direction: column; gap: 8px; justify-content: center; transition: 0.2s; }
-    .tile:hover { border-color: var(--gold); transform: translateY(-2px); }
-    .icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #eef1f5; border: 1px solid #e2e8f0; }
-    .muted { color: var(--muted); font-size: 12px; }
-    .icon svg { width: 22px; height: 22px; display: block; }
-    .live-indicator { color: var(--gold); font-weight: bold; font-family: monospace; font-size: 14px; }
+    body { 
+      margin: 0; 
+      font-family: 'Inter', -apple-system, sans-serif; 
+      background: var(--bg); 
+      color: var(--ink); 
+      line-height: 1.6;
+    }
+    .container { max-width: 1140px; margin: 0 auto; padding: 20px; }
+    
+    /* Header & Logo */
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo img { height: 42px; width: 42px; border-radius: 12px; border: 1px solid var(--gold); }
+    .brand { font-weight: 800; font-size: 22px; color: var(--gold); letter-spacing: -0.5px; }
+
+    /* Navigation Tabs */
+    .tabs { display: flex; gap: 12px; padding: 20px 0; overflow-x: auto; scrollbar-width: none; }
+    .tab { 
+      padding: 10px 20px; border-radius: 8px; background: var(--card); 
+      border: 1px solid var(--border); color: var(--ink); font-size: 14px; 
+      text-decoration: none; transition: 0.2s; white-space: nowrap;
+    }
+    .tab:hover { border-color: var(--gold); background: #1e2026; }
+
+    /* Mainnet Search Console */
+    .search-section { 
+      background: linear-gradient(135deg, #1e2026 0%, #0b0e11 100%);
+      padding: 40px; border-radius: 24px; border: 1px solid var(--border);
+      margin: 20px 0; text-align: center;
+    }
+    .search-box { 
+      display: flex; max-width: 700px; margin: 20px auto; 
+      background: var(--bg); border: 1px solid var(--border); 
+      border-radius: 12px; padding: 6px;
+    }
+    .search-box input { 
+      flex: 1; background: transparent; border: none; padding: 12px 20px; 
+      color: white; outline: none; font-size: 15px; 
+    }
+    .search-btn { 
+      background: var(--gold); color: black; border: none; 
+      padding: 0 25px; border-radius: 8px; font-weight: bold; cursor: pointer;
+    }
+
+    /* Live Stats Ribbon */
+    .stats-ribbon { 
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+      gap: 20px; margin-bottom: 30px; 
+    }
+    .stat-card { 
+      background: var(--card); border: 1px solid var(--border); 
+      padding: 20px; border-radius: 16px; 
+    }
+    .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .stat-value { font-size: 20px; font-weight: 700; margin-top: 5px; color: var(--gold); font-family: monospace; }
+
+    /* Tool Tiles */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .tile { 
+      background: var(--card); border: 1px solid var(--border); 
+      border-radius: 20px; padding: 25px; text-decoration: none; 
+      color: var(--ink); transition: 0.3s;
+    }
+    .tile:hover { border-color: var(--gold); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    .tile .icon { font-size: 28px; margin-bottom: 15px; display: block; }
+    .tile b { font-size: 18px; display: block; margin-bottom: 8px; }
+    .tile span { font-size: 14px; color: var(--muted); }
+
+    /* Modal Styling */
+    #termsModal { 
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+      background:rgba(0,0,0,0.9); z-index:9999; backdrop-filter: blur(8px);
+    }
+    .modal-box { 
+      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); 
+      background:var(--card); border: 1px solid var(--gold); padding:40px; 
+      border-radius:24px; max-width:450px; width:90%;
+    }
   </style>
 </head>
 <body>
 
-<!-- TERMS MODAL -->
-<div id="termsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; backdrop-filter: blur(4px);">
-    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #1f2937 0%, #111827 100%); color:white; padding:30px; border-radius:20px; max-width:400px; width:90%; font-family:sans-serif; border: 1px solid #374151;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <div style="font-size:22px; font-weight:bold;">🪙 Network Terms</div>
-            <button onclick="acceptTerms()" style="background:#B5943F; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:bold;">Accept</button>
-        </div>
-        <div style="font-size:13px; line-height:1.6; color: #d1d5db;">
-            <p><strong>Industrial Disclaimer:</strong></p>
-            <ul style="padding-left:18px;">
-                <li>I accept all crypto volatility risks.</li>
-                <li>I am responsible for my own private keys.</li>
-                <li>MedorCoin provides tools, not financial advice.</li>
-            </ul>
-        </div>
+<div id="termsModal">
+    <div class="modal-box">
+        <h2 style="margin:0 0 20px 0; color: var(--gold)">🛡️ Security Protocol</h2>
+        <p style="font-size: 14px; color: var(--muted)">By entering the MedorCoin Mainnet Explorer, you acknowledge the high volatility of blockchain assets.</p>
+        <button onclick="acceptTerms()" class="search-btn" style="width:100%; height:45px; margin-top:20px;">Authorize Access</button>
     </div>
 </div>
 
 <div class="container">
-    <div class="row space">
-      <div class="logo"><img src="../assets/logo.png" alt="MedorCoin"/><div class="brand">MedorCoin</div></div>
+    <div class="header">
+      <div class="logo">
+        <img src="../assets/logo.png" alt="MedorCoin" />
+        <div class="brand">MedorCoin</div>
+      </div>
+      <div id="rpcStatus" style="font-size: 12px; color: #10b981;">● Mainnet Online</div>
     </div>
 
-    <div class="tabs">
+    <nav class="tabs">
       <a class="tab" href="../index.html">🏠 Home</a>
-      <a class="tab" href="../miners.html">⛏️ Miners</a>
-      <a class="tab" href="../developers.html">👩‍💻 Devs</a>
-      <a class="tab" href="../trading.html">📈 Trading</a>
-    </div>
+      <a class="tab" href="../miners.html">⛏️ Mining Node</a>
+      <a class="tab" href="../developers.html">👩‍💻 API Docs</a>
+      <a class="tab" href="../trading.html">📈 Market</a>
+    </nav>
 
-    <div style="margin: 10px 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
-      <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-market-summary.js"></script>
-      <tv-market-summary direction="horizontal" assets-type="crypto"></tv-market-summary>
-    </div>
-
-    <h2 style="margin:15px 0 0 2px">⛓️ Blockchain</h2>
-    <div class="muted" style="margin:4px 2px 15px">Live network stats from the MedorCoin Industrial Gateway.</div>
-
-    <div class="grid">
-      <!-- LIVE DATA TILES -->
-      <div class="tile">
-        <b>Network Height</b>
-        <div id="blockHeight" class="live-indicator">Loading...</div>
-        <span class="muted">Latest confirmed block</span>
+    <section class="search-section">
+      <h1 style="margin:0; font-size: 32px;">MedorCoin Blockchain Explorer</h1>
+      <p style="color: var(--muted); margin: 10px 0 30px;">Track transactions, blocks, and network health in real-time.</p>
+      <div class="search-box">
+        <input type="text" placeholder="Search by Address / Txn Hash / Block Height...">
+        <button class="search-btn">Search</button>
       </div>
+    </section>
 
-      <div class="tile">
-        <b>Hashrate</b>
-        <div id="networkHashrate" class="live-indicator">---</div>
-        <span class="muted">Global PoA / PoW power</span>
+    <div class="stats-ribbon">
+      <div class="stat-card">
+        <div class="stat-label">Network Height</div>
+        <div id="blockHeight" class="stat-value">#0</div>
       </div>
-
-      <div class="tile">
-        <b>RPC Status</b>
-        <div id="rpcStatus" class="live-indicator" style="color: #10b981;">Online</div>
-        <span class="muted">Endpoint: Port 8332</span>
+      <div class="stat-card">
+        <div class="stat-label">Global Hashrate</div>
+        <div id="networkHashrate" class="stat-value">0.00 TH/s</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Protocol Version</div>
+        <div class="stat-value">v1.0.0-PROD</div>
       </div>
     </div>
 
-    <h3 style="margin-top:25px">Tools</h3>
     <div class="grid">
       <a href="explorer.html" class="tile">
-        <div class="icon">🔍</div>
-        <b>Explorer</b>
-        <span class="muted">Search Tx & Blocks</span>
+        <span class="icon">🔍</span>
+        <b>Live Ledger</b>
+        <span>Browse the latest on-chain transactions and block confirmations.</span>
       </a>
       <a href="verify.html" class="tile">
-        <div class="icon">✅</div>
-        <b>Verify</b>
-        <span class="muted">Check PoA Signatures</span>
+        <span class="icon">✅</span>
+        <b>Proof Verifier</b>
+        <span>Cryptographically verify POA signatures and transaction integrity.</span>
+      </a>
+      <a href="nodes.html" class="tile">
+        <span class="icon">🛰️</span>
+        <b>RPC Gateway</b>
+        <span>Connect your wallet or dApp to our global node infrastructure.</span>
       </a>
     </div>
 
-    <p class="muted" style="margin-top:30px"><a href="../index.html">← Back to Home</a></p>
+    <footer style="margin-top: 50px; padding: 20px 0; border-top: 1px solid var(--border); text-align: center;">
+      <a href="../index.html" style="color: var(--muted); font-size: 13px;">← Return to Main Portal</a>
+    </footer>
 </div>
 
 <script>
-// TERMS LOGIC
+// Terms Logic
 let termsAccepted = localStorage.getItem('medorcoin_terms') === 'accepted';
 if (!termsAccepted) document.getElementById('termsModal').style.display = 'block';
 
@@ -117,35 +179,21 @@ function acceptTerms() {
     document.getElementById('termsModal').style.display = 'none';
 }
 
-// REAL PRODUCTION RPC FETCH
-// REPLACE the <script> block in your blockchain.html with this:
-
+// Production API Fetch
 async function refreshStats() {
     try {
-        // Fix Concern #1 & #2: Call the sanitized proxy, not raw RPC
         const response = await fetch('/api/stats'); 
         const data = await response.json();
-        
         if (data.height) {
             document.getElementById('blockHeight').innerText = `#${data.height}`;
             document.getElementById('networkHashrate').innerText = data.hashrate;
-            document.getElementById('rpcStatus').innerText = "Synced";
-            document.getElementById('rpcStatus').style.color = "#10b981";
         }
     } catch (err) {
-        document.getElementById('rpcStatus').innerText = "Reconnecting...";
-        document.getElementById('rpcStatus').style.color = "orange";
+        console.warn("Retrying connection to Node...");
     }
 }
 
-// Security: Clear any sensitive trace from console
-console.log("MedorCoin Industrial Gateway: Connected.");
-setInterval(refreshStats, 15000);
-window.onload = refreshStats;
-
-
-// Auto-update every 15 seconds
-setInterval(refreshStats, 15000);
+setInterval(refreshStats, 10000);
 window.onload = refreshStats;
 </script>
 </body>
