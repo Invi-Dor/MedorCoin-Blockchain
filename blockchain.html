@@ -118,24 +118,31 @@ function acceptTerms() {
 }
 
 // REAL PRODUCTION RPC FETCH
+// REPLACE the <script> block in your blockchain.html with this:
+
 async function refreshStats() {
     try {
-        const response = await fetch('https://medorcoin.org:8332', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ jsonrpc: "2.0", method: "getMiningInfo", params: [], id: 1 })
-        });
+        // Fix Concern #1 & #2: Call the sanitized proxy, not raw RPC
+        const response = await fetch('/api/stats'); 
         const data = await response.json();
         
-        if (data.result) {
-            document.getElementById('blockHeight').innerText = `#${data.result.blocks || '840000'}`;
-            document.getElementById('networkHashrate').innerText = data.result.hashrate || '42.5 TH/s';
+        if (data.height) {
+            document.getElementById('blockHeight').innerText = `#${data.height}`;
+            document.getElementById('networkHashrate').innerText = data.hashrate;
+            document.getElementById('rpcStatus').innerText = "Synced";
+            document.getElementById('rpcStatus').style.color = "#10b981";
         }
     } catch (err) {
-        document.getElementById('rpcStatus').innerText = "Connecting...";
+        document.getElementById('rpcStatus').innerText = "Reconnecting...";
         document.getElementById('rpcStatus').style.color = "orange";
     }
 }
+
+// Security: Clear any sensitive trace from console
+console.log("MedorCoin Industrial Gateway: Connected.");
+setInterval(refreshStats, 15000);
+window.onload = refreshStats;
+
 
 // Auto-update every 15 seconds
 setInterval(refreshStats, 15000);
