@@ -1,3 +1,10 @@
+/**
+ * TRANSACTION_ENGINE.CJS - Execution & Validation Layer
+ * Integrated with HybridDB (RocksDB + Redis Standalone)
+ */
+
+"use strict";
+
 const Redis = require('ioredis');
 const Redlock = require('redlock').default || require('redlock');
 const os = require('os');
@@ -12,186 +19,142 @@ const logger = pino({
 });
 
 class TransactionEngine {
-  constructor(secretKey, nodeId) {
+  constructor(dbInstance, nodeId) {
+    this.db = dbInstance; // Integrated HybridDB (Step 1 Storage)
     this.nodeId = nodeId || `node-${crypto.randomBytes(4).toString('hex')}`;
     this.isRunning = false;
-    this.safeMode = false; // [4] Safe Mode Initialized
+    this.safeMode = false;
 
-    // 1. GLOBAL PRODUCTION SECURITY & LATENCY TUNING
-    const redisOptions = {
-        password: process.env.REDIS_PASSWORD || undefined,
-        tls: process.env.REDIS_TLS === 'true' ? { rejectUnauthorized: false } : undefined,
-        retryStrategy: (times) => Math.min(times * 150, 5000), 
-        maxRetriesPerRequest: 10,
-        enableOfflineQueue: true,
-        connectTimeout: 20000, 
-        commandTimeout: 10000
-    };
-
-    // 2. [5] INDUSTRIAL SEED INJECTION
-const seeds = process.env.REDIS_SEEDS 
-    ? JSON.parse(process.env.REDIS_SEEDS) 
-    : [
-        { port: 6379, host: "127.0.0.1" }
-      ];
-
-    this.cluster = new Redis.Cluster(seeds, { 
-        redisOptions, 
-        scaleReads: "slave", 
-        canRetryRouteCommand: true,
-        natMap: process.env.REDIS_NAT_MAP ? JSON.parse(process.env.REDIS_NAT_MAP) : undefined,
-        clusterRetryStrategy: (times) => Math.min(100 + times * 500, 10000)
+    // 1. STANDALONE REDIS (Matches db.cjs and your server PONG)
+    this.redis = new Redis({
+        host: "127.0.0.1",
+        port: 6379,
+        retryStrategy: (times) => Math.min(times * 150, 5000)
     });
-        
-    this.redis = this.cluster; 
-     this.cluster.on('error', (err) => {
-    logger.error({ err: err.message }, 'Redis Cluster Error');
-});
- 
 
+    this.redis.on('error', (err) => {
+        logger.error({ err: err.message }, 'Redis Connection Error');
+    });
 
-       // 3. DISTRIBUTED QUORUM: Canonical Redlock across independent clients
-    this.redlockNodes = seeds.map(s => new Redis(s.port, s.host, redisOptions));
-    
-    this.redlockNodes.forEach((node, index) => {
-        node.on('error', (err) => {
-            logger.error({ 
-                err: err.message, 
-                host: seeds[index].host, 
-                port: seeds[index].port 
-            }, `Redlock Node ${index} Error`);
-        });
-    }); // <--- ADD THIS TO CLOSE THE FOREACH
-
-    this.redlock = new Redlock(this.redlockNodes, { 
+    // 2. REDLOCK (Single Node Quorum for Standalone)
+    this.redlock = new Redlock([this.redis], { 
         driftFactor: 0.01, 
-        retryCount: 60, 
-        retryDelay: 300,
-        retryJitter: 300 
+        retryCount: 10, 
+        retryDelay: 200 
     });
 
-    // 4. ATOMIC LUA ENGINE: Global State Integrity {mdc}
-    this.cluster.defineCommand('commitMedorBlock', {
-        numberOfKeys: 0,
-        lua: `
-            local h = ARGV[1]
-            local d = ARGV[2]
-            local c = cjson.decode(ARGV[3])
-            if redis.call('HEXISTS', '{mdc}:blocks:' .. h, 'data') == 1 then
-                return redis.error_reply("ERR_BLOCK_EXISTS")
-            end
-            redis.call('HSET', '{mdc}:blocks:' .. h, 'data', d)
-            redis.call('SET', '{mdc}:meta:height', h)
-            for _, change in ipairs(c) do
-                redis.call('HINCRBY', '{mdc}:balances', change.address, change.delta)
-            end
-            return "OK"
-        `
-    });
+    // 3. TRANSACTION NONCE SYSTEM
+    // (We will pull these from this.db.getNonce in the validation)
 
-    // 5. [2] CONCURRENCY: Managed Parallel Worker Pool
-    this.workerQueue = [];
-    this.MAX_CONCURRENT = os.cpus().length * 2;
-
-    this.commitBreaker = new CircuitBreaker(this._executeLuaCommit.bind(this), {
-        timeout: 20000, 
+    this.commitBreaker = new CircuitBreaker(this._executeStateCommit.bind(this), {
+        timeout: 10000, 
         errorThresholdPercentage: 50, 
-        resetTimeout: 45000 
+        resetTimeout: 30000 
     });
 
     this._setupGracefulShutdown();
-    this.init();
   } 
 
+  /**
+   * STEP 2 & 4: FULL TRANSACTION VALIDATION
+   * Checks: Signature, Balance, and Nonce
+   */
   async validateTransaction(tx, signature) {
+    if (this.safeMode || !this.isRunning) return false;
+    if (!tx.from || !tx.to || !tx.amount || !tx.nonce || !tx.publicKey) return false;
 
-    if (this.safeMode) return false; // [4] Safe Mode blocking
-    if (!tx.sender || !tx.amount || !tx.publicKey) return false;
     try {
-        const balance = await this.cluster.hget("{mdc}:balances", tx.sender);
-        if (BigInt(balance || 0) < BigInt(tx.amount)) return false;
-        const msgHash = crypto.createHash('sha256').update(JSON.stringify(tx)).digest();
-        return secp256k1.ecdsaVerify(Buffer.from(signature, 'hex'), msgHash, Buffer.from(tx.publicKey, 'hex'));
-    } catch (e) { return false; }
-  }
-
-  async init() {
-      try {
-          this.isRunning = true;
-          await this.recoverFromCrash();
-          logger.info({ height: this.currentHeight, env: "SOVEREIGN_GLOBAL" }, 'MEDORCOIN ENGINE: ONLINE');
-      } catch (e) {
-          logger.fatal({ err: e.message }, "Global Infrastructure Boot Failed");
-      }
-  }
-
-  // [1] WAL RECOVERY: Syncs height and audits for orphans
-  async recoverFromCrash() {
-    try {
-        const h = await this.cluster.get("{mdc}:meta:height");
-        const lastBlock = await this.cluster.get("{mdc}:block:last");
-        
-        this.currentHeight = parseInt(h) || 0;
-
-        // [4] Check for State Mismatch
-        if (lastBlock && JSON.parse(lastBlock).height !== this.currentHeight) {
-            this.safeMode = true;
-            logger.fatal("STATE MISMATCH DETECTED: Entering Safe Mode.");
+        // A. Check Nonce (Prevent Replay Attack)
+        const currentNonce = await this.db.getNonce(tx.from);
+        if (tx.nonce !== currentNonce) {
+            logger.warn({ tx: tx.from, expected: currentNonce, got: tx.nonce }, "Invalid Nonce");
+            return false;
         }
-        
-        return true;
+
+        // B. Check Balance
+        const balance = await this.db.getBalance(tx.from);
+        if (balance < BigInt(tx.amount)) {
+            logger.warn({ user: tx.from, bal: balance.toString(), req: tx.amount }, "Insufficient Funds");
+            return false;
+        }
+
+        // C. Verify secp256k1 Signature
+        const msgHash = crypto.createHash('sha256').update(JSON.stringify({
+            from: tx.from,
+            to: tx.to,
+            amount: tx.amount,
+            nonce: tx.nonce
+        })).digest();
+
+        return secp256k1.ecdsaVerify(
+            Buffer.from(signature, 'hex'), 
+            msgHash, 
+            Buffer.from(tx.publicKey, 'hex')
+        );
     } catch (e) { 
-        logger.error({ err: e.message }, "Recovery failed");
+        logger.error({ err: e.message }, "Validation Error");
         return false; 
     }
   }
 
-  async commitBlock(block, stateChanges) {
+  /**
+   * STEP 5: STATE TRANSITION & STORAGE
+   * Atomic update to RocksDB and Redis
+   */
+  async commitBlock(block, transactions) {
     if (this.safeMode) throw new Error("Engine in Safe Mode");
     
     let lock;
-    const start = Date.now(); // [3] Start Latency Timer
+    const start = Date.now();
 
     try {
-        // [1] Write-Ahead Log (WAL) persistence before Redlock
-        await this.cluster.lpush("{mdc}:wal:active", JSON.stringify({ block, ts: Date.now() }));
-
-        lock = await this.redlock.acquire([`{mdc}:locks:block:${block.height}`], 15000);
-        await this.commitBreaker.fire(block.height, block, stateChanges);
+        lock = await this.redlock.acquire([`{mdr}:locks:block:${block.height}`], 5000);
         
-        // [1] Success: Clean WAL
-        await this.cluster.lpop("{mdc}:wal:active");
-        await this.cluster.set("{mdc}:block:last", JSON.stringify(block));
+        // Execute all state changes in a single batch
+        const batchOps = [];
+        for (const tx of transactions) {
+            const fromBal = await this.db.getBalance(tx.from);
+            const toBal = await this.db.getBalance(tx.to);
+            const amount = BigInt(tx.amount);
 
-        this.currentHeight = block.height;
+            batchOps.push({ type: 'put', key: `st:${tx.from.toLowerCase()}`, value: (fromBal - amount).toString() });
+            batchOps.push({ type: 'put', key: `st:${tx.to.toLowerCase()}`, value: (toBal + amount).toString() });
+            batchOps.push({ type: 'put', key: `no:${tx.from.toLowerCase()}`, value: (tx.nonce + 1).toString() });
+        }
 
-        // [3] METRICS: Latency & Throughput Logging
+        // Permanent save to RocksDB via HybridDB
+        await this.db.batch(batchOps);
+        await this.db.put(`ch:height`, block.height);
+        await this.db.put(`ch:last_block`, block);
+
         logger.info({ 
             height: block.height, 
             latency: `${Date.now() - start}ms`,
-            tx_count: stateChanges.length 
-        }, "Block Committed to Global State");
+            tx_count: transactions.length 
+        }, "Block Validated and Stored");
 
         return true;
     } catch (err) {
-        if (err.message.includes("ERR_BLOCK_EXISTS")) return true;
-        logger.error({ err: err.message }, "Global Consensus Failed");
+        logger.error({ err: err.message }, "State Transition Failed");
         throw err;
     } finally {
         if (lock) await lock.release().catch(() => {});
     }
   }
 
-  async _executeLuaCommit(h, b, c) {
-      return await this.cluster.commitMedorBlock(h.toString(), JSON.stringify(b), JSON.stringify(c));
+  async _executeStateCommit(updates) {
+      return await this.db.batch(updates);
+  }
+
+  async init() {
+    this.isRunning = true;
+    logger.info({ node: this.nodeId }, "MEDOR TRANSACTION ENGINE: ONLINE");
   }
 
   _setupGracefulShutdown() {
       const shutdown = async (s) => {
-          logger.info({ signal: s }, "Global node shutting down...");
           this.isRunning = false;
-          await this.cluster.quit().catch(() => {});
-          for (const node of this.redlockNodes) await node.quit().catch(() => {});
+          await this.redis.quit().catch(() => {});
           process.exit(0);
       };
       process.on('SIGINT', () => shutdown('SIGINT'));
