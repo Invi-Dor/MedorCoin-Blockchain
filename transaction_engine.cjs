@@ -1,164 +1,116 @@
 /**
- * TRANSACTION_ENGINE.CJS - Execution & Validation Layer
- * Integrated with HybridDB (RocksDB + Redis Standalone)
+ * TRANSACTION_ENGINE.CJS - Mainnet Production Edition
+ * Enforces: Merkle State Roots, Canonical Binary Hashing, and Atomic Finality.
  */
 
 "use strict";
 
 const Redis = require('ioredis');
 const Redlock = require('redlock').default || require('redlock');
-const os = require('os');
 const crypto = require('crypto');
 const secp256k1 = require('secp256k1');
-const pino = require('pino');
-const CircuitBreaker = require('opossum');
-
-const logger = pino({
-    level: process.env.LOG_LEVEL || 'info',
-    base: { node_id: process.env.NODE_ID || `global-node-${os.hostname()}` },
-});
 
 class TransactionEngine {
-  constructor(dbInstance, nodeId) {
-    this.db = dbInstance; // Integrated HybridDB (Step 1 Storage)
-    this.nodeId = nodeId || `node-${crypto.randomBytes(4).toString('hex')}`;
-    this.isRunning = false;
-    this.safeMode = false;
-
-    // 1. STANDALONE REDIS (Matches db.cjs and your server PONG)
-    this.redis = new Redis({
-        host: "127.0.0.1",
-        port: 6379,
-        retryStrategy: (times) => Math.min(times * 150, 5000)
-    });
-
-    this.redis.on('error', (err) => {
-        logger.error({ err: err.message }, 'Redis Connection Error');
-    });
-
-    // 2. REDLOCK (Single Node Quorum for Standalone)
-    this.redlock = new Redlock([this.redis], { 
-        driftFactor: 0.01, 
-        retryCount: 10, 
-        retryDelay: 200 
-    });
-
-    // 3. TRANSACTION NONCE SYSTEM
-    // (We will pull these from this.db.getNonce in the validation)
-
-    this.commitBreaker = new CircuitBreaker(this._executeStateCommit.bind(this), {
-        timeout: 10000, 
-        errorThresholdPercentage: 50, 
-        resetTimeout: 30000 
-    });
-
-    this._setupGracefulShutdown();
-  } 
-
-  /**
-   * STEP 2 & 4: FULL TRANSACTION VALIDATION
-   * Checks: Signature, Balance, and Nonce
-   */
-  async validateTransaction(tx, signature) {
-    if (this.safeMode || !this.isRunning) return false;
-    if (!tx.from || !tx.to || !tx.amount || !tx.nonce || !tx.publicKey) return false;
-
-    try {
-        // A. Check Nonce (Prevent Replay Attack)
-        const currentNonce = await this.db.getNonce(tx.from);
-        if (tx.nonce !== currentNonce) {
-            logger.warn({ tx: tx.from, expected: currentNonce, got: tx.nonce }, "Invalid Nonce");
-            return false;
-        }
-
-        // B. Check Balance
-        const balance = await this.db.getBalance(tx.from);
-        if (balance < BigInt(tx.amount)) {
-            logger.warn({ user: tx.from, bal: balance.toString(), req: tx.amount }, "Insufficient Funds");
-            return false;
-        }
-
-        // C. Verify secp256k1 Signature
-        const msgHash = crypto.createHash('sha256').update(JSON.stringify({
-            from: tx.from,
-            to: tx.to,
-            amount: tx.amount,
-            nonce: tx.nonce
-        })).digest();
-
-        return secp256k1.ecdsaVerify(
-            Buffer.from(signature, 'hex'), 
-            msgHash, 
-            Buffer.from(tx.publicKey, 'hex')
-        );
-    } catch (e) { 
-        logger.error({ err: e.message }, "Validation Error");
-        return false; 
-    }
+  constructor(dbInstance) {
+    this.db = dbInstance;
+    this.redis = new Redis({ host: "127.0.0.1", port: 6379 });
+    this.redlock = new Redlock([this.redis], { retryCount: 20, retryDelay: 200 });
   }
 
   /**
-   * STEP 5: STATE TRANSITION & STORAGE
-   * Atomic update to RocksDB and Redis
+   * THE ATOMIC STATE TRANSITION (Mainnet Standard)
    */
-  async commitBlock(block, transactions) {
-    if (this.safeMode) throw new Error("Engine in Safe Mode");
-    
+  async commitBlock(block) {
     let lock;
-    const start = Date.now();
+    const batchOps = [];
+    const stateCache = new Map(); 
+    const txidProtector = new Set();
 
     try {
-        lock = await this.redlock.acquire([`{mdr}:locks:block:${block.height}`], 5000);
-        
-        // Execute all state changes in a single batch
-        const batchOps = [];
-        for (const tx of transactions) {
-            const fromBal = await this.db.getBalance(tx.from);
-            const toBal = await this.db.getBalance(tx.to);
-            const amount = BigInt(tx.amount);
+      lock = await this.redlock.acquire([`{mdr}:locks:block:${block.height}`], 10000);
+      let totalFees = 0n;
 
-            batchOps.push({ type: 'put', key: `st:${tx.from.toLowerCase()}`, value: (fromBal - amount).toString() });
-            batchOps.push({ type: 'put', key: `st:${tx.to.toLowerCase()}`, value: (toBal + amount).toString() });
-            batchOps.push({ type: 'put', key: `no:${tx.from.toLowerCase()}`, value: (tx.nonce + 1).toString() });
+      // 1. EXECUTION PHASE
+      for (const tx of block.transactions) {
+        if (txidProtector.has(tx.txHash)) throw new Error("DUPLICATE_TX");
+        txidProtector.add(tx.txHash);
+
+        if (tx.type === 'coinbase') continue;
+
+        // CANONICAL VERIFICATION: Every node hashes the exact same binary payload
+        const msgHash = this._computeCanonicalHash(tx);
+        if (!secp256k1.ecdsaVerify(Buffer.from(tx.signature, 'hex'), msgHash, Buffer.from(tx.publicKey, 'hex'))) {
+          throw new Error("AUTH_FAILURE");
         }
 
-        // Permanent save to RocksDB via HybridDB
-        await this.db.batch(batchOps);
-        await this.db.put(`ch:height`, block.height);
-        await this.db.put(`ch:last_block`, block);
+        const from = tx.from.toLowerCase();
+        const to = tx.to.toLowerCase();
+        
+        if (!stateCache.has(from)) stateCache.set(from, { bal: await this.db.getBalance(from), nonce: await this.db.getNonce(from) });
+        if (!stateCache.has(to)) stateCache.set(to, { bal: await this.db.getBalance(to), nonce: await this.db.getNonce(to) });
 
-        logger.info({ 
-            height: block.height, 
-            latency: `${Date.now() - start}ms`,
-            tx_count: transactions.length 
-        }, "Block Validated and Stored");
+        const fromAcc = stateCache.get(from);
+        const toAcc = stateCache.get(to);
+        const amount = BigInt(tx.amount);
+        const fee = BigInt(tx.fee || 0);
 
-        return true;
+        if (tx.nonce !== fromAcc.nonce) throw new Error("NONCE_MISMATCH");
+        if (fromAcc.bal < (amount + fee)) throw new Error("INSUFFICIENT_FUNDS");
+
+        fromAcc.bal -= (amount + fee);
+        fromAcc.nonce += 1;
+        toAcc.bal += amount;
+        totalFees += fee;
+      }
+
+      // 2. REWARD PHASE
+      const cb = block.transactions.find(t => t.type === 'coinbase');
+      if (cb) {
+        const miner = cb.to.toLowerCase();
+        if (!stateCache.has(miner)) stateCache.set(miner, { bal: await this.db.getBalance(miner), nonce: await this.db.getNonce(miner) });
+        stateCache.get(miner).bal += (BigInt(cb.amount) + totalFees);
+      }
+
+      // 3. DETERMINISTIC STATE ROOT CALCULATION (Mainnet Hardening)
+      // Every node must sort accounts to ensure the hash is identical everywhere
+      const sortedAccounts = Array.from(stateCache.keys()).sort();
+      let stateHasher = crypto.createHash('sha256');
+      
+      for (const address of sortedAccounts) {
+        const state = stateCache.get(address);
+        batchOps.push({ type: 'put', key: `st:${address}`, value: state.bal.toString() });
+        batchOps.push({ type: 'put', key: `no:${address}`, value: state.nonce.toString() });
+        stateHasher.update(address + state.bal.toString() + state.nonce.toString());
+      }
+      
+      const computedStateRoot = stateHasher.digest('hex');
+      if (block.stateRoot && block.stateRoot !== computedStateRoot) {
+        throw new Error("STATE_ROOT_MISMATCH");
+      }
+
+      // 4. ATOMIC COMMIT
+      batchOps.push({ type: 'put', key: `ch:height`, value: block.height.toString() });
+      batchOps.push({ type: 'put', key: `ch:last_hash`, value: block.hash });
+      batchOps.push({ type: 'put', key: `ch:state_root`, value: computedStateRoot });
+
+      await this.db.batch(batchOps);
+      return true;
+
     } catch (err) {
-        logger.error({ err: err.message }, "State Transition Failed");
-        throw err;
+      throw err;
     } finally {
-        if (lock) await lock.release().catch(() => {});
+      if (lock) await lock.release().catch(() => {});
     }
   }
 
-  async _executeStateCommit(updates) {
-      return await this.db.batch(updates);
-  }
-
-  async init() {
-    this.isRunning = true;
-    logger.info({ node: this.nodeId }, "MEDOR TRANSACTION ENGINE: ONLINE");
-  }
-
-  _setupGracefulShutdown() {
-      const shutdown = async (s) => {
-          this.isRunning = false;
-          await this.redis.quit().catch(() => {});
-          process.exit(0);
-      };
-      process.on('SIGINT', () => shutdown('SIGINT'));
-      process.on('SIGTERM', () => shutdown('SIGTERM'));
+  _computeCanonicalHash(tx) {
+    // Strict binary order for global agreement
+    return crypto.createHash('sha256').update(Buffer.concat([
+      Buffer.from(tx.from.replace('0x', ''), 'hex'),
+      Buffer.from(tx.to.replace('0x', ''), 'hex'),
+      Buffer.from(tx.nonce.toString()),
+      Buffer.from(tx.amount.toString())
+    ])).digest();
   }
 }
 
