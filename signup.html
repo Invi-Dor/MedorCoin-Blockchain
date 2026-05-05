@@ -3,61 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register a Free Account | MedorCoin</title>
-    <!-- 1. hCaptcha Script for Anti-Bot -->
+    <title>Register | MedorCoin Explorer</title>
+    <!-- hCaptcha for Anti-Bot -->
     <script src="https://hcaptcha.com" async defer></script>
     <style>
-        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .container { background: #fff; width: 100%; max-width: 450px; padding: 40px; border-radius: 8px; border: 1px solid #e7eaf3; box-shadow: 0 0.5rem 1.2rem rgba(189,197,209,.15); }
-        .header h1 { font-size: 1.5rem; text-align: center; margin-bottom: 25px; color: #1e2022; }
+        body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .container { background: #fff; width: 100%; max-width: 440px; padding: 35px; border-radius: 8px; border: 1px solid #e7eaf3; box-shadow: 0 0.5rem 1.2rem rgba(189,197,209,.15); }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; font-weight: 500; color: #1e2022; }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: #4b5563; }
-        input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
-        input:focus { outline: none; border-color: #3498db; }
+        input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 1rem; transition: border-color 0.2s; }
+        input:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,.1); }
         .h-captcha { margin: 20px 0; display: flex; justify-content: center; }
-        .btn-reg { width: 100%; padding: 14px; background: #3498db; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-reg:hover { background: #2980b9; }
-        .error { color: #dc3545; font-size: 0.85rem; margin-top: 10px; display: none; text-align: center; }
+        .btn-submit { width: 100%; padding: 14px; background-color: #3498db; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+        .btn-submit:hover { background-color: #2980b9; }
+        .error-msg { color: #dc3545; font-size: 0.85rem; margin-top: 15px; display: none; text-align: center; padding: 10px; background: #fff5f5; border-radius: 4px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header"><h1>Create Account</h1></div>
+    <div class="header">
+        <h1>Register Account</h1>
+    </div>
+
     <form id="signupForm">
         <div class="form-group">
             <label>Username</label>
-            <input type="text" id="username" required placeholder="Enter username">
+            <input type="text" id="username" placeholder="Username" required>
         </div>
+
         <div class="form-group">
             <label>Email Address</label>
-            <input type="email" id="email" required placeholder="Enter email address">
+            <input type="email" id="email" placeholder="Email Address" required>
         </div>
+
         <div class="form-group">
             <label>Password</label>
-            <input type="password" id="password" required placeholder="Min 12 chars, 1 uppercase, 1 number">
+            <input type="password" id="password" placeholder="Min 12 chars, uppercase, number" required>
         </div>
 
-        <!-- 2. hCaptcha Widget (Anti-Bot) -->
+        <!-- Anti-Bot Widget -->
         <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITE_KEY"></div>
 
-        <div id="errMsg" class="error"></div>
-        <button type="submit" class="btn-reg">Register Account</button>
+        <div id="apiError" class="error-msg"></div>
+
+        <button type="submit" class="btn-submit">Create Free Account</button>
     </form>
 </div>
 
 <script>
+    let csrfToken = null;
+    const API_BASE = "https://medorcoin.org"; // Replace with your actual API domain
+
+    // 1. Handshake: Get CSRF Token on page load
+    async function getCsrf() {
+        try {
+            const res = await fetch(`${API_BASE}/csrf-token`);
+            const data = await res.json();
+            csrfToken = data.csrfToken;
+        } catch (err) {
+            console.error("Security handshake failed.");
+        }
+    }
+    getCsrf();
+
     const form = document.getElementById('signupForm');
-    const errDiv = document.getElementById('errMsg');
+    const errorDiv = document.getElementById('apiError');
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        errDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
 
         const captchaToken = hcaptcha.getResponse();
         if (!captchaToken) {
-            errDiv.innerText = "Please complete the Captcha.";
-            errDiv.style.display = 'block';
+            errorDiv.textContent = "Please complete the Captcha.";
+            errorDiv.style.display = 'block';
             return;
         }
 
@@ -65,18 +87,15 @@
             username: document.getElementById('username').value,
             email: document.getElementById('email').value,
             password: document.getElementById('password').value,
-            captchaToken: captchaToken // Sent to backend for verification
+            captchaToken: captchaToken
         };
 
         try {
-            // Replace with your live API domain
-            const API_URL = "https://medorcoin.org"; 
-
-            const response = await fetch(API_URL, {
+            const response = await fetch(`${API_BASE}/signup`, {
                 method: 'POST',
                 headers: { 
-                    'Content-Type': 'application/json'
-                    // CSRF tokens are handled via HttpOnly cookies in the hardened node.cjs
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken // 2. Critical Security Header
                 },
                 body: JSON.stringify(payload)
             });
@@ -84,19 +103,21 @@
             const data = await response.json();
 
             if (data.success) {
-                // Securely store mnemonic and redirect
-                sessionStorage.setItem('medor_mnemonic', data.mnemonic);
+                // 3. Store claimId in sessionStorage to prevent URL leaks
+                sessionStorage.setItem('medor_claim_id', data.claimId);
+                // Move to verify page using public address only
                 window.location.href = `verify.html?address=${data.address}`;
             } else {
-                errDiv.innerText = data.error || "Signup failed.";
-                errDiv.style.display = 'block';
-                hcaptcha.reset(); // Reset captcha on failure
+                errorDiv.textContent = data.error || "Signup failed.";
+                errorDiv.style.display = 'block';
+                hcaptcha.reset(); 
             }
         } catch (err) {
-            errDiv.innerText = "Security block or Server Offline.";
-            errDiv.style.display = 'block';
+            errorDiv.textContent = "Connection failed. Ensure API is live.";
+            errorDiv.style.display = 'block';
         }
     });
 </script>
+
 </body>
 </html>
