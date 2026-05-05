@@ -1,18 +1,102 @@
-// Add or update this route in your node.cjs file
-app.post('/api/signup', async (req, res) => {
-    try {
-        const { username, password } = req.body;
-        
-        // This triggers your AuthService which calls the BIP39 C++ logic
-        const result = await authService.signup(username, password);
-        
-        // Return success with address and mnemonic so verify.html can move forward
-        res.json({ 
-            success: true, 
-            address: result.address, 
-            mnemonic: result.mnemonic 
-        });
-    } catch (e) { 
-        res.status(400).json({ success: false, error: e.message }); 
-    }
-});
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register a Free Account | MedorCoin</title>
+    <!-- 1. hCaptcha Script for Anti-Bot -->
+    <script src="https://hcaptcha.com" async defer></script>
+    <style>
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .container { background: #fff; width: 100%; max-width: 450px; padding: 40px; border-radius: 8px; border: 1px solid #e7eaf3; box-shadow: 0 0.5rem 1.2rem rgba(189,197,209,.15); }
+        .header h1 { font-size: 1.5rem; text-align: center; margin-bottom: 25px; color: #1e2022; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: #4b5563; }
+        input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        input:focus { outline: none; border-color: #3498db; }
+        .h-captcha { margin: 20px 0; display: flex; justify-content: center; }
+        .btn-reg { width: 100%; padding: 14px; background: #3498db; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-reg:hover { background: #2980b9; }
+        .error { color: #dc3545; font-size: 0.85rem; margin-top: 10px; display: none; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header"><h1>Create Account</h1></div>
+    <form id="signupForm">
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="username" required placeholder="Enter username">
+        </div>
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="email" required placeholder="Enter email address">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="password" required placeholder="Min 12 chars, 1 uppercase, 1 number">
+        </div>
+
+        <!-- 2. hCaptcha Widget (Anti-Bot) -->
+        <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITE_KEY"></div>
+
+        <div id="errMsg" class="error"></div>
+        <button type="submit" class="btn-reg">Register Account</button>
+    </form>
+</div>
+
+<script>
+    const form = document.getElementById('signupForm');
+    const errDiv = document.getElementById('errMsg');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errDiv.style.display = 'none';
+
+        const captchaToken = hcaptcha.getResponse();
+        if (!captchaToken) {
+            errDiv.innerText = "Please complete the Captcha.";
+            errDiv.style.display = 'block';
+            return;
+        }
+
+        const payload = {
+            username: document.getElementById('username').value,
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+            captchaToken: captchaToken // Sent to backend for verification
+        };
+
+        try {
+            // Replace with your live API domain
+            const API_URL = "https://medorcoin.org"; 
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json'
+                    // CSRF tokens are handled via HttpOnly cookies in the hardened node.cjs
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Securely store mnemonic and redirect
+                sessionStorage.setItem('medor_mnemonic', data.mnemonic);
+                window.location.href = `verify.html?address=${data.address}`;
+            } else {
+                errDiv.innerText = data.error || "Signup failed.";
+                errDiv.style.display = 'block';
+                hcaptcha.reset(); // Reset captcha on failure
+            }
+        } catch (err) {
+            errDiv.innerText = "Security block or Server Offline.";
+            errDiv.style.display = 'block';
+        }
+    });
+</script>
+</body>
+</html>
