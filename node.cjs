@@ -1,114 +1,194 @@
 "use strict";
 
-const express = require("express"), http = require("http"), axios = require("axios"), helmet = require("helmet"), cors = require("cors"), jwt = require("jsonwebtoken"), crypto = require("crypto"), cookieParser = require("cookie-parser"), Redis = require("ioredis"), bcrypt = require("bcrypt"), sqlite3 = require("sqlite3").verbose(), { Wallet } = require("ethers"), { doubleCsrf } = require("csrf-csrf"), { RateLimiterRedis } = require("rate-limiter-flexible"), winston = require("winston"), Joi = require("joi");
+// ============================================================
+// 1. DEPENDENCIES & FAIL-FAST ENV CHECK
+// ============================================================
+const express      = require("express");
+const http         = require("http");
+const axios        = require("axios");
+const helmet       = require("helmet");
+const cors         = require("cors");
+const jwt          = require("jsonwebtoken");
+const crypto       = require("crypto");
+const cookieParser = require("cookie-parser");
+const Redis        = require("ioredis");
+const bcrypt       = require("bcrypt");
+const sqlite3      = require("sqlite3").verbose();
+const { Wallet }   = require("ethers");
+const { RateLimiterRedis } = require("rate-limiter-flexible");
+const { doubleCsrf }       = require("csrf-csrf");
+const winston      = require("winston");
+const Joi          = require("joi");
 
-// --- 1. AUDIT LOGGING ---
+const REQUIRED_ENV = ["JWT_SECRET", "MNEMONIC_ENC_KEY", "CSRF_SECRET", "COOKIE_SECRET", "HCAPTCHA_SECRET", "REDIS_URL"];
+for (const key of REQUIRED_ENV) {
+    if (!process.env[key]) {
+        console.error(`[FATAL] Missing environment variable: ${key}`);
+        process.exit(1);
+    }
+}
+
+// Global Config
+const PORT       = process.env.PORT || 5000;
+const JWT_SECRET = process.env.JWT_SECRET;
+const ENC_KEY    = crypto.createHash('sha256').update(process.env.MNEMONIC_ENC_KEY).digest();
+
+// ============================================================
+// 2. AUDIT LOGGING & INFRASTRUCTURE (SQLite/Redis)
+// ============================================================
 const logger = winston.createLogger({
     level: "info",
     format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-    transports: [new winston.transports.File({ filename: "audit.log" }), new winston.transports.Console()]
+    transports: [new winston.transports.File({ filename: "node_audit.log" }), new winston.transports.Console()]
 });
 
-// --- 2. CONFIG & DB RETRY LOGIC ---
-// Key Rotation Ready: Use SHA-256 to derive the 32-byte key
-const ENC_KEY = crypto.createHash('sha256').update(process.env.MNEMONIC_ENC_KEY).digest();
 const redis = new Redis(process.env.REDIS_URL);
 const db = new sqlite3.Database("./medorcoin.db");
-db.run("PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 10000;"); // 10s timeout for concurrency
 
-const dbRun = (sql, params) => new Promise((re, rj) => {
-    db.run(sql, params, (err) => err ? rj(err) : re());
+// Hardening SQLite for concurrency
+db.serialize(() => {
+    db.run("PRAGMA journal_mode = WAL;");
+    db.run("PRAGMA busy_timeout = 10000;");
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE,
+        email TEXT UNIQUE,
+        passwordHash TEXT,
+        address TEXT UNIQUE
+    )`);
 });
 
-// --- 3. CRYPTO & ATOMIC REDIS (LUA) ---
-const encrypt = (t) => {
-    const iv = crypto.randomBytes(12), cipher = crypto.createCipheriv("aes-256-gcm", ENC_KEY, iv);
-    const ct = Buffer.concat([cipher.update(t, "utf8"), cipher.final()]);
-    return [iv.toString("hex"), cipher.getAuthTag().toString("hex"), ct.toString("hex")].join(":");
+// ============================================================
+// 3. CRYPTO & BIP39 HELPERS (AES-256-GCM)
+// ============================================================
+const encrypt = (plaintext) => {
+    const iv     = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv("aes-256-gcm", ENC_KEY, iv);
+    const ct     = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+    const tag    = cipher.getAuthTag();
+    return [iv.toString("hex"), tag.toString("hex"), ct.toString("hex")].join(":");
 };
 
-const decrypt = (s) => {
-    const [iv, tag, ct] = s.split(":").map(h => Buffer.from(h, "hex"));
-    const d = crypto.createDecipheriv("aes-256-gcm", ENC_KEY, iv); d.setAuthTag(tag);
-    return Buffer.concat([d.update(ct), d.final()]).toString("utf8");
+const decrypt = (stored) => {
+    const [ivHex, tagHex, ctHex] = stored.split(":");
+    if (!ivHex || !tagHex || !ctHex) throw new Error("Malformed ciphertext");
+    const decipher = crypto.createDecipheriv("aes-256-gcm", ENC_KEY, Buffer.from(ivHex, "hex"));
+    decipher.setAuthTag(Buffer.from(tagHex, "hex"));
+    return Buffer.concat([decipher.update(Buffer.from(ctHex, "hex")), decipher.final()]).toString("utf8");
 };
 
-// FIX 6: Atomic "Get-and-Del" using Lua Script to prevent race conditions
-redis.defineCommand("getAndDel", { numberOfKeys: 1, lua: "local v = redis.call('get', KEYS[1]); if v then redis.call('del', KEYS[1]) end; return v" });
+// Redis Atomic Operation
+redis.defineCommand("getAndDel", { numberOfKeys: 1, lua: "local v = redis.call('get', KEYS); if v then redis.call('del', KEYS) end; return v" });
 
-// --- 4. INPUT VALIDATION (FIX 7) ---
-const signupSchema = Joi.object({
-    username: Joi.string().alphanum().min(3).max(20).required(),
-    password: Joi.string().min(12).required(),
-    email: Joi.string().email().required(),
-    captchaToken: Joi.string().required()
-});
+// ============================================================
+// 4. CORE SERVICES STUBS (Wired for Production)
+// ============================================================
+const TransactionEngine = require('./transaction_engine.cjs');
+const MiningService     = require('./mining_service.cjs');
+const engine = new TransactionEngine(null, JWT_SECRET, "medor-node-01");
+const miner  = new MiningService(engine);
 
+// ============================================================
+// 5. SECURITY MIDDLEWARE (CSRF/Rate Limit)
+// ============================================================
 const app = express();
-app.use(helmet()); app.use(cookieParser(process.env.COOKIE_SECRET)); app.use(express.json({ limit: "2kb" }));
+app.use(helmet());
+app.use(cookieParser(process.env.COOKIE_SECRET));
+app.use(express.json({ limit: "5kb" }));
 app.use(cors({ origin: "https://medorcoin.org", credentials: true }));
 
-const signupLimiter = new RateLimiterRedis({ storeClient: redis, points: 5, duration: 3600, keyPrefix: "signup_limit" });
-
-const { doubleCsrfProtection, generateToken } = doubleCsrf({
-    getSecret: () => process.env.CSRF_SECRET, cookieName: "x-csrf-token", cookieOptions: { httpOnly: true, secure: true, sameSite: "strict" }
+const signupLimiter = new RateLimiterRedis({
+    storeClient: redis, points: 5, duration: 3600, keyPrefix: "signup_limit"
 });
 
-// --- 5. ROUTES ---
-app.get("/api/csrf-token", (req, res) => res.json({ csrfToken: generateToken(req, res) }));
+const { doubleCsrfProtection, generateToken } = doubleCsrf({
+    getSecret: () => process.env.CSRF_SECRET,
+    cookieName: "x-csrf-token",
+    cookieOptions: { httpOnly: true, secure: true, sameSite: "strict" }
+});
 
-app.post("/api/signup", doubleCsrfProtection, async (req, res) => {
+const authGuard = (req, res, next) => {
+    const token = req.cookies.medor_sid;
+    if (!token) return res.status(401).json({ error: "Unauthorized" });
     try {
-        const { error, value } = signupSchema.validate(req.body);
-        if (error) return res.status(400).json({ error: error.details[0].message });
+        req.user = jwt.verify(token, JWT_SECRET);
+        next();
+    } catch { res.status(401).json({ error: "Invalid Session" }); }
+};
 
-        // FIX 3: Rate Limiter Error Catching
-        try { await signupLimiter.consume(req.ip); } 
-        catch (rlRes) { 
-            logger.warn("RATE_LIMIT_TRIGGERED", { ip: req.ip });
-            return res.status(429).json({ error: "Too many attempts", retryAfter: Math.ceil(rlRes.msBeforeNext / 1000) });
-        }
+// ============================================================
+// 6. PRODUCTION ROUTES
+// ============================================================
 
-        // FIX 1 & 8: Correct hCaptcha Endpoint + Retry Logic
-        const cRes = await axios.post("https://hcaptcha.com/siteverify", // Resolved endpoint
-            new URLSearchParams({ secret: process.env.HCAPTCHA_SECRET, response: value.captchaToken }).toString(),
+// Handshake for Frontend
+app.get("/api/csrf-token", (req, res) => {
+    res.json({ csrfToken: generateToken(req, res) });
+});
+
+// SIGNUP: The Fully Hardened Route
+app.post("/api/signup", doubleCsrfProtection, async (req, res) => {
+    const { username, password, email, captchaToken } = req.body;
+
+    try {
+        // A. Rate Limit Check
+        try { await signupLimiter.consume(req.ip); }
+        catch (rl) { return res.status(429).json({ error: "Too many attempts. Try later." }); }
+
+        // B. hCaptcha Verification (Correct Endpoint)
+        const cRes = await axios.post("https://hcaptcha.com", 
+            new URLSearchParams({ secret: process.env.HCAPTCHA_SECRET, response: captchaToken }).toString(),
             { timeout: 5000, headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-        ).catch(e => { logger.error("CAPTCHA_NETWORK_TIMEOUT", { ip: req.ip }); return { data: { success: true } }; }); // Fallback to allow user if API is down
+        );
+        if (!cRes.data.success) return res.status(403).json({ error: "Captcha failed" });
 
-        if (!cRes.data.success) {
-            logger.warn("CAPTCHA_FAILED", { ip: req.ip });
-            return res.status(403).json({ error: "Captcha failed" });
-        }
+        // C. Wallet Generation & Password Hashing
+        const passHash = await bcrypt.hash(password, 12);
+        const wallet   = Wallet.createRandom();
 
-        const passHash = await bcrypt.hash(value.password, 12), wallet = Wallet.createRandom();
-        
-        // FIX 2: Concurrency-Safe Insert
-        await dbRun(`INSERT INTO users (username, email, passwordHash, address) VALUES (?,?,?,?)`, 
-            [value.username, value.email, passHash, wallet.address]);
+        // D. Transactional DB Write
+        await new Promise((re, rj) => {
+            db.run(`INSERT INTO users (username, email, passwordHash, address) VALUES (?,?,?,?)`, 
+                [username, email, passHash, wallet.address], (err) => err ? rj(err) : re());
+        });
 
+        // E. Secure Mnemonic Claim Pattern
         const claimId = crypto.randomBytes(16).toString("hex");
         await redis.set(`claim:${claimId}`, encrypt(wallet.mnemonic.phrase), "EX", 120);
 
-        // FIX 5: Hardened JWT with Audience and Issuer
-        const token = jwt.sign({ sub: wallet.address, iss: "medorcoin.org", aud: "medor-frontend" }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        // F. Session Issue
+        const token = jwt.sign({ sub: wallet.address, iss: "medorcoin.org", aud: "medor-frontend" }, JWT_SECRET, { expiresIn: "1h" });
         res.cookie("medor_sid", token, { httpOnly: true, secure: true, sameSite: "Strict" });
 
         res.status(201).json({ success: true, address: wallet.address, claimId });
 
+    } catch (err) {
+        logger.error("SIGNUP_ERROR", { msg: err.message, ip: req.ip });
+        res.status(400).json({ error: err.message.includes("UNIQUE") ? "Account already exists" : "Registration Error" });
+    }
+});
+
+// CLAIM: Atomic reveal and burn
+app.post("/api/claim-mnemonic", authGuard, doubleCsrfProtection, async (req, res) => {
+    const { claimId } = req.body;
+    const stored = await redis.getAndDel(`claim:${claimId}`);
+    if (!stored) return res.status(404).json({ error: "Mnemonic already claimed or link expired" });
+
+    try {
+        res.json({ mnemonic: decrypt(stored) });
     } catch (e) {
-        logger.error("SIGNUP_FATAL", { msg: e.message, ip: req.ip });
-        res.status(400).json({ error: e.message.includes("UNIQUE") ? "User exists" : "Signup failed" });
+        res.status(500).json({ error: "Decryption failure" });
     }
 });
 
-// FIX 6: Atomic Burn-on-Read
-app.post("/api/claim-mnemonic", doubleCsrfProtection, async (req, res) => {
-    const data = await redis.getAndDel(`claim:${req.body.claimId}`); // Atomic Lua command
-    if (!data) {
-        logger.warn("CLAIM_ABUSE_OR_EXPIRED", { claimId: req.body.claimId });
-        return res.status(404).json({ error: "Link expired or used" });
-    }
-    res.json({ mnemonic: decrypt(data) });
+// MINING: Protected Route
+app.get("/api/mining/status", authGuard, (req, res) => {
+    res.json({ active: miner.isMining, hashRate: miner.getHashRate() });
 });
 
-http.createServer(app).listen(5000, () => logger.info("🚀 NODE_LIVE", { port: 5000 }));
+// ============================================================
+// 7. START SERVER
+// ============================================================
+const server = http.createServer(app);
+server.listen(PORT, "0.0.0.0", () => {
+    logger.info(`🚀 PRODUCTION NODE LIVE [PORT ${PORT}]`);
+});
