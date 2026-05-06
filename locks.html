@@ -3,91 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedorCoin - Professional Locker</title>
-    <!-- Core Library for Blockchain Connection -->
+    <title>MedorCoin - Professional Asset Locker</title>
+    <!-- Essential Library for Blockchain -->
     <script src="https://jsdelivr.net"></script>
     <style>
-        :root { --primary: #ff8a00; --dark: #0f1013; --card-bg: #15171b; --text: #f1f5f9; --border: #232630; }
-        body { margin: 0; display: flex; background: var(--dark); color: var(--text); font-family: 'Inter', sans-serif; }
+        :root { --primary: #ff8a00; --bg: #0f1013; --card: #15171b; --text: #f1f5f9; --border: #232630; }
+        body { margin: 0; display: flex; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; }
         
         /* Navigation Sidebar */
-        .sidebar { width: 260px; background: #000; height: 100vh; padding: 20px; border-right: 1px solid var(--border); position: fixed; }
-        .sidebar h2 { color: var(--primary); font-size: 1.2rem; }
-        .sidebar a { display: block; color: #a3a3a3; padding: 12px; text-decoration: none; border-radius: 8px; margin-bottom: 5px; cursor: pointer; transition: 0.2s; }
-        .sidebar a:hover, .sidebar a.active { background: var(--card-bg); color: white; }
-        .sidebar a.active { border-left: 4px solid var(--primary); }
+        .sidebar { width: 260px; background: #000; padding: 30px 20px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .sidebar h2 { color: var(--primary); font-size: 1.4rem; margin-bottom: 40px; letter-spacing: 1px; }
+        .sidebar a { display: block; color: #a3a3a3; padding: 14px; text-decoration: none; border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: 0.3s; }
+        .sidebar a:hover, .sidebar a.active { background: var(--card); color: white; }
+        .sidebar a.active { border-left: 4px solid var(--primary); color: var(--primary); }
 
-        /* Main Content Area */
-        .main { margin-left: 260px; padding: 40px; width: 100%; }
-        .lock-container { max-width: 600px; background: var(--card-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--border); }
-        .info-header { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 0.85rem; color: var(--muted); border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        /* Main Workspace */
+        .main { flex: 1; padding: 60px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        .lock-card { width: 100%; max-width: 550px; background: var(--card); padding: 40px; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .status-header { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 0.85rem; color: #888; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
         
-        input { width: 100%; padding: 14px; margin: 10px 0 20px 0; background: var(--dark); border: 1px solid var(--border); color: white; border-radius: 10px; }
-        .btn-action { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; font-size: 1rem; }
-        .btn-action:hover { opacity: 0.9; }
+        h1 { margin-top: 0; font-size: 1.8rem; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--primary); }
+        input { width: 100%; padding: 14px; margin-bottom: 25px; background: #000; border: 1px solid var(--border); color: white; border-radius: 10px; font-size: 1rem; box-sizing: border-box; }
+        .btn-lock { width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 1.1rem; transition: 0.2s; }
+        .btn-lock:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 138, 0, 0.4); }
 
-        table { width: 100%; margin-top: 40px; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background: #1c2029; font-size: 0.8rem; text-transform: uppercase; color: var(--primary); }
+        /* Table Area */
+        .table-container { width: 100%; max-width: 900px; margin-top: 50px; }
+        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 15px; overflow: hidden; }
+        th, td { padding: 18px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #1c2029; color: var(--primary); font-size: 0.8rem; text-transform: uppercase; }
+        .btn-withdraw { padding: 8px 16px; background: transparent; border: 1px solid var(--primary); color: var(--primary); border-radius: 6px; cursor: pointer; }
+        .btn-withdraw:disabled { border-color: #444; color: #444; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>MedorCoin Hub</h2>
+        <h2>MEDOR LOCKS</h2>
         <a onclick="setMode('liquidity')" id="m-liquidity" class="active">💧 Liquidity Lock</a>
         <a onclick="setMode('token')" id="m-token">🪙 Token Lock</a>
-        <a onclick="m-nft" onclick="setMode('nft')" id="m-nft">🖼️ NFT Safe</a>
-        <a onclick="setMode('asset')" id="m-asset">📦 Asset Lock</a>
-        <a href="vesting.html">⏳ Vesting Schedules</a>
-        <hr style="opacity:0.1; margin:20px 0;">
-        <a href="more.html">🏠 Back to Dashboard</a>
+        <a onclick="setMode('nft')" id="m-nft">🖼️ NFT Safe</a>
+        <a onclick="setMode('vesting')" id="m-vesting">⏳ Token Vesting</a>
+        <div style="margin-top: auto;">
+            <hr style="opacity:0.1; margin-bottom: 20px;">
+            <a href="more.html">🏠 Back to Dashboard</a>
+        </div>
     </div>
 
     <div class="main">
-        <!-- Initial Connect Button -->
-        <div id="connect-screen" style="text-align:center; padding-top:100px;">
-            <h1>Locker Service</h1>
-            <p>Connect your wallet to start securing your assets.</p>
-            <button class="btn-action" onclick="connect()" style="max-width:260px;">Connect Wallet</button>
+        <!-- Connect Section -->
+        <div id="connect-screen" style="text-align:center; margin-top: 10vh;">
+            <h1>Institutional Grade Security</h1>
+            <p style="color:#888; margin-bottom: 30px;">Connect your DeFi wallet to access the MedorCoin locking engine.</p>
+            <button class="btn-lock" onclick="connectWallet()" style="max-width:300px;">Connect Wallet</button>
         </div>
 
-        <!-- Dynamic Form -->
-        <div id="ui-screen" style="display:none;">
-            <div class="lock-container">
-                <div class="info-header">
-                    <span>Wallet: <b id="wa">...</b></span>
-                    <span>Service Fee: <b id="fe">0.00</b> ETH</span>
+        <!-- Working UI -->
+        <div id="ui-screen" style="display:none; width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="lock-card">
+                <div class="status-header">
+                    <span>Wallet: <b id="wallet-addr">...</b></span>
+                    <span>Service Fee: <b id="fee-val">45.00</b> USD</span>
                 </div>
 
-                <h1 id="title-text">Liquidity Locker</h1>
+                <h1 id="mode-title">Liquidity Locker</h1>
                 
-                <label>Contract Address</label>
-                <input type="text" id="tk" placeholder="0x...">
+                <label id="addr-label">Contract / Pair Address</label>
+                <input type="text" id="target-address" placeholder="0x...">
                 
-                <label id="label-amount">Amount to Lock</label>
-                <input type="number" id="am" placeholder="0.0">
+                <label id="amount-label">Amount to Lock</label>
+                <input type="number" id="target-amount" placeholder="0.0">
                 
-                <label>Unlock Date</label>
-                <input type="datetime-local" id="dt">
+                <label>Unlock Date & Time</label>
+                <input type="datetime-local" id="target-date">
 
-                <button class="btn-action" id="lk-btn" onclick="executeLock()">Confirm & Create Lock</button>
+                <button class="btn-lock" id="action-btn" onclick="handleLock()">Initialize Secure Lock</button>
             </div>
 
-            <h2>Your Locked Assets</h2>
-            <table>
-                <thead>
-                    <tr><th>ID</th><th>Asset</th><th>Amount</th><th>Status</th><th>Action</th></tr>
-                </thead>
-                <tbody id="list-body"></tbody>
-            </table>
+            <div class="table-container">
+                <h3>Active Managed Locks</h3>
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>Asset</th><th>Amount</th><th>Status</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="locks-tbody">
+                        <tr><td colspan="5" style="text-align:center; color:#555;">No records found</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
-        // REPLACE WITH YOUR ACTUAL CONTRACT ADDRESS
-        const LOCKER_ADDR = "0xYourDeployedContractAddress"; 
-        
+        // MUST BE UPDATED WITH YOUR CONTRACT ADDRESS
+        const CONTRACT_ADDRESS = "0xYourDeployedContractAddress"; 
+
         const LOCKER_ABI = [
             "function flatFee() view returns (uint256)",
             "function nextLockId() view returns (uint256)",
@@ -95,100 +106,102 @@
             "function createLock(address t, uint256 a, uint256 u, bool n) external payable returns (uint256)",
             "function withdraw(uint256 i) external"
         ];
-        const TOKEN_ABI = ["function approve(address s, uint256 a) public returns (bool)", "function decimals() view returns (uint8)"];
+        const ERC20_ABI = ["function approve(address s, uint256 a) public returns (bool)", "function decimals() view returns (uint8)"];
 
         let signer, contract, currentMode = 'liquidity';
 
-        // 1. DYNAMIC UI SWITCHER
+        // 1. URL Mode Detection (Allows more.html to open specific sections)
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialMode = urlParams.get('mode');
+        if(initialMode) setTimeout(() => setMode(initialMode), 100);
+
         function setMode(mode) {
             currentMode = mode;
             document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-            document.getElementById('m-' + mode).classList.add('active');
+            const activeLink = document.getElementById('m-' + mode);
+            if(activeLink) activeLink.classList.add('active');
             
-            const titles = { 
-                liquidity: "Liquidity Locker", 
-                token: "Standard Token Lock", 
-                nft: "NFT Safe Deposit", 
-                asset: "Digital Asset Lock" 
+            const config = {
+                liquidity: ["Liquidity Locker", "LP Pair Address", "Amount to Lock"],
+                token: ["Standard Token Lock", "Token Address", "Amount to Lock"],
+                nft: ["NFT Safe Deposit", "NFT Contract Address", "Token ID"],
+                vesting: ["Token Vesting Schedule", "Token Address", "Total Vesting Amount"]
             };
-            document.getElementById('title-text').innerText = titles[mode];
-            document.getElementById('label-amount').innerText = (mode === 'nft') ? "NFT Token ID" : "Amount to Lock";
+            
+            document.getElementById('mode-title').innerText = config[mode][0];
+            document.getElementById('addr-label').innerText = config[mode][1];
+            document.getElementById('amount-label').innerText = config[mode][2];
         }
 
-        // 2. BLOCKCHAIN CONNECTION
-        async function connect() {
-            if (!window.ethereum) return alert("MetaMask required");
+        // 2. Core Logic
+        async function connectWallet() {
+            if (!window.ethereum) return alert("MetaMask not found!");
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             await provider.send("eth_requestAccounts", []);
             signer = provider.getSigner();
-            contract = new ethers.Contract(LOCKER_ADDR, LOCKER_ABI, signer);
+            contract = new ethers.Contract(CONTRACT_ADDRESS, LOCKER_ABI, signer);
             
-            document.getElementById('wa').innerText = (await signer.getAddress()).slice(0,6) + "...";
-            document.getElementById('ui-screen').style.display = 'block';
+            document.getElementById('wallet-addr').innerText = (await signer.getAddress()).slice(0,6) + "...";
+            document.getElementById('ui-screen').style.display = 'flex';
             document.getElementById('connect-screen').style.display = 'none';
             
-            const fee = await contract.flatFee();
-            document.getElementById('fe').innerText = ethers.utils.formatEther(fee);
-            loadLocks();
+            loadExistingLocks();
         }
 
-        // 3. EXECUTE LOCK (REAL TRANSACTION)
-        async function executeLock() {
-            const token = document.getElementById('tk').value;
-            const amount = document.getElementById('am').value;
-            const date = Math.floor(new Date(document.getElementById('dt').value).getTime() / 1000);
+        async function handleLock() {
+            const addr = document.getElementById('target-address').value;
+            const val = document.getElementById('target-amount').value;
+            const unixDate = Math.floor(new Date(document.getElementById('target-date').value).getTime() / 1000);
             const fee = await contract.flatFee();
 
             try {
                 if(currentMode !== 'nft') {
-                    const tokenContract = new ethers.Contract(token, TOKEN_ABI, signer);
-                    const dec = await tokenContract.decimals();
-                    const parsedAmount = ethers.utils.parseUnits(amount, dec);
+                    const tokenC = new ethers.Contract(addr, ERC20_ABI, signer);
+                    const dec = await tokenC.decimals();
+                    const amount = ethers.utils.parseUnits(val, dec);
                     
-                    // Approval Step
-                    const approveTx = await tokenContract.approve(LOCKER_ADDR, parsedAmount);
-                    await approveTx.wait();
+                    document.getElementById('action-btn').innerText = "Approving Token...";
+                    await (await tokenC.approve(CONTRACT_ADDRESS, amount)).wait();
                     
-                    // Lock Step
-                    await (await contract.createLock(token, parsedAmount, date, false, {value: fee})).wait();
+                    document.getElementById('action-btn').innerText = "Confirming Lock...";
+                    await (await contract.createLock(addr, amount, unixDate, false, {value: fee})).wait();
                 } else {
-                    // NFT Lock Step (uses Token ID directly)
-                    await (await contract.createLock(token, amount, date, true, {value: fee})).wait();
+                    await (await contract.createLock(addr, val, unixDate, true, {value: fee})).wait();
                 }
-                alert("Lock successful!");
-                loadLocks();
-            } catch (err) { alert("Error: " + err.message); }
+                alert("Success! Asset Secured.");
+                loadExistingLocks();
+            } catch (err) { 
+                alert("Transaction Failed: " + err.message); 
+            } finally {
+                document.getElementById('action-btn').innerText = "Initialize Secure Lock";
+            }
         }
 
-        // 4. LOAD ACTIVE LOCKS
-        async function loadLocks() {
-            const list = document.getElementById('list-body');
-            list.innerHTML = "<tr><td colspan='5'>Loading your locks...</td></tr>";
-            const max = await contract.nextLockId();
+        async function loadExistingLocks() {
+            const tbody = document.getElementById('locks-tbody');
+            tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Syncing...</td></tr>";
+            const count = await contract.nextLockId();
             const me = await signer.getAddress();
-            let html = "";
+            let rows = "";
 
-            for(let i=0; i<max; i++) {
+            for(let i=0; i<count; i++) {
                 const l = await contract.locks(i);
                 if(l.owner === me && l.active) {
-                    const unlocked = Date.now()/1000 > l.unlockTime.toNumber();
-                    html += `<tr>
+                    const isReady = Date.now()/1000 > l.unlockTime.toNumber();
+                    rows += `<tr>
                         <td>#${i}</td>
-                        <td>${l.token.slice(0,10)}...</td>
+                        <td>${l.token.slice(0,8)}...</td>
                         <td>${ethers.utils.formatUnits(l.amountOrId, 18)}</td>
-                        <td>${unlocked ? '🔓 Ready' : '🔒 Locked'}</td>
-                        <td><button onclick="withdraw(${i})" ${!unlocked ? 'disabled':''}>Withdraw</button></td>
+                        <td>${isReady ? '✅ Unlocked' : '🔒 Locked'}</td>
+                        <td><button class="btn-withdraw" onclick="withdrawAsset(${i})" ${!isReady ? 'disabled':''}>Withdraw</button></td>
                     </tr>`;
                 }
             }
-            list.innerHTML = html || "<tr><td colspan='5'>No locks found.</td></tr>";
+            tbody.innerHTML = rows || "<tr><td colspan='5' style='text-align:center;'>No active locks found.</td></tr>";
         }
 
-        async function withdraw(id) {
-            try {
-                await (await contract.withdraw(id)).wait();
-                loadLocks();
-            } catch (err) { alert(err.message); }
+        async function withdrawAsset(id) {
+            try { await (await contract.withdraw(id)).wait(); loadExistingLocks(); } catch (err) { alert(err.message); }
         }
     </script>
 </body>
