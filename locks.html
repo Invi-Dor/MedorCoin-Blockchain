@@ -1,159 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MedorCoin Locking Services</title>
-  <meta name="description" content="MedorCoin home portal."/>
-  <style>
-    :root{--bg:#0f172a;--ink:#e5e7eb;--muted:#94a3b8;--border:#334155;--success:#10b981}
-    {box-sizing:border-box}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#e2e8f0}
-    a{color:inherit;text-decoration:none}
-    .container{max-width:980px;margin:0 auto;padding:12px}
-    .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .space{justify-content:space-between}
-    .logo{display:flex;align-items:center;gap:10px}
-    .logo img{height:36px;width:36px;border-radius:10px;object-fit:cover;border:1px solid #334155}
-    .brand{font-weight:800;font-size:18px}
-    .wallet-status{position:fixed;top:10px;right:10px;background:var(--success);color:white;padding:8px 12px;border-radius:20px;font-size:12px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(16,185,129,0.3);display:none}
-    .searchbar{display:flex;align-items:center;gap:8px;background:#111827;border:1px solid var(--border);border-radius:999px;padding:10px 12px;margin-top:12px}
-    .searchbar input{border:0;outline:0;flex:1;font-size:14px;color:#e5e7eb;background:transparent}
-    .pill{font-size:12px;background:#1e293b;color:#e5e7eb;border:1px solid #334155;border-radius:999px;padding:4px 8px}
-    .tabs{display:flex;gap:10px;overflow:auto;padding:10px 0;margin-top:8px}
-    .tab{display:flex;align-items:center;gap:6px;background:#1f2937;border:1px solid var(--border);color:#e2e8f0;border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
-    /* New blocks grid (2 columns x 3 rows) */
-    .blocks-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin:16px 0 8px 0; }
-    .tile{ background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;min-height:110px;display:flex;flex-direction:column;gap:6px;justify-content:center;color:#111;text-decoration:none}
-    .tile strong{font-size:15px}
-    .muted{color:#555;font-size:12px}
-    .icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center}
-    .lightgold{ background:#fff3c4; color:#000; border:1px solid #d7b44a; }
-    .full-span{ grid-column: span 2; }
-    /* Ensure white blocks for all tiles other than explicit exceptions */
-    .tile{ background:#fff; color:#111; }
-    /* About section styling (below blocks) */
-    .about{ margin: 28px auto; padding: 0 12px; max-width: 980px; }
-    .about h3{ margin: 0 0 8px; }
-    .columns{ display:grid; grid-template-columns:1fr 1fr; gap:28px; }
-    .columns ul{ padding-left:0; margin:0; list-style:none; }
-    .columns li{ margin:8px 0; }
-    /* Footer note styling remains default in existing theme */
-  </style>
+    <meta charset="UTF-8">
+    <title>MedorCoin Service Hub</title>
+    <script src="https://jsdelivr.net"></script>
+    <!-- CSS link here -->
 </head>
 <body>
-<!-- WALLET STATUS - NEW -->
-<div id="walletStatus" class="wallet-status"></div>
+    <div id="app">
+        <button id="cn">Connect Wallet</button>
+        <div id="ui" style="display:none;">
+            <p>Wallet: <span id="wa"></span> | Fee: <span id="fe"></span></p>
+            
+            <div id="form">
+                <input type="text" id="tk" placeholder="Token Address">
+                <input type="number" id="am" placeholder="Amount / ID">
+                <input type="datetime-local" id="dt">
+                <label><input type="checkbox" id="nf"> NFT</label>
+                <button id="lk">Lock Asset</button>
+            </div>
 
-<div class="container">
-  <!-- HEADER: logo + brand on left, actions on right (no changes to other content) -->
-  <div class="row space" style="background:linear-gradient(135deg,#1f3a8a 0%,#1e40af 100%);color:white;padding:12px 16px;border-radius:14px;margin-bottom:14px;align-items:center;">
-    <div class="logo" aria-label="MedorCoin Logo and Brand" style="display:flex;align-items:center;gap:12px;">
-      <img src="assets/logo.svg" alt="MedorCoin Logo" height="36" style="width:36px;height:36px;border-radius:10px;object-fit:cover;border:1px solid #e8e1c7;">
-      <span class="brand" style="font-weight:800;font-size:18px;">MedorCoin</span>
+            <table border="1" style="margin-top:20px;">
+                <thead>
+                    <tr><th>ID</th><th>Token</th><th>Amount</th><th>Unlock</th><th>Action</th></tr>
+                </thead>
+                <tbody id="ls"></tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- RIGHT-SIDE LINKS ON ONE LINE -->
-    <div style="font-size:12px;display:flex;gap:12px;align-items:center;">
-      <a href="create-wallet.html" style="color:white;text-decoration:none;">Create Wallet</a> |
-      <a href="connect-wallet.html" style="color:white;text-decoration:none;">Connect Wallet</a> |
-      <a href="signup.html" style="color:white;text-decoration:none;">SignUp</a> |
-      <a href="login.html" style="color:white;text-decoration:none;">Login</a>
-    </div>
-  </div>
+    <script>
+        // Configuration - Do not expose source paths
+        const ADDR = "0xYourDeployedContractAddress"; 
+        const ABI = [
+            "function flatFee() view returns (uint256)",
+            "function nextLockId() view returns (uint256)",
+            "function locks(uint256) view returns (address owner, address token, uint256 amountOrId, uint256 startTime, uint256 unlockTime, uint256 amountWithdrawn, bool isNFT, bool isVesting, bool active)",
+            "function createLock(address t, uint256 a, uint256 u, bool n) external payable returns (uint256)",
+            "function withdraw(uint256 i) external"
+        ];
+        const E_ABI = ["function approve(address s, uint256 a) public returns (bool)", "function decimals() view returns (uint8)"];
 
-  <div class="searchbar" aria-label="Site search">
-    <span style="opacity:.7">🔎</span>
-    <input id="q" placeholder="Search"/>
-    <span class="pill">AI</span>
-  </div>
+        let s, h;
 
-  <div class="tabs" aria-label="Main sections">
-    <a class="tab" href="index.html">🏠 HomePage</a>
-    <a class="tab" href="miners.html">⛏️ Miners</a>
-    <a class="tab" href="developers.html">👩‍💻 Developers</a>
-    <a class="tab" href="trading.html">📈 Crypto Trading</a>
-  </div>
+        document.getElementById('cn').onclick = async () => {
+            const p = new ethers.providers.Web3Provider(window.ethereum);
+            await p.send("eth_requestAccounts", []);
+            s = p.getSigner();
+            h = new ethers.Contract(ADDR, ABI, s);
+            
+            document.getElementById('wa').innerText = await s.getAddress();
+            document.getElementById('ui').style.display = 'block';
+            document.getElementById('cn').style.display = 'none';
+            
+            const f = await h.flatFee();
+            document.getElementById('fe').innerText = ethers.utils.formatEther(f);
+            load();
+        };
 
-  <!-- BLOCKS GRID (2x3) -->
-  <section class="blocks-grid" aria-label="Locks and contracts grid" >
-    <!-- Row 1 -->
-    <a class="tile" href="buy-sell-medorcoin.html" aria-label="Buy Locks">
-      <div class="icon" aria-hidden="true" style="background:#e5e7eb;border:1px solid #ddd;">🛒</div>
-      <strong>Buy Locks</strong>
-      <span class="muted">Purchase & secure your tokens</span>
-    </a>
+        document.getElementById('lk').onclick = async () => {
+            const t = document.getElementById('tk').value;
+            const v = document.getElementById('am').value;
+            const d = Math.floor(new Date(document.getElementById('dt').value).getTime() / 1000);
+            const n = document.getElementById('nf').checked;
+            const f = await h.flatFee();
 
-    <a class="tile lightgold" href="lock-user-guide.html" target="_blank" rel="noopener" aria-label="Lock Your Liquidity">
-      <div class="icon" aria-hidden="true" style="background:#fff;border:1px solid #ddd;">💧</div>
-      <strong>Lock Your Liquidity</strong>
-      <span class="muted">Lock liquidity to protect investors</span>
-    </a>
+            try {
+                if(!n) {
+                    const e = new ethers.Contract(t, E_ABI, s);
+                    const dec = await e.decimals();
+                    const a = ethers.utils.parseUnits(v, dec);
+                    await (await e.approve(ADDR, a)).wait();
+                    await (await h.createLock(t, a, d, n, {value: f})).wait();
+                } else {
+                    await (await h.createLock(t, v, d, n, {value: f})).wait();
+                }
+                load();
+            } catch (err) { alert(err.message); }
+        };
 
-    <!-- Row 2 -->
-    <a class="tile" href="investing.html" aria-label="Vesting">
-      <div class="icon" aria-hidden="true" style="background:#f3f4f6;border:1px solid #ddd;">🗓️</div>
-      <strong>Vesting</strong>
-      <span class="muted">Schedules & cliffs</span>
-    </a>
+        async function load() {
+            const b = document.getElementById('ls');
+            b.innerHTML = "Syncing...";
+            const max = await h.nextLockId();
+            const me = await s.getAddress();
+            let htm = "";
 
-    <a class="tile" href="https://medorcoin.org/contracts.html" target="_blank" rel="noopener" aria-label="Contracts">
-      <div class="icon" aria-hidden="true" style="background:#e2e8f0;border:1px solid #ddd;">📜</div>
-      <strong>Contracts</strong>
-      <span class="muted">Audits & addresses</span>
-    </a>
+            for(let i=0; i<max; i++) {
+                const l = await h.locks(i);
+                if(l.owner === me && l.active) {
+                    const r = Date.now()/1000 > l.unlockTime.toNumber();
+                    htm += `<tr>
+                        <td>${i}</td>
+                        <td>${l.token.slice(0,6)}</td>
+                        <td>${ethers.utils.formatUnits(l.amountOrId, 18)}</td>
+                        <td>${new Date(l.unlockTime*1000).toLocaleString()}</td>
+                        <td><button onclick="wd(${i})" ${!r?'disabled':''}>Withdraw</button></td>
+                    </tr>`;
+                }
+            }
+            b.innerHTML = htm || "No locks found.";
+        }
 
-    <!-- Row 3 -->
-    <a class="tile" href="investing.html" aria-label="Vesting (repeat)">
-      <div class="icon" aria-hidden="true" style="background:#f3f4f6;border:1px solid #ddd;">🗓️</div>
-      <strong>Vesting</strong>
-      <span class="muted">Schedules & cliffs</span>
-    </a>
-
-    <a class="tile" href="security.html" aria-label="Security">
-      <div class="icon" aria-hidden="true" style="background:#e5f5ff;border:1px solid #ddd;">🔒</div>
-      <strong>Security</strong>
-      <span class="muted">Safeguards & compliance</span>
-    </a>
-  </section>
-
-  <!-- How Locks Work (full-width block) -->
-  <section class="how-locks" aria-label="How Locks Work" style="margin:8px 0 8px 0;">
-    <a class="tile full-span" href="lock-user-guide.html" target="_blank" rel="noopener" style="display:flex;align-items:center;">
-      <div class="icon" aria-hidden="true" style="width:28px;height:28px;background:#eef2ff;border-radius:6px;margin-right:8px;display:inline-flex;align-items:center;justify-content:center;">🧭</div>
-      <div style="display:flex;flex-direction:column;">
-        <strong>How Locks Work</strong>
-        <span class="muted" style="font-size:12px;margin-top:2px;">
-          Locks govern token release, access control, and liquidity. Click to learn more.
-        </span>
-      </div>
-    </a>
-  </section>
-
-  <!-- About MedorCoin (with Compliance moved here) -->
-  <section class="about" aria-label="About MedorCoin" style="margin-top:16px;">
-    <h2 style="margin:0 0 8px 2px;">About MedorCoin</h2>
-    <div class="columns" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
-      <ul>
-        <li><a href="institutions.html">For Institutions</a></li>
-        <li><a href="investors.html">For Investors</a></li>
-        <li><a href="medorcoin-core.html">MedorCoin Core</a></li>
-      </ul>
-      <ul>
-        <li><a href="compliance.html">Compliance</a></li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- Footer / Branding remains as before -->
-  <footer class="footer" style="text-align:center;margin-top:40px;padding:12px 0;border-top:1px solid var(--border);color:#9eadb2;">
-    <div>© MedorCoin 2026</div>
-    <p style="font-size:12px;margin:6px 0 0 0;">
-      Trade responsibly. The crypto world is volatile; you are responsible for your own decisions on this platform. MedorCoin and its partners/employees are not liable for any decisions. You must be 18+ years old to use this platform.
-    </p>
-  </footer>
-</div>
+        window.wd = async (id) => {
+            try {
+                await (await h.withdraw(id)).wait();
+                load();
+            } catch (err) { alert(err.message); }
+        };
+    </script>
 </body>
 </html>
-
