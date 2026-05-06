@@ -246,6 +246,32 @@
     Trade responsibly. The crypto world is volatile; you are responsible for your own decisions on this platform. MedorCoin and its partners/employees are not liable for any decisions. You must be 18+ years old to use this platform.
   </p>
 </footer>
+<!-- THE ENGINE: Copy this right before </body> -->
+<script src="https://jsdelivr.net"></script>
+<script>
+  // Replace this with your actual stable RPC URL
+  const RPC_URL = "http://172.235.50.31:3000"; 
+  const web3 = new Web3(new Web3.providers.HttpProvider(RPC_URL));
+
+  async function connectBlockchain() {
+    const statusEl = document.getElementById('walletStatus');
+    try {
+      // Test the connection
+      const block = await web3.eth.getBlockNumber();
+      statusEl.innerText = "🟢 MedorCoin Active: Block #" + block;
+      statusEl.style.display = "block";
+      console.log("Wiring Successful!");
+    } catch (err) {
+      statusEl.innerText = "🔴 Connection Error";
+      statusEl.style.display = "block";
+      console.error("Backend wiring failed:", err);
+    }
+  }
+
+  // Run the connection check when the page loads
+  window.onload = connectBlockchain;
+</script>
+
 </body>
 </html>
 
