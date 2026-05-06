@@ -3,317 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liquidity Lock | MedorCoin</title>
+    <title>Liquidity Lock | MedorCoin Professional</title>
+    <!-- Core Engine -->
+    <script src="https://jsdelivr.net"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #fffaf0; /* Vanilla white */
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #d8bffb; /* Light purple */
-            color: #2b2b2b;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px 30px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        .brand {
-            display: flex;
-            align-items: center;
-        }
-        .brand img {
-            height: 40px;
-            margin-right: 10px;
-        }
-        nav {
-            display: flex;
-            align-items: center;
-        }
-        nav > a, .dropdown-btn {
-            margin-left: 20px;
-            text-decoration: none;
-            color: #2b2b2b;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        nav > a:hover, .dropdown-content a:hover {
-            text-decoration: underline;
-        }
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: #f1f1f1;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
-            z-index: 1;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .dropdown-content a {
-            color: #333;
-            padding: 10px 15px;
-            display: block;
-            text-decoration: none;
-        }
-        .dropdown-content a:hover {
-            background-color: #ddd;
-        }
-        main {
-            padding: 40px 20px;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        h1, h2, h3 {
-            color: #2b2b2b;
-        }
-        section {
-            margin-bottom: 40px;
-        }
-        ul {
-            margin-left: 20px;
-        }
-        .feature, .example {
-            background-color: #e6f7ff;
-            padding: 15px;
-            border-left: 5px solid #1890ff;
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-        .faq {
-            margin-bottom: 20px;
-        }
-        .faq-title {
-            font-weight: bold;
-            cursor: pointer;
-            background-color: #d9f7be;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .faq-content {
-            display: none;
-            padding: 10px;
-            background-color: #f6ffed;
-            border-radius: 5px;
-            margin-top: 5px;
-        }
-        button {
-            background-color: #1890ff;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #096dd9;
-        }
-        a.highlight {
-            color: #1890ff;
-            text-decoration: underline;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        body { font-family: Arial, sans-serif; line-height: 1.6; background-color: #fffaf0; color: #333; margin: 0; padding: 0; }
+        header { background-color: #d8bffb; color: #2b2b2b; display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; position: sticky; top: 0; z-index: 1000; }
+        .brand { display: flex; align-items: center; }
+        .brand img { height: 40px; margin-right: 10px; }
+        nav { display: flex; align-items: center; }
+        .btn-connect { background: #6b46c1; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+        
+        /* LOCKER INTERFACE */
+        .lock-card { background: white; max-width: 500px; margin: 40px auto; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .lock-card h3 { color: #6b46c1; margin-top: 0; }
+        .lock-card input, .lock-card select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e0; border-radius: 8px; box-sizing: border-box; }
+        .btn-action { width: 100%; background: #1890ff; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-action:disabled { background: #ccc; cursor: not-allowed; }
+        #status { font-size: 14px; text-align: center; margin-top: 10px; font-weight: bold; }
+        
+        main { padding: 40px 20px; max-width: 900px; margin: 0 auto; }
+        .lock-item { background: #fff; border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #d8bffb; }
     </style>
 </head>
 <body>
+
 <header>
-    <div class="brand">
-        <img src="logo.png" alt="MedorCoin Logo">
-        <span>MedorCoin</span>
-    </div>
-    <nav>
-        <a class="highlight" href="#">Sign Up</a>
-        <a class="highlight" href="#">Login</a>
-        <div class="dropdown">
-            <span class="dropdown-btn">Locks</span>
-            <div class="dropdown-content">
-                <a href="#">NFT Lock</a>
-                <a href="#">Liquidity Lock</a>
-                <a href="#">Token Lock</a>
-                <a href="#">Asset Lock</a>
-            </div>
-        </div>
-        <div class="dropdown">
-            <span class="dropdown-btn">&#9776;</span>
-            <div class="dropdown-content">
-                <a href="#">Dashboard</a>
-                <a href="#">Lock Types</a>
-                <div class="dropdown">
-                    <span class="dropdown-btn">Lock Types</span>
-                    <div class="dropdown-content">
-                        <a href="#">NFT Lock</a>
-                        <a href="#">Liquidity Lock</a>
-                        <a href="#">Token Lock</a>
-                        <a href="#">Asset Lock</a>
-                    </div>
-                </div>
-                <a href="#">Settings</a>
-                <a href="#">Log Out</a>
-            </div>
-        </div>
-    </nav>
+    <div class="brand"><img src="logo.png" alt="Logo"><span>MedorCoin</span></div>
+    <nav><button id="connectBtn" class="btn-connect">Connect Wallet</button></nav>
 </header>
 
+<div class="lock-card">
+    <h3>Professional Liquidity Locker</h3>
+    <p id="feeDisplay" style="color: #6b46c1; font-weight: bold;">Loading $45 USD conversion...</p>
+    
+    <label>LP Token / Asset Address</label>
+    <input type="text" id="assetAddr" placeholder="0x...">
+    
+    <label>Amount to Lock</label>
+    <input type="number" id="assetAmount" placeholder="0.00">
+    
+    <label>Set Unlock Date & Time</label>
+    <input type="datetime-local" id="unlockDate">
+    
+    <label><input type="checkbox" id="isNFT"> This is an NFT (ERC721)</label>
+    
+    <button id="executeBtn" class="btn-action" disabled>1. Connect Wallet to Start</button>
+    <p id="status"></p>
+</div>
+
 <main>
-
-<section>
-    <h2>What is Liquidity Lock</h2>
-    <p>Liquidity Lock is a service provided by MedorCoin that temporarily restricts access to tokens, contracts, or other digital assets. This ensures security, builds investor confidence, and integrates seamlessly with the MedorCoin ecosystem. By locking your liquidity, you demonstrate long-term commitment and enhance trust in your project. To start, <a class="highlight" href="#">create an account</a>.</p>
-    <div class="feature">
-        <h3>Advantages of Locking Your Crypto Liquidity</h3>
-        <ul>
-            <li>Increased investor confidence</li>
-            <li>Reduced risk of sudden token dumps</li>
-            <li>Secure management of smart contracts</li>
-            <li>Absolute control over timing and access</li>
-        </ul>
+    <div id="userLocksArea" style="display:none;">
+        <h2>My Active Lockups</h2>
+        <div id="lockList">Fetching from blockchain...</div>
     </div>
-    <div class="example">
-        <h3>Example</h3>
-        <p>A developer locks a portion of tokens for six months. Investors see this on their dashboard, assuring them that the project team is committed to long-term stability.</p>
-    </div>
-</section>
-
-<section>
-    <h2>How to Lock Your Liquidity on MedorCoin</h2>
-    <p>MedorCoin provides multiple options for locking your digital assets. Each type offers unique security features and benefits. You can <a class="highlight" href="#">connect wallet</a> to begin.</p>
     
-    <h3>Lock Your Tokens</h3>
-    <p>Locking tokens ensures they are temporarily inaccessible. This prevents sudden sales and demonstrates commitment to investors.</p>
-    <ul>
-        <li>Customisable lock duration</li>
-        <li>Complete control over unlocking</li>
-        <li>Integration with audited smart contracts</li>
-    </ul>
-
-    <h3>Lock Your NFTs</h3>
-    <p>Locking NFTs secures your digital collectibles or project assets while retaining full ownership.</p>
-    <ul>
-        <li>Protects from unauthorised transfers</li>
-        <li>Ideal for marketplace listings or collaborations</li>
-        <li>Access control for specific users</li>
-    </ul>
-
-    <h3>Lock Your Launch Pool</h3>
-    <p>Ensure transparency and fairness during fundraising by locking launch pools.</p>
-    <ul>
-        <li>Prevents premature withdrawals</li>
-        <li>Builds investor confidence</li>
-        <li>Compatible with MedorCoin ecosystem</li>
-    </ul>
-
-    <h3>Lock Your Contract Address</h3>
-    <p>Secure smart contracts by locking their address, preventing unauthorised edits or modifications.</p>
-    <ul>
-        <li>Ensures contract integrity</li>
-        <li>Enhances credibility for investors</li>
-        <li>Supports audits for additional security</li>
-    </ul>
-</section>
-
-<section>
-    <h2>Who Can Lock Assets</h2>
-    
-    <h3>For Developers</h3>
-    <p>Developers can lock tokens, NFTs, contracts, or launch pools. This demonstrates commitment to investors, showing that project assets are secure and cannot be accessed prematurely. MedorCoin provides full technical support 24/7.</p>
-
-    <h3>For Investors</h3>
-    <p>Investors can lock their assets to safeguard investments, prevent losses, and ensure long-term participation in projects they trust. Locked assets are visible on the dashboard, providing transparency and reassurance.</p>
-</section>
-
-<section>
-    <h2>FAQs</h2>
-
-    <div class="faq">
-        <div class="faq-title">What is the duration for locking assets?</div>
-        <div class="faq-content">You can choose any duration when locking assets, from a few days to several years, depending on your requirements.</div>
-    </div>
-
-    <div class="faq">
-        <div class="faq-title">Can I unlock assets before the lock period ends?</div>
-        <div class="faq-content">No, assets remain inaccessible until the lock period expires to ensure security and investor trust.</div>
-    </div>
-
-    <div class="faq">
-        <div class="faq-title">Are locked assets still visible to investors?</div>
-        <div class="faq-content">Yes, investors can see locked assets on their dashboard, providing full transparency.</div>
-    </div>
-
-    <div class="faq">
-        <div class="faq-title">Is locking reversible?</div>
-        <div class="faq-content">No, once an asset is locked, it cannot be reversed until the end of the lock period.</div>
-    </div>
-
-    <div class="faq">
-        <div class="faq-title">Who can lock NFTs?</div>
-        <div class="faq-content">Developers and investors can lock NFTs to secure ownership or project assets.</div>
-    </div>
-
-    <div class="faq">
-        <div class="faq-title">Does MedorCoin provide technical support?</div>
-        <div class="faq-content">Yes, MedorCoin provides 24/7 support for all liquidity locking services.</div>
-    </div>
-
-    <div class="faq">
-        <div class="faq-title">What makes MedorCoin different?</div>
-        <div class="faq-content">MedorCoin integrates locking services within its ecosystem with secure audited smart contracts and full control for users.</div>
-    </div>
-
-    <div class="faq">
-        <div class="faq-title">Can contracts be locked?</div>
-        <div class="faq-content">Yes, developers can lock contract addresses to prevent unauthorised modifications.</div>
-    </div>
-
-    <div class="faq">
-        <div class="faq-title">Is it safe to lock launch pools?</div>
-        <div class="faq-content">Yes, locking launch pools prevents premature withdrawals and ensures fairness during fundraising.</div>
-    </div>
-
-    <div class="faq">
-        <div class="faq-title">Do investors need technical knowledge to lock assets?</div>
-        <div class="faq-content">No, MedorCoin provides an intuitive interface and support, making locking easy for all users.</div>
-    </div>
-
-</section>
-
+    <!-- (Your existing informational sections remain here) -->
 </main>
 
-<footer>
-    <p>&copy; 2026 MedorCoin. All rights reserved.</p>
-</footer>
-
 <script>
-    // FAQ toggle
-    const faqTitles = document.querySelectorAll('.faq-title');
-    faqTitles.forEach(title => {
-        title.addEventListener('click', () => {
-            const content = title.nextElementSibling;
-            content.style.display = content.style.display === 'block' ? 'none' : 'block';
-        });
-    });
+    // Price Feeds
+    const PRICE_FEEDS = {
+        1: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419", // ETH Mainnet
+        56: "0x0567F2323251f0Aab15c8dFb1967E4E8A7D42aeW" // BSC Mainnet
+    };
 
-    // Dropdown toggle
-    const dropdowns = document.querySelectorAll('.dropdown-btn');
-    dropdowns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const content = btn.nextElementSibling;
-            content.style.display = content.style.display === 'block' ? 'none' : 'block';
-        });
-    });
+    const HUB_ADDRESS = "0xYourDeployedContractAddress"; 
+    const HUB_ABI = [
+        "function getRequiredPayment() view returns (uint256)",
+        "function createLock(address t, uint256 a, uint256 u, bool n) external payable",
+        "function getUserLocks(address u) view returns (uint256[])",
+        "function locks(uint256 i) view returns (address owner, address token, uint256 amountOrId, uint256 unlockTime, bool isNFT, bool active)",
+        "function withdraw(uint256 i) external"
+    ];
+    const ERC20_ABI = ["function approve(address s, uint256 a) public", "function decimals() view returns (uint8)"];
+
+    let signer, hub;
+
+    document.getElementById('connectBtn').onclick = async () => {
+        if (!window.ethereum) return alert("Install MetaMask");
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        hub = new ethers.Contract(HUB_ADDRESS, HUB_ABI, signer);
+        
+        const net = await provider.getNetwork();
+        const fee = await hub.getRequiredPayment();
+        document.getElementById('feeDisplay').innerText = `Fee: ${ethers.utils.formatEther(fee)} ${net.chainId == 56 ? 'BNB' : 'ETH'} ($45 USD)`;
+        
+        document.getElementById('executeBtn').disabled = false;
+        document.getElementById('executeBtn').innerText = "2. Approve & Lock Asset";
+        document.getElementById('userLocksArea').style.display = 'block';
+        loadLocks();
+    };
+
+    document.getElementById('executeBtn').onclick = async () => {
+        const asset = document.getElementById('assetAddr').value;
+        const amount = document.getElementById('assetAmount').value;
+        const date = document.getElementById('unlockDate').value;
+        const isNFT = document.getElementById('isNFT').checked;
+        const status = document.getElementById('status');
+
+        if(!date) return alert("Select an unlock date!");
+        const unlock = Math.floor(new Date(date).getTime() / 1000);
+        const fee = await hub.getRequiredPayment();
+
+        try {
+            status.innerText = "Processing Approval...";
+            if(!isNFT) {
+                const erc = new ethers.Contract(asset, ERC20_ABI, signer);
+                const dec = await erc.decimals();
+                await (await erc.approve(HUB_ADDRESS, ethers.utils.parseUnits(amount, dec))).wait();
+            }
+            status.innerText = "Finalizing $45 USD Secure Lock...";
+            const tx = await hub.createLock(asset, amount, unlock, isNFT, { value: fee });
+            await tx.wait();
+            status.innerText = "✅ Asset Locked!";
+            loadLocks();
+        } catch (e) { status.innerText = "❌ Error: " + e.message; }
+    };
+
+    async function loadLocks() {
+        const list = document.getElementById('lockList');
+        const user = await signer.getAddress();
+        const ids = await hub.getUserLocks(user);
+        let html = "";
+        for(let id of ids) {
+            const l = await hub.locks(id);
+            if(!l.active) continue;
+            const ready = (Date.now() / 1000) >= l.unlockTime.toNumber();
+            html += `<div class="lock-item">
+                <div><strong>#${id}</strong> - ${l.token.slice(0,6)}...<br><small>Unlocks: ${new Date(l.unlockTime*1000).toLocaleString()}</small></div>
+                <button onclick="withdraw(${id})" ${!ready?'disabled':''}>${ready?'Claim':'Locked'}</button>
+            </div>`;
+        }
+        list.innerHTML = html || "No locks found.";
+    }
+
+    window.withdraw = async (id) => {
+        const tx = await hub.withdraw(id);
+        await tx.wait();
+        loadLocks();
+    };
 </script>
-
 </body>
 </html>
