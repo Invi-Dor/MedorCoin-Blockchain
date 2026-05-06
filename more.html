@@ -1,153 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>MedorCoin — Our Services</title>
-<meta name="description" content="Access MedorCoin tools, courses, and resources. Navigate seamlessly across sign-up, account, mining, trading, and documentation pages."/>
-<style>
-  :root{
-    --bg:#0f1013;         /* dark background (base) */
-    --bg-elev:#15171b;
-    --ink:#f1f5f9;
-    --muted:#a3a3a3;
-    --border:#232630;
-    --accent:#ff8a00;
-    --accent-2:#ffb84d;
-    --accent-3:#ffd199;
-    --pill:#1c2029;
-  }
- *{box-sizing:border-box}
-  html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink);background:var(--bg)}
-  a{text-decoration:none;color:inherit}
-  header{text-align:center;padding:14px 0;font-weight:800;font-size:22px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;padding:12px}
-  .card{background:var(--bg-elev);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center;transition:transform .2s;display:flex;flex-direction:column;align-items:center;gap:8px}
-  .card:hover{transform:scale(1.05)}
-  .icon-img{width:48px;height:48px;border-radius:12px;object-fit:cover}
-  .label{font-weight:700;font-size:14px;text-align:center;color:var(--ink)}
-  .resources h3 { color: var(--accent); margin-bottom: 10px; }
-  .resources ul { list-style: none; padding: 0 !important; }
-  .resources li { margin-bottom: 8px; }
-  .resources a { color: var(--muted); transition: 0.2s; }
-  .resources a:hover { color: var(--ink); }
-</style>
+    <meta charset="UTF-8">
+    <title>MedorCoin - Professional Locker</title>
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        :root { --accent: #ff8a00; --bg: #0f1013; --card: #15171b; --text: #f1f5f9; --border: #232630; }
+        body { margin: 0; display: flex; background: var(--bg); color: var(--text); font-family: sans-serif; }
+        .sidebar { width: 240px; background: #000; height: 100vh; padding: 20px; border-right: 1px solid var(--border); position: fixed; }
+        .sidebar a { display: block; color: #a3a3a3; padding: 12px; text-decoration: none; border-radius: 8px; cursor: pointer; }
+        .sidebar a.active { background: var(--card); color: var(--accent); border-left: 4px solid var(--accent); }
+        .main { margin-left: 240px; padding: 40px; width: 100%; }
+        .container { max-width: 500px; background: var(--card); padding: 30px; border-radius: 16px; border: 1px solid var(--border); }
+        input { width: 100%; padding: 12px; margin: 10px 0 20px; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 8px; }
+        button { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; }
+    </style>
 </head>
 <body>
-<header>What We Do</header>
-<div class="grid">
-  <!-- Sign Up -->
-  <a class="card" href="signup.html" style="background:#87CEEB;color:#1f1f1f;border-radius:16px;">
-    <img src="assets/icons/signup.png" class="icon-img" alt="Sign Up">
-    <div class="label">Sign Up</div>
-  </a>
-
-  <!-- Login -->
-  <a class="card" href="login.html" style="background:#ADD8E6;color:#1f1f1f;border-radius:16px;">
-    <img src="assets/icons/login.png" class="icon-img" alt="Login">
-    <div class="label">Login</div>
-  </a> 
-
-  <!-- My Account -->
-  <a class="card" href="account.html" style="background:#BDE7FF;color:#1f1f1f;border-radius:16px;">
-    <img src="assets/icons/account.png" class="icon-img" alt="My Account">
-    <div class="label">My Account</div>
-  </a>
-
-  <!-- Blockchain -->
-  <a class="card" href="blockchain.html" style="background:#87CEEB;color:#333;border-radius:16px;">
-    <img src="assets/icons/blockchain.png" class="icon-img" alt="Blockchain">
-    <div class="label">Blockchain</div>
-  </a>
-
-  <!-- Rent/Buy API -->
-  <a class="card" href="combined_api_portal.html" style="background:#87CEEB;color:#1f1f1f;border-radius:14px;">
-      <div style="font-size:32px;">🔗</div>
-      <div class="label">Rent/Buy API</div>
-  </a>
-
-  <!-- Cloud Mining -->
-  <a class="card" href="miners.html" style="background:#FFD6A3;color:#333;border-radius:16px;">
-    <img src="assets/icons/miners.png" class="icon-img" alt="Miners">
-    <div class="label">For Miners</div>
-  </a>
-
-  <!-- Courses -->
-  <a class="card" href="learn.html" style="background:#0B3D91;color:#fff;border-radius:16px;">
-    <img src="assets/icons/learn.png" class="icon-img" alt="Learn">
-    <div class="label">Courses</div>
-  </a>
-
-   <!-- For Developers -->
-  <a class="card" href="developers.html" style="background:#87CEFA;color:#333;border-radius:16px;">
-    <img src="assets/icons/developers.png" class="icon-img" alt="Developers">
-    <div class="label">For Developers</div>
-  </a>
-
-  <!-- Create Wallet -->
-  <a class="card" href="create-wallet.html" style="background:#FFD6A3;color:#333;border-radius:16px;">
-    <svg class="icon-img" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="18" width="52" height="28" rx="6" fill="#8B5E3C"/><rect x="8" y="22" width="36" height="20" rx="4" fill="#D2A97E"/></svg>
-    <div class="label">Create Wallet</div>
-  </a>
-
-  <!-- Connect Wallet -->
-  <a class="card" href="connect-wallet.html" style="background:#FFD6A3;color:#333;border-radius:16px;">
-    <svg class="icon-img" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="18" width="52" height="28" rx="6" fill="#111"/><rect x="10" y="24" width="14" height="12" rx="2" fill="#3B82F6"/></svg>
-    <div class="label">Connect Wallet</div>
-  </a>
-
-  <!-- DYNAMIC LOCKS MASTER LINK -->
-  <a class="card" href="locks.html" style="background:#1F3A8A;color:#fff;border-radius:16px;">
-    <img src="assets/icons/locks.png" class="icon-img" alt="Buy Locks">
-    <div class="label">Lock Your Assets</div>
-  </a>
-
-  <!-- VESTING SCHEDULES -->
-  <a class="card" href="vesting.html" style="background:#2f2f2f;color:#FDE68A;border-radius:16px;">
-    <div style="font-size:32px;">⏳</div>
-    <div class="label">Token Vesting</div>
-  </a>
-
-  <!-- New Coin Listing -->
-  <a class="card" href="new-listing.html" style="background:#FFD6A3;color:#333;border-radius:16px;">
-    <img src="assets/icons/new-listings.png" class="icon-img" alt="New Listing">
-    <div class="label">New Listing</div>
-  </a>
-
-  <!-- Documentation -->
-  <a class="card" href="docs.html" style="background:var(--bg-elev);border-radius:16px;">
-    <img src="assets/icons/books.png" class="icon-img" alt="Documentation">
-    <div class="label">Documentation</div>
-  </a>
-</div>
-
-<section class="resources" style="padding:20px 12px;">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
-    <div class="col">
-      <h3>General</h3>
-      <ul>
-        <li><a href="beware-of-scams.html">Beware of Scams</a></li>
-        <li><a href="buy-sell-medorcoin.html">Buy & Sell</a></li>
-        <li><a href="invisible-m-blog.html">Blog</a></li>
-        <li><a href="legal.html">Legal</a></li>
-      </ul>
+    <div class="sidebar">
+        <h2 style="color:var(--accent)">MEDOR LOCKS</h2>
+        <a onclick="setMode('liquidity')" id="m-liquidity" class="active">💧 Liquidity Lock</a>
+        <a onclick="setMode('token')" id="m-token">🪙 Token Lock</a>
+        <a onclick="setMode('nft')" id="m-nft">🖼️ NFT Safe</a>
+        <a href="vesting.html">⏳ Vesting</a>
     </div>
-    <div class="col">
-      <h3>Introduction</h3>
-      <ul>
-        <li><a href="about-medorcoin.html">About MedorCoin</a></li>
-        <li><a href="how-it-works.html">How it Works</a></li>
-        <li><a href="white-paper.html">White Paper</a></li>
-      </ul>
+    <div class="main">
+        <div id="conn-box"><button onclick="connect()">Connect Wallet</button></div>
+        <div id="ui-box" style="display:none" class="container">
+            <h1 id="title">Liquidity Lock</h1>
+            <p>Flat Service Fee: <b id="fee-display">...</b> ETH</p>
+            <input type="text" id="tkAddr" placeholder="Contract Address">
+            <input type="number" id="amt" placeholder="Amount">
+            <input type="datetime-local" id="date">
+            <button onclick="doLock()">Execute Lock</button>
+        </div>
     </div>
-  </div>
-</section>
+    <script>
+        const CONTRACT_ADDR = "0xYourLockerContractAddress"; // PASTE YOUR CONTRACT ADDRESS HERE
+        let signer, contract, mode = 'liquidity';
 
-<footer style="text-align:center;margin-top:40px;padding:20px;border-top:1px solid var(--border);color:var(--muted);">
-  <div>© MedorCoin 2026</div>
-  <p style="font-size:12px;margin-top:10px;">
-    Trade responsibly. 18+ only. This is not financial advice.
-  </p>
-</footer>
+        function setMode(m) {
+            mode = m; document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            document.getElementById('m-'+m).classList.add('active');
+            document.getElementById('title').innerText = m.charAt(0).toUpperCase() + m.slice(1) + " Lock";
+        }
+
+        async function connect() {
+            const p = new ethers.providers.Web3Provider(window.ethereum);
+            await p.send("eth_requestAccounts", []);
+            signer = p.getSigner();
+            contract = new ethers.Contract(CONTRACT_ADDR, [
+                "function flatFee() view returns (uint256)",
+                "function createLock(address t, uint256 a, uint256 u, bool n) external payable"
+            ], signer);
+            document.getElementById('ui-box').style.display = 'block';
+            document.getElementById('conn-box').style.display = 'none';
+            const fee = await contract.flatFee();
+            document.getElementById('fee-display').innerText = ethers.utils.formatEther(fee);
+        }
+
+        async function doLock() {
+            const fee = await contract.flatFee();
+            const tx = await contract.createLock(
+                document.getElementById('tkAddr').value,
+                ethers.utils.parseEther(document.getElementById('amt').value),
+                Math.floor(new Date(document.getElementById('date').value).getTime() / 1000),
+                mode === 'nft',
+                { value: fee }
+            );
+            await tx.wait(); alert("Locked!");
+        }
+    </script>
 </body>
 </html>
