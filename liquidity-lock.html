@@ -1,0 +1,23 @@
+<!-- File Name: liquidity-lock.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>MedorCoin - Liquidity Lock</title>
+    <!-- Add your standard CSS links here -->
+</head>
+<body>
+    <h1>Liquidity Locker</h1>
+    <p>Secure your project's future by locking liquidity tokens.</p>
+    
+    <div id="lock-form">
+        <input type="text" id="tokenAddress" placeholder="LP Token Address">
+        <input type="number" id="amount" placeholder="Amount to Lock">
+        <input type="datetime-local" id="unlockDate" placeholder="Unlock Date">
+        <p>Service Fee: <strong>$45 (Flat)</strong></p>
+        <button onclick="executeLock('Liquidity')">Create Liquidity Lock</button>
+    </div>
+
+    <script src="https://jsdelivr.net"></script>
+    <script src="js/lock-logic.js"></script>
+</body>
+</html>
