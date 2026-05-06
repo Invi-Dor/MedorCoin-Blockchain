@@ -1,0 +1,7 @@
+name = "medorcoin-backend"
+main = "node.cjs"
+compatibility_date = "2024-04-01"
+
+[vars]
+# Do not put actual secrets here; add them in the Cloudflare Dashboard later
+NODE_VERSION = "20"
