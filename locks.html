@@ -37,6 +37,7 @@
         <a onclick="setMode('token')" id="m-token">🪙 Token Lock</a>
         <a onclick="setMode('nft')" id="m-nft">🖼️ NFT Lock</a>
         <a onclick="setMode('asset')" id="m-asset">📦 Asset Lock</a>
+        <!-- CHANGED FROM INVESTING TO VESTING -->
         <a onclick="setMode('vesting')" id="m-vesting">⏳ Vesting</a>
         <hr style="opacity:0.1; margin: 20px 0;">
         <a href="index.html">🏠 Back to Home</a>
@@ -85,7 +86,7 @@
     </div>
 
     <script>
-        const ADDR = "0xYourDeployedContractAddress"; // Update this
+        const ADDR = "0xYourDeployedContractAddress"; // YOUR ACTUAL CONTRACT ADDRESS
         const ABI = [
             "function flatFee() view returns (uint256)",
             "function nextLockId() view returns (uint256)",
@@ -102,7 +103,13 @@
             document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
             document.getElementById('m-' + m).classList.add('active');
             
-            const titles = { liquidity: "Liquidity Locker", token: "Token Locker", nft: "NFT Safe", asset: "Asset Locker", vesting: "Vesting Schedule" };
+            const titles = { 
+                liquidity: "Liquidity Locker", 
+                token: "Token Locker", 
+                nft: "NFT Safe", 
+                asset: "Asset Locker", 
+                vesting: "Vesting Schedule" // LABELED VESTING
+            };
             document.getElementById('display-title').innerText = titles[m];
             
             document.getElementById('nft-box').style.display = (m === 'nft') ? 'block' : 'none';
