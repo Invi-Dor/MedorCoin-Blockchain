@@ -2,25 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MedorCoin Service Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedorCoin - Professional Locks</title>
     <script src="https://jsdelivr.net"></script>
-    <!-- CSS link here -->
+    <style>
+        :root { --primary: #007bff; --dark: #121212; --light: #f8f9fa; }
+        body { font-family: 'Inter', sans-serif; margin: 0; display: flex; background: var(--light); }
+        
+        /* Sidebar Navigation */
+        .sidebar { width: 260px; background: var(--dark); height: 100vh; color: white; padding: 20px; position: fixed; }
+        .sidebar h2 { color: var(--primary); font-size: 1.2rem; margin-bottom: 30px; }
+        .sidebar a { display: block; color: #aaa; text-decoration: none; padding: 12px; border-radius: 6px; margin-bottom: 5px; cursor: pointer; }
+        .sidebar a:hover, .sidebar a.active { background: #252525; color: white; }
+        .sidebar a.active { border-left: 4px solid var(--primary); }
+
+        /* Main Interface */
+        .main { margin-left: 260px; padding: 40px; width: 100%; }
+        .container { max-width: 800px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header-info { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+        
+        input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 1px solid #ddd; border-radius: 6px; }
+        .btn-main { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
+        table { width: 100%; margin-top: 30px; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        .status-badge { background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <button id="cn">Connect Wallet</button>
-        <div id="ui" style="display:none;">
-            <p>Wallet: <span id="wa"></span> | Fee: <span id="fe"></span></p>
-            
-            <div id="form">
-                <input type="text" id="tk" placeholder="Token Address">
-                <input type="number" id="am" placeholder="Amount / ID">
+
+    <div class="sidebar">
+        <h2>MedorCoin Locks</h2>
+        <a onclick="setMode('liquidity')" id="m-liquidity" class="active">💧 Liquidity Lock</a>
+        <a onclick="setMode('token')" id="m-token">🪙 Token Lock</a>
+        <a onclick="setMode('nft')" id="m-nft">🖼️ NFT Lock</a>
+        <a onclick="setMode('asset')" id="m-asset">📦 Asset Lock</a>
+        <a onclick="setMode('vesting')" id="m-vesting">⏳ Vesting</a>
+        <hr style="opacity:0.1; margin: 20px 0;">
+        <a href="index.html">🏠 Back to Home</a>
+    </div>
+
+    <div class="main">
+        <div id="connect-screen">
+            <h1>Secure Your Assets</h1>
+            <p>Connect your wallet to manage your locks and vesting schedules.</p>
+            <button class="btn-main" onclick="connect()" style="max-width: 250px;">Connect Wallet</button>
+        </div>
+
+        <div id="ui-screen" style="display:none;">
+            <div class="container">
+                <div class="header-info">
+                    <span>Wallet: <b id="wa">...</b></span>
+                    <span>Flat Fee: <b id="fe">0.00</b> ETH</span>
+                </div>
+
+                <h1 id="display-title">Liquidity Locker</h1>
+                
+                <label>Token / Pair Address</label>
+                <input type="text" id="tk" placeholder="0x...">
+                
+                <label id="amt-label">Amount to Lock</label>
+                <input type="number" id="am" placeholder="0.0">
+                
+                <label>Unlock Date</label>
                 <input type="datetime-local" id="dt">
-                <label><input type="checkbox" id="nf"> NFT</label>
-                <button id="lk">Lock Asset</button>
+
+                <div id="nft-box" style="display:none; margin-bottom:15px;">
+                    <label><input type="checkbox" id="nf"> This is an NFT (ERC-721)</label>
+                </div>
+
+                <button class="btn-main" id="lk" onclick="processLock()">Create Lock Now</button>
             </div>
 
-            <table border="1" style="margin-top:20px;">
+            <h2>Active Locks</h2>
+            <table>
                 <thead>
                     <tr><th>ID</th><th>Token</th><th>Amount</th><th>Unlock</th><th>Action</th></tr>
                 </thead>
@@ -30,8 +85,7 @@
     </div>
 
     <script>
-        // Configuration - Do not expose source paths
-        const ADDR = "0xYourDeployedContractAddress"; 
+        const ADDR = "0xYourDeployedContractAddress"; // Update this
         const ABI = [
             "function flatFee() view returns (uint256)",
             "function nextLockId() view returns (uint256)",
@@ -41,43 +95,55 @@
         ];
         const E_ABI = ["function approve(address s, uint256 a) public returns (bool)", "function decimals() view returns (uint8)"];
 
-        let s, h;
+        let s, h, currentMode = 'liquidity';
 
-        document.getElementById('cn').onclick = async () => {
+        function setMode(m) {
+            currentMode = m;
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            document.getElementById('m-' + m).classList.add('active');
+            
+            const titles = { liquidity: "Liquidity Locker", token: "Token Locker", nft: "NFT Safe", asset: "Asset Locker", vesting: "Vesting Schedule" };
+            document.getElementById('display-title').innerText = titles[m];
+            
+            document.getElementById('nft-box').style.display = (m === 'nft') ? 'block' : 'none';
+            document.getElementById('amt-label').innerText = (m === 'nft') ? "NFT Token ID" : "Amount to Lock";
+        }
+
+        async function connect() {
             const p = new ethers.providers.Web3Provider(window.ethereum);
             await p.send("eth_requestAccounts", []);
             s = p.getSigner();
             h = new ethers.Contract(ADDR, ABI, s);
             
-            document.getElementById('wa').innerText = await s.getAddress();
-            document.getElementById('ui').style.display = 'block';
-            document.getElementById('cn').style.display = 'none';
+            document.getElementById('wa').innerText = (await s.getAddress()).slice(0,6) + "...";
+            document.getElementById('ui-screen').style.display = 'block';
+            document.getElementById('connect-screen').style.display = 'none';
             
             const f = await h.flatFee();
             document.getElementById('fe').innerText = ethers.utils.formatEther(f);
             load();
-        };
+        }
 
-        document.getElementById('lk').onclick = async () => {
+        async function processLock() {
             const t = document.getElementById('tk').value;
             const v = document.getElementById('am').value;
             const d = Math.floor(new Date(document.getElementById('dt').value).getTime() / 1000);
-            const n = document.getElementById('nf').checked;
+            const isNFT = currentMode === 'nft' || document.getElementById('nf').checked;
             const f = await h.flatFee();
 
             try {
-                if(!n) {
+                if(!isNFT) {
                     const e = new ethers.Contract(t, E_ABI, s);
                     const dec = await e.decimals();
                     const a = ethers.utils.parseUnits(v, dec);
                     await (await e.approve(ADDR, a)).wait();
-                    await (await h.createLock(t, a, d, n, {value: f})).wait();
+                    await (await h.createLock(t, a, d, false, {value: f})).wait();
                 } else {
-                    await (await h.createLock(t, v, d, n, {value: f})).wait();
+                    await (await h.createLock(t, v, d, true, {value: f})).wait();
                 }
                 load();
             } catch (err) { alert(err.message); }
-        };
+        }
 
         async function load() {
             const b = document.getElementById('ls');
@@ -89,24 +155,21 @@
             for(let i=0; i<max; i++) {
                 const l = await h.locks(i);
                 if(l.owner === me && l.active) {
-                    const r = Date.now()/1000 > l.unlockTime.toNumber();
+                    const ready = Date.now()/1000 > l.unlockTime.toNumber();
                     htm += `<tr>
-                        <td>${i}</td>
-                        <td>${l.token.slice(0,6)}</td>
+                        <td>#${i}</td>
+                        <td><span class="status-badge">${l.token.slice(0,6)}...</span></td>
                         <td>${ethers.utils.formatUnits(l.amountOrId, 18)}</td>
-                        <td>${new Date(l.unlockTime*1000).toLocaleString()}</td>
-                        <td><button onclick="wd(${i})" ${!r?'disabled':''}>Withdraw</button></td>
+                        <td>${new Date(l.unlockTime*1000).toLocaleDateString()}</td>
+                        <td><button onclick="wd(${i})" ${!ready?'disabled':''}>Withdraw</button></td>
                     </tr>`;
                 }
             }
-            b.innerHTML = htm || "No locks found.";
+            b.innerHTML = htm || "No active locks found.";
         }
 
         window.wd = async (id) => {
-            try {
-                await (await h.withdraw(id)).wait();
-                load();
-            } catch (err) { alert(err.message); }
+            try { await (await h.withdraw(id)).wait(); load(); } catch (err) { alert(err.message); }
         };
     </script>
 </body>
