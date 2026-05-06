@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MedorCoin - Token Lock</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style> .container { display: flex; } .sidebar { width: 250px; background: #f4f4f4; padding: 20px; height: 100vh; } .sidebar a { display: block; padding: 10px; text-decoration: none; color: #333; border-bottom: 1px solid #ddd; } .main-content { flex: 1; padding: 40px; } button { padding: 15px 30px; background: #28a745; color: white; border: none; } </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h3>Medor Locks</h3>
+            <a href="liquidity-lock.html">💧 Liquidity Lock</a>
+            <a href="token-lock.html" style="background:#ddd;">🪙 Token Lock</a>
+            <a href="nft-lock.html">🖼️ NFT Lock</a>
+            <a href="asset-lock.html">📦 Asset Lock</a>
+            <a href="investing-deluxe.html">💎 Investing Deluxe</a>
+        </div>
+        <div class="main-content">
+            <h1>Standard Token Locker</h1>
+            <p>Secure your project tokens. Fee: <strong>$45.00</strong></p>
+            <input type="text" id="tokenAddress" placeholder="Token Contract Address">
+            <input type="number" id="amount" placeholder="Amount" style="margin-top:10px; width:100%; padding:10px;">
+            <input type="datetime-local" id="unlockDate" style="margin-top:10px; width:100%; padding:10px;">
+            <br><br>
+            <button onclick="executeLock('Token')">Lock Tokens</button>
+        </div>
+    </div>
+    <script src="https://jsdelivr.net"></script>
+    <script src="js/lock-logic.js"></script>
+</body>
+</html>
