@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MedorCoin - Token Vesting</title>
+    <style>
+        .container { display: flex; font-family: Arial; }
+        .sidebar { width: 250px; background: #1a1a1a; color: white; padding: 20px; height: 100vh; }
+        .sidebar a { display: block; padding: 12px; color: #fff; text-decoration: none; border-radius: 5px; margin-bottom: 5px; }
+        .sidebar a:hover { background: #333; }
+        .active { background: #007bff !important; }
+        .main-content { flex: 1; padding: 40px; background: #f9f9f9; }
+        .lock-box { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Medor Locks</h2>
+            <a href="liquidity-lock.html">💧 Liquidity Lock</a>
+            <a href="token-lock.html">🪙 Token Lock</a>
+            <a href="nft-lock.html">🖼️ NFT Lock</a>
+            <a href="asset-lock.html">📦 Asset Lock</a>
+            <a href="vesting.html" class="active">⏳ Token Vesting</a>
+        </div>
+        <div class="main-content">
+            <div class="lock-box">
+                <h1>Token Vesting Schedule</h1>
+                <p>Distribute tokens gradually to your team. <strong>Fee: $45.00</strong></p>
+                
+                <div class="input-group">
+                    <label>Token Contract Address</label>
+                    <input type="text" id="tokenAddress" placeholder="0x...">
+                </div>
+                <div class="input-group">
+                    <label>Total Amount to Vest</label>
+                    <input type="number" id="amount" placeholder="0.0">
+                </div>
+                <div class="input-group">
+                    <label>Final Release Date</label>
+                    <input type="datetime-local" id="unlockDate">
+                </div>
+                
+                <button onclick="executeLock('Vesting')">Create Vesting Schedule</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://jsdelivr.net"></script>
+    <script src="js/lock-logic.js"></script>
+</body>
+</html>
