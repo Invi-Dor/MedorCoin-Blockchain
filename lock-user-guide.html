@@ -4,71 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Liquidity Lock | MedorCoin Professional</title>
-    <!-- Core Engine -->
     <script src="https://jsdelivr.net"></script>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; background-color: #fffaf0; color: #333; margin: 0; padding: 0; }
-        header { background-color: #d8bffb; color: #2b2b2b; display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; position: sticky; top: 0; z-index: 1000; }
-        .brand { display: flex; align-items: center; }
-        .brand img { height: 40px; margin-right: 10px; }
-        nav { display: flex; align-items: center; }
-        .btn-connect { background: #6b46c1; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; background-color: #fffaf0; color: #333; margin: 0; }
+        header { background-color: #d8bffb; color: #2b2b2b; display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .btn-connect { background: #6b46c1; color: white; border: none; padding: 10px 22px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-connect:hover { background: #553c9a; }
         
-        /* LOCKER INTERFACE */
-        .lock-card { background: white; max-width: 500px; margin: 40px auto; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
-        .lock-card h3 { color: #6b46c1; margin-top: 0; }
-        .lock-card input, .lock-card select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e0; border-radius: 8px; box-sizing: border-box; }
-        .btn-action { width: 100%; background: #1890ff; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-action:disabled { background: #ccc; cursor: not-allowed; }
-        #status { font-size: 14px; text-align: center; margin-top: 10px; font-weight: bold; }
+        .hero { background: linear-gradient(135deg, #d8bffb 0%, #f3e8ff 100%); padding: 50px 20px; text-align: center; border-bottom: 2px solid #b794f4; }
+        .locker-container { max-width: 550px; margin: -50px auto 40px; background: white; padding: 35px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .locker-container h2 { color: #6b46c1; margin-top: 0; text-align: center; }
+        
+        input, select { width: 100%; padding: 14px; margin: 12px 0; border: 1px solid #cbd5e0; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
+        .btn-lock { width: 100%; background: #1890ff; color: white; border: none; padding: 16px; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-lock:disabled { background: #cbd5e0; cursor: not-allowed; }
+        
+        #status { text-align: center; font-weight: bold; margin-top: 15px; font-size: 14px; }
+        .fee-tag { font-size: 13px; color: #1890ff; text-align: center; margin-bottom: 10px; display: block; font-weight: bold; }
         
         main { padding: 40px 20px; max-width: 900px; margin: 0 auto; }
-        .lock-item { background: #fff; border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #d8bffb; }
+        .lock-item { background: white; padding: 15px; margin: 12px 0; border-radius: 10px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #d8bffb; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="brand"><img src="logo.png" alt="Logo"><span>MedorCoin</span></div>
-    <nav><button id="connectBtn" class="btn-connect">Connect Wallet</button></nav>
+    <div style="display:flex; align-items:center;">
+        <img src="logo.png" alt="Logo" style="height:40px; margin-right:10px;">
+        <span style="font-weight:bold; font-size:1.2em;">MedorCoin</span>
+    </div>
+    <nav><button id="walletBtn" class="btn-connect">Connect Wallet</button></nav>
 </header>
 
-<div class="lock-card">
-    <h3>Professional Liquidity Locker</h3>
-    <p id="feeDisplay" style="color: #6b46c1; font-weight: bold;">Loading $45 USD conversion...</p>
+<div class="hero">
+    <h1>Permanent Liquidity Vault</h1>
+    <p>Secure your LP tokens and build absolute investor trust.</p>
+</div>
+
+<div class="locker-container">
+    <h2>Liquidity Locker</h2>
+    <span id="feeDisplay" class="fee-tag">Fee: $45 USD (Dynamic Conversion)</span>
     
-    <label>LP Token / Asset Address</label>
-    <input type="text" id="assetAddr" placeholder="0x...">
+    <input type="text" id="tokenIn" placeholder="Medor / LP Token Address">
+    <input type="number" id="amountIn" placeholder="Amount of LP to lock">
+    <input type="datetime-local" id="dateIn">
     
-    <label>Amount to Lock</label>
-    <input type="number" id="assetAmount" placeholder="0.00">
-    
-    <label>Set Unlock Date & Time</label>
-    <input type="datetime-local" id="unlockDate">
-    
-    <label><input type="checkbox" id="isNFT"> This is an NFT (ERC721)</label>
-    
-    <button id="executeBtn" class="btn-action" disabled>1. Connect Wallet to Start</button>
-    <p id="status"></p>
+    <button id="actionBtn" class="btn-lock" disabled>1. Connect Wallet to Start</button>
+    <div id="status"></div>
 </div>
 
 <main>
-    <div id="userLocksArea" style="display:none;">
-        <h2>My Active Lockups</h2>
-        <div id="lockList">Fetching from blockchain...</div>
+    <div id="locksSection" style="display:none;">
+        <h3>My Locked Liquidity</h3>
+        <div id="locksList">Loading your secure vaults...</div>
     </div>
-    
-    <!-- (Your existing informational sections remain here) -->
 </main>
 
 <script>
-    // Price Feeds
-    const PRICE_FEEDS = {
-        1: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419", // ETH Mainnet
-        56: "0x0567F2323251f0Aab15c8dFb1967E4E8A7D42aeW" // BSC Mainnet
-    };
+    const HUB_ADDR = "0xYourDeployedLockerAddress"; 
+    const ADMIN_WALLET = "0xD81e7078bEE7ad3a313a74ED171E2941b7455f1D";
+    const MEDOR_TOKEN = "0x9E2B2b7E871583D24838573177114E1567406856"; // Use your actual deployed MEDOR address
 
-    const HUB_ADDRESS = "0xYourDeployedContractAddress"; 
     const HUB_ABI = [
         "function getRequiredPayment() view returns (uint256)",
         "function createLock(address t, uint256 a, uint256 u, bool n) external payable",
@@ -80,70 +76,94 @@
 
     let signer, hub;
 
-    document.getElementById('connectBtn').onclick = async () => {
+    document.getElementById('walletBtn').onclick = async () => {
         if (!window.ethereum) return alert("Install MetaMask");
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
-        hub = new ethers.Contract(HUB_ADDRESS, HUB_ABI, signer);
+        hub = new ethers.Contract(HUB_ADDR, HUB_ABI, signer);
         
-        const net = await provider.getNetwork();
-        const fee = await hub.getRequiredPayment();
-        document.getElementById('feeDisplay').innerText = `Fee: ${ethers.utils.formatEther(fee)} ${net.chainId == 56 ? 'BNB' : 'ETH'} ($45 USD)`;
+        const addr = await signer.getAddress();
+        document.getElementById('walletBtn').innerText = addr.slice(0,6) + "..." + addr.slice(-4);
         
-        document.getElementById('executeBtn').disabled = false;
-        document.getElementById('executeBtn').innerText = "2. Approve & Lock Asset";
-        document.getElementById('userLocksArea').style.display = 'block';
-        loadLocks();
+        // Fee check for current user
+        updateFeeDisplay(addr);
+        
+        document.getElementById('actionBtn').disabled = false;
+        document.getElementById('actionBtn').innerText = "2. Approve & Lock LP";
+        document.getElementById('locksSection').style.display = 'block';
+        fetchUserLocks();
     };
 
-    document.getElementById('executeBtn').onclick = async () => {
-        const asset = document.getElementById('assetAddr').value;
-        const amount = document.getElementById('assetAmount').value;
-        const date = document.getElementById('unlockDate').value;
-        const isNFT = document.getElementById('isNFT').checked;
+    async function updateFeeDisplay(user) {
+        const tokenIn = document.getElementById('tokenIn').value;
+        const isExempt = (user.toLowerCase() === ADMIN_WALLET.toLowerCase() || tokenIn.toLowerCase() === MEDOR_TOKEN.toLowerCase());
+        
+        if (isExempt) {
+            document.getElementById('feeDisplay').innerText = "Fee Status: EXEMPT (FREE)";
+            return 0;
+        } else {
+            const fee = await hub.getRequiredPayment();
+            document.getElementById('feeDisplay').innerText = `Fee: ${ethers.utils.formatEther(fee)} Native ($45 USD)`;
+            return fee;
+        }
+    }
+
+    document.getElementById('actionBtn').onclick = async () => {
+        const token = document.getElementById('tokenIn').value;
+        const amount = document.getElementById('amountIn').value;
+        const dateStr = document.getElementById('dateIn').value;
         const status = document.getElementById('status');
 
-        if(!date) return alert("Select an unlock date!");
-        const unlock = Math.floor(new Date(date).getTime() / 1000);
-        const fee = await hub.getRequiredPayment();
+        if(!dateStr) return alert("Select an unlock date!");
+        const unlockTS = Math.floor(new Date(dateStr).getTime() / 1000);
+        
+        const user = await signer.getAddress();
+        const fee = await updateFeeDisplay(user);
 
         try {
-            status.innerText = "Processing Approval...";
-            if(!isNFT) {
-                const erc = new ethers.Contract(asset, ERC20_ABI, signer);
-                const dec = await erc.decimals();
-                await (await erc.approve(HUB_ADDRESS, ethers.utils.parseUnits(amount, dec))).wait();
-            }
-            status.innerText = "Finalizing $45 USD Secure Lock...";
-            const tx = await hub.createLock(asset, amount, unlock, isNFT, { value: fee });
+            status.innerText = "Step 1: Approving LP Tokens...";
+            status.style.color = "blue";
+            const erc = new ethers.Contract(token, ERC20_ABI, signer);
+            const dec = await erc.decimals();
+            const parsedAmt = ethers.utils.parseUnits(amount, dec);
+            
+            await (await erc.approve(HUB_ADDR, parsedAmt)).wait();
+
+            status.innerText = "Step 2: Securing Liquidity Vault...";
+            const tx = await hub.createLock(token, parsedAmt, unlockTS, false, { value: fee });
             await tx.wait();
-            status.innerText = "✅ Asset Locked!";
-            loadLocks();
-        } catch (e) { status.innerText = "❌ Error: " + e.message; }
+            
+            status.innerText = "✅ Liquidity Successfully Locked!";
+            status.style.color = "green";
+            fetchUserLocks();
+        } catch (e) {
+            status.innerText = "❌ Error: " + e.message;
+            status.style.color = "red";
+        }
     };
 
-    async function loadLocks() {
-        const list = document.getElementById('lockList');
+    async function fetchUserLocks() {
+        const list = document.getElementById('locksList');
         const user = await signer.getAddress();
         const ids = await hub.getUserLocks(user);
         let html = "";
+        
         for(let id of ids) {
             const l = await hub.locks(id);
             if(!l.active) continue;
             const ready = (Date.now() / 1000) >= l.unlockTime.toNumber();
             html += `<div class="lock-item">
-                <div><strong>#${id}</strong> - ${l.token.slice(0,6)}...<br><small>Unlocks: ${new Date(l.unlockTime*1000).toLocaleString()}</small></div>
-                <button onclick="withdraw(${id})" ${!ready?'disabled':''}>${ready?'Claim':'Locked'}</button>
+                <div><strong>ID #${id}</strong> - ${l.token.slice(0,10)}...<br><small>Unlock: ${new Date(l.unlockTime*1000).toLocaleString()}</small></div>
+                <button style="width:auto; padding:8px 15px;" onclick="claim(${id})" ${!ready?'disabled':''}>${ready?'Claim LP':'Locked'}</button>
             </div>`;
         }
-        list.innerHTML = html || "No locks found.";
+        list.innerHTML = html || "No liquidity locks found.";
     }
 
-    window.withdraw = async (id) => {
-        const tx = await hub.withdraw(id);
-        await tx.wait();
-        loadLocks();
+    window.claim = async (id) => {
+        await (await hub.withdraw(id)).wait();
+        fetchUserLocks();
     };
 </script>
 </body>
