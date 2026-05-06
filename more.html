@@ -26,6 +26,11 @@
   .card:hover{transform:scale(1.05)}
   .icon-img{width:48px;height:48px;border-radius:12px;object-fit:cover}
   .label{font-weight:700;font-size:14px;text-align:center;color:var(--ink)}
+  .resources h3 { color: var(--accent); margin-bottom: 10px; }
+  .resources ul { list-style: none; padding: 0 !important; }
+  .resources li { margin-bottom: 8px; }
+  .resources a { color: var(--muted); transition: 0.2s; }
+  .resources a:hover { color: var(--ink); }
 </style>
 </head>
 <body>
@@ -49,209 +54,99 @@
     <div class="label">My Account</div>
   </a>
 
-  <!-- Blockchain (sky blue) -->
+  <!-- Blockchain -->
   <a class="card" href="blockchain.html" style="background:#87CEEB;color:#333;border-radius:16px;">
     <img src="assets/icons/blockchain.png" class="icon-img" alt="Blockchain">
     <div class="label">Blockchain</div>
   </a>
 
-    <!-- Rent/Buy API (new, between Blockchain and Miners) -->
-  <a class="tile" href="combined_api_portal.html" style="background:#87CEEB;color:#1f1f1f;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:96px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
-      <div class="icon ic-slate" aria-hidden="true" style="font-size:20px;">🔗</div>
-      <b>Rent/Buy API</b>
-      <span class="muted" style="color:#1f1f1f;opacity:.95">API access</span>
-    </a>
+  <!-- Rent/Buy API -->
+  <a class="card" href="combined_api_portal.html" style="background:#87CEEB;color:#1f1f1f;border-radius:14px;">
+      <div style="font-size:32px;">🔗</div>
+      <div class="label">Rent/Buy API</div>
+  </a>
 
-  <!-- Coud Mining -->
+  <!-- Cloud Mining -->
   <a class="card" href="miners.html" style="background:#FFD6A3;color:#333;border-radius:16px;">
     <img src="assets/icons/miners.png" class="icon-img" alt="Miners">
     <div class="label">For Miners</div>
   </a>
 
-  <!-- Courses (dark blue bg, white text) -->
+  <!-- Courses -->
   <a class="card" href="learn.html" style="background:#0B3D91;color:#fff;border-radius:16px;">
     <img src="assets/icons/learn.png" class="icon-img" alt="Learn">
     <div class="label">Courses</div>
   </a>
 
-   <!-- For Developers (light blue) -->
+   <!-- For Developers -->
   <a class="card" href="developers.html" style="background:#87CEFA;color:#333;border-radius:16px;">
     <img src="assets/icons/developers.png" class="icon-img" alt="Developers">
     <div class="label">For Developers</div>
   </a>
 
-  <!-- Spot Trading Course (no background change) -->
-  <a class="card" href="spot-trading-course.html" style="background:var(--bg-elev);color:var(--ink);border-radius:16px;">
-    <img src="assets/icons/spot-trading.png" class="icon-img" alt="Spot Trading">
-    <div class="label">Spot Trading Course</div>
-  </a>
-
-  <!-- Futures Trading Courses (Trading Chat icon) -->
-  <a class="card" href="futures-l1.html" style="background:#2f2f2f;color:#FDE68A;border-radius:16px;">
-    <!-- Inline trading-chat candlesticks icon -->
-    <svg class="icon-img" width="48" height="48" viewBox="0 0 64 64" aria-label="Futures Courses Icon" xmlns="http://www.w3.org/2000/svg">
-      <rect x="6" y="14" width="52" height="36" rx="6" fill="#2f2f2f" stroke="#FDE68A" stroke-width="2"/>
-      <!-- simple candlesticks -->
-      <rect x="18" y="28" width="4" height="8" fill="#34d399"/>
-      <rect x="26" y="22" width="4" height="14" fill="#f87171"/>
-      <rect x="34" y="26" width="4" height="10" fill="#34d399"/>
-      <rect x="42" y="30" width="4" height="6" fill="#f87171"/>
-      <!-- speech cue -->
-      <path d="M44 46h12l-4 6H44z" fill="#FDE68A"/>
-    </svg>
-    <div class="label" style="color:#FDE68A">Futures Trading Courses</div>
-  </a>
-
-  <!-- Options Courses (Trading chat candlesticks) -->
-  <a class="card" href="options-l1.html" style="background:#2f2f2f;color:#FDE68A;border-radius:16px;">
-    <svg class="icon-img" width="48" height="48" viewBox="0 0 64 64" aria-label="Options Courses Icon" xmlns="http://www.w3.org/2000/svg">
-      <rect x="6" y="14" width="52" height="36" rx="6" fill="#2f2f2f" stroke="#FDE68A" stroke-width="2"/>
-      <rect x="18" y="28" width="6" height="8" fill="#34d399"/>
-      <rect x="30" y="22" width="6" height="14" fill="#f87171"/>
-      <rect x="42" y="26" width="6" height="10" fill="#34d399"/>
-    </svg>
-    <div class="label" style="color:#FDE68A">Options Courses</div>
-  </a>
-
-  <!-- Crypto Trading (dark grey bg, light gold text, candlesticks icon) -->
-  <a class="card" href="crypto-trading.html" style="background:#2f2f2f;color:#FDE68A;border-radius:16px;">
-    <svg class="icon-img" width="48" height="48" viewBox="0 0 64 64" aria-label="Crypto Trading Icon" xmlns="http://www.w3.org/2000/svg">
-      <rect x="6" y="14" width="52" height="36" rx="6" fill="#2f2f2f" stroke="#FDE68A" stroke-width="2"/>
-      <rect x="20" y="34" width="6" height="12" fill="#34d399"/>
-      <rect x="30" y="28" width="6" height="18" fill="#f87171"/>
-      <rect x="40" y="30" width="6" height="16" fill="#34d399"/>
-    </svg>
-    <div class="label" style="color:#FDE68A">Crypto Trading</div>
-    <span class="muted" style="color:#FDE68A">Markets & tools</span>
-  </a>
-
-  <!-- Chat Room (light purple) -->
-  <a class="card" href="chatroom.html" style="background:#E6D5FF;color:#A089FF;border-radius:16px;">
-    <img src="assets/icons/chatroom.png" class="icon-img" alt="Chat Room">
-    <div class="label" style="color:#A089FF">Chat Room</div>
-  </a>
-
-
-  <!-- Create Wallet (light orange) -->
+  <!-- Create Wallet -->
   <a class="card" href="create-wallet.html" style="background:#FFD6A3;color:#333;border-radius:16px;">
-    <!-- brown wallet icon (inline) -->
-    <svg class="icon-img" width="48" height="48" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Create Wallet Icon">
-      <rect x="6" y="18" width="52" height="28" rx="6" fill="#8B5E3C"/>
-      <rect x="8" y="22" width="36" height="20" rx="4" fill="#D2A97E"/>
-      <rect x="46" y="22" width="8" height="4" rx="2" fill="#2D1B0D"/>
-      <path d="M40 30h8" stroke="#2D1B0D" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-    <div class="label" style="color:#333">Create Wallet</div>
+    <svg class="icon-img" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="18" width="52" height="28" rx="6" fill="#8B5E3C"/><rect x="8" y="22" width="36" height="20" rx="4" fill="#D2A97E"/></svg>
+    <div class="label">Create Wallet</div>
   </a>
 
-  <!-- Connect Wallet (light orange with dark gray text) -->
+  <!-- Connect Wallet -->
   <a class="card" href="connect-wallet.html" style="background:#FFD6A3;color:#333;border-radius:16px;">
-    <!-- black wallet with money icon (inline) -->
-    <svg class="icon-img" width="48" height="48" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Connect Wallet Icon">
-      <rect x="6" y="18" width="52" height="28" rx="6" fill="#111"/>
-      <rect x="8" y="22" width="34" height="20" rx="4" fill="#111"/>
-      <rect x="10" y="24" width="14" height="12" rx="2" fill="#3B82F6"/>
-      <rect x="28" y="24" width="16" height="8" rx="2" fill="#10B981"/>
-    </svg>
-    <div class="label" style="color:#333">Connect Wallet</div>
-  </a
+    <svg class="icon-img" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="18" width="52" height="28" rx="6" fill="#111"/><rect x="10" y="24" width="14" height="12" rx="2" fill="#3B82F6"/></svg>
+    <div class="label">Connect Wallet</div>
+  </a>
 
-  <!-- Buy Locks (Locks) -->
+  <!-- DYNAMIC LOCKS MASTER LINK -->
   <a class="card" href="locks.html" style="background:#1F3A8A;color:#fff;border-radius:16px;">
     <img src="assets/icons/locks.png" class="icon-img" alt="Buy Locks">
     <div class="label">Lock Your Assets</div>
   </a>
 
-  <!-- New Coin Listing (orange) -->
+  <!-- VESTING SCHEDULES -->
+  <a class="card" href="vesting.html" style="background:#2f2f2f;color:#FDE68A;border-radius:16px;">
+    <div style="font-size:32px;">⏳</div>
+    <div class="label">Token Vesting</div>
+  </a>
+
+  <!-- New Coin Listing -->
   <a class="card" href="new-listing.html" style="background:#FFD6A3;color:#333;border-radius:16px;">
     <img src="assets/icons/new-listings.png" class="icon-img" alt="New Listing">
     <div class="label">New Listing</div>
   </a>
 
-  <!-- About Us (purple - light purple block) -->
-  <a class="card" href="what-medorcoin-does-for.html" style="background:#E6D0FF;color:#333;border-radius:16px;">
-    <img src="assets/icons/about-us.png" class="icon-img" alt="About Us">
-    <div class="label" style="color:#333">About Us</div>
-  </a>
-
-  <!-- Documentation (keep) -->
-  <a class="card" href="docs.html" style="background:var(--bg-elev);color:#FFD6A3(--ink);border-radius:16px;">
+  <!-- Documentation -->
+  <a class="card" href="docs.html" style="background:var(--bg-elev);border-radius:16px;">
     <img src="assets/icons/books.png" class="icon-img" alt="Documentation">
     <div class="label">Documentation</div>
   </a>
 </div>
-</body>
-</html>
 
-<!-- Terms & Conditions (dark blue bg, white text) -->
-  <a class="card" href="terms.html" style="background:#0A1E5A;color:#fff;border-radius:16px;">
-    <!-- simple paper icon -->
-    <svg class="icon-img" width="48" height="48" viewBox="0 0 64 64" aria-label="Terms & Conditions Icon" xmlns="http://www.w3.org/2000/svg">
-      <rect x="12" y="12" width="40" height="40" rx="6" fill="#fff" opacity="0.0"/>
-      <path d="M16 18h28v6H16z" fill="#fff"/>
-      <path d="M18 26h28" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-      <path d="M18 32h28" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-      <path d="M18 38h18" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-    <div class="label" style="color:#fff">Terms & Conditions</div>
-  </a>
-
-<!-- Two-column resources (General / Introduction, then Row 2) -->
-  <section class="resources" style="padding:20px 12px;">
-    <div class="ext-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
-      <!-- Column 1: General -->
-      <div class="col" aria-label="General">
-        <h3>General</h3>
-        <ul style="padding-left:20px;margin:6px 0 0;">
-          <li><a href="beware-of-scams.html">Beware of Scams</a></li>
-          <li><a href="buy-sell-medorcoin.html">Buy & Sell</a></li>
-          <li><a href="invisible-m-blog.html">Blog</a></li>
-          <li><a href="legal.html">Legal</a></li>
-          <li><a href="run-full-node.html">Full Node</a></li>
-          <li><a href="sponsor-us.html">Sponsor Us</a></li>
-        </ul>
-      </div>
-      <!-- Column 2: Introduction -->
-      <div class="col" aria-label="Introduction">
-        <h3>Introduction</h3>
-        <ul style="padding-left:20px;margin:6px 0 0;">
-          <li><a href="about-medorcoin.html">About MedorCoin</a></li>
-          <li><a href="how-it-works.html">How it Works</a></li>
-          <li><a href="important-to-know.html">Important to Know</a></li>
-          <li><a href="introduction.html">Introductionl</a></li>
-          <li><a href="white-paper.html">White Paper</a></li>
-        </ul>
-      </div>
+<section class="resources" style="padding:20px 12px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
+    <div class="col">
+      <h3>General</h3>
+      <ul>
+        <li><a href="beware-of-scams.html">Beware of Scams</a></li>
+        <li><a href="buy-sell-medorcoin.html">Buy & Sell</a></li>
+        <li><a href="invisible-m-blog.html">Blog</a></li>
+        <li><a href="legal.html">Legal</a></li>
+      </ul>
     </div>
-
-    <div class="ext-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:24px;">
-      <!-- Row 2 Column 1: Resources -->
-      <div class="col" aria-label="Resources">
-        <h3>Resources</h3>
-        <ul style="padding-left:20px;margin:6px 0 0;">
-          <li><a href="community.html">Community</a></li>
-          <li><a href="latest-news.html">Latest News</a></li>
-          <li><a href="resources.html">Resources</a></li>
-          <li><a href="terms-and-conditions.html">Terms & Conditions</a></li>
-        </ul>
-      </div>
-      <!-- Row 2 Column 2: About MedorCoin -->
-      <div class="col" aria-label="About MedorCoin">
-        <h3>Who is it For:</h3>
-        <ul style="padding-left:20px;margin:6px 0 0;">
-          <li><a href="institutions.html">For Institutions</a></li>
-          <li><a href="investors.html">For Investors</a></li>
-          <li><a href="medorcoin-core.html">MedorCoin Core</a></li>
-        </ul>
-      </div>
+    <div class="col">
+      <h3>Introduction</h3>
+      <ul>
+        <li><a href="about-medorcoin.html">About MedorCoin</a></li>
+        <li><a href="how-it-works.html">How it Works</a></li>
+        <li><a href="white-paper.html">White Paper</a></li>
+      </ul>
     </div>
+  </div>
+</section>
 
-
-<!-- Footer / Branding -->
-<footer class="footer" style="text-align:center;margin-top:40px;padding:12px 0;border-top:1px solid var(--border);color:#9eadb2;">
+<footer style="text-align:center;margin-top:40px;padding:20px;border-top:1px solid var(--border);color:var(--muted);">
   <div>© MedorCoin 2026</div>
-  <p style="font-size:12px;margin:6px 0 0 0;">
-    Use your APIs/trade responsibly and securely. this is not a financial advice.The crypto world is volatile; you are responsible for your own decisions on this platform. MedorCoin and its partners/employees are not liable for any decisions. You must be 18+ years old to use this platform.
+  <p style="font-size:12px;margin-top:10px;">
+    Trade responsibly. 18+ only. This is not financial advice.
   </p>
 </footer>
 </body>
