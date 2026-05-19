@@ -1,20 +1,10 @@
-import "@nomicfoundation/hardhat-ethers";
-import "@nomicfoundation/hardhat-verify";
-import "@nomicfoundation/hardhat-toolbox";
-import dotenv from "dotenv";
+require("@nomicfoundation/hardhat-ethers");
+require("@nomicfoundation/hardhat-verify");
+require("@nomicfoundation/hardhat-toolbox");
+require("dotenv").config();
 
-dotenv.config();
-
-// ... rest of your code ...
-
-export default {
-  // ... your config object ...
-};
-// Your Alchemy RPC URL
-const MAINNET_RPC = "https://bob-mainnet.g.alchemy.com/v2/kqKxHB6MaANuxIgI0ALdf"; 
-
-// Using variables from your .env file
-const SEPOLIA_RPC = process.env.SEPOLIA_RPC_URL || "https://alchemy.com";
+// Pointing directly to your own standalone network node
+const NODE_RPC = process.env.LOCAL_NODE_RPC_URL || "http://127.0.0.1:8545"; 
 const PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 module.exports = {
@@ -35,32 +25,13 @@ module.exports = {
     artifacts: "./artifacts"
   },
   networks: {
-    sepolia: {
-      url: SEPOLIA_RPC,
-      accounts: [PRIVATE_KEY],
-      chainId: 11155111,
-      timeout: 60000,
-    },
-    bob: {
-      url: MAINNET_RPC,
+    medorcoin: {
+      url: NODE_RPC,
       accounts: [PRIVATE_KEY],
       chainId: 60808, 
       gas: "auto",
       gasPrice: "auto",
       timeout: 120000,
     },
-  },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY || "",
-    customChains: [
-      {
-        network: "bob",
-        chainId: 60808,
-        urls: {
-          apiURL: "https://explorer.gobob.xyz/api",
-          browserURL: "https://explorer.gobob.xyz"
-        }
-      }
-    ]
   },
 };
