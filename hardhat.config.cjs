@@ -1,8 +1,15 @@
-require("@nomicfoundation/hardhat-ethers");
-require("@nomicfoundation/hardhat-verify");
-require("@nomicfoundation/hardhat-toolbox");
-require("dotenv").config();
+import "@nomicfoundation/hardhat-ethers";
+import "@nomicfoundation/hardhat-verify";
+import "@nomicfoundation/hardhat-toolbox";
+import dotenv from "dotenv";
 
+dotenv.config();
+
+// ... rest of your code ...
+
+export default {
+  // ... your config object ...
+};
 // Your Alchemy RPC URL
 const MAINNET_RPC = "https://bob-mainnet.g.alchemy.com/v2/kqKxHB6MaANuxIgI0ALdf"; 
 
