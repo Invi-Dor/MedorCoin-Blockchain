@@ -27,7 +27,7 @@ public:
      */
     struct Config {
         uint16_t port = 30303;
-        uint32_t chainId = 8888;
+        uint32_t chainId = 2757;
         size_t maxPayloadSize = 8 * 1024 * 1024; // 8MB DoS Protection
     };
 
