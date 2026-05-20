@@ -71,7 +71,7 @@ class Block {
     }
 
     static genesis() {
-        return new Block(1, "0".repeat(64), [{ coinbase: "Medor Genesis 8888" }], 0x1d00ffff, 0);
+        return new Block(1, "0".repeat(64), [{ coinbase: "Medor Genesis 2757" }], 0x1d00ffff, 0);
     }
 }
 
