@@ -64,7 +64,7 @@ private:
 
     void sendVersion() {
         std::vector<uint8_t> payload;
-        appendU32(payload, 8888); // Chain ID
+        appendU32(payload, 2757); // Chain ID
         appendU64(payload, uint64_t(std::time(nullptr)));
         appendU64(payload, msgHandler_->getCurrentHeight());
         send(wrapFrame(0x01, payload));
