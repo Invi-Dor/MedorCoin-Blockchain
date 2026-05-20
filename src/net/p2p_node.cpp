@@ -97,7 +97,7 @@ private:
     void handleMessage(std::shared_ptr<std::vector<uint8_t>> data) {
         try {
             auto msg = Codec::deserialize(*data);
-            if (msg.type == MsgType::VERSION && msg.chainId == 8888) {
+            if (msg.type == MsgType::VERSION && msg.chainId == 2757) {
                 authenticated_ = true;
             } else if (authenticated_) {
                 if (msg.type == MsgType::BLOCK) msgHandler_->onBlock(msg.block);
