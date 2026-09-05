@@ -1,13 +1,79 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+interface IERC20 {
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address to, uint256 value) external returns (bool);
+    function transferFrom(address from, address to, uint256 value) external returns (bool);
+}
+
+library SafeERC20 {
+    function safeTransferFrom(IERC20 token, address from, address to, uint256 value) internal {
+        (bool success, bytes memory returndata) = address(token).call(
+            abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value)
+        );
+        require(
+            success && (returndata.length == 0 || (returndata.length >= 32 && abi.decode(returndata, (bool)))),
+            "ERC20 transferFrom failed"
+        );
+    }
+
+    function safeTransfer(IERC20 token, address to, uint256 value) internal {
+        require(token.transfer(to, value), "ERC20 transfer failed");
+    }
+}
+
+interface IERC721 {
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
+}
+
+interface IERC721Receiver {
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
+        external
+        returns (bytes4);
+}
+
+abstract contract ReentrancyGuard {
+    uint256 private _status = 1;
+
+    modifier nonReentrant() {
+        require(_status == 1, "ReentrancyGuard: reentrant call");
+        _status = 2;
+        _;
+        _status = 1;
+    }
+}
+
+abstract contract Ownable {
+    address private _owner;
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    constructor() {
+        _owner = msg.sender;
+        emit OwnershipTransferred(address(0), msg.sender);
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == _owner, "Ownable: caller is not the owner");
+        _;
+    }
+
+    function owner() public view returns (address) {
+        return _owner;
+    }
+}
+
+interface AggregatorV3Interface {
+    function decimals() external view returns (uint8);
+    function latestRoundData() external view returns (
+        uint80 roundId,
+        int256 answer,
+        uint256 startedAt,
+        uint256 updatedAt,
+        uint80 answeredInRound
+    );
+}
 
 /**
  * @title MedorCoin Professional Locker
